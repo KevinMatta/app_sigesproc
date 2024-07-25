@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:intl/intl.dart';
 import 'package:sigesproc_app/auth/reestablecer.dart';
+import 'package:sigesproc_app/screens/inicio.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 // import '../services/loginservice.dart';
 
 class Login extends StatefulWidget {
@@ -178,12 +180,12 @@ class _LoginState extends State<Login> {
     //   await pref.setString('IDRegistro', response['regi_Id'].toString());
     //   await pref.setString('EsAdmin', response['usua_EsAdmin'].toString());
 
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (context) => Reestablecer(), // Replace with your menu screen
-    //     ),
-    //   );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Inicio(), 
+        ),
+      );
     // } else {
     //   setState(() {
     //     usuariooController.clear();
