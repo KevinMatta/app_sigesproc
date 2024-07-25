@@ -26,6 +26,7 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body: SafeArea(
         child: Container(
+          color: Colors.white,
           width: double.infinity,
           height: double.infinity,
           child: Stack(
@@ -76,7 +77,7 @@ class _LoginState extends State<Login> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: 90),
+                      SizedBox(height: 100),
                       Text(
                         'Inicio de sesión',
                         style: TextStyle(

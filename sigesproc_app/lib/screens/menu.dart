@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'inicio.dart';
+import 'proyectos/proyecto.dart';
+import 'fletes/flete.dart';
 
 class MenuLateral extends StatelessWidget {
   final int selectedIndex;
@@ -31,7 +34,7 @@ class MenuLateral extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Column(
-                children: List.generate(6, (index) => _crearItem(index)),
+                children: List.generate(6, (index) => _crearItem(context, index)),
               ),
             ),
           ],
@@ -40,7 +43,7 @@ class MenuLateral extends StatelessWidget {
     );
   }
 
-  Widget _crearItem(int index) {
+  Widget _crearItem(BuildContext context, int index) {
     IconData icon;
     String text;
     switch (index) {
@@ -58,7 +61,7 @@ class MenuLateral extends StatelessWidget {
         break;
       case 3:
         icon = Icons.request_quote;
-        text = 'Cotización';
+        text = 'Cotizaciones';
         break;
       case 4:
         icon = Icons.business;
@@ -88,8 +91,37 @@ class MenuLateral extends StatelessWidget {
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-        onTap: () => onItemSelected(index),
+        onTap: () {
+          onItemSelected(index);
+          Navigator.pop(context);
+          _navigateToScreen(context, index);
+        },
       ),
     );
+  }
+
+  void _navigateToScreen(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Inicio()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Proyecto()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Flete()),
+        );
+        break;
+      default:
+        break;
+    }
   }
 }
