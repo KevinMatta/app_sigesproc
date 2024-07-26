@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
-import 'package:sigesproc_app/services/fletesservice.dart';
+import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 
 class Flete extends StatefulWidget {
   @override
@@ -11,12 +12,36 @@ class Flete extends StatefulWidget {
 
 class _FleteState extends State<Flete> {
   int _selectedIndex = 2;
-  Future<List<dynamic>>? _fletesFuture;
+  Future<List<FleteEncabezadoViewModel>>? _fletesFuture;
+  TextEditingController _searchController = TextEditingController();
+  List<FleteEncabezadoViewModel> _filteredFletes = [];
 
   @override
   void initState() {
     super.initState();
-    _fletesFuture = FleteService.listarFletes();
+    _fletesFuture = FleteEncabezadoService.listarFletesEncabezado();
+    _searchController.addListener(_filterFletes);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterFletes);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterFletes() {
+    final query = _searchController.text.toLowerCase();
+    if (_fletesFuture != null) {
+      _fletesFuture!.then((fletes) {
+        setState(() {
+          _filteredFletes = fletes.where((flete) {
+            final salida = flete.salida?.toLowerCase() ?? '';
+            return salida.contains(query);
+          }).toList();
+        });
+      });
+    }
   }
 
   void _onItemTapped(int index) {
@@ -25,29 +50,29 @@ class _FleteState extends State<Flete> {
     });
   }
 
-  Widget FleteRegistro(dynamic flete) {
+  Widget FleteRegistro(FleteEncabezadoViewModel flete) {
     return ListTile(
       leading: CircleAvatar(
         child: Text(
-          flete['codigo'],
+          flete.codigo.toString(),
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Color(0xFFFFF0C6),
       ),
       title: Text(
-        flete['salida'],
+        flete.salida ?? 'N/A',
         style: TextStyle(color: Colors.white),
       ),
       subtitle: Text(
-        'Supervisor: ${flete['supervisorllegada']}',
+        'Supervisor: ${flete.supervisorLlegada ?? 'N/A'}',
         style: TextStyle(color: Colors.white70),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            flete['flen_Estado'] ? Icons.adjust : Icons.adjust,
-            color: flete['flen_Estado'] ? Colors.red : Colors.green,
+            flete.flenEstado == true ? Icons.adjust : Icons.adjust,
+            color: flete.flenEstado == true ? Colors.red : Colors.green,
           ),
           PopupMenuButton<int>(
             icon: Icon(Icons.more_vert, color: Colors.white),
@@ -139,6 +164,7 @@ class _FleteState extends State<Flete> {
                   children: [
                     Expanded(
                       child: TextField(
+                        controller: _searchController,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Buscar.....',
@@ -151,7 +177,6 @@ class _FleteState extends State<Flete> {
                     IconButton(
                       icon: Icon(Icons.filter_list, color: Colors.white54),
                       onPressed: () {
-                        // boton de filtro
                       },
                     ),
                   ],
@@ -160,7 +185,7 @@ class _FleteState extends State<Flete> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: FutureBuilder<List<dynamic>>(
+              child: FutureBuilder<List<FleteEncabezadoViewModel>>(
                 future: _fletesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -184,9 +209,9 @@ class _FleteState extends State<Flete> {
                   } else {
                     return ListView.builder(
                       padding: EdgeInsets.only(bottom: 80.0),
-                      itemCount: snapshot.data!.length,
+                      itemCount: _filteredFletes.isEmpty ? snapshot.data!.length : _filteredFletes.length,
                       itemBuilder: (context, index) {
-                        return FleteRegistro(snapshot.data![index]);
+                        return FleteRegistro(_filteredFletes.isEmpty ? snapshot.data![index] : _filteredFletes[index]);
                       },
                     );
                   }

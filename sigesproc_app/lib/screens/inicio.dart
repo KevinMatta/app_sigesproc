@@ -151,7 +151,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                         'Top 5 de proveedores',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
-                      // Aquí iría tu gráfico
                     ],
                   ),
                 ),
@@ -200,7 +199,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                         'Dashboard 2',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
-                      // Aquí iría tu gráfico
                     ],
                   ),
                 ),
@@ -220,7 +218,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                         'Dashboard 3',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
-                      // Aquí iría tu gráfico
                     ],
                   ),
                 ),
@@ -232,9 +229,10 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     );
   }
   Widget _buildProyectosTab() {
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: SingleChildScrollView(
       child: Column(
         children: [
           Row(
@@ -252,7 +250,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                             'Dashboard 1',
                             style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
-                        
                         ],
                       ),
                     ),
@@ -273,53 +270,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                             'Dashboard 2',
                             style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
-                         
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 5',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 5),
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 6',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                         
                         ],
                       ),
                     ),
@@ -344,7 +294,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                             'Dashboard 3',
                             style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
-                        
                         ],
                       ),
                     ),
@@ -365,7 +314,50 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                             'Dashboard 4',
                             style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
-                         
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Card(
+                  color: Color(0xFF171717),
+                  child: Container(
+                    height: 200,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Dashboard 5',
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 5),
+              Expanded(
+                child: Card(
+                  color: Color(0xFF171717),
+                  child: Container(
+                    height: 200,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Dashboard 6',
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
                         ],
                       ),
                     ),
@@ -376,8 +368,10 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
+
   Widget _buildBienesTab() {
     return Container(
       color: Colors.black,
@@ -442,7 +436,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                         'Dashboard 3',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
-                      // Aquí iría tu gráfico
                     ],
                   ),
                 ),
@@ -462,7 +455,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                         'Dashboard 4',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
-                      // Aquí iría tu gráfico
                     ],
                   ),
                 ),
