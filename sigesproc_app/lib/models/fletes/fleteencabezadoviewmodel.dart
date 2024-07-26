@@ -1,29 +1,29 @@
 class FleteEncabezadoViewModel {
-  final String codigo;
-  final String? usuarioCreacion;
-  final String? usuarioModificacion;
-  final String? encargado;
-  final String? supervisorLlegada;
-  final String? supervisorSalida;
-  final String? destino;
-  final String? estado;
-  final String? salida;
-  final int? flenId;
-  final DateTime? flenFechaHoraSalida;
-  final DateTime? flenFechaHoraEstablecidaDeLlegada;
-  final DateTime? flenFechaHoraLlegada;
-  final bool? flenEstado;
-  final bool? flenDestinoProyecto;
-  final int? bollId;
-  final int? boprId;
-  final int? emtrId;
-  final int? emssId;
-  final int? emslId;
-  final int? usuaCreacion;
-  final DateTime? flenFechaCreacion;
-  final int? usuaModificacion;
-  final DateTime? flenFechaModificacion;
-  final bool? flenEstadoFlete;
+   String codigo;
+   String? usuarioCreacion;
+   String? usuarioModificacion;
+   String? encargado;
+   String? supervisorLlegada;
+   String? supervisorSalida;
+   String? destino;
+   String? estado;
+   String? salida;
+   int? flenId;
+   DateTime? flenFechaHoraSalida;
+   DateTime? flenFechaHoraEstablecidaDeLlegada;
+   DateTime? flenFechaHoraLlegada;
+   bool? flenEstado;
+   bool? flenDestinoProyecto;
+   int? bollId;
+   int? boprId;
+   int? emtrId;
+   int? emssId;
+   int? emslId;
+   int? usuaCreacion;
+   DateTime? flenFechaCreacion;
+   int? usuaModificacion;
+   DateTime? flenFechaModificacion;
+   bool? flenEstadoFlete;
 
   FleteEncabezadoViewModel({
     required this.codigo,
