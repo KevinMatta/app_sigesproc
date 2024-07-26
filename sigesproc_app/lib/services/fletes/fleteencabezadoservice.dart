@@ -15,4 +15,19 @@ class FleteEncabezadoService {
       throw Exception('Error al cargar los datos');
     }
   }
+
+  static Future<bool> insertarFlete(FleteEncabezadoViewModel flete) async {
+    final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Insertar');
+    final response = await http.post(
+      url,
+      headers: ApiService.getHttpHeaders(),
+      body: jsonEncode(flete.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Error al insertar el flete');
+    }
+  }
 }

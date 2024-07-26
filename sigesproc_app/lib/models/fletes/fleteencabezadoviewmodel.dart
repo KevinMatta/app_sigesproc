@@ -1,29 +1,29 @@
 class FleteEncabezadoViewModel {
-   String codigo;
-   String? usuarioCreacion;
-   String? usuarioModificacion;
-   String? encargado;
-   String? supervisorLlegada;
-   String? supervisorSalida;
-   String? destino;
-   String? estado;
-   String? salida;
-   int? flenId;
-   DateTime? flenFechaHoraSalida;
-   DateTime? flenFechaHoraEstablecidaDeLlegada;
-   DateTime? flenFechaHoraLlegada;
-   bool? flenEstado;
-   bool? flenDestinoProyecto;
-   int? bollId;
-   int? boprId;
-   int? emtrId;
-   int? emssId;
-   int? emslId;
-   int? usuaCreacion;
-   DateTime? flenFechaCreacion;
-   int? usuaModificacion;
-   DateTime? flenFechaModificacion;
-   bool? flenEstadoFlete;
+  String codigo;
+  String? usuarioCreacion;
+  String? usuarioModificacion;
+  String? encargado;
+  String? supervisorLlegada;
+  String? supervisorSalida;
+  String? destino;
+  String? estado;
+  String? salida;
+  int? flenId;
+  DateTime? flenFechaHoraSalida;
+  DateTime? flenFechaHoraEstablecidaDeLlegada;
+  DateTime? flenFechaHoraLlegada;
+  bool? flenEstado;
+  bool? flenDestinoProyecto;
+  int? bollId;
+  int? boprId;
+  int? emtrId;
+  int? emssId;
+  int? emslId;
+  int? usuaCreacion;
+  DateTime? flenFechaCreacion;
+  int? usuaModificacion;
+  DateTime? flenFechaModificacion;
+  bool? flenEstadoFlete;
 
   FleteEncabezadoViewModel({
     required this.codigo,
@@ -81,5 +81,35 @@ class FleteEncabezadoViewModel {
       flenFechaModificacion: json['flen_FechaModificacion'] != null ? DateTime.parse(json['flen_FechaModificacion']) : null,
       flenEstadoFlete: json['flen_EstadoFlete'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'codigo': codigo,
+      'usuarioCreacion': usuarioCreacion,
+      'usuarioModificacion': usuarioModificacion,
+      'encargado': encargado,
+      'supervisorLlegada': supervisorLlegada,
+      'supervisorSalida': supervisorSalida,
+      'destino': destino,
+      'estado': estado,
+      'salida': salida,
+      'flen_Id': flenId,
+      'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
+      'flen_FechaHoraEstablecidaDeLlegada': flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
+      'flen_FechaHoraLlegada': flenFechaHoraLlegada?.toIso8601String(),
+      'flen_Estado': flenEstado,
+      'flen_DestinoProyecto': flenDestinoProyecto,
+      'boll_Id': bollId,
+      'bopr_Id': boprId,
+      'emtr_Id': emtrId,
+      'emss_Id': emssId,
+      'emsl_Id': emslId,
+      'usua_Creacion': usuaCreacion,
+      'flen_FechaCreacion': flenFechaCreacion?.toIso8601String(),
+      'usua_Modificacion': usuaModificacion,
+      'flen_FechaModificacion': flenFechaModificacion?.toIso8601String(),
+      'flen_EstadoFlete': flenEstadoFlete,
+    };
   }
 }

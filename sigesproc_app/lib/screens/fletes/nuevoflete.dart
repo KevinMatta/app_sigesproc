@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
+import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/bodegaviewmodel.dart';
@@ -30,6 +33,24 @@ class _NuevoFleteState extends State<NuevoFlete> {
   List<InsumoViewModel> insumos = [];
   List<InsumoViewModel> selectedInsumos = [];
   List<int> selectedCantidades = [];
+
+  FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
+    codigo: '',
+    flenFechaHoraSalida: null,
+    flenFechaHoraEstablecidaDeLlegada: null,
+    emtrId: null,
+    emssId: null,
+    emslId: null,
+    bollId: null,
+    boprId: null,
+    flenEstado: null,
+    flenDestinoProyecto: null,
+    usuaCreacion: null,
+    flenFechaCreacion: null,
+    usuaModificacion: null,
+    flenFechaModificacion: null,
+    flenEstadoFlete: null,
+  );
   @override
   void initState() {
     super.initState();
@@ -61,9 +82,11 @@ class _NuevoFleteState extends State<NuevoFlete> {
       print('Error al cargar las bodegas: $e');
     }
   }
+
   Future<void> _cargarProyectos() async {
     try {
-      List<ProyectoViewModel> proyectosList = await ProyectoService.listarProyectos();
+      List<ProyectoViewModel> proyectosList =
+          await ProyectoService.listarProyectos();
       setState(() {
         proyectos = proyectosList;
       });
@@ -71,6 +94,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
       print('Error al cargar los proyectos: $e');
     }
   }
+
   Future<void> _cargarInsumos() async {
     try {
       List<InsumoViewModel> insumosList = await InsumoService.listarInsumos();
@@ -101,46 +125,138 @@ class _NuevoFleteState extends State<NuevoFlete> {
           if (isSalida) {
             selectedDate = pickedDate;
             selectedTime = pickedTime;
+            flete.flenFechaHoraSalida = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute);
           } else {
             establishedDate = pickedDate;
             establishedTime = pickedTime;
+            flete.flenFechaHoraEstablecidaDeLlegada = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute);
           }
         });
       }
     }
   }
 
- void _openInsumosModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Seleccionar Insumos',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+  Widget _buildBodegaDropdown(String label) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.black,
+        labelStyle: TextStyle(color: Colors.white),
+      ),
+      items: bodegas.map((BodegaViewModel bodega) {
+        return DropdownMenuItem<String>(
+          value: bodega.bodeDescripcion,
+          child: Text(
+            bodega.bodeDescripcion,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 14),
+          ),
+        );
+      }).toList(),
+      onChanged: (newValue) {
+        setState(() {
+          if (label == 'Salida') {
+            flete.bollId = bodegas
+                .firstWhere((bodega) => bodega.bodeDescripcion == newValue)
+                .bodeId;
+          } else if (label == 'Llegada') {
+            if (esProyecto) {
+              flete.boprId = proyectos
+                  .firstWhere((proyecto) => proyecto.proyNombre == newValue)
+                  .proyId;
+            } else {
+              flete.boprId = bodegas
+                  .firstWhere((bodega) => bodega.bodeDescripcion == newValue)
+                  .bodeId;
+            }
+          }
+        });
+      },
+      dropdownColor: Colors.black,
+      style: TextStyle(color: Colors.white),
+    );
+  }
+
+void _openInsumosModal() {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.black,
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center, // Centrar contenido
+                    children: [
+                      Text(
+                        'Seleccionar Insumos',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFFFF0C6), // Color amarillo
+                        ),
                       ),
-                    ),
+                      SizedBox(height: 4.0),
+                      Container(
+                        height: 2.0,
+                        color: Color(0xFFFFF0C6),
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        'Supervisor de envío: ${empleados.firstWhere((emp) => emp.emplId == flete.emssId, orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A')).emplNombre}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center, // Centrar texto
+                      ),
+                      Text(
+                        'Flete del ${DateFormat('EEE d MMM, hh:mm a').format(flete.flenFechaHoraSalida ?? DateTime.now())}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.center, // Centrar texto
+                      ),
+                    ],
                   ),
-                  Expanded(
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0), 
                     child: ListView.builder(
                       itemCount: insumos.length,
                       itemBuilder: (context, index) {
                         return ListTile(
-                          title: Text(insumos[index].insuDescripcion ?? ''),
-                          subtitle: Text(insumos[index].insuObservacion ?? ''),
+                          title: Text(
+                            insumos[index].insuDescripcion ?? '',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          subtitle: Text(
+                            insumos[index].insuObservacion ?? '',
+                            style: TextStyle(color: Colors.white70),
+                          ),
                           trailing: Checkbox(
                             value: selectedInsumos.contains(insumos[index]),
                             onChanged: (bool? value) {
@@ -149,7 +265,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
                                   selectedInsumos.add(insumos[index]);
                                   selectedCantidades.add(1); // Default quantity
                                 } else {
-                                  int removeIndex = selectedInsumos.indexOf(insumos[index]);
+                                  int removeIndex =
+                                      selectedInsumos.indexOf(insumos[index]);
                                   selectedInsumos.removeAt(removeIndex);
                                   selectedCantidades.removeAt(removeIndex);
                                 }
@@ -162,9 +279,11 @@ class _NuevoFleteState extends State<NuevoFlete> {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                TextEditingController quantityController = TextEditingController(text: "1");
+                                TextEditingController quantityController =
+                                    TextEditingController(text: "1");
                                 return AlertDialog(
-                                  title: Text('Cantidad para ${insumos[index].insuDescripcion}'),
+                                  title: Text(
+                                      'Cantidad para ${insumos[index].insuDescripcion}'),
                                   content: TextField(
                                     controller: quantityController,
                                     keyboardType: TextInputType.number,
@@ -182,11 +301,14 @@ class _NuevoFleteState extends State<NuevoFlete> {
                                     TextButton(
                                       child: Text('Guardar'),
                                       onPressed: () {
-                                        int? cantidad = int.tryParse(quantityController.text);
+                                        int? cantidad = int.tryParse(
+                                            quantityController.text);
                                         if (cantidad != null && cantidad > 0) {
-                                          int selectedIndex = selectedInsumos.indexOf(insumos[index]);
+                                          int selectedIndex = selectedInsumos
+                                              .indexOf(insumos[index]);
                                           setState(() {
-                                            selectedCantidades[selectedIndex] = cantidad;
+                                            selectedCantidades[selectedIndex] =
+                                                cantidad;
                                           });
                                         }
                                         Navigator.of(context).pop();
@@ -201,26 +323,27 @@ class _NuevoFleteState extends State<NuevoFlete> {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          // Close the modal and update the main table
-                        });
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Guardar'),
-                    ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Guardar'),
                   ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -503,79 +626,45 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
-  Widget _buildBodegaDropdown(String label) {
+  Widget _buildLlegadaDropdown() {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
-        labelText: label,
+        labelText: 'Llegada',
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.black,
         labelStyle: TextStyle(color: Colors.white),
       ),
-      items: bodegas.map((BodegaViewModel bodega) {
-        return DropdownMenuItem<String>(
-          value: bodega.bodeDescripcion,
-          child: Text(
-            bodega.bodeDescripcion,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 14),
-          ),
-        );
-      }).toList(),
+      items: esProyecto
+          ? proyectos.map((ProyectoViewModel proyecto) {
+              return DropdownMenuItem<String>(
+                value: proyecto.proyNombre,
+                child: Text(
+                  proyecto.proyNombre,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14),
+                ),
+              );
+            }).toList()
+          : bodegas.map((BodegaViewModel bodega) {
+              return DropdownMenuItem<String>(
+                value: bodega.bodeDescripcion,
+                child: Text(
+                  bodega.bodeDescripcion,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14),
+                ),
+              );
+            }).toList(),
       onChanged: (newValue) {
         setState(() {
-          if (label == 'Salida') {
-            selectedBodegaSalida = newValue;
-          } else {
-            selectedBodegaLlegada = newValue;
-          }
+          selectedBodegaLlegada = newValue;
         });
       },
       dropdownColor: Colors.black,
       style: TextStyle(color: Colors.white),
     );
   }
-
-  Widget _buildLlegadaDropdown() {
-  return DropdownButtonFormField<String>(
-    decoration: InputDecoration(
-      labelText: 'Llegada',
-      border: OutlineInputBorder(),
-      filled: true,
-      fillColor: Colors.black,
-      labelStyle: TextStyle(color: Colors.white),
-    ),
-    items: esProyecto
-        ? proyectos.map((ProyectoViewModel proyecto) {
-            return DropdownMenuItem<String>(
-              value: proyecto.proyNombre,
-              child: Text(
-                proyecto.proyNombre,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14),
-              ),
-            );
-          }).toList()
-        : bodegas.map((BodegaViewModel bodega) {
-            return DropdownMenuItem<String>(
-              value: bodega.bodeDescripcion,
-              child: Text(
-                bodega.bodeDescripcion,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14),
-              ),
-            );
-          }).toList(),
-    onChanged: (newValue) {
-      setState(() {
-        selectedBodegaLlegada = newValue;
-      });
-    },
-    dropdownColor: Colors.black,
-    style: TextStyle(color: Colors.white),
-  );
-}
-
 
   Widget _buildAutocomplete(String label) {
     return Autocomplete<EmpleadoViewModel>(
@@ -611,7 +700,15 @@ class _NuevoFleteState extends State<NuevoFlete> {
         );
       },
       onSelected: (EmpleadoViewModel selection) {
-        print('Selected: ${selection.empleado}');
+        setState(() {
+          if (label == 'Encargado') {
+            flete.emtrId = selection.emplId;
+          } else if (label == 'Supervisor de Salida') {
+            flete.emssId = selection.emplId;
+          } else if (label == 'Supervisor de Llegada') {
+            flete.emslId = selection.emplId;
+          }
+        });
       },
     );
   }
