@@ -16,7 +16,7 @@ class FleteEncabezadoService {
     }
   }
 
-  static Future<bool> insertarFlete(FleteEncabezadoViewModel flete) async {
+  static Future<int?> insertarFlete(FleteEncabezadoViewModel flete) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Insertar');
     final response = await http.post(
       url,
@@ -25,7 +25,8 @@ class FleteEncabezadoService {
     );
 
     if (response.statusCode == 200) {
-      return true;
+      final data = json.decode(response.body);
+      return data['NewId']; 
     } else {
       throw Exception('Error al insertar el flete');
     }

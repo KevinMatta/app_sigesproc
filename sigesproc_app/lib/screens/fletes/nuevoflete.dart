@@ -189,160 +189,264 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
-void _openInsumosModal() {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.black,
-    isScrollControlled: true,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center, // Centrar contenido
-                    children: [
-                      Text(
-                        'Seleccionar Insumos',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFF0C6), // Color amarillo
-                        ),
-                      ),
-                      SizedBox(height: 4.0),
-                      Container(
-                        height: 2.0,
-                        color: Color(0xFFFFF0C6),
-                      ),
-                      SizedBox(height: 8.0),
-                      Text(
-                        'Supervisor de envío: ${empleados.firstWhere((emp) => emp.emplId == flete.emssId, orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A')).emplNombre}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center, // Centrar texto
-                      ),
-                      Text(
-                        'Flete del ${DateFormat('EEE d MMM, hh:mm a').format(flete.flenFechaHoraSalida ?? DateTime.now())}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                        textAlign: TextAlign.center, // Centrar texto
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0), 
-                    child: ListView.builder(
-                      itemCount: insumos.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(
-                            insumos[index].insuDescripcion ?? '',
-                            style: TextStyle(color: Colors.white),
+  void _openInsumosModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.center, 
+                      children: [
+                        Text(
+                          'Seleccionar Insumos',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFFF0C6), 
                           ),
-                          subtitle: Text(
-                            insumos[index].insuObservacion ?? '',
-                            style: TextStyle(color: Colors.white70),
+                        ),
+                        SizedBox(height: 4.0),
+                        Container(
+                          height: 2.0,
+                          color: Color(0xFFFFF0C6),
+                        ),
+                        SizedBox(height: 8.0),
+                        Text(
+                          'Supervisor de envío: ${empleados.firstWhere((emp) => emp.emplId == flete.emssId, orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A')).emplNombre}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
                           ),
-                          trailing: Checkbox(
-                            value: selectedInsumos.contains(insumos[index]),
-                            onChanged: (bool? value) {
-                              setState(() {
-                                if (value == true) {
-                                  selectedInsumos.add(insumos[index]);
-                                  selectedCantidades.add(1); // Default quantity
-                                } else {
-                                  int removeIndex =
-                                      selectedInsumos.indexOf(insumos[index]);
-                                  selectedInsumos.removeAt(removeIndex);
-                                  selectedCantidades.removeAt(removeIndex);
-                                }
-                              });
-                            },
+                          textAlign: TextAlign.center, 
+                        ),
+                        Text(
+                          'Flete del ${DateFormat('EEE d MMM, hh:mm a').format(flete.flenFechaHoraSalida ?? DateTime.now())}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
                           ),
-                          onTap: () {
-                            if (!selectedInsumos.contains(insumos[index])) return;
-
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                TextEditingController quantityController =
-                                    TextEditingController(text: "1");
-                                return AlertDialog(
-                                  title: Text(
-                                      'Cantidad para ${insumos[index].insuDescripcion}'),
-                                  content: TextField(
-                                    controller: quantityController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      hintText: 'Ingrese cantidad',
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: Text('Cancelar'),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: Text('Guardar'),
-                                      onPressed: () {
-                                        int? cantidad = int.tryParse(
-                                            quantityController.text);
-                                        if (cantidad != null && cantidad > 0) {
-                                          int selectedIndex = selectedInsumos
-                                              .indexOf(insumos[index]);
-                                          setState(() {
-                                            selectedCantidades[selectedIndex] =
-                                                cantidad;
-                                          });
-                                        }
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                      });
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('Guardar'),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: ListView.builder(
+                        itemCount: insumos.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(
+                              '${insumos[index].insuDescripcion ?? ''} ${insumos[index].insuObservacion ?? ''}',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            subtitle: Row(
+                            children: [
+                              Text(
+                                'Cantidad: ',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: TextEditingController(
+                                    text: selectedCantidades.length > index
+                                        ? selectedCantidades[index].toString()
+                                        : '1',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(color: Colors.white70),
+                                  decoration: InputDecoration(
+                                    hintText: 'Cantidad',
+                                    hintStyle: TextStyle(color: Colors.white70),
+                                    border: InputBorder.none,
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      int? cantidad = int.tryParse(value);
+                                      if (cantidad != null && cantidad > 0) {
+                                        selectedCantidades[index] = cantidad;
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                            trailing: Checkbox(
+                              value: selectedInsumos.contains(insumos[index]),
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    selectedInsumos.add(insumos[index]);
+                                    selectedCantidades
+                                        .add(1); 
+                                  } else {
+                                    int removeIndex =
+                                        selectedInsumos.indexOf(insumos[index]);
+                                    selectedInsumos.removeAt(removeIndex);
+                                    selectedCantidades.removeAt(removeIndex);
+                                  }
+                                });
+                              },
+                            ),
+                            onTap: () {
+                              if (!selectedInsumos.contains(insumos[index]))
+                                return;
+
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  TextEditingController quantityController =
+                                      TextEditingController(text: "1");
+                                  return AlertDialog(
+                                    title: Text(
+                                        'Cantidad para ${insumos[index].insuDescripcion}'),
+                                    content: TextField(
+                                      controller: quantityController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: 'Ingrese cantidad',
+                                      ),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text('Cancelar'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: Text('Guardar'),
+                                        onPressed: () {
+                                          int? cantidad = int.tryParse(
+                                              quantityController.text);
+                                          if (cantidad != null &&
+                                              cantidad > 0) {
+                                            int selectedIndex = selectedInsumos
+                                                .indexOf(insumos[index]);
+                                            setState(() {
+                                              selectedCantidades[
+                                                  selectedIndex] = cantidad;
+                                            });
+                                          }
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF171717),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 15),
+                          ),
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(color: Color(0xFFFFF0C6)),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              flete.usuaCreacion =
+                                  3; 
+                              flete.flenFechaCreacion = DateTime.now();
+
+                              int? newId =
+                                  await FleteEncabezadoService.insertarFlete(
+                                      flete);
+                              if (newId != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Flete(),
+                                  ),
+                                );
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Error'),
+                                    content:
+                                        Text('No se pudo insertar el flete.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Error'),
+                                  content: Text('Ocurrió un error: $e'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFFFF0C6),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 15),
+                          ),
+                          child: Text(
+                            'Guardar',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
