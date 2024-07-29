@@ -1,4 +1,5 @@
 class ProyectoViewModel {
+  String codigo;
   final int proyId;
   final String proyNombre;
   final String proyDescripcion;
@@ -15,6 +16,7 @@ class ProyectoViewModel {
   final bool? proyEstado;
 
   ProyectoViewModel({
+    required this.codigo,
     required this.proyId,
     required this.proyNombre,
     required this.proyDescripcion,
@@ -33,6 +35,7 @@ class ProyectoViewModel {
 
   factory ProyectoViewModel.fromJson(Map<String, dynamic> json) {
     return ProyectoViewModel(
+      codigo: json['codigo'],
       proyId: json['proy_Id'],
       proyNombre: json['proy_Nombre'],
       proyDescripcion: json['proy_Descripcion'],

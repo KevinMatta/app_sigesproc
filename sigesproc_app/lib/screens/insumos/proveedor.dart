@@ -1,42 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/models/insumos/proveedorviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
-import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
+import 'package:sigesproc_app/services/insumos/proveedorservice.dart';
 
-class Flete extends StatefulWidget {
+class Proveedor extends StatefulWidget {
   @override
-  _FleteState createState() => _FleteState();
+  _ProveedorState createState() => _ProveedorState();
 }
 
-class _FleteState extends State<Flete> {
-  int _selectedIndex = 2;
-  Future<List<FleteEncabezadoViewModel>>? _fletesFuture;
+class _ProveedorState extends State<Proveedor> {
+  int _selectedIndex = 3;
+  Future<List<ProveedorViewModel>>? _fletesFuture;
   TextEditingController _searchController = TextEditingController();
-  List<FleteEncabezadoViewModel> _filteredFletes = [];
+  List<ProveedorViewModel> _filteredProveedores = [];
 
   @override
   void initState() {
     super.initState();
-    _fletesFuture = FleteEncabezadoService.listarFletesEncabezado();
-    _searchController.addListener(_filterFletes);
+    _fletesFuture = ProveedorService.listarProveedores();
+    _searchController.addListener(_filterProveedores);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterFletes);
+    _searchController.removeListener(_filterProveedores);
     _searchController.dispose();
     super.dispose();
   }
 
-  void _filterFletes() {
+  void _filterProveedores() {
     final query = _searchController.text.toLowerCase();
     if (_fletesFuture != null) {
       _fletesFuture!.then((fletes) {
         setState(() {
-          _filteredFletes = fletes.where((flete) {
-            final salida = flete.salida?.toLowerCase() ?? '';
+          _filteredProveedores = fletes.where((flete) {
+            final salida = flete.provDescripcion?.toLowerCase() ?? '';
             return salida.contains(query);
           }).toList();
         });
@@ -50,7 +50,7 @@ class _FleteState extends State<Flete> {
     });
   }
 
-  Widget FleteRegistro(FleteEncabezadoViewModel flete) {
+  Widget ProveedorRegistro(ProveedorViewModel flete) {
     return ListTile(
       leading: CircleAvatar(
         child: Text(
@@ -60,50 +60,12 @@ class _FleteState extends State<Flete> {
         backgroundColor: Color(0xFFFFF0C6),
       ),
       title: Text(
-        flete.salida ?? 'N/A',
+        flete.provDescripcion ?? 'N/A',
         style: TextStyle(color: Colors.white),
       ),
       subtitle: Text(
-        'Supervisor: ${flete.supervisorLlegada ?? 'N/A'}',
+        'Supervisor: ${flete.provCorreo ?? 'N/A'}',
         style: TextStyle(color: Colors.white70),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            flete.flenEstado == true ? Icons.adjust : Icons.adjust,
-            color: flete.flenEstado == true ? Colors.red : Colors.green,
-          ),
-          PopupMenuButton<int>(
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (int result) {
-              if (result == 0) {
-              } else if (result == 1) {}
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-              const PopupMenuItem<int>(
-                value: 0,
-                child: Text('Incidencias'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Verificar'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Editar'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Ver detalle'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Eliminar'),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -131,7 +93,7 @@ class _FleteState extends State<Flete> {
           child: Column(
             children: [
               Text(
-                'Fletes',
+                'Proveedores',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 18,
@@ -197,7 +159,7 @@ class _FleteState extends State<Flete> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: FutureBuilder<List<FleteEncabezadoViewModel>>(
+              child: FutureBuilder<List<ProveedorViewModel>>(
                 future: _fletesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -221,9 +183,9 @@ class _FleteState extends State<Flete> {
                   } else {
                     return ListView.builder(
                       padding: EdgeInsets.only(bottom: 80.0),
-                      itemCount: _filteredFletes.isEmpty ? snapshot.data!.length : _filteredFletes.length,
+                      itemCount: _filteredProveedores.isEmpty ? snapshot.data!.length : _filteredProveedores.length,
                       itemBuilder: (context, index) {
-                        return FleteRegistro(_filteredFletes.isEmpty ? snapshot.data![index] : _filteredFletes[index]);
+                        return ProveedorRegistro(_filteredProveedores.isEmpty ? snapshot.data![index] : _filteredProveedores[index]);
                       },
                     );
                   }
