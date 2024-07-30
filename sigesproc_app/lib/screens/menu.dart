@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/screens/insumos/proveedor.dart';
 import 'inicio.dart';
 import 'proyectos/proyecto.dart';
@@ -66,7 +67,7 @@ class MenuLateral extends StatelessWidget {
         break;
       case 4:
         icon = Icons.business;
-        text = 'Bienes';
+        text = 'Bienes Raíces';
         break;
       case 5:
         icon = Icons.attach_money;
@@ -125,6 +126,12 @@ class MenuLateral extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Proveedor()),
+        );
+        break;
+      case 4:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ProcesoVenta()),
         );
         break;
       default:
