@@ -9,8 +9,13 @@ class ProveedorService {
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((json) => ProveedorViewModel.fromJson(json)).toList();
+      Map<String, dynamic> responseBody = json.decode(response.body);
+      if (responseBody['success']) {
+        List<dynamic> data = responseBody['data'];
+        return data.map((json) => ProveedorViewModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Error en la respuesta del servidor');
+      }
     } else {
       throw Exception('Error al cargar los datos');
     }

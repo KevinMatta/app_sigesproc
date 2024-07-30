@@ -1,23 +1,21 @@
 class CotizacionViewModel {
-  String codigo;
-  String? usuarioCreacion;
+  int codigo;
   int cotiId;
   int? provId;
   String? provDescripcion;
   DateTime? cotiFecha;
   int? emplId;
   String? empleado;
-  num? cotiImpuesto;
+  int? cotiImpuesto;
   bool? cotiIncluido;
-  num? subtotal;
-  num? total;
+  String? subtotal;
+  String? total;
   int? usuaCreacion;
   DateTime? cotiFechaCreacion;
   bool? cotiEstado;
 
   CotizacionViewModel({
     required this.codigo,
-    this.usuarioCreacion,
     required this.cotiId,
     this.provId,
     this.provDescripcion,
@@ -36,7 +34,6 @@ class CotizacionViewModel {
   factory CotizacionViewModel.fromJson(Map<String, dynamic> json) {
     return CotizacionViewModel(
       codigo: json['codigo'],
-      usuarioCreacion: json['usua_Usuario'],
       cotiId: json['coti_Id'],
       provId: json['prov_Id'],
       provDescripcion: json['prov_Descripcion'],
@@ -56,7 +53,6 @@ class CotizacionViewModel {
   Map<String, dynamic> toJson() {
     return {
       'codigo': codigo,
-      'usua_Usuario': usuarioCreacion,
       'coti_Id': cotiId,
       'prov_Id': provId,
       'prov_Descripcion': provDescripcion,

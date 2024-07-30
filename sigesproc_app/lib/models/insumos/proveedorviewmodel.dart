@@ -1,5 +1,5 @@
 class ProveedorViewModel {
-  String codigo;
+  int codigo;
   int provId;
   String? provDescripcion;
   String? provCorreo;

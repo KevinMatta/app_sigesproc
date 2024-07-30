@@ -12,15 +12,17 @@ class Proveedor extends StatefulWidget {
 
 class _ProveedorState extends State<Proveedor> {
   int _selectedIndex = 3;
-  Future<List<ProveedorViewModel>>? _fletesFuture;
+  Future<List<ProveedorViewModel>>? _proveedoresFuture;
   TextEditingController _searchController = TextEditingController();
   List<ProveedorViewModel> _filteredProveedores = [];
+  List<ProveedorViewModel> _proveedores = [];
 
   @override
   void initState() {
     super.initState();
-    _fletesFuture = ProveedorService.listarProveedores();
+    _proveedoresFuture = ProveedorService.listarProveedores();
     _searchController.addListener(_filterProveedores);
+    _cargarProveedores();
   }
 
   @override
@@ -30,18 +32,23 @@ class _ProveedorState extends State<Proveedor> {
     super.dispose();
   }
 
+  void _cargarProveedores() {
+    _proveedoresFuture!.then((proveedores) {
+      setState(() {
+        _proveedores = proveedores;
+        _filteredProveedores = proveedores;
+      });
+    });
+  }
+
   void _filterProveedores() {
     final query = _searchController.text.toLowerCase();
-    if (_fletesFuture != null) {
-      _fletesFuture!.then((fletes) {
-        setState(() {
-          _filteredProveedores = fletes.where((flete) {
-            final salida = flete.provDescripcion?.toLowerCase() ?? '';
-            return salida.contains(query);
-          }).toList();
-        });
-      });
-    }
+    setState(() {
+      _filteredProveedores = _proveedores.where((proveedor) {
+        final descripcion = proveedor.provDescripcion?.toLowerCase() ?? '';
+        return descripcion.contains(query);
+      }).toList();
+    });
   }
 
   void _onItemTapped(int index) {
@@ -50,22 +57,48 @@ class _ProveedorState extends State<Proveedor> {
     });
   }
 
-  Widget ProveedorRegistro(ProveedorViewModel flete) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          flete.codigo.toString(),
-          style: TextStyle(color: Colors.black),
+  Widget ProveedorRegistro(ProveedorViewModel proveedor) {
+    return Card(
+      color: Color(0xFF171717),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          child: Text(
+            proveedor.codigo.toString(),
+            style: TextStyle(color: Colors.black),
+          ),
+          backgroundColor: Color(0xFFFFF0C6),
         ),
-        backgroundColor: Color(0xFFFFF0C6),
-      ),
-      title: Text(
-        flete.provDescripcion ?? 'N/A',
-        style: TextStyle(color: Colors.white),
-      ),
-      subtitle: Text(
-        'Supervisor: ${flete.provCorreo ?? 'N/A'}',
-        style: TextStyle(color: Colors.white70),
+        title: Text(
+          proveedor.provDescripcion ?? 'N/A',
+          style: TextStyle(color: Colors.white),
+        ),
+        subtitle: Text(
+          'Teléfono: ${proveedor.provTelefono ?? 'N/A'}',
+          style: TextStyle(color: Colors.white70),
+        ),
+        children: <Widget>[
+          ListTile(
+            leading: Icon(Icons.email, color: Color(0xFFFFF0C6)),
+            title: Text(
+              'Correo: ${proveedor.provCorreo ?? 'N/A'}',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.phone, color: Color(0xFFFFF0C6)),
+            title: Text(
+              'Segundo Tel: ${proveedor.provSegundoTelefono ?? 'N/A'}',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.location_city, color: Color(0xFFFFF0C6)),
+            title: Text(
+              'Ciudad: ${proveedor.ciudDescripcion ?? 'N/A'}',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -141,7 +174,7 @@ class _ProveedorState extends State<Proveedor> {
                         controller: _searchController,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Buscar.....',
+                          hintText: 'Buscar...',
                           hintStyle: TextStyle(color: Colors.white54),
                           border: InputBorder.none,
                           icon: Icon(Icons.search, color: Colors.white54),
@@ -150,8 +183,7 @@ class _ProveedorState extends State<Proveedor> {
                     ),
                     IconButton(
                       icon: Icon(Icons.filter_list, color: Colors.white54),
-                      onPressed: () {
-                      },
+                      onPressed: () {},
                     ),
                   ],
                 ),
@@ -160,7 +192,7 @@ class _ProveedorState extends State<Proveedor> {
             SizedBox(height: 10),
             Expanded(
               child: FutureBuilder<List<ProveedorViewModel>>(
-                future: _fletesFuture,
+                future: _proveedoresFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
@@ -183,9 +215,9 @@ class _ProveedorState extends State<Proveedor> {
                   } else {
                     return ListView.builder(
                       padding: EdgeInsets.only(bottom: 80.0),
-                      itemCount: _filteredProveedores.isEmpty ? snapshot.data!.length : _filteredProveedores.length,
+                      itemCount: _filteredProveedores.length,
                       itemBuilder: (context, index) {
-                        return ProveedorRegistro(_filteredProveedores.isEmpty ? snapshot.data![index] : _filteredProveedores[index]);
+                        return ProveedorRegistro(_filteredProveedores[index]);
                       },
                     );
                   }
@@ -194,19 +226,6 @@ class _ProveedorState extends State<Proveedor> {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NuevoFlete(),
-            ),
-          );
-        },
-
-        backgroundColor: Color(0xFFFFF0C6),
-        child: Icon(Icons.add_circle_outline, color: Colors.black),
       ),
     );
   }
