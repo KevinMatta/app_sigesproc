@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/insumos/proveedorviewmodel.dart';
+import 'package:sigesproc_app/models/insumos/cotizacionviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
-import '../menu.dart';
 import 'package:sigesproc_app/services/insumos/proveedorservice.dart';
+import 'package:sigesproc_app/services/insumos/cotizacionservice.dart';
+import '../menu.dart';
 
 class Proveedor extends StatefulWidget {
   @override
@@ -13,9 +15,12 @@ class Proveedor extends StatefulWidget {
 class _ProveedorState extends State<Proveedor> {
   int _selectedIndex = 3;
   Future<List<ProveedorViewModel>>? _proveedoresFuture;
+  Future<List<CotizacionViewModel>>? _cotizacionesFuture;
   TextEditingController _searchController = TextEditingController();
   List<ProveedorViewModel> _filteredProveedores = [];
   List<ProveedorViewModel> _proveedores = [];
+  bool _showCotizaciones = false;
+  String _selectedProveedorDescripcion = '';
 
   @override
   void initState() {
@@ -57,48 +62,94 @@ class _ProveedorState extends State<Proveedor> {
     });
   }
 
+  void _verCotizaciones(int provId, String provDescripcion) {
+    setState(() {
+      _showCotizaciones = true;
+      _selectedProveedorDescripcion = provDescripcion;
+      print(provId);
+      _cotizacionesFuture = CotizacionService.listarCotizacionesPorProveedor(provId);
+    });
+  }
+
   Widget ProveedorRegistro(ProveedorViewModel proveedor) {
-    return Card(
-      color: Color(0xFF171717),
-      child: ExpansionTile(
-        leading: CircleAvatar(
-          child: Text(
-            proveedor.codigo.toString(),
-            style: TextStyle(color: Colors.black),
-          ),
-          backgroundColor: Color(0xFFFFF0C6),
-        ),
-        title: Text(
-          proveedor.provDescripcion ?? 'N/A',
-          style: TextStyle(color: Colors.white),
-        ),
-        subtitle: Text(
-          'Teléfono: ${proveedor.provTelefono ?? 'N/A'}',
-          style: TextStyle(color: Colors.white70),
-        ),
-        children: <Widget>[
-          ListTile(
-            leading: Icon(Icons.email, color: Color(0xFFFFF0C6)),
-            title: Text(
-              'Correo: ${proveedor.provCorreo ?? 'N/A'}',
-              style: TextStyle(color: Colors.white),
+    bool isExpanded = false;
+
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) {
+        return ExpansionTile(
+          leading: CircleAvatar(
+            child: Text(
+              proveedor.codigo.toString(),
+              style: TextStyle(color: Colors.black),
             ),
+            backgroundColor: Color(0xFFFFF0C6),
           ),
-          ListTile(
-            leading: Icon(Icons.phone, color: Color(0xFFFFF0C6)),
-            title: Text(
-              'Segundo Tel: ${proveedor.provSegundoTelefono ?? 'N/A'}',
-              style: TextStyle(color: Colors.white),
+          title: Text(
+            proveedor.provDescripcion ?? 'N/A',
+            style: TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            'Teléfono: ${proveedor.provTelefono ?? 'N/A'}',
+            style: TextStyle(color: Colors.white70),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.info_outline, color: Colors.white),
+                onPressed: () => _verCotizaciones(proveedor.provId, proveedor.provDescripcion!),
+              ),
+              Icon(
+                isExpanded ? Icons.arrow_drop_down : Icons.arrow_left,
+                color: Colors.white,
+              ),
+            ],
+          ),
+          children: <Widget>[
+            ListTile(
+              title: Text(
+                'Correo: ${proveedor.provCorreo}',
+                style: TextStyle(color: Colors.white),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tel Alternativo: ${proveedor.provSegundoTelefono}',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  Text(
+                    'Ciudad: ${proveedor.ciudDescripcion}',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.location_city, color: Color(0xFFFFF0C6)),
-            title: Text(
-              'Ciudad: ${proveedor.ciudDescripcion ?? 'N/A'}',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+          ],
+          onExpansionChanged: (bool expanded) {
+            setState(() => isExpanded = expanded);
+          },
+        );
+      },
+    );
+  }
+
+  Widget CotizacionRegistro(CotizacionViewModel cotizacion) {
+    return ListTile(
+      leading: CircleAvatar(
+        child: Text(
+          cotizacion.codigo.toString(),
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Color(0xFFFFF0C6),
+      ),
+      title: Text(
+        'Cotización ${cotizacion.cotiId}',
+        style: TextStyle(color: Colors.white),
+      ),
+      subtitle: Text(
+        'Fecha: ${cotizacion.cotiFecha != null ? cotizacion.cotiFecha! : 'N/A'}\nTotal: ${cotizacion.total}',
+        style: TextStyle(color: Colors.white70),
       ),
     );
   }
@@ -126,7 +177,7 @@ class _ProveedorState extends State<Proveedor> {
           child: Column(
             children: [
               Text(
-                'Proveedores',
+                _showCotizaciones ? 'Cotizaciones a $_selectedProveedorDescripcion' : 'Proveedores',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 18,
@@ -162,67 +213,102 @@ class _ProveedorState extends State<Proveedor> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            SizedBox(height: 10),
-            Card(
-              color: Color(0xFF171717),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        style: TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Buscar...',
-                          hintStyle: TextStyle(color: Colors.white54),
-                          border: InputBorder.none,
-                          icon: Icon(Icons.search, color: Colors.white54),
+            if (!_showCotizaciones) ...[
+              SizedBox(height: 10),
+              Card(
+                color: Color(0xFF171717),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Buscar...',
+                            hintStyle: TextStyle(color: Colors.white54),
+                            border: InputBorder.none,
+                            icon: Icon(Icons.search, color: Colors.white54),
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.filter_list, color: Colors.white54),
-                      onPressed: () {},
-                    ),
-                  ],
+                      IconButton(
+                        icon: Icon(Icons.filter_list, color: Colors.white54),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
             SizedBox(height: 10),
             Expanded(
-              child: FutureBuilder<List<ProveedorViewModel>>(
-                future: _proveedoresFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error al cargar los datos',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    );
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No hay datos disponibles',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  } else {
-                    return ListView.builder(
-                      padding: EdgeInsets.only(bottom: 80.0),
-                      itemCount: _filteredProveedores.length,
-                      itemBuilder: (context, index) {
-                        return ProveedorRegistro(_filteredProveedores[index]);
+              child: _showCotizaciones
+                  ? FutureBuilder<List<CotizacionViewModel>>(
+                      future: _cotizacionesFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Error al cargar los datos: ${snapshot.error}',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No hay datos disponibles',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          );
+                        } else {
+                          return ListView.builder(
+                            padding: EdgeInsets.only(bottom: 80.0),
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return CotizacionRegistro(snapshot.data![index]);
+                            },
+                          );
+                        }
                       },
-                    );
-                  }
-                },
-              ),
+                    )
+                  : FutureBuilder<List<ProveedorViewModel>>(
+                      future: _proveedoresFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Error al cargar los datos: ${snapshot.error}',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No hay datos disponibles',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          );
+                        } else {
+                          return ListView.builder(
+                            padding: EdgeInsets.only(bottom: 80.0),
+                            itemCount: _filteredProveedores.length,
+                            itemBuilder: (context, index) {
+                              return ProveedorRegistro(_filteredProveedores[index]);
+                            },
+                          );
+                        }
+                      },
+                    ),
             ),
           ],
         ),
