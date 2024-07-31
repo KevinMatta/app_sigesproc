@@ -313,6 +313,19 @@ class _ProveedorState extends State<Proveedor> {
           ],
         ),
       ),
+      floatingActionButton: _showCotizaciones
+    ? FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            _showCotizaciones = false;
+          });
+        },
+        label: Text('Regresar'),
+        backgroundColor: Colors.black,
+        foregroundColor: Color(0xFFFFF0C6),
+      )
+    : null,
+
     );
   }
 }

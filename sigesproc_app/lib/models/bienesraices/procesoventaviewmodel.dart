@@ -1,6 +1,7 @@
 class ProcesoVentaViewModel {
   String codigo;
   int btrpId;
+  String? linkUbicacion;
   String? agenNombreCompleto;
   String? agenTelefono;
   String? agenDNI;
@@ -24,6 +25,7 @@ class ProcesoVentaViewModel {
   ProcesoVentaViewModel({
     required this.codigo,
     required this.btrpId,
+    this.linkUbicacion,
     this.agenNombreCompleto,
     this.agenTelefono,
     this.agenDNI,
@@ -49,6 +51,7 @@ class ProcesoVentaViewModel {
     return ProcesoVentaViewModel(
       codigo: json['codigo'],
       btrpId: json['btrp_Id'],
+      linkUbicacion: json['linkUbicacion'],
       agenNombreCompleto: json['agen_NombreCompleto'],
       agenTelefono: json['agen_Telefono'],
       agenDNI: json['agen_DNI'],
@@ -75,6 +78,7 @@ class ProcesoVentaViewModel {
     return {
       'codigo': codigo,
       'btrp_Id': btrpId,
+      'linkUbicacion':linkUbicacion,
       'agen_NombreCompleto': agenNombreCompleto,
       'agen_Telefono': agenTelefono,
       'agen_DNI': agenDNI,
