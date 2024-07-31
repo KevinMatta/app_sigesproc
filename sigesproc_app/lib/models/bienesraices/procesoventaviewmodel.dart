@@ -1,6 +1,8 @@
 class ProcesoVentaViewModel {
   String codigo;
   int btrpId;
+  int? imprId;
+  String? imprImagen;
   String? linkUbicacion;
   String? agenNombreCompleto;
   String? agenTelefono;
@@ -25,6 +27,8 @@ class ProcesoVentaViewModel {
   ProcesoVentaViewModel({
     required this.codigo,
     required this.btrpId,
+    this.imprId,
+    this.imprImagen,
     this.linkUbicacion,
     this.agenNombreCompleto,
     this.agenTelefono,
@@ -49,8 +53,10 @@ class ProcesoVentaViewModel {
 
   factory ProcesoVentaViewModel.fromJson(Map<String, dynamic> json) {
     return ProcesoVentaViewModel(
-      codigo: json['codigo'],
-      btrpId: json['btrp_Id'],
+      codigo: json['codigo'] ?? '',
+      btrpId: json['btrp_Id'] ?? 0,
+      imprId: json['impr_Id'] ?? 0,
+      imprImagen: json['impr_Imagen'],
       linkUbicacion: json['linkUbicacion'],
       agenNombreCompleto: json['agen_NombreCompleto'],
       agenTelefono: json['agen_Telefono'],
@@ -61,7 +67,7 @@ class ProcesoVentaViewModel {
       btrpPrecioVentaFinal: json['btrp_PrecioVenta_Final'],
       btrpFechaPuestaVenta: json['btrp_FechaPuestaVenta'] != null ? DateTime.parse(json['btrp_FechaPuestaVenta']) : null,
       btrpFechaVendida: json['btrp_FechaVendida'] != null ? DateTime.parse(json['btrp_FechaVendida']) : null,
-      btrpTerrenoOBienRaizId: json['btrp_Terreno_O_BienRaizId'],
+      btrpTerrenoOBienRaizId: json['btrp_Terreno_O_BienRaizId'] ?? false,
       btrpBienoterrenoId: json['btrp_BienoterrenoId'],
       agenId: json['agen_Id'],
       usuaCreacion: json['usua_Creacion'],
@@ -78,7 +84,9 @@ class ProcesoVentaViewModel {
     return {
       'codigo': codigo,
       'btrp_Id': btrpId,
-      'linkUbicacion':linkUbicacion,
+      'impr_Id': imprId,
+      'impr_Imagen': imprImagen,
+      'linkUbicacion': linkUbicacion,
       'agen_NombreCompleto': agenNombreCompleto,
       'agen_Telefono': agenTelefono,
       'agen_DNI': agenDNI,
@@ -86,8 +94,8 @@ class ProcesoVentaViewModel {
       'btrp_Identificador': btrpIdentificador,
       'btrp_PrecioVenta_Inicio': btrpPrecioVentaInicio,
       'btrp_PrecioVenta_Final': btrpPrecioVentaFinal,
-      'btrp_FechaPuestaVenta': btrpFechaPuestaVenta,
-      'btrp_FechaVendida': btrpFechaVendida,
+      'btrp_FechaPuestaVenta': btrpFechaPuestaVenta?.toIso8601String(),
+      'btrp_FechaVendida': btrpFechaVendida?.toIso8601String(),
       'btrp_Terreno_O_BienRaizId': btrpTerrenoOBienRaizId,
       'btrp_BienoterrenoId': btrpBienoterrenoId,
       'agen_Id': agenId,
