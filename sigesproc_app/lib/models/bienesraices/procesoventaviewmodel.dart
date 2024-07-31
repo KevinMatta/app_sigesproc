@@ -8,6 +8,7 @@ class ProcesoVentaViewModel {
   String? agenTelefono;
   String? agenDNI;
   String? descripcion;
+  String? area;
   bool? btrpIdentificador;
   num? btrpPrecioVentaInicio;
   num? btrpPrecioVentaFinal;
@@ -34,6 +35,7 @@ class ProcesoVentaViewModel {
     this.agenTelefono,
     this.agenDNI,
     this.descripcion,
+    this.area,
     this.btrpIdentificador,
     this.btrpPrecioVentaInicio,
     this.btrpPrecioVentaFinal,
@@ -62,6 +64,7 @@ class ProcesoVentaViewModel {
       agenTelefono: json['agen_Telefono'],
       agenDNI: json['agen_DNI'],
       descripcion: json['descripcion'],
+      area: json['area'],
       btrpIdentificador: json['btrp_Identificador'],
       btrpPrecioVentaInicio: json['btrp_PrecioVenta_Inicio'],
       btrpPrecioVentaFinal: json['btrp_PrecioVenta_Final'],
@@ -91,6 +94,7 @@ class ProcesoVentaViewModel {
       'agen_Telefono': agenTelefono,
       'agen_DNI': agenDNI,
       'descripcion': descripcion,
+      'area': area,
       'btrp_Identificador': btrpIdentificador,
       'btrp_PrecioVenta_Inicio': btrpPrecioVentaInicio,
       'btrp_PrecioVenta_Final': btrpPrecioVentaFinal,

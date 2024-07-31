@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
@@ -22,7 +23,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   @override
   void initState() {
     super.initState();
-    _procesosventaFuture = ProcesoVentaService.listarProcesosVenta();
+    _loadProcesosVenta();
     _searchController.addListener(_filterProcesosVenta);
   }
 
@@ -55,7 +56,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 
   void _verDetalles(int btrpId, bool terrenobienraizId, int? bienoterrenoid) {
     setState(() {
-      _procesosventaFuture = ProcesoVentaService.Buscar(btrpId, terrenobienraizId ? 1 : 0, bienoterrenoid!);
+      _procesosventaFuture = ProcesoVentaService.Buscar(
+          btrpId, terrenobienraizId ? 1 : 0, bienoterrenoid!);
       _procesosventaFuture!.then((value) {
         setState(() {
           _selectedVenta = value;
@@ -78,38 +80,192 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     }
   }
 
-  Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          procesoventa.codigo.toString(),
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Color(0xFFFFF0C6),
-      ),
-      title: Text(
-        procesoventa.descripcion ?? 'N/A',
-        style: TextStyle(color: Colors.white),
-      ),
-      subtitle: Text(
-        'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
-        style: TextStyle(color: Colors.white70),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.info_outline, color: Colors.white),
-            onPressed: () => _verDetalles(procesoventa.btrpId, procesoventa.btrpTerrenoOBienRaizId, procesoventa.btrpBienoterrenoId),
-          ),
-          Icon(
-            procesoventa.btrpIdentificador == true ? Icons.adjust : Icons.adjust,
-            color: procesoventa.btrpIdentificador == true ? Colors.green : Colors.red,
-          ),
-        ],
-      ),
-    );
+  void _resetFilteredProcesosVenta() {
+    setState(() {
+      _filteredProcesosVenta = [];
+    });
+    _loadProcesosVenta();
   }
+
+  void _loadProcesosVenta() {
+    _procesosventaFuture = ProcesoVentaService.listarProcesosVenta();
+    _procesosventaFuture!.then((procesosventa) {
+      setState(() {
+        _filteredProcesosVenta = procesosventa;
+      });
+    });
+  }
+
+  void _cargarImagenes(int btrpId, bool terrenobienraizId, int? bienoterrenoid,
+      Function(List<String>) callback) {
+    ProcesoVentaService.Buscar(
+            btrpId, terrenobienraizId ? 1 : 0, bienoterrenoid!)
+        .then((value) {
+      List<String> imagenes = value.map((e) => e.imprImagen!).toList();
+      callback(imagenes);
+    }).catchError((error) {
+      print('Error: $error');
+      callback([]);
+    });
+  }
+
+  void _showRemoveDialog(BuildContext context, String descripcion) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Eliminar propiedad',
+            style: TextStyle(color: Colors.white)),
+        content: Text(
+          '¿Está seguro de querer eliminar la propiedad $descripcion del estado en venta?',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color(0xFF171717),
+        actions: [
+          TextButton(
+            child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          
+        ],
+      );
+    },
+  );
+}
+
+
+ Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
+  return FutureBuilder<List<String>>(
+    future: ProcesoVentaService.Buscar(
+            procesoventa.btrpId,
+            procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
+            procesoventa.btrpBienoterrenoId!)
+        .then((value) => value.map((e) => e.imprImagen!).toList()),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Card(
+          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
+          color: Color(0xFF171717),
+          child: ListTile(
+            title: Text(procesoventa.descripcion ?? 'N/A',
+                style: TextStyle(color: Colors.white)),
+            subtitle: Text(
+                'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+                style: TextStyle(color: Colors.white70)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.info_outline, color: Colors.white),
+                  onPressed: () => _verDetalles(
+                      procesoventa.btrpId,
+                      procesoventa.btrpTerrenoOBienRaizId,
+                      procesoventa.btrpBienoterrenoId),
+                ),
+                Icon(
+                    procesoventa.btrpIdentificador == true
+                        ? Icons.adjust
+                        : Icons.adjust,
+                    color: procesoventa.btrpIdentificador == true
+                        ? Colors.green
+                        : Colors.red),
+              ],
+            ),
+          ),
+        );
+      } else {
+        List<String> imagenes = snapshot.data ?? [];
+        return Card(
+          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
+          color: Color(0xFF171717),
+          child: Stack(
+            children: [
+              ListTile(
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (imagenes.isNotEmpty)
+                      CarouselSlider(
+                        options: CarouselOptions(
+                          height: 200.0,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                        ),
+                        items: imagenes.map((imagePath) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return Container(
+                                color: Colors.black,
+                                child: Image.network(
+                                  'https://localhost:44337$imagePath',
+                                  fit: BoxFit.contain,
+                                  width: MediaQuery.of(context).size.width,
+                                ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    SizedBox(height: 8.0),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            procesoventa.descripcion ?? 'N/A',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.info_outline, color: Colors.white),
+                          onPressed: () => _verDetalles(
+                              procesoventa.btrpId,
+                              procesoventa.btrpTerrenoOBienRaizId,
+                              procesoventa.btrpBienoterrenoId),
+                        ),
+                        Icon(
+                          procesoventa.btrpIdentificador == true
+                              ? Icons.adjust
+                              : Icons.adjust,
+                          color: procesoventa.btrpIdentificador == true
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                    'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+                    style: TextStyle(color: Colors.white70)),
+              ),
+              if (procesoventa.btrpIdentificador == true)
+                Positioned(
+                  right: 0,
+                  child: IconButton(
+                    icon: Icon(Icons.close, color: Colors.red),
+                    onPressed: () {
+                      _showRemoveDialog(context, procesoventa.descripcion ?? 'N/A');
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      }
+    },
+  );
+}
+
 
   Widget VentaDetalles(List<ProcesoVentaViewModel> ventas) {
     ProcesoVentaViewModel venta = ventas.first;
@@ -118,137 +274,170 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 
     return Column(
       children: [
-        if (imagenes.isNotEmpty) ...[
-          CarouselSlider(
-            options: CarouselOptions(
-              height: 200.0,
-              autoPlay: true,
-              enlargeCenterPage: true,
-            ),
-            items: imagenes.map((imagePath) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return Image.network(
-                    'https://localhost:44337$imagePath',
-                    headers: {'XApiKey': '4b567cb1c6b24b51ab55248f8e66e5cc'},
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width,
-                  );
-                },
-              );
-            }).toList(),
-          ),
-        ],
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      venta.descripcion ?? 'N/A',
-                      style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 22),
-                      overflow: TextOverflow.visible,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (imagenes.isNotEmpty) ...[
+                  CarouselSlider(
+                    options: CarouselOptions(
+                      height: 200.0,
+                      autoPlay: true,
+                      enlargeCenterPage: true,
                     ),
-                  ),
-                  Icon(
-                    venta.btrpIdentificador == true ? Icons.adjust : Icons.adjust,
-                    color: venta.btrpIdentificador == true ? Colors.green : Colors.red,
+                    items: imagenes.map((imagePath) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Container(
+                            color: Colors.black,
+                            child: Image.network(
+                              'https://localhost:44337$imagePath',
+                              fit: BoxFit.contain,
+                              width: MediaQuery.of(context).size.width,
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
                   ),
                 ],
-              ),
-              SizedBox(height: 8.0),
-              InkWell(
-                onTap: () => _launchURL(venta.linkUbicacion ?? ''),
-                child: Text(
-                  'Ver ubicación',
-                  style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
-                ),
-              ),
-              SizedBox(height: 8.0),
-              Divider(color: Colors.white70), // Línea de separación
-              SizedBox(height: 8.0),
-              Text(
-                venta.agenNombreCompleto ?? 'N/A',
-                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Icon(Icons.person, color: Colors.white70),
-                  SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      'DNI: ${venta.agenDNI ?? 'N/A'}',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                  Icon(Icons.phone, color: Colors.white70),
-                  SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      'Teléfono: ${venta.agenTelefono ?? 'N/A'}',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Color(0xFFFFF0C6),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Valor Inicial: L. ${venta.btrpPrecioVentaInicio?.toStringAsFixed(2) ?? 'N/A'}',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        if (venta.btrpIdentificador == false)
-                          Text(
-                            'Vendido por: L. ${venta.btrpPrecioVentaFinal?.toStringAsFixed(2) ?? 'N/A'}\nFecha Vendida: ${venta.btrpFechaVendida != null ? venta.btrpFechaVendida! : 'N/A'}',
-                            style: TextStyle(color: Colors.black),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              venta.descripcion ?? 'N/A',
+                              style: TextStyle(
+                                  color: Color(0xFFFFF0C6), fontSize: 22),
+                              overflow: TextOverflow.visible,
+                            ),
                           ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: venta.btrpIdentificador == false ? Colors.black : Colors.black,
-                        borderRadius: BorderRadius.circular(8.0),
+                          Icon(
+                            venta.btrpIdentificador == true
+                                ? Icons.adjust
+                                : Icons.adjust,
+                            color: venta.btrpIdentificador == true
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        venta.btrpIdentificador == false ? 'Vendido' : 'En Venta',
-                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      SizedBox(height: 8.0),
+                      Text(
+                        'Area: ${venta.area ?? 'N/A'}',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 8.0),
+                      InkWell(
+                        onTap: () => _launchURL(venta.linkUbicacion ?? ''),
+                        child: Text(
+                          'Ver ubicación',
+                          style: TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline),
+                        ),
+                      ),
+                      SizedBox(height: 8.0),
+                      Divider(color: Colors.white70), // Línea de separación
+                      SizedBox(height: 8.0),
+                      Text(
+                        venta.agenNombreCompleto ?? 'N/A',
+                        style:
+                            TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
+                      ),
+                      SizedBox(height: 8.0),
+                      Row(
+                        children: [
+                          Icon(Icons.person, color: Colors.white70),
+                          SizedBox(width: 8.0),
+                          Expanded(
+                            child: Text(
+                              'DNI: ${venta.agenDNI ?? 'N/A'}',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                          Icon(Icons.phone, color: Colors.white70),
+                          SizedBox(width: 8.0),
+                          Expanded(
+                            child: Text(
+                              'Teléfono: ${venta.agenTelefono ?? 'N/A'}',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.0),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFFF0C6),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Valor Inicial: L. ${venta.btrpPrecioVentaInicio?.toStringAsFixed(2) ?? 'N/A'}',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  if (venta.btrpIdentificador == false)
+                                    Text(
+                                      'Vendido por: L. ${venta.btrpPrecioVentaFinal?.toStringAsFixed(2) ?? 'N/A'}\nFecha Vendida: ${venta.btrpFechaVendida != null ? DateFormat('EEE d MMM, hh:mm a').format(venta.btrpFechaVendida!) : 'N/A'}',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: venta.btrpIdentificador == false
+                                    ? Colors.black
+                                    : Colors.black,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Text(
+                                venta.btrpIdentificador == false
+                                    ? 'Vendido'
+                                    : 'En Venta',
+                                style: TextStyle(color: Color(0xFFFFF0C6)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        Spacer(),
-        Align(
-          alignment: Alignment.bottomRight,
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(2.0),
+          color: Colors.black,
           child: ElevatedButton(
             onPressed: () {
               setState(() {
                 _selectedVenta = null;
+                _resetFilteredProcesosVenta(); // Reiniciar la lista y recargar los datos
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
+              backgroundColor: Color(0xFF171717),
               padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             ),
             child: Text(
@@ -268,33 +457,19 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         backgroundColor: Colors.black,
         title: Row(
           children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 60,
-            ),
+            Image.asset('lib/assets/logo-sigesproc.png', height: 60),
             SizedBox(width: 10),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
-            ),
+            Text('SIGESPROC', style: TextStyle(color: Color(0xFFFFF0C6))),
           ],
         ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
+          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+          IconButton(icon: Icon(Icons.person), onPressed: () {}),
         ],
       ),
       drawer: MenuLateral(
-        selectedIndex: _selectedIndex,
-        onItemSelected: _onItemTapped,
-      ),
+          selectedIndex: _selectedIndex, onItemSelected: _onItemTapped),
       body: Container(
         color: Colors.black,
         padding: const EdgeInsets.all(20.0),
@@ -321,9 +496,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.filter_list, color: Colors.white54),
-                        onPressed: () {},
-                      ),
+                          icon: Icon(Icons.filter_list, color: Colors.white54),
+                          onPressed: () {}),
                     ],
                   ),
                 ),
@@ -336,22 +510,17 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-                    );
+                        child: SpinKitCircle(color: Color(0xFFFFF0C6)));
                   } else if (snapshot.hasError) {
                     print('Error: ${snapshot.error}');
                     return Center(
-                      child: Text(
-                        'Error al cargar los datos',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                      child: Text('Error al cargar los datos',
+                          style: TextStyle(color: Colors.red)),
                     );
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return Center(
-                      child: Text(
-                        'No hay datos disponibles',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: Text('No hay datos disponibles',
+                          style: TextStyle(color: Colors.white)),
                     );
                   } else {
                     if (_selectedVenta != null) {

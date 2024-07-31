@@ -503,7 +503,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
   Widget _buildFleteBottomBar() {
     return Container(
       color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

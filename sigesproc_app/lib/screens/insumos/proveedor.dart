@@ -310,21 +310,31 @@ class _ProveedorState extends State<Proveedor> {
                       },
                     ),
             ),
+            if (_showCotizaciones) 
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(2.0),
+              color: Colors.black,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _showCotizaciones = false;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF171717),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                child: Text(
+                  'Regresar',
+                  style: TextStyle(color: Color(0xFFFFF0C6)),
+                ),
+              ),
+            ),
           ],
         ),
       ),
-      floatingActionButton: _showCotizaciones
-    ? FloatingActionButton.extended(
-        onPressed: () {
-          setState(() {
-            _showCotizaciones = false;
-          });
-        },
-        label: Text('Regresar'),
-        backgroundColor: Colors.black,
-        foregroundColor: Color(0xFFFFF0C6),
-      )
-    : null,
+     
 
     );
   }
