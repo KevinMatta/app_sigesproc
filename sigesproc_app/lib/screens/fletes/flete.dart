@@ -188,8 +188,7 @@ class _FleteState extends State<Flete> {
                     ),
                     IconButton(
                       icon: Icon(Icons.filter_list, color: Colors.white54),
-                      onPressed: () {
-                      },
+                      onPressed: () {},
                     ),
                   ],
                 ),
@@ -221,9 +220,13 @@ class _FleteState extends State<Flete> {
                   } else {
                     return ListView.builder(
                       padding: EdgeInsets.only(bottom: 80.0),
-                      itemCount: _filteredFletes.isEmpty ? snapshot.data!.length : _filteredFletes.length,
+                      itemCount: _filteredFletes.isEmpty
+                          ? snapshot.data!.length
+                          : _filteredFletes.length,
                       itemBuilder: (context, index) {
-                        return FleteRegistro(_filteredFletes.isEmpty ? snapshot.data![index] : _filteredFletes[index]);
+                        return FleteRegistro(_filteredFletes.isEmpty
+                            ? snapshot.data![index]
+                            : _filteredFletes[index]);
                       },
                     );
                   }
@@ -242,7 +245,6 @@ class _FleteState extends State<Flete> {
             ),
           );
         },
-
         backgroundColor: Color(0xFFFFF0C6),
         child: Icon(Icons.add_circle_outline, color: Colors.black),
       ),

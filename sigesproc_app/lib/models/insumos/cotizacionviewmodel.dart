@@ -6,7 +6,7 @@ class CotizacionViewModel {
   DateTime? cotiFecha;
   int? emplId;
   String? empleado;
-  int? cotiImpuesto;
+  num? cotiImpuesto;
   bool? cotiIncluido;
   String? subtotal;
   String? total;

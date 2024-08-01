@@ -13,6 +13,7 @@ import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/services/insumos/insumoservice.dart';
 
+
 class NuevoFlete extends StatefulWidget {
   @override
   _NuevoFleteState createState() => _NuevoFleteState();
@@ -24,7 +25,6 @@ class _NuevoFleteState extends State<NuevoFlete> {
   DateTime? establishedDate;
   TimeOfDay? establishedTime;
   bool esProyecto = false;
-  bool enProceso = false;
   bool _showInsumos = false;
   List<EmpleadoViewModel> empleados = [];
   List<BodegaViewModel> bodegas = [];
@@ -306,12 +306,6 @@ class _NuevoFleteState extends State<NuevoFlete> {
                   _buildBodegaDropdown('Salida'),
                   SizedBox(height: 20),
                   _buildLlegadaDropdown(),
-                  SizedBox(height: 20),
-                  _switch('En Proceso', enProceso, (value) {
-                    setState(() {
-                      enProceso = value;
-                    });
-                  }),
                 ],
               ),
             ),

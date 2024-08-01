@@ -32,4 +32,33 @@ class ProcesoVentaService {
       throw Exception('Error al buscar venta');
     }
   }
+
+  static Future<void> Eliminar(int btrpId) async {
+    final url = Uri.parse('${ApiService.apiUrl}/ProcesoVenta/Eliminar?id=$btrpId');
+    final response = await http.delete(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar el proceso de venta');
+    }
+  }
+
+   static Future<void> venderProcesoVenta(ProcesoVentaViewModel venta) async {
+    final url = Uri.parse('${ApiService.apiUrl}/ProcesoVenta/Vender');
+    final response = await http.put(
+      url,
+      headers: {
+        ...ApiService.getHttpHeaders(),
+        "Content-Type": "application/json"
+      },
+      body: json.encode({
+        'btrp_Id': venta.btrpId,
+        'btrp_PrecioVenta_Final': venta.btrpPrecioVentaFinal,
+        'btrp_FechaVendida': venta.btrpFechaVendida?.toIso8601String(),
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al vender la propiedad');
+    }
+  }
 }

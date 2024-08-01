@@ -23,7 +23,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   @override
   void initState() {
     super.initState();
-    _loadProcesosVenta();
+    _cargarProcesosVenta();
     _searchController.addListener(_filterProcesosVenta);
   }
 
@@ -80,14 +80,14 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     }
   }
 
-  void _resetFilteredProcesosVenta() {
+  void _reiniciarProcesosVentaFiltros() {
     setState(() {
       _filteredProcesosVenta = [];
     });
-    _loadProcesosVenta();
+    _cargarProcesosVenta();
   }
 
-  void _loadProcesosVenta() {
+  void _cargarProcesosVenta() {
     _procesosventaFuture = ProcesoVentaService.listarProcesosVenta();
     _procesosventaFuture!.then((procesosventa) {
       setState(() {
@@ -109,23 +109,126 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     });
   }
 
-  void _showRemoveDialog(BuildContext context, String descripcion) {
+  void _modalEliminar(
+      BuildContext context, ProcesoVentaViewModel procesoventa) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title:
+              Text('Eliminar propiedad', style: TextStyle(color: Colors.white)),
+          content: Text(
+            '¿Está seguro de querer eliminar la propiedad ${procesoventa.descripcion} del estado en venta?',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Color(0xFF171717),
+          actions: [
+            TextButton(
+              child:
+                  Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () async {
+                try {
+                  await ProcesoVentaService.Eliminar(procesoventa.btrpId);
+                  setState(() {
+                    _filteredProcesosVenta.remove(procesoventa);
+                  });
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al eliminar el registro')),
+                  );
+                }
+              },
+            ),
+            TextButton(
+              child:
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _modalVender(BuildContext context, ProcesoVentaViewModel venta) {
+  TextEditingController valorController = TextEditingController();
+  TextEditingController fechaController = TextEditingController();
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Eliminar propiedad',
-            style: TextStyle(color: Colors.white)),
-        content: Text(
-          '¿Está seguro de querer eliminar la propiedad $descripcion del estado en venta?',
-          style: TextStyle(color: Colors.white),
+        title: Text('Propiedad vendida', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: valorController,
+              decoration: InputDecoration(
+                hintText: 'Valor de venta',
+                hintStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Colors.white24,
+              ),
+              style: TextStyle(color: Colors.white),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: fechaController,
+              decoration: InputDecoration(
+                hintText: 'Fecha de venta',
+                hintStyle: TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Colors.white24,
+                suffixIcon: Icon(Icons.calendar_today, color: Colors.white54),
+              ),
+              style: TextStyle(color: Colors.white),
+              keyboardType: TextInputType.datetime,
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null) {
+                  fechaController.text =
+                      DateFormat('dd/MM/yyyy').format(pickedDate);
+                }
+              },
+            ),
+          ],
         ),
         backgroundColor: Color(0xFF171717),
         actions: [
           TextButton(
-            child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () {
-              Navigator.of(context).pop();
+            child: Text('Guardar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            onPressed: () async {
+              try {
+                venta.btrpPrecioVentaFinal =
+                    double.parse(valorController.text);
+                venta.btrpFechaVendida =
+                    DateFormat('dd/MM/yyyy').parse(fechaController.text);
+
+                await ProcesoVentaService.venderProcesoVenta(venta);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Propiedad vendida con éxito')),
+                );
+                setState(() {
+                  _selectedVenta = null;
+                  _reiniciarProcesosVentaFiltros();
+                });
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al vender la propiedad')),
+                );
+              }
             },
           ),
           TextButton(
@@ -134,7 +237,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
               Navigator.of(context).pop();
             },
           ),
-          
         ],
       );
     },
@@ -142,43 +244,50 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 }
 
 
- Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
+  Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
   return FutureBuilder<List<String>>(
     future: ProcesoVentaService.Buscar(
-            procesoventa.btrpId,
-            procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
-            procesoventa.btrpBienoterrenoId!)
-        .then((value) => value.map((e) => e.imprImagen!).toList()),
+      procesoventa.btrpId,
+      procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
+      procesoventa.btrpBienoterrenoId!
+    ).then((value) => value.map((e) => e.imprImagen!).toList()),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
+        return Center(
+          // child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+        );
       } else if (snapshot.hasError) {
         return Card(
           margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
           color: Color(0xFF171717),
           child: ListTile(
-            title: Text(procesoventa.descripcion ?? 'N/A',
-                style: TextStyle(color: Colors.white)),
+            title: Text(
+              procesoventa.descripcion ?? 'N/A',
+              style: TextStyle(color: Colors.white)
+            ),
             subtitle: Text(
-                'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
-                style: TextStyle(color: Colors.white70)),
+              'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+              style: TextStyle(color: Colors.white70)
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: Icon(Icons.info_outline, color: Colors.white),
                   onPressed: () => _verDetalles(
-                      procesoventa.btrpId,
-                      procesoventa.btrpTerrenoOBienRaizId,
-                      procesoventa.btrpBienoterrenoId),
+                    procesoventa.btrpId,
+                    procesoventa.btrpTerrenoOBienRaizId,
+                    procesoventa.btrpBienoterrenoId
+                  ),
                 ),
                 Icon(
-                    procesoventa.btrpIdentificador == true
-                        ? Icons.adjust
-                        : Icons.adjust,
-                    color: procesoventa.btrpIdentificador == true
-                        ? Colors.green
-                        : Colors.red),
+                  procesoventa.btrpIdentificador == true
+                    ? Icons.adjust
+                    : Icons.adjust,
+                  color: procesoventa.btrpIdentificador == true
+                    ? Colors.green
+                    : Colors.red
+                ),
               ],
             ),
           ),
@@ -205,11 +314,19 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           return Builder(
                             builder: (BuildContext context) {
                               return Container(
-                                color: Colors.black,
+                                color: Color(0xFF171717),
                                 child: Image.network(
-                                  'https://localhost:44337$imagePath',
+                                  'http://www.backsigespro.somee.com$imagePath',
                                   fit: BoxFit.contain,
                                   width: MediaQuery.of(context).size.width,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Text(
+                                        'Imagen no disponible',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    );
+                                  },
                                 ),
                               );
                             },
@@ -228,25 +345,27 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                         IconButton(
                           icon: Icon(Icons.info_outline, color: Colors.white),
                           onPressed: () => _verDetalles(
-                              procesoventa.btrpId,
-                              procesoventa.btrpTerrenoOBienRaizId,
-                              procesoventa.btrpBienoterrenoId),
+                            procesoventa.btrpId,
+                            procesoventa.btrpTerrenoOBienRaizId,
+                            procesoventa.btrpBienoterrenoId
+                          ),
                         ),
                         Icon(
                           procesoventa.btrpIdentificador == true
-                              ? Icons.adjust
-                              : Icons.adjust,
+                            ? Icons.adjust
+                            : Icons.adjust,
                           color: procesoventa.btrpIdentificador == true
-                              ? Colors.green
-                              : Colors.red,
+                            ? Colors.green
+                            : Colors.red,
                         ),
                       ],
                     ),
                   ],
                 ),
                 subtitle: Text(
-                    'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
-                    style: TextStyle(color: Colors.white70)),
+                  'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+                  style: TextStyle(color: Colors.white70)
+                ),
               ),
               if (procesoventa.btrpIdentificador == true)
                 Positioned(
@@ -254,7 +373,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                   child: IconButton(
                     icon: Icon(Icons.close, color: Colors.red),
                     onPressed: () {
-                      _showRemoveDialog(context, procesoventa.descripcion ?? 'N/A');
+                      _modalEliminar(context, procesoventa);
                     },
                   ),
                 ),
@@ -269,7 +388,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 
   Widget VentaDetalles(List<ProcesoVentaViewModel> ventas) {
     ProcesoVentaViewModel venta = ventas.first;
-    List<String> imagenes = ventas.map((e) => e.imprImagen!).toList();
+    List<String> imagenes = ventas
+        .where((e) => e.imprImagen != null)
+        .map((e) => e.imprImagen!)
+        .toList();
     print('Imagenes: $imagenes');
 
     return Column(
@@ -292,7 +414,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           return Container(
                             color: Colors.black,
                             child: Image.network(
-                              'https://localhost:44337$imagePath',
+                              'http://www.backsigespro.somee.com$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
                             ),
@@ -399,20 +521,27 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 ],
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: venta.btrpIdentificador == false
-                                    ? Colors.black
-                                    : Colors.black,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: Text(
-                                venta.btrpIdentificador == false
-                                    ? 'Vendido'
-                                    : 'En Venta',
-                                style: TextStyle(color: Color(0xFFFFF0C6)),
+                            GestureDetector(
+                              onTap: () {
+                                if (venta.btrpIdentificador == true) {
+                                  _modalVender(context, venta);
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: venta.btrpIdentificador == false
+                                      ? Colors.black
+                                      : Colors.black,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: Text(
+                                  venta.btrpIdentificador == false
+                                      ? 'Vendido'
+                                      : 'Vender',
+                                  style: TextStyle(color: Color(0xFFFFF0C6)),
+                                ),
                               ),
                             ),
                           ],
@@ -433,7 +562,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
             onPressed: () {
               setState(() {
                 _selectedVenta = null;
-                _resetFilteredProcesosVenta(); // Reiniciar la lista y recargar los datos
+                _reiniciarProcesosVentaFiltros(); // Reiniciar la lista y recargar los datos
               });
             },
             style: ElevatedButton.styleFrom(
@@ -510,7 +639,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                        child: SpinKitCircle(color: Color(0xFFFFF0C6)));
+                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                    );
                   } else if (snapshot.hasError) {
                     print('Error: ${snapshot.error}');
                     return Center(
