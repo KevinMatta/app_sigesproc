@@ -119,10 +119,13 @@ class _FleteState extends State<Flete> {
               'lib/assets/logo-sigesproc.png',
               height: 60,
             ),
-            SizedBox(width: 10),
+            SizedBox(width: 5), 
             Text(
               'SIGESPROC',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 20,
+              ),
             ),
           ],
         ),

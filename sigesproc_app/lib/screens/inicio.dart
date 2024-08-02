@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'menu.dart';
-import 'proyectos/proyecto.dart';
 
 class Inicio extends StatefulWidget {
   @override
@@ -40,10 +39,13 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
               'lib/assets/logo-sigesproc.png',
               height: 60,
             ),
-            SizedBox(width: 10),
+            SizedBox(width: 5), 
             Text(
               'SIGESPROC',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 20,
+              ),
             ),
           ],
         ),

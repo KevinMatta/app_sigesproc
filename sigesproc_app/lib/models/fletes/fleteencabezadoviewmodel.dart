@@ -23,7 +23,8 @@ class FleteEncabezadoViewModel {
   DateTime? flenFechaCreacion;
   int? usuaModificacion;
   DateTime? flenFechaModificacion;
-  bool? flenEstadoFlete;
+  int? flenEstadoFlete;
+  String? inppObservacion;
 
   FleteEncabezadoViewModel({
     required this.codigo,
@@ -51,6 +52,7 @@ class FleteEncabezadoViewModel {
     this.usuaModificacion,
     this.flenFechaModificacion,
     this.flenEstadoFlete,
+    this.inppObservacion,
   });
 
   factory FleteEncabezadoViewModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +82,7 @@ class FleteEncabezadoViewModel {
       usuaModificacion: json['usua_Modificacion'],
       flenFechaModificacion: json['flen_FechaModificacion'] != null ? DateTime.parse(json['flen_FechaModificacion']) : null,
       flenEstadoFlete: json['flen_EstadoFlete'],
+      inppObservacion: json['inpp_Observacion'],
     );
   }
 
@@ -110,6 +113,7 @@ class FleteEncabezadoViewModel {
       'usua_Modificacion': usuaModificacion,
       'flen_FechaModificacion': flenFechaModificacion?.toIso8601String(),
       'flen_EstadoFlete': flenEstadoFlete,
+      'inpp_Observacion': inppObservacion,
     };
   }
 }

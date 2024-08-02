@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
+import 'package:sigesproc_app/screens/bienesraices/utilidad.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProcesoVenta extends StatefulWidget {
   @override
@@ -70,12 +72,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   }
 
   void _launchURL(String url) async {
-    print(' URL: $url');
-    if (await canLaunch(url)) {
-      await launch(url);
-      print('URL launch: $url');
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      print('error URL: $url');
       throw 'No se pudo abrir el enlace $url';
     }
   }
@@ -155,236 +155,230 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   }
 
   void _modalVender(BuildContext context, ProcesoVentaViewModel venta) {
-  TextEditingController valorController = TextEditingController();
-  TextEditingController fechaController = TextEditingController();
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Propiedad vendida', style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: valorController,
-              decoration: InputDecoration(
-                hintText: 'Valor de venta',
-                hintStyle: TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.white24,
+    TextEditingController valorController = TextEditingController();
+    TextEditingController fechaController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title:
+              Text('Propiedad vendida', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: valorController,
+                decoration: InputDecoration(
+                  hintText: 'Valor de venta',
+                  hintStyle: TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.white24,
+                ),
+                style: TextStyle(color: Colors.white),
+                keyboardType: TextInputType.number,
               ),
-              style: TextStyle(color: Colors.white),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: fechaController,
-              decoration: InputDecoration(
-                hintText: 'Fecha de venta',
-                hintStyle: TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.white24,
-                suffixIcon: Icon(Icons.calendar_today, color: Colors.white54),
+              SizedBox(height: 10),
+              TextField(
+                controller: fechaController,
+                decoration: InputDecoration(
+                  hintText: 'Fecha de venta',
+                  hintStyle: TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.white24,
+                  suffixIcon: Icon(Icons.calendar_today, color: Colors.white54),
+                ),
+                style: TextStyle(color: Colors.white),
+                keyboardType: TextInputType.datetime,
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2101),
+                  );
+                  if (pickedDate != null) {
+                    fechaController.text =
+                        DateFormat('dd/MM/yyyy').format(pickedDate);
+                  }
+                },
               ),
-              style: TextStyle(color: Colors.white),
-              keyboardType: TextInputType.datetime,
-              onTap: () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2101),
-                );
-                if (pickedDate != null) {
-                  fechaController.text =
-                      DateFormat('dd/MM/yyyy').format(pickedDate);
+            ],
+          ),
+          backgroundColor: Color(0xFF171717),
+          actions: [
+            TextButton(
+              child:
+                  Text('Guardar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () async {
+                try {
+                  venta.btrpPrecioVentaFinal =
+                      double.parse(valorController.text);
+                  venta.btrpFechaVendida =
+                      DateFormat('dd/MM/yyyy').parse(fechaController.text);
+
+                  await ProcesoVentaService.venderProcesoVenta(venta);
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Propiedad vendida con éxito')),
+                  );
+                  setState(() {
+                    _selectedVenta = null;
+                    _reiniciarProcesosVentaFiltros();
+                  });
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al vender la propiedad')),
+                  );
                 }
               },
             ),
+            TextButton(
+              child:
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ],
-        ),
-        backgroundColor: Color(0xFF171717),
-        actions: [
-          TextButton(
-            child: Text('Guardar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () async {
-              try {
-                venta.btrpPrecioVentaFinal =
-                    double.parse(valorController.text);
-                venta.btrpFechaVendida =
-                    DateFormat('dd/MM/yyyy').parse(fechaController.text);
-
-                await ProcesoVentaService.venderProcesoVenta(venta);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Propiedad vendida con éxito')),
-                );
-                setState(() {
-                  _selectedVenta = null;
-                  _reiniciarProcesosVentaFiltros();
-                });
-              } catch (e) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al vender la propiedad')),
-                );
-              }
-            },
-          ),
-          TextButton(
-            child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
-  return FutureBuilder<List<String>>(
-    future: ProcesoVentaService.Buscar(
-      procesoventa.btrpId,
-      procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
-      procesoventa.btrpBienoterrenoId!
-    ).then((value) => value.map((e) => e.imprImagen!).toList()),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(
-          // child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-        );
-      } else if (snapshot.hasError) {
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
-          color: Color(0xFF171717),
-          child: ListTile(
-            title: Text(
-              procesoventa.descripcion ?? 'N/A',
-              style: TextStyle(color: Colors.white)
-            ),
-            subtitle: Text(
-              'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
-              style: TextStyle(color: Colors.white70)
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.info_outline, color: Colors.white),
-                  onPressed: () => _verDetalles(
-                    procesoventa.btrpId,
-                    procesoventa.btrpTerrenoOBienRaizId,
-                    procesoventa.btrpBienoterrenoId
+    return FutureBuilder<List<String>>(
+      future: ProcesoVentaService.Buscar(
+              procesoventa.btrpId,
+              procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
+              procesoventa.btrpBienoterrenoId!)
+          .then((value) => value.map((e) => e.imprImagen!).toList()),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+              // child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+              );
+        } else if (snapshot.hasError) {
+          return Card(
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
+            color: Color(0xFF171717),
+            child: ListTile(
+              title: Text(procesoventa.descripcion ?? 'N/A',
+                  style: TextStyle(color: Colors.white)),
+              subtitle: Text(
+                  'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+                  style: TextStyle(color: Colors.white70)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.info_outline, color: Colors.white),
+                    onPressed: () => _verDetalles(
+                        procesoventa.btrpId,
+                        procesoventa.btrpTerrenoOBienRaizId,
+                        procesoventa.btrpBienoterrenoId),
                   ),
+                  Icon(
+                      procesoventa.btrpIdentificador == true
+                          ? Icons.adjust
+                          : Icons.adjust,
+                      color: procesoventa.btrpIdentificador == true
+                          ? Colors.green
+                          : Colors.red),
+                ],
+              ),
+            ),
+          );
+        } else {
+          List<String> imagenes = snapshot.data ?? [];
+          return Card(
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
+            color: Color(0xFF171717),
+            child: Stack(
+              children: [
+                ListTile(
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (imagenes.isNotEmpty)
+                        CarouselSlider(
+                          options: CarouselOptions(
+                            height: 200.0,
+                            autoPlay: true,
+                            enlargeCenterPage: true,
+                          ),
+                          items: imagenes.map((imagePath) {
+                            return Builder(
+                              builder: (BuildContext context) {
+                                return Container(
+                                  color: Color(0xFF171717),
+                                  child: Image.network(
+                                    'http://www.backsigespro.somee.com$imagePath',
+                                    fit: BoxFit.contain,
+                                    width: MediaQuery.of(context).size.width,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Text(
+                                          'Imagen no disponible',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      SizedBox(height: 8.0),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              procesoventa.descripcion ?? 'N/A',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.info_outline, color: Colors.white),
+                            onPressed: () => _verDetalles(
+                                procesoventa.btrpId,
+                                procesoventa.btrpTerrenoOBienRaizId,
+                                procesoventa.btrpBienoterrenoId),
+                          ),
+                          Icon(
+                            procesoventa.btrpIdentificador == true
+                                ? Icons.adjust
+                                : Icons.adjust,
+                            color: procesoventa.btrpIdentificador == true
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                      'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+                      style: TextStyle(color: Colors.white70)),
                 ),
-                Icon(
-                  procesoventa.btrpIdentificador == true
-                    ? Icons.adjust
-                    : Icons.adjust,
-                  color: procesoventa.btrpIdentificador == true
-                    ? Colors.green
-                    : Colors.red
-                ),
+                if (procesoventa.btrpIdentificador == true)
+                  Positioned(
+                    right: 0,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.red),
+                      onPressed: () {
+                        _modalEliminar(context, procesoventa);
+                      },
+                    ),
+                  ),
               ],
             ),
-          ),
-        );
-      } else {
-        List<String> imagenes = snapshot.data ?? [];
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
-          color: Color(0xFF171717),
-          child: Stack(
-            children: [
-              ListTile(
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (imagenes.isNotEmpty)
-                      CarouselSlider(
-                        options: CarouselOptions(
-                          height: 200.0,
-                          autoPlay: true,
-                          enlargeCenterPage: true,
-                        ),
-                        items: imagenes.map((imagePath) {
-                          return Builder(
-                            builder: (BuildContext context) {
-                              return Container(
-                                color: Color(0xFF171717),
-                                child: Image.network(
-                                  'http://www.backsigespro.somee.com$imagePath',
-                                  fit: BoxFit.contain,
-                                  width: MediaQuery.of(context).size.width,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Center(
-                                      child: Text(
-                                        'Imagen no disponible',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    SizedBox(height: 8.0),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            procesoventa.descripcion ?? 'N/A',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.info_outline, color: Colors.white),
-                          onPressed: () => _verDetalles(
-                            procesoventa.btrpId,
-                            procesoventa.btrpTerrenoOBienRaizId,
-                            procesoventa.btrpBienoterrenoId
-                          ),
-                        ),
-                        Icon(
-                          procesoventa.btrpIdentificador == true
-                            ? Icons.adjust
-                            : Icons.adjust,
-                          color: procesoventa.btrpIdentificador == true
-                            ? Colors.green
-                            : Colors.red,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                subtitle: Text(
-                  'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
-                  style: TextStyle(color: Colors.white70)
-                ),
-              ),
-              if (procesoventa.btrpIdentificador == true)
-                Positioned(
-                  right: 0,
-                  child: IconButton(
-                    icon: Icon(Icons.close, color: Colors.red),
-                    onPressed: () {
-                      _modalEliminar(context, procesoventa);
-                    },
-                  ),
-                ),
-            ],
-          ),
-        );
-      }
-    },
-  );
-}
-
+          );
+        }
+      },
+    );
+  }
 
   Widget VentaDetalles(List<ProcesoVentaViewModel> ventas) {
     ProcesoVentaViewModel venta = ventas.first;
@@ -457,16 +451,36 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       ),
                       SizedBox(height: 8.0),
                       InkWell(
-                        onTap: () => _launchURL(venta.linkUbicacion ?? ''),
+                        onTap: () {
+                          String linkUbicacion = venta.linkUbicacion ?? '';
+                          if (linkUbicacion.isNotEmpty) {
+                            final Uri uri = Uri.parse(linkUbicacion);
+                            final List<String> coordinates =
+                                uri.queryParameters['q']?.split(',') ?? [];
+                            if (coordinates.length == 2) {
+                              double latitude = double.parse(coordinates[0]);
+                              double longitude = double.parse(coordinates[1]);
+                              MapUtils.openMapWithPosition(latitude, longitude);
+                            } else {
+                              print("Error parsing coordinates");
+                            }
+                          } else {
+                            print("No linkUbicacion available");
+                          }
+                        },
                         child: Text(
                           'Ver ubicación',
                           style: TextStyle(
-                              color: Colors.blue,
-                              decoration: TextDecoration.underline),
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
+
                       SizedBox(height: 8.0),
-                      Divider(color: Colors.white70), // Línea de separación
+                      Divider(
+                          color: const Color.fromARGB(
+                              179, 2, 2, 2)), // Línea de separación
                       SizedBox(height: 8.0),
                       Text(
                         venta.agenNombreCompleto ?? 'N/A',
@@ -555,24 +569,28 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
           ),
         ),
         Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(2.0),
           color: Colors.black,
-          child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _selectedVenta = null;
-                _reiniciarProcesosVentaFiltros(); // Reiniciar la lista y recargar los datos
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-            ),
-            child: Text(
-              'Regresar',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
-            ),
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedVenta = null;
+                    _reiniciarProcesosVentaFiltros(); // Reiniciar la lista y recargar los datos
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF171717),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                child: Text(
+                  'Regresar',
+                  style: TextStyle(color: Color(0xFFFFF0C6)),
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -49,51 +49,55 @@ void _onItemTapped(int index) {
     });
   }
 
-  Widget ProyectoRegistro(ProyectoViewModel proyecto) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          proyecto.codigo.toString(),
-          style: TextStyle(color: Colors.black),
+  Widget ProyectoRegistro(ProyectoViewModel proyecto, int index) {
+  return ListTile(
+    leading: CircleAvatar(
+      child: Text(
+        (index + 1).toString(),  // Aquí se usa el índice + 1 para mostrar el número secuencial
+        style: TextStyle(color: Colors.black),
+      ),
+      backgroundColor: Color(0xFFFFF0C6),
+    ),
+    title: Text(
+      proyecto.proyNombre ?? 'N/A',
+      style: TextStyle(color: Colors.white),
+    ),
+    subtitle: Text(
+      'Supervisor: ${proyecto.proyDescripcion ?? 'N/A'}',
+      style: TextStyle(color: Colors.white70),
+    ),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          proyecto.proyEstado == true ? Icons.adjust : Icons.adjust,
+          color: proyecto.proyEstado == true ? Colors.red : Colors.green,
         ),
-        backgroundColor: Color(0xFFFFF0C6),
-      ),
-      title: Text(
-        proyecto.proyNombre ?? 'N/A',
-        style: TextStyle(color: Colors.white),
-      ),
-      subtitle: Text(
-        'Supervisor: ${proyecto.proyDescripcion ?? 'N/A'}',
-        style: TextStyle(color: Colors.white70),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            proyecto.proyEstado == true ? Icons.adjust : Icons.adjust,
-            color: proyecto.proyEstado == true ? Colors.red : Colors.green,
-          ),
-          PopupMenuButton<int>(
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (int result) {
-              if (result == 0) {
-              } else if (result == 1) {}
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-              const PopupMenuItem<int>(
-                value: 0,
-                child: Text('Acción 1'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Acción 2'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+        PopupMenuButton<int>(
+          icon: Icon(Icons.more_vert, color: Colors.white),
+          onSelected: (int result) {
+            if (result == 0) {
+              // Acción 1
+            } else if (result == 1) {
+              // Acción 2
+            }
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
+            const PopupMenuItem<int>(
+              value: 0,
+              child: Text('Acción 1'),
+            ),
+            const PopupMenuItem<int>(
+              value: 1,
+              child: Text('Acción 2'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,10 +110,13 @@ void _onItemTapped(int index) {
               'lib/assets/logo-sigesproc.png',
               height: 60,
             ),
-            SizedBox(width: 10),
+            SizedBox(width: 5), 
             Text(
               'SIGESPROC',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 20,
+              ),
             ),
           ],
         ),
@@ -210,7 +217,7 @@ void _onItemTapped(int index) {
                       padding: EdgeInsets.only(bottom: 80.0),
                       itemCount: _proyectosFiltrados.isEmpty ? snapshot.data!.length : _proyectosFiltrados.length,
                       itemBuilder: (context, index) {
-                        return ProyectoRegistro(_proyectosFiltrados.isEmpty ? snapshot.data![index] : _proyectosFiltrados[index]);
+                        return ProyectoRegistro(_proyectosFiltrados.isEmpty ? snapshot.data![index] : _proyectosFiltrados[index], index);
                       },
                     );
                   }

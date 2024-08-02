@@ -67,7 +67,8 @@ class _ProveedorState extends State<Proveedor> {
       _showCotizaciones = true;
       _selectedProveedorDescripcion = provDescripcion;
       print(provId);
-      _cotizacionesFuture = CotizacionService.listarCotizacionesPorProveedor(provId);
+      _cotizacionesFuture =
+          CotizacionService.listarCotizacionesPorProveedor(provId);
     });
   }
 
@@ -97,7 +98,8 @@ class _ProveedorState extends State<Proveedor> {
             children: [
               IconButton(
                 icon: Icon(Icons.info_outline, color: Colors.white),
-                onPressed: () => _verCotizaciones(proveedor.provId, proveedor.provDescripcion!),
+                onPressed: () => _verCotizaciones(
+                    proveedor.provId, proveedor.provDescripcion!),
               ),
               Icon(
                 isExpanded ? Icons.arrow_drop_down : Icons.arrow_left,
@@ -165,10 +167,13 @@ class _ProveedorState extends State<Proveedor> {
               'lib/assets/logo-sigesproc.png',
               height: 60,
             ),
-            SizedBox(width: 10),
+            SizedBox(width: 5),
             Text(
               'SIGESPROC',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 20,
+              ),
             ),
           ],
         ),
@@ -177,7 +182,9 @@ class _ProveedorState extends State<Proveedor> {
           child: Column(
             children: [
               Text(
-                _showCotizaciones ? 'Cotizaciones a $_selectedProveedorDescripcion' : 'Proveedores',
+                _showCotizaciones
+                    ? 'Cotizaciones a $_selectedProveedorDescripcion'
+                    : 'Proveedores',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 18,
@@ -248,7 +255,8 @@ class _ProveedorState extends State<Proveedor> {
                   ? FutureBuilder<List<CotizacionViewModel>>(
                       future: _cotizacionesFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return Center(
                             child: SpinKitCircle(color: Color(0xFFFFF0C6)),
                           );
@@ -259,7 +267,8 @@ class _ProveedorState extends State<Proveedor> {
                               style: TextStyle(color: Colors.red),
                             ),
                           );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               'No hay datos disponibles',
@@ -280,7 +289,8 @@ class _ProveedorState extends State<Proveedor> {
                   : FutureBuilder<List<ProveedorViewModel>>(
                       future: _proveedoresFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return Center(
                             child: SpinKitCircle(color: Color(0xFFFFF0C6)),
                           );
@@ -291,7 +301,8 @@ class _ProveedorState extends State<Proveedor> {
                               style: TextStyle(color: Colors.red),
                             ),
                           );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               'No hay datos disponibles',
@@ -303,39 +314,43 @@ class _ProveedorState extends State<Proveedor> {
                             padding: EdgeInsets.only(bottom: 80.0),
                             itemCount: _filteredProveedores.length,
                             itemBuilder: (context, index) {
-                              return ProveedorRegistro(_filteredProveedores[index]);
+                              return ProveedorRegistro(
+                                  _filteredProveedores[index]);
                             },
                           );
                         }
                       },
                     ),
             ),
-            if (_showCotizaciones) 
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(2.0),
-              color: Colors.black,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _showCotizaciones = false;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF171717),
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                ),
-                child: Text(
-                  'Regresar',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
+            if (_showCotizaciones)
+              Container(
+                color: Colors.black,
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _showCotizaciones = false;
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF171717),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                      ),
+                      child: Text(
+                        'Regresar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
           ],
         ),
       ),
-     
-
     );
   }
 }
