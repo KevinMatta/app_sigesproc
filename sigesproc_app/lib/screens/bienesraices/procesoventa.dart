@@ -24,17 +24,17 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   void initState() {
     super.initState();
     _cargarProcesosVenta();
-    _searchController.addListener(_filterProcesosVenta);
+    _searchController.addListener(_filtradoProcesosVenta);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_filterProcesosVenta);
+    _searchController.removeListener(_filtradoProcesosVenta);
     _searchController.dispose();
     super.dispose();
   }
 
-  void _filterProcesosVenta() {
+  void _filtradoProcesosVenta() {
     final query = _searchController.text.toLowerCase();
     if (_procesosventaFuture != null) {
       _procesosventaFuture!.then((procesosventa) {

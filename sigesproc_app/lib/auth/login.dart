@@ -63,7 +63,7 @@ class _LoginState extends State<Login> {
                 top: 5,
                 child: Image.asset(
                   'lib/assets/logo-sigesproc.png',
-                  height: 180,
+                  height: 160,
                 ),
               ),
               Positioned(
