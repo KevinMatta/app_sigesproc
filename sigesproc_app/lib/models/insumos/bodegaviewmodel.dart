@@ -1,6 +1,6 @@
 class BodegaViewModel {
-  final int bodeId;
-  final String bodeDescripcion;
+  int? bodeId;
+  final String? bodeDescripcion;
   final String? bodeLatitud;
   final String? bodeLongitud;
   final String? bodeLinkUbicacion;
@@ -13,8 +13,8 @@ class BodegaViewModel {
   final String? pais;
 
   BodegaViewModel({
-    required this.bodeId,
-    required this.bodeDescripcion,
+    this.bodeId,
+    this.bodeDescripcion,
     this.bodeLatitud,
     this.bodeLongitud,
     this.bodeLinkUbicacion,

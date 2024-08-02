@@ -15,7 +15,6 @@ import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
-
 class NuevoFlete extends StatefulWidget {
   @override
   _NuevoFleteState createState() => _NuevoFleteState();
@@ -28,6 +27,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
   TimeOfDay? establishedTime;
   bool esProyecto = false;
   bool _showInsumos = false;
+  bool _desabilitartextbox = false;
   List<EmpleadoViewModel> empleados = [];
   List<BodegaViewModel> bodegas = [];
   List<ProyectoViewModel> proyectos = [];
@@ -52,16 +52,17 @@ class _NuevoFleteState extends State<NuevoFlete> {
   bool _ubicacionLlegadaError = false;
   String _ubicacionLlegadaErrorMessage = '';
   TextEditingController llegadaController = TextEditingController();
-  final ThemeData darkTheme = ThemeData.dark().copyWith(
-  colorScheme: ColorScheme.dark(
-    primary: Color(0xFFFFF0C6),
-    onPrimary: Colors.black,
-    surface: Colors.black,
-    onSurface: Colors.white,
-  ),
-  dialogBackgroundColor: Colors.black,
-);
+  List<TextEditingController> quantityControllers = [];
 
+  final ThemeData darkTheme = ThemeData.dark().copyWith(
+    colorScheme: ColorScheme.dark(
+      primary: Color(0xFFFFF0C6),
+      onPrimary: Colors.black,
+      surface: Colors.black,
+      onSurface: Colors.white,
+    ),
+    dialogBackgroundColor: Colors.black,
+  );
 
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
@@ -87,6 +88,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
     _cargarEmpleados();
     _cargarBodegas();
     _cargarProyectos();
+
+    // quantityControllers =
+    //     List.generate(insumos.length, (index) => TextEditingController());
   }
 
   Future<void> _cargarEmpleados() async {
@@ -125,23 +129,11 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Future<void> _FechaSeleccionada({required bool isSalida}) async {
-  DateTime? pickedDate = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2000),
-    lastDate: DateTime(2101),
-    builder: (BuildContext context, Widget? child) {
-      return Theme(
-        data: darkTheme,
-        child: child!,
-      );
-    },
-  );
-
-  if (pickedDate != null) {
-    TimeOfDay? pickedTime = await showTimePicker(
+    DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: darkTheme,
@@ -150,32 +142,43 @@ class _NuevoFleteState extends State<NuevoFlete> {
       },
     );
 
-    if (pickedTime != null) {
-      setState(() {
-        if (isSalida) {
-          selectedDate = pickedDate;
-          selectedTime = pickedTime;
-          flete.flenFechaHoraSalida = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute);
-        } else {
-          establishedDate = pickedDate;
-          establishedTime = pickedTime;
-          flete.flenFechaHoraEstablecidaDeLlegada = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute);
-        }
-      });
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+        builder: (BuildContext context, Widget? child) {
+          return Theme(
+            data: darkTheme,
+            child: child!,
+          );
+        },
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          if (isSalida) {
+            selectedDate = pickedDate;
+            selectedTime = pickedTime;
+            flete.flenFechaHoraSalida = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute);
+          } else {
+            establishedDate = pickedDate;
+            establishedTime = pickedTime;
+            flete.flenFechaHoraEstablecidaDeLlegada = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute);
+          }
+        });
+      }
     }
   }
-}
-
 
   Future<void> _cargarInsumosPorBodega(int bodeId) async {
     try {
@@ -183,123 +186,219 @@ class _NuevoFleteState extends State<NuevoFlete> {
           await FleteDetalleService.listarInsumosPorProveedorPorBodega(bodeId);
       setState(() {
         insumos = insumosList;
+        // Inicializar controladores para cada insumo cargado
+        quantityControllers = List.generate(insumos.length, (index) => TextEditingController(text: '1'));
+        selectedCantidades = List.generate(insumos.length, (index) => 1);
       });
     } catch (e) {
       print('Error al cargar los insumos: $e');
     }
   }
 
- Widget _buildBodegaAutocomplete(String label) {
-  bool isError = false;
-  String errorMessage = '';
 
-  // Determinar qué mensaje de error mostrar basado en el label
-  if (label == 'Salida') {
-    isError = _ubicacionSalidaError;
-    errorMessage = _ubicacionSalidaErrorMessage;
-  } else if (label == 'Llegada') {
-    isError = _ubicacionLlegadaError;
-    errorMessage = _ubicacionLlegadaErrorMessage;
+  Widget _buildBodegaAutocomplete(String label) {
+    bool isError = false;
+    String errorMessage = '';
+
+    // Determinar qué mensaje de error mostrar basado en el label
+    if (label == 'Salida') {
+      isError = _ubicacionSalidaError;
+      errorMessage = _ubicacionSalidaErrorMessage;
+    } else if (label == 'Llegada') {
+      isError = _ubicacionLlegadaError;
+      errorMessage = _ubicacionLlegadaErrorMessage;
+    }
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<BodegaViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<BodegaViewModel>.empty();
+            }
+            return bodegas.where((BodegaViewModel option) {
+              return option.bodeDescripcion!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            });
+          },
+          displayStringForOption: (BodegaViewModel option) =>
+              option.bodeDescripcion!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode focusNode,
+              VoidCallback onFieldSubmitted) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    labelText: label,
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.black,
+                    labelStyle: TextStyle(color: Colors.white),
+                    errorText: isError ? errorMessage : null,
+                    errorMaxLines:
+                        3, // Permitir que el texto de error se expanda en varias líneas
+                    errorStyle: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 12,
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                    ),
+                  ),
+                  style: TextStyle(color: Colors.white),
+                  maxLines:
+                      null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+                ),
+              ],
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<BodegaViewModel> onSelected,
+              Iterable<BodegaViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth, // Ancho igual al TextField
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap:
+                        true, // Ajustar la altura del ListView al contenido
+                    itemBuilder: (BuildContext context, int index) {
+                      final BodegaViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.bodeDescripcion!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (BodegaViewModel selection) {
+            setState(() {
+              if (label == 'Salida') {
+                flete.bollId = selection.bodeId;
+                _cargarInsumosPorBodega(flete.bollId!);
+              } else if (label == 'Llegada') {
+                flete.boprId = selection.bodeId;
+              }
+            });
+          },
+        );
+      },
+    );
   }
 
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) {
-      return Autocomplete<BodegaViewModel>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          if (textEditingValue.text.isEmpty) {
-            return const Iterable<BodegaViewModel>.empty();
-          }
-          return bodegas.where((BodegaViewModel option) {
-            return option.bodeDescripcion!
-                .toLowerCase()
-                .contains(textEditingValue.text.toLowerCase());
-          });
-        },
-        displayStringForOption: (BodegaViewModel option) =>
-            option.bodeDescripcion!,
-        fieldViewBuilder: (BuildContext context,
-            TextEditingController textEditingController,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: textEditingController,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  labelText: label,
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.black,
-                  labelStyle: TextStyle(color: Colors.white),
-                  errorText: isError ? errorMessage : null,
-                  errorMaxLines:
-                      3, // Permitir que el texto de error se expanda en varias líneas
-                  errorStyle: TextStyle(
-                    color: Color(0xFFFFF0C6),
-                    fontSize: 12,
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                style: TextStyle(color: Colors.white),
-                maxLines:
-                    null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
-              ),
-            ],
-          );
-        },
-        optionsViewBuilder: (BuildContext context,
-            AutocompleteOnSelected<BodegaViewModel> onSelected,
-            Iterable<BodegaViewModel> options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: Container(
-                width: constraints.maxWidth, // Ancho igual al TextField
-                color: Colors.black,
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  shrinkWrap: true, // Ajustar la altura del ListView al contenido
-                  itemBuilder: (BuildContext context, int index) {
-                    final BodegaViewModel option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(option.bodeDescripcion!,
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          );
-        },
-        onSelected: (BodegaViewModel selection) {
-          setState(() {
-            if (label == 'Salida') {
-              flete.bollId = selection.bodeId;
-              _cargarInsumosPorBodega(flete.bollId!);
-            } else if (label == 'Llegada') {
-              flete.boprId = selection.bodeId;
+  Widget _buildProyectoAutocomplete() {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<ProyectoViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<ProyectoViewModel>.empty();
             }
-          });
-        },
-      );
-    },
-  );
-}
-
+            return proyectos.where((ProyectoViewModel option) {
+              return option.proyNombre!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            });
+          },
+          displayStringForOption: (ProyectoViewModel option) =>
+              option.proyNombre!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode focusNode,
+              VoidCallback onFieldSubmitted) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    labelText: 'Llegada',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.black,
+                    labelStyle: TextStyle(color: Colors.white),
+                    errorStyle: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 12,
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                    ),
+                  ),
+                  style: TextStyle(color: Colors.white),
+                  maxLines:
+                      null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+                ),
+              ],
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<ProyectoViewModel> onSelected,
+              Iterable<ProyectoViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth, // Ancho igual al TextField
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap:
+                        true, // Ajustar la altura del ListView al contenido
+                    itemBuilder: (BuildContext context, int index) {
+                      final ProyectoViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.proyNombre!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (ProyectoViewModel selection) {
+            setState(() {
+              flete.boprId = selection.proyId;
+            });
+          },
+        );
+      },
+    );
+  }
 
   Widget _buildLlegadaAutocomplete() {
     return Autocomplete<Object>(
@@ -537,7 +636,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
               'lib/assets/logo-sigesproc.png',
               height: 60,
             ),
-            SizedBox(width: 5), 
+            SizedBox(width: 5),
             Text(
               'SIGESPROC',
               style: TextStyle(
@@ -621,7 +720,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
                   SizedBox(height: 20),
                   _buildAutocomplete('Supervisor de Llegada'),
                   SizedBox(height: 20),
-                  _switch('Es Proyecto', esProyecto, (value) {
+                  _switch('¿Dirigido a Proyecto?', esProyecto, (value) {
                     setState(() {
                       esProyecto = value;
                     });
@@ -634,7 +733,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
                   SizedBox(height: 10),
                   _buildBodegaAutocomplete('Salida'),
                   SizedBox(height: 20),
-                  _buildBodegaAutocomplete('Llegada'),
+                  esProyecto
+                      ? _buildProyectoAutocomplete()
+                      : _buildBodegaAutocomplete('Llegada'),
                 ],
               ),
             ),
@@ -725,6 +826,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Widget _buildInsumosView() {
+    final empleado = empleados.firstWhere((emp) => emp.emplId == flete.emssId,
+        orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A'));
+
     return Column(
       children: [
         Padding(
@@ -733,7 +837,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Supervisor de envío: ${empleados.firstWhere((emp) => emp.emplId == flete.emssId, orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A')).emplNombre}',
+                'Supervisor de envío: ${empleado.emplNombre} ${empleado.emplApellido}',
                 style: TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
@@ -765,6 +869,39 @@ class _NuevoFleteState extends State<NuevoFlete> {
                           style: TextStyle(color: Colors.white70)),
                       Text('Stock: ${insumos[index].bopiStock}',
                           style: TextStyle(color: Colors.white70)),
+                      Row(
+                        children: [
+                          Text('Cantidad: ',
+                              style: TextStyle(color: Colors.white70)),
+                          SizedBox(
+                            width: 50,
+                            child: TextField(
+                              controller: quantityControllers[index],
+                              keyboardType: TextInputType.number,
+                              style: TextStyle(color: Colors.white),
+                              onChanged: (value) {
+                                setState(() {
+                                  if (value.isEmpty) {
+                                    selectedCantidades[index] = 1;
+                                  } else {
+                                    int? cantidad = int.tryParse(value);
+                                    selectedCantidades[index] = cantidad!;
+                                  }
+                                });
+                              },
+                              readOnly: _desabilitartextbox,
+                              onEditingComplete: () {
+                                if (quantityControllers[index].text.isEmpty) {
+                                  setState(() { 
+                                    quantityControllers[index].text = '1';
+                                    selectedCantidades[index] = 1;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   trailing: Checkbox(
@@ -772,63 +909,31 @@ class _NuevoFleteState extends State<NuevoFlete> {
                     onChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
+                          print(value);
                           selectedInsumos.add(insumos[index]);
                           selectedCantidades.add(1);
+                          print(quantityControllers[index].text);
+                           _desabilitartextbox = true;
+                          print('no se');
+
+                          if(quantityControllers[index].text == ''){
+                           quantityControllers[index].text = '1';
+                           print('aver');
+                          } else{
+                            print('no aaaa');
+                          }
                         } else {
                           int removeIndex =
                               selectedInsumos.indexOf(insumos[index]);
                           selectedInsumos.removeAt(removeIndex);
                           selectedCantidades.removeAt(removeIndex);
+                          quantityControllers[index].text = '1';
+                          print('no desabilita');
+                          _desabilitartextbox = false;
                         }
                       });
                     },
                   ),
-                  onTap: () {
-                    if (!selectedInsumos.contains(insumos[index])) return;
-
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        TextEditingController quantityController =
-                            TextEditingController(text: "1");
-                        return AlertDialog(
-                          title: Text(
-                              'Cantidad para ${insumos[index].insuDescripcion}'),
-                          content: TextField(
-                            controller: quantityController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: 'Ingrese cantidad',
-                            ),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text('Cancelar'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            TextButton(
-                              child: Text('Guardar'),
-                              onPressed: () {
-                                int? cantidad =
-                                    int.tryParse(quantityController.text);
-                                if (cantidad != null && cantidad > 0) {
-                                  int selectedIndex =
-                                      selectedInsumos.indexOf(insumos[index]);
-                                  setState(() {
-                                    selectedCantidades[selectedIndex] =
-                                        cantidad;
-                                  });
-                                }
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
                 );
               },
             ),
@@ -946,76 +1051,74 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Widget _fechaSalida() {
-  return TextField(
-    readOnly: true,
-    onTap: () async {
-      await _FechaSeleccionada(isSalida: true);
-    },
-    decoration: InputDecoration(
-      labelText: 'Salida',
-      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-      border: OutlineInputBorder(),
-      filled: true,
-      fillColor: Colors.black,
-      labelStyle: TextStyle(color: Colors.white),
-      errorText: _fechaSalidaError ? _fechaSalidaErrorMessage : null,
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+    return TextField(
+      readOnly: true,
+      onTap: () async {
+        await _FechaSeleccionada(isSalida: true);
+      },
+      decoration: InputDecoration(
+        labelText: 'Salida',
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+        border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.black,
+        labelStyle: TextStyle(color: Colors.white),
+        errorText: _fechaSalidaError ? _fechaSalidaErrorMessage : null,
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+        ),
       ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+      style: TextStyle(color: Colors.white),
+      controller: TextEditingController(
+        text: selectedDate == null || selectedTime == null
+            ? ''
+            : "${selectedDate!.toLocal().toString().split(' ')[0]} ${selectedTime!.format(context)}",
       ),
-    ),
-    style: TextStyle(color: Colors.white),
-    controller: TextEditingController(
-      text: selectedDate == null || selectedTime == null
-          ? ''
-          : "${selectedDate!.toLocal().toString().split(' ')[0]} ${selectedTime!.format(context)}",
-    ),
-  );
-}
+    );
+  }
 
-Widget _fechaHoraEstablecida() {
-  return TextField(
-    readOnly: true,
-    onTap: () async {
-      await _FechaSeleccionada(isSalida: false);
-      if (_fechaHoraEstablecidaError) {
-        setState(() {
-          _fechaHoraEstablecidaError = false;
-          _fechaHoraEstablecidaErrorMessage = '';
-        });
-      }
-    },
-    focusNode: _fechaHoraEstablecidaFocusNode,
-    decoration: InputDecoration(
-      labelText: 'Establecida de Llegada',
-      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-      border: OutlineInputBorder(),
-      filled: true,
-      fillColor: Colors.black,
-      labelStyle: TextStyle(color: Colors.white),
-      errorText: _fechaHoraEstablecidaError
-          ? _fechaHoraEstablecidaErrorMessage
-          : null,
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+  Widget _fechaHoraEstablecida() {
+    return TextField(
+      readOnly: true,
+      onTap: () async {
+        await _FechaSeleccionada(isSalida: false);
+        if (_fechaHoraEstablecidaError) {
+          setState(() {
+            _fechaHoraEstablecidaError = false;
+            _fechaHoraEstablecidaErrorMessage = '';
+          });
+        }
+      },
+      focusNode: _fechaHoraEstablecidaFocusNode,
+      decoration: InputDecoration(
+        labelText: 'Establecida de Llegada',
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+        border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.black,
+        labelStyle: TextStyle(color: Colors.white),
+        errorText: _fechaHoraEstablecidaError
+            ? _fechaHoraEstablecidaErrorMessage
+            : null,
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+        ),
       ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+      style: TextStyle(color: Colors.white),
+      controller: TextEditingController(
+        text: establishedDate == null || establishedTime == null
+            ? ''
+            : "${establishedDate!.toLocal().toString().split(' ')[0]} ${establishedTime!.format(context)}",
       ),
-    ),
-    style: TextStyle(color: Colors.white),
-    controller: TextEditingController(
-      text: establishedDate == null || establishedTime == null
-          ? ''
-          : "${establishedDate!.toLocal().toString().split(' ')[0]} ${establishedTime!.format(context)}",
-    ),
-  );
-}
+    );
+  }
 
-
-  
   Widget _buildLlegadaDropdown() {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
@@ -1040,7 +1143,7 @@ Widget _fechaHoraEstablecida() {
               return DropdownMenuItem<String>(
                 value: bodega.bodeDescripcion,
                 child: Text(
-                  bodega.bodeDescripcion,
+                  bodega.bodeDescripcion!,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 14),
                 ),
@@ -1070,117 +1173,118 @@ Widget _fechaHoraEstablecida() {
   }
 
   Widget _buildAutocomplete(String label) {
-  bool isError = false;
-  String errorMessage = '';
+    bool isError = false;
+    String errorMessage = '';
 
-  // Determinar qué mensaje de error mostrar basado en el label
-  if (label == 'Encargado') {
-    isError = _isEmpleadoError;
-    errorMessage = _empleadoErrorMessage;
-  } else if (label == 'Supervisor de Salida') {
-    isError = _isSupervisorSalidaError;
-    errorMessage = _supervisorSalidaErrorMessage;
-  } else if (label == 'Supervisor de Llegada') {
-    isError = _isSupervisorLlegadaError;
-    errorMessage = _supervisorLlegadaErrorMessage;
-  }
+    // Determinar qué mensaje de error mostrar basado en el label
+    if (label == 'Encargado') {
+      isError = _isEmpleadoError;
+      errorMessage = _empleadoErrorMessage;
+    } else if (label == 'Supervisor de Salida') {
+      isError = _isSupervisorSalidaError;
+      errorMessage = _supervisorSalidaErrorMessage;
+    } else if (label == 'Supervisor de Llegada') {
+      isError = _isSupervisorLlegadaError;
+      errorMessage = _supervisorLlegadaErrorMessage;
+    }
 
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) {
-      return Autocomplete<EmpleadoViewModel>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          if (textEditingValue.text.isEmpty) {
-            return const Iterable<EmpleadoViewModel>.empty();
-          }
-          return empleados.where((EmpleadoViewModel option) {
-            return option.empleado!
-                    .toLowerCase()
-                    .contains(textEditingValue.text.toLowerCase()) ||
-                option.emplDNI!
-                    .toLowerCase()
-                    .contains(textEditingValue.text.toLowerCase());
-          });
-        },
-        displayStringForOption: (EmpleadoViewModel option) => option.empleado!,
-        fieldViewBuilder: (BuildContext context,
-            TextEditingController textEditingController,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted) {
-          return TextField(
-            controller: textEditingController,
-            focusNode: focusNode,
-            decoration: InputDecoration(
-              labelText: label,
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-              errorText: isError ? errorMessage : null,
-              errorMaxLines:
-                  3, // Permitir que el texto de error se expanda en varias líneas
-              errorStyle: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 12,
-              ),
-              errorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-              ),
-            ),
-            style: TextStyle(color: Colors.white),
-            maxLines:
-                null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
-          );
-        },
-        optionsViewBuilder: (BuildContext context,
-            AutocompleteOnSelected<EmpleadoViewModel> onSelected,
-            Iterable<EmpleadoViewModel> options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: Container(
-                width: constraints.maxWidth, // Ancho igual al TextField
-                color: Colors.black,
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  shrinkWrap: true, // Ajustar la altura del ListView al contenido
-                  itemBuilder: (BuildContext context, int index) {
-                    final EmpleadoViewModel option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(
-                          '${option.empleado}',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    );
-                  },
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<EmpleadoViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<EmpleadoViewModel>.empty();
+            }
+            return empleados.where((EmpleadoViewModel option) {
+              return option.empleado!
+                      .toLowerCase()
+                      .contains(textEditingValue.text.toLowerCase()) ||
+                  option.emplDNI!
+                      .toLowerCase()
+                      .contains(textEditingValue.text.toLowerCase());
+            });
+          },
+          displayStringForOption: (EmpleadoViewModel option) =>
+              option.empleado!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode focusNode,
+              VoidCallback onFieldSubmitted) {
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: isError ? errorMessage : null,
+                errorMaxLines:
+                    3, // Permitir que el texto de error se expanda en varias líneas
+                errorStyle: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 12,
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
                 ),
               ),
-            ),
-          );
-        },
-        onSelected: (EmpleadoViewModel selection) {
-          setState(() {
-            if (label == 'Encargado') {
-              flete.emtrId = selection.emplId;
-            } else if (label == 'Supervisor de Salida') {
-              flete.emssId = selection.emplId;
-            } else if (label == 'Supervisor de Llegada') {
-              flete.emslId = selection.emplId;
-            }
-          });
-        },
-      );
-    },
-  );
-}
-
+              style: TextStyle(color: Colors.white),
+              maxLines:
+                  null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<EmpleadoViewModel> onSelected,
+              Iterable<EmpleadoViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth, // Ancho igual al TextField
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap:
+                        true, // Ajustar la altura del ListView al contenido
+                    itemBuilder: (BuildContext context, int index) {
+                      final EmpleadoViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(
+                            '${option.empleado}',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (EmpleadoViewModel selection) {
+            setState(() {
+              if (label == 'Encargado') {
+                flete.emtrId = selection.emplId;
+              } else if (label == 'Supervisor de Salida') {
+                flete.emssId = selection.emplId;
+              } else if (label == 'Supervisor de Llegada') {
+                flete.emslId = selection.emplId;
+              }
+            });
+          },
+        );
+      },
+    );
+  }
 }

@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       title: 'SIGESPROC',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFFFFF0C6)),
         useMaterial3: true,
       ),
       home: Login(), 
