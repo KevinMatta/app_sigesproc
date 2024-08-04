@@ -462,10 +462,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                               double longitude = double.parse(coordinates[1]);
                               MapUtils.openMapWithPosition(latitude, longitude);
                             } else {
-                              print("Error parsing coordinates");
+                              print("Error parseando coordenadas");
                             }
                           } else {
-                            print("No linkUbicacion available");
+                            print("Link no disponible");
                           }
                         },
                         child: Text(

@@ -75,7 +75,7 @@ class _FleteState extends State<Flete> {
             color: flete.flenEstado == true ? Colors.red : Colors.green,
           ),
           PopupMenuButton<int>(
-            icon: Icon(Icons.more_vert, color: Colors.white),
+            icon: Icon(Icons.more_vert, color: Colors.black),
             onSelected: (int result) {
               if (result == 0) {
               } else if (result == 1) {}

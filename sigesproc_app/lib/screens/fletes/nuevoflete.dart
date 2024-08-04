@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
@@ -53,6 +54,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
   String _ubicacionLlegadaErrorMessage = '';
   TextEditingController llegadaController = TextEditingController();
   List<TextEditingController> quantityControllers = [];
+  TextEditingController encargadoController = TextEditingController();
+  TextEditingController supervisorSalidaController = TextEditingController();
+  TextEditingController supervisorLlegadaController = TextEditingController();
+  TextEditingController salidaController = TextEditingController();
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -89,8 +94,43 @@ class _NuevoFleteState extends State<NuevoFlete> {
     _cargarBodegas();
     _cargarProyectos();
 
-    // quantityControllers =
-    //     List.generate(insumos.length, (index) => TextEditingController());
+    if (flete.emtrId != null) {
+      EmpleadoViewModel? encargado =
+          empleados.firstWhere((emp) => emp.emplId == flete.emtrId);
+      if (encargado != null) {
+        encargadoController.text = encargado.empleado!;
+      }
+    }
+    if (flete.emssId != null) {
+      EmpleadoViewModel? supervisorSalida =
+          empleados.firstWhere((emp) => emp.emplId == flete.emssId);
+      if (supervisorSalida != null) {
+        supervisorSalidaController.text = supervisorSalida.empleado!;
+      }
+    }
+    if (flete.emslId != null) {
+      EmpleadoViewModel? supervisorLlegada =
+          empleados.firstWhere((emp) => emp.emplId == flete.emslId);
+      if (supervisorLlegada != null) {
+        supervisorLlegadaController.text = supervisorLlegada.empleado!;
+      }
+    }
+    if (flete.bollId != null) {
+      BodegaViewModel? salida =
+          bodegas.firstWhere((bode) => bode.bodeId == flete.bollId);
+      if (salida != null) {
+        salidaController.text = salida.bodeDescripcion!;
+      }
+    }
+    if (flete.boprId != null) {
+      if (esProyecto) {
+        ProyectoViewModel? llegadaProyecto =
+            proyectos.firstWhere((proy) => proy.proyId == flete.boprId);
+        if (llegadaProyecto != null) {
+          llegadaController.text = llegadaProyecto.proyNombre!;
+        }
+      }
+    }
   }
 
   Future<void> _cargarEmpleados() async {
@@ -187,7 +227,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
       setState(() {
         insumos = insumosList;
         // Inicializar controladores para cada insumo cargado
-        quantityControllers = List.generate(insumos.length, (index) => TextEditingController(text: '1'));
+        quantityControllers = List.generate(
+            insumos.length, (index) => TextEditingController(text: '1'));
         selectedCantidades = List.generate(insumos.length, (index) => 1);
       });
     } catch (e) {
@@ -195,8 +236,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
     }
   }
 
-
-  Widget _buildBodegaAutocomplete(String label) {
+  Widget _buildBodegaAutocomplete(
+      String label, TextEditingController controller) {
     bool isError = false;
     String errorMessage = '';
 
@@ -228,37 +269,33 @@ class _NuevoFleteState extends State<NuevoFlete> {
               TextEditingController textEditingController,
               FocusNode focusNode,
               VoidCallback onFieldSubmitted) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  decoration: InputDecoration(
-                    labelText: label,
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.black,
-                    labelStyle: TextStyle(color: Colors.white),
-                    errorText: isError ? errorMessage : null,
-                    errorMaxLines:
-                        3, // Permitir que el texto de error se expanda en varias líneas
-                    errorStyle: TextStyle(
-                      color: Color(0xFFFFF0C6),
-                      fontSize: 12,
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  style: TextStyle(color: Colors.white),
-                  maxLines:
-                      null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: isError ? errorMessage : null,
+                errorMaxLines:
+                    3, // Permitir que el texto de error se expanda en varias líneas
+                errorStyle: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 12,
                 ),
-              ],
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+              ),
+              style: TextStyle(color: Colors.white),
+              maxLines:
+                  null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
             );
           },
           optionsViewBuilder: (BuildContext context,
@@ -271,23 +308,25 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 child: Container(
                   width: constraints.maxWidth, // Ancho igual al TextField
                   color: Colors.black,
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    shrinkWrap:
-                        true, // Ajustar la altura del ListView al contenido
-                    itemBuilder: (BuildContext context, int index) {
-                      final BodegaViewModel option = options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: ListTile(
-                          title: Text(option.bodeDescripcion!,
-                              style: TextStyle(color: Colors.white)),
-                        ),
-                      );
-                    },
+                  child: SingleChildScrollView(
+                    child: ListView.builder(
+                      padding: EdgeInsets.all(8.0),
+                      itemCount: options.length,
+                      shrinkWrap:
+                          true, // Ajustar la altura del ListView al contenido
+                      itemBuilder: (BuildContext context, int index) {
+                        final BodegaViewModel option = options.elementAt(index);
+                        return GestureDetector(
+                          onTap: () {
+                            onSelected(option);
+                          },
+                          child: ListTile(
+                            title: Text(option.bodeDescripcion!,
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -295,6 +334,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
           },
           onSelected: (BodegaViewModel selection) {
             setState(() {
+              controller.text = selection.bodeDescripcion!;
               if (label == 'Salida') {
                 flete.bollId = selection.bodeId;
                 _cargarInsumosPorBodega(flete.bollId!);
@@ -308,7 +348,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
-  Widget _buildProyectoAutocomplete() {
+  Widget _buildProyectoAutocomplete(TextEditingController controller) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<ProyectoViewModel>(
@@ -328,34 +368,30 @@ class _NuevoFleteState extends State<NuevoFlete> {
               TextEditingController textEditingController,
               FocusNode focusNode,
               VoidCallback onFieldSubmitted) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  decoration: InputDecoration(
-                    labelText: 'Llegada',
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.black,
-                    labelStyle: TextStyle(color: Colors.white),
-                    errorStyle: TextStyle(
-                      color: Color(0xFFFFF0C6),
-                      fontSize: 12,
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  style: TextStyle(color: Colors.white),
-                  maxLines:
-                      null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: 'Llegada',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorStyle: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 12,
                 ),
-              ],
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+              ),
+              style: TextStyle(color: Colors.white),
+              maxLines:
+                  null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
             );
           },
           optionsViewBuilder: (BuildContext context,
@@ -392,6 +428,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
           },
           onSelected: (ProyectoViewModel selection) {
             setState(() {
+              controller.text = selection.proyNombre!;
               flete.boprId = selection.proyId;
             });
           },
@@ -467,7 +504,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
           value: value,
           onChanged: (bool newValue) {
             setState(() {
-              esProyecto = newValue;
+              flete.flenDestinoProyecto = newValue;
               llegadaController.clear();
             });
             onChanged(newValue);
@@ -688,6 +725,52 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
+  Future<void> guardarFlete() async {
+  flete.usuaCreacion = 3;
+  flete.flenEstado = false;
+  if (flete.flenDestinoProyecto == null) {
+    flete.flenDestinoProyecto = false;
+  }
+
+  print('Flete data: ${flete.toJson()}');
+
+  if (selectedInsumos.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Debe seleccionar al menos un insumo')),
+    );
+    return;
+  }
+
+  final int? newId = await FleteEncabezadoService.insertarFlete(flete);
+  if (newId != null) {
+    print('New Flete ID: $newId');
+    for (int i = 0; i < selectedInsumos.length; i++) {
+      final detalle = FleteDetalleViewModel(
+        fldeCantidad: selectedCantidades[i],
+        flenId: newId,
+        inppId: selectedInsumos[i].inppId,
+        usuaCreacion: 3,
+      );
+      print('Detalle data: ${detalle.toJson()}');
+      await FleteDetalleService.insertarFleteDetalle(detalle);
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Flete(),
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Flete enviado con éxito')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al enviar el flete')),
+    );
+  }
+}
+
+
   Widget _buildFleteView() {
     return SingleChildScrollView(
       child: Column(
@@ -714,11 +797,13 @@ class _NuevoFleteState extends State<NuevoFlete> {
                     style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
                   ),
                   SizedBox(height: 10),
-                  _buildAutocomplete('Encargado'),
+                  _buildAutocomplete('Encargado', encargadoController),
                   SizedBox(height: 20),
-                  _buildAutocomplete('Supervisor de Salida'),
+                  _buildAutocomplete(
+                      'Supervisor de Salida', supervisorSalidaController),
                   SizedBox(height: 20),
-                  _buildAutocomplete('Supervisor de Llegada'),
+                  _buildAutocomplete(
+                      'Supervisor de Llegada', supervisorLlegadaController),
                   SizedBox(height: 20),
                   _switch('¿Dirigido a Proyecto?', esProyecto, (value) {
                     setState(() {
@@ -731,11 +816,11 @@ class _NuevoFleteState extends State<NuevoFlete> {
                     style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
                   ),
                   SizedBox(height: 10),
-                  _buildBodegaAutocomplete('Salida'),
+                  _buildBodegaAutocomplete('Salida', salidaController),
                   SizedBox(height: 20),
                   esProyecto
-                      ? _buildProyectoAutocomplete()
-                      : _buildBodegaAutocomplete('Llegada'),
+                      ? _buildProyectoAutocomplete(llegadaController)
+                      : _buildBodegaAutocomplete('Llegada', llegadaController),
                 ],
               ),
             ),
@@ -826,8 +911,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Widget _buildInsumosView() {
-    final empleado = empleados.firstWhere((emp) => emp.emplId == flete.emssId,
-        orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A'));
+    final empleado = empleados.firstWhere(
+      (emp) => emp.emplId == flete.emssId,
+      orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A'),
+    );
 
     return Column(
       children: [
@@ -855,6 +942,12 @@ class _NuevoFleteState extends State<NuevoFlete> {
             child: ListView.builder(
               itemCount: insumos.length,
               itemBuilder: (context, index) {
+                int? stock = insumos[index].bopiStock;
+                int cantidad = selectedCantidades.length > index
+                    ? selectedCantidades[index]
+                    : 0; // Cantidad inicial es 0
+                bool cantidadExcedida = cantidad > (stock ?? 0);
+
                 return ListTile(
                   title: Text(
                     '${insumos[index].insuDescripcion ?? ''}',
@@ -867,41 +960,50 @@ class _NuevoFleteState extends State<NuevoFlete> {
                           style: TextStyle(color: Colors.white70)),
                       Text('Unidad: ${insumos[index].unmeNombre}',
                           style: TextStyle(color: Colors.white70)),
-                      Text('Stock: ${insumos[index].bopiStock}',
-                          style: TextStyle(color: Colors.white70)),
-                      Row(
-                        children: [
-                          Text('Cantidad: ',
-                              style: TextStyle(color: Colors.white70)),
-                          SizedBox(
-                            width: 50,
-                            child: TextField(
-                              controller: quantityControllers[index],
-                              keyboardType: TextInputType.number,
-                              style: TextStyle(color: Colors.white),
-                              onChanged: (value) {
-                                setState(() {
-                                  if (value.isEmpty) {
-                                    selectedCantidades[index] = 1;
-                                  } else {
-                                    int? cantidad = int.tryParse(value);
-                                    selectedCantidades[index] = cantidad!;
-                                  }
-                                });
-                              },
-                              readOnly: _desabilitartextbox,
-                              onEditingComplete: () {
-                                if (quantityControllers[index].text.isEmpty) {
-                                  setState(() { 
-                                    quantityControllers[index].text = '1';
-                                    selectedCantidades[index] = 1;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Stock: ${stock! - (selectedInsumos.contains(insumos[index]) ? cantidad : 0)}',
+                        style: TextStyle(color: Colors.white70),
                       ),
+                      if (selectedInsumos.contains(insumos[index]))
+                        Row(
+                          children: [
+                            Text('Cantidad: ',
+                                style: TextStyle(color: Colors.white70)),
+                            SizedBox(
+                              width: 30,
+                              child: TextField(
+                                controller: quantityControllers[index],
+                                keyboardType: TextInputType.number,
+                                style: TextStyle(color: Colors.white),
+                                onChanged: (value) {
+                                  setState(() {
+                                    int? cantidad = int.tryParse(value);
+                                    if (cantidad == null || cantidad <= 0) {
+                                      selectedCantidades[index] = 1;
+                                      quantityControllers[index].text = '1';
+                                    } else if (cantidad > stock!) {
+                                      selectedCantidades[index] = stock;
+                                      quantityControllers[index].text =
+                                          stock.toString();
+                                      cantidadExcedida =
+                                          true; // Activar mensaje de advertencia
+                                      print('mayor');
+                                    } else {
+                                      selectedCantidades[index] = cantidad;
+                                      cantidadExcedida =
+                                          false; // Desactivar mensaje de advertencia
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (cantidadExcedida)
+                        Text(
+                          'La cantidad no puede ser mayor que el stock disponible.',
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
                     ],
                   ),
                   trailing: Checkbox(
@@ -909,27 +1011,23 @@ class _NuevoFleteState extends State<NuevoFlete> {
                     onChanged: (bool? value) {
                       setState(() {
                         if (value == true) {
-                          print(value);
                           selectedInsumos.add(insumos[index]);
-                          selectedCantidades.add(1);
-                          print(quantityControllers[index].text);
-                           _desabilitartextbox = true;
-                          print('no se');
-
-                          if(quantityControllers[index].text == ''){
-                           quantityControllers[index].text = '1';
-                           print('aver');
-                          } else{
-                            print('no aaaa');
+                          if (selectedCantidades.length <= index) {
+                            selectedCantidades.add(1); // Añadir 1 por defecto
+                            quantityControllers[index].text =
+                                '1'; // Establecer el controlador en 1
+                          } else {
+                            selectedCantidades[index] = 1;
+                            quantityControllers[index].text = '1';
                           }
                         } else {
                           int removeIndex =
                               selectedInsumos.indexOf(insumos[index]);
                           selectedInsumos.removeAt(removeIndex);
-                          selectedCantidades.removeAt(removeIndex);
-                          quantityControllers[index].text = '1';
-                          print('no desabilita');
-                          _desabilitartextbox = false;
+                          selectedCantidades[removeIndex] =
+                              0; // Restablecer la cantidad a 0
+                          quantityControllers[index].text =
+                              ''; // Limpiar el controlador
                         }
                       });
                     },
@@ -987,55 +1085,12 @@ class _NuevoFleteState extends State<NuevoFlete> {
               padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             ),
             child: Text(
-              'Cancelar',
+              'Regresar',
               style: TextStyle(color: Color(0xFFFFF0C6)),
             ),
           ),
           ElevatedButton(
-            onPressed: () async {
-              try {
-                flete.usuaCreacion = 3;
-                flete.flenFechaCreacion = DateTime.now();
-
-                int? newId = await FleteEncabezadoService.insertarFlete(flete);
-                if (newId != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Flete(),
-                    ),
-                  );
-                } else {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Error'),
-                      content: Text('No se pudo insertar el flete.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              } catch (e) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('Error'),
-                    content: Text('Ocurrió un error: $e'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text('OK'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
+            onPressed: guardarFlete,
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
               padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
@@ -1044,7 +1099,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
               'Guardar',
               style: TextStyle(color: Colors.black),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -1172,7 +1227,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
-  Widget _buildAutocomplete(String label) {
+  Widget _buildAutocomplete(String label, TextEditingController controller) {
     bool isError = false;
     String errorMessage = '';
 
@@ -1210,6 +1265,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
               TextEditingController textEditingController,
               FocusNode focusNode,
               VoidCallback onFieldSubmitted) {
+            textEditingController.text = controller.text;
             return TextField(
               controller: textEditingController,
               focusNode: focusNode,
@@ -1274,6 +1330,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
           },
           onSelected: (EmpleadoViewModel selection) {
             setState(() {
+              controller.text = selection.empleado!;
               if (label == 'Encargado') {
                 flete.emtrId = selection.emplId;
               } else if (label == 'Supervisor de Salida') {

@@ -10,7 +10,9 @@ class FleteEncabezadoService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => FleteEncabezadoViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => FleteEncabezadoViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
@@ -18,17 +20,30 @@ class FleteEncabezadoService {
 
   static Future<int?> insertarFlete(FleteEncabezadoViewModel flete) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Insertar');
+    final body = jsonEncode(flete.toJson());
+    final headers = {
+      'Content-Type': 'application/json',
+      'XApiKey': ApiService.apiKey,
+    };
+
+    print('URL: $url');
+    print('Headers: $headers');
+    print('Body: $body');
+
     final response = await http.post(
       url,
-      headers: ApiService.getHttpHeaders(),
-      body: jsonEncode(flete.toJson()),
+      headers: headers,
+      body: body,
     );
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['NewId']; 
+      final responseBody = jsonDecode(response.body);
+      return responseBody['data']['codeStatus'];
     } else {
-      throw Exception('Error al insertar el flete');
+      return null;
     }
   }
 }

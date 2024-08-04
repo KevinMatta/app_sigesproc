@@ -67,9 +67,16 @@ class FleteEncabezadoViewModel {
       estado: json['estado'],
       salida: json['salida'],
       flenId: json['flen_Id'],
-      flenFechaHoraSalida: json['flen_FechaHoraSalida'] != null ? DateTime.parse(json['flen_FechaHoraSalida']) : null,
-      flenFechaHoraEstablecidaDeLlegada: json['flen_FechaHoraEstablecidaDeLlegada'] != null ? DateTime.parse(json['flen_FechaHoraEstablecidaDeLlegada']) : null,
-      flenFechaHoraLlegada: json['flen_FechaHoraLlegada'] != null ? DateTime.parse(json['flen_FechaHoraLlegada']) : null,
+      flenFechaHoraSalida: json['flen_FechaHoraSalida'] != null
+          ? DateTime.parse(json['flen_FechaHoraSalida'])
+          : null,
+      flenFechaHoraEstablecidaDeLlegada:
+          json['flen_FechaHoraEstablecidaDeLlegada'] != null
+              ? DateTime.parse(json['flen_FechaHoraEstablecidaDeLlegada'])
+              : null,
+      flenFechaHoraLlegada: json['flen_FechaHoraLlegada'] != null
+          ? DateTime.parse(json['flen_FechaHoraLlegada'])
+          : null,
       flenEstado: json['flen_Estado'],
       flenDestinoProyecto: json['flen_DestinoProyecto'],
       bollId: json['boll_Id'],
@@ -78,16 +85,20 @@ class FleteEncabezadoViewModel {
       emssId: json['emss_Id'],
       emslId: json['emsl_Id'],
       usuaCreacion: json['usua_Creacion'],
-      flenFechaCreacion: json['flen_FechaCreacion'] != null ? DateTime.parse(json['flen_FechaCreacion']) : null,
+      flenFechaCreacion: json['flen_FechaCreacion'] != null
+          ? DateTime.parse(json['flen_FechaCreacion'])
+          : null,
       usuaModificacion: json['usua_Modificacion'],
-      flenFechaModificacion: json['flen_FechaModificacion'] != null ? DateTime.parse(json['flen_FechaModificacion']) : null,
+      flenFechaModificacion: json['flen_FechaModificacion'] != null
+          ? DateTime.parse(json['flen_FechaModificacion'])
+          : null,
       flenEstadoFlete: json['flen_EstadoFlete'],
       inppObservacion: json['inpp_Observacion'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final Map<String, dynamic> data = {
       'codigo': codigo,
       'usuarioCreacion': usuarioCreacion,
       'usuarioModificacion': usuarioModificacion,
@@ -97,10 +108,9 @@ class FleteEncabezadoViewModel {
       'destino': destino,
       'estado': estado,
       'salida': salida,
-      'flen_Id': flenId,
       'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
-      'flen_FechaHoraEstablecidaDeLlegada': flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
-      'flen_FechaHoraLlegada': flenFechaHoraLlegada?.toIso8601String(),
+      'flen_FechaHoraEstablecidaDeLlegada':
+          flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
       'flen_Estado': flenEstado,
       'flen_DestinoProyecto': flenDestinoProyecto,
       'boll_Id': bollId,
@@ -109,11 +119,23 @@ class FleteEncabezadoViewModel {
       'emss_Id': emssId,
       'emsl_Id': emslId,
       'usua_Creacion': usuaCreacion,
-      'flen_FechaCreacion': flenFechaCreacion?.toIso8601String(),
       'usua_Modificacion': usuaModificacion,
-      'flen_FechaModificacion': flenFechaModificacion?.toIso8601String(),
       'flen_EstadoFlete': flenEstadoFlete,
       'inpp_Observacion': inppObservacion,
     };
+
+    if (flenFechaHoraLlegada != null) {
+      data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
+    }
+
+    if (flenFechaCreacion != null) {
+      data['flen_FechaCreacion'] = flenFechaCreacion?.toIso8601String();
+    }
+
+    if (flenFechaModificacion != null) {
+      data['flen_FechaModificacion'] = flenFechaModificacion?.toIso8601String();
+    }
+
+    return data;
   }
 }
