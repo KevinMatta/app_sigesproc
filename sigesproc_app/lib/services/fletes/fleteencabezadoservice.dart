@@ -26,9 +26,7 @@ class FleteEncabezadoService {
       'XApiKey': ApiService.apiKey,
     };
 
-    print('URL: $url');
-    print('Headers: $headers');
-    print('Body: $body');
+    // print('Body: $body');
 
     final response = await http.post(
       url,
@@ -36,14 +34,24 @@ class FleteEncabezadoService {
       body: body,
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    // print('Response status: ${response.statusCode}');
+    // print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
       return responseBody['data']['codeStatus'];
     } else {
       return null;
+    }
+  }
+
+   static Future<FleteEncabezadoViewModel?> obtenerFleteDetalle(int flenId) async {
+    final List<FleteEncabezadoViewModel> fletes = await listarFletesEncabezado();
+
+    try {
+      return fletes.firstWhere((flete) => flete.flenId == flenId);
+    } catch (e) {
+      throw Exception('Flete con ID $flenId no encontrado');
     }
   }
 }

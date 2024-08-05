@@ -42,4 +42,18 @@ class FleteDetalleService {
       throw Exception('Error al insertar el detalle del flete');
     }
   }
+
+  static Future<List<FleteDetalleViewModel>> listarDetallesdeFlete(int flenId) async {
+    final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Buscar/$flenId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => FleteDetalleViewModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
 }

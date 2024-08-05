@@ -4,6 +4,7 @@ import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
+import 'detalleflete.dart';
 
 class Flete extends StatefulWidget {
   @override
@@ -44,69 +45,76 @@ class _FleteState extends State<Flete> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+ void _onItemTapped(int index) {
+  setState(() {
+    _selectedIndex = index;
+  });
+}
 
-  Widget FleteRegistro(FleteEncabezadoViewModel flete) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          flete.codigo.toString(),
-          style: TextStyle(color: Colors.black),
+Widget FleteRegistro(FleteEncabezadoViewModel flete) {
+  return ListTile(
+    leading: CircleAvatar(
+      child: Text(
+        flete.codigo.toString(),
+        style: TextStyle(color: Colors.black),
+      ),
+      backgroundColor: Color(0xFFFFF0C6),
+    ),
+    title: Text(
+      flete.salida ?? 'N/A',
+      style: TextStyle(color: Colors.white),
+    ),
+    subtitle: Text(
+      'Supervisor: ${flete.supervisorLlegada ?? 'N/A'}',
+      style: TextStyle(color: Colors.white70),
+    ),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          flete.flenEstado == true ? Icons.adjust : Icons.adjust,
+          color: flete.flenEstado == true ? Colors.red : Colors.green,
         ),
-        backgroundColor: Color(0xFFFFF0C6),
-      ),
-      title: Text(
-        flete.salida ?? 'N/A',
-        style: TextStyle(color: Colors.white),
-      ),
-      subtitle: Text(
-        'Supervisor: ${flete.supervisorLlegada ?? 'N/A'}',
-        style: TextStyle(color: Colors.white70),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            flete.flenEstado == true ? Icons.adjust : Icons.adjust,
-            color: flete.flenEstado == true ? Colors.red : Colors.green,
-          ),
-          PopupMenuButton<int>(
-            icon: Icon(Icons.more_vert, color: Colors.black),
-            onSelected: (int result) {
-              if (result == 0) {
-              } else if (result == 1) {}
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-              const PopupMenuItem<int>(
-                value: 0,
-                child: Text('Incidencias'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Verificar'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Editar'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Ver detalle'),
-              ),
-              const PopupMenuItem<int>(
-                value: 1,
-                child: Text('Eliminar'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+        PopupMenuButton<int>(
+          icon: Icon(Icons.more_vert, color: Colors.white),
+          onSelected: (int result) {
+            if (result == 0) {
+            } else if (result == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetalleFlete(flenId: flete.flenId!),
+                ),
+              );
+            }
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
+            const PopupMenuItem<int>(
+              value: 0,
+              child: Text('Incidencias'),
+            ),
+            const PopupMenuItem<int>(
+              value: 1,
+              child: Text('Verificar'),
+            ),
+            const PopupMenuItem<int>(
+              value: 1,
+              child: Text('Editar'),
+            ),
+            const PopupMenuItem<int>(
+              value: 1,
+              child: Text('Ver detalle'),
+            ),
+            const PopupMenuItem<int>(
+              value: 1,
+              child: Text('Eliminar'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {

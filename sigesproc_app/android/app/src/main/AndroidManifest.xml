@@ -3,6 +3,9 @@
         android:label="sigesproc_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBOK1wv_sddwAOh-ad01DTRd5kJO3OXexM"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

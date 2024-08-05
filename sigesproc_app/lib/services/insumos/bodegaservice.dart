@@ -15,4 +15,19 @@ class BodegaService {
       throw Exception('Error al cargar los datos');
     }
   }
+
+  static Future<BodegaViewModel?> buscar(int bodeId) async {
+    final url = Uri.parse('${ApiService.apiUrl}/Bodega/Buscar/$bodeId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(response.body);
+      return BodegaViewModel.fromJson(data);
+    } else {
+      throw Exception('Error al buscar bodega');
+    }
+  }
 }
