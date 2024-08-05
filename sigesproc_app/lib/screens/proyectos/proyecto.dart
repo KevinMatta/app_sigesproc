@@ -227,18 +227,6 @@ void _onItemTapped(int index) {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NuevoFlete(),
-            ),
-          );
-        },
-        backgroundColor: Color(0xFFFFF0C6),
-        child: Icon(Icons.add_circle_outline, color: Colors.black),
-      ),
     );
   }
 }

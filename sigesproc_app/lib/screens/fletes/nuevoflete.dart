@@ -281,9 +281,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: isError ? errorMessage : null,
                 errorMaxLines:
-                    3, // Permitir que el texto de error se expanda en varias líneas
+                    3, 
                 errorStyle: TextStyle(
-                  color: Color(0xFFFFF0C6),
+                  color: Colors.red,
                   fontSize: 12,
                 ),
                 errorBorder: OutlineInputBorder(
@@ -295,7 +295,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
               ),
               style: TextStyle(color: Colors.white),
               maxLines:
-                  null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+                  null, 
             );
           },
           optionsViewBuilder: (BuildContext context,
@@ -1279,7 +1279,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 errorMaxLines:
                     3, // Permitir que el texto de error se expanda en varias líneas
                 errorStyle: TextStyle(
-                  color: Color(0xFFFFF0C6),
+                  color: Colors.red,
                   fontSize: 12,
                 ),
                 errorBorder: OutlineInputBorder(

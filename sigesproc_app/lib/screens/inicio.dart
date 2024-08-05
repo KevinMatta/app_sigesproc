@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sigesproc_app/screens/prueba.dart';
 import 'menu.dart';
 
 class Inicio extends StatefulWidget {
@@ -53,7 +54,14 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.notifications),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapaPrueba(),
+            ),
+          );
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),

@@ -103,7 +103,7 @@ Widget FleteRegistro(FleteEncabezadoViewModel flete) {
             ),
             const PopupMenuItem<int>(
               value: 1,
-              child: Text('Ver detalle'),
+              child: Text('Detalle'),
             ),
             const PopupMenuItem<int>(
               value: 1,

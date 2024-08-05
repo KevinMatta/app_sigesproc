@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/auth/login.dart';
+import 'package:sigesproc_app/screens/prueba.dart';
 void main() {
   runApp(const MyApp());
 }
