@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sigesproc_app/auth/login.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/screens/insumos/proveedor.dart';
 import 'inicio.dart';
@@ -39,6 +40,11 @@ class MenuLateral extends StatelessWidget {
                 children: List.generate(6, (index) => _crearItem(context, index)),
               ),
             ),
+            // Positioned(
+            //     bottom: 80,
+            //     right: 20,
+            //     child: Login(),
+            //   ),
           ],
         ),
       ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
-import 'package:sigesproc_app/screens/bienesraices/utilidad.dart';
+import 'package:sigesproc_app/screens/proyectos/utilidad.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';

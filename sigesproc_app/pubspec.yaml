@@ -31,9 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
     
-  google_maps_flutter: ^2.5.0
-  location: ^5.0.0
-  flutter_polyline_points: ^2.0.0
+  google_maps_flutter: ^2.3.0
+  location: ^5.0.3
+  flutter_polyline_points: ^1.0.0
   flutter_spinkit: ^5.0.0
   flutter_typeahead: ^4.0.0
   url_launcher: ^6.0.9

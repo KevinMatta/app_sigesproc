@@ -24,7 +24,7 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          color: Colors.white,
+          color: Color(0xFFFFF0C6),
           width: double.infinity,
           height: double.infinity,
           child: Stack(
@@ -64,11 +64,6 @@ class _LoginState extends State<Login> {
                   height: 160,
                 ),
               ),
-              Positioned(
-                bottom: 50,
-                right: 20,
-                child: _buildLoginButton(),
-              ),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(30.0),
@@ -102,15 +97,14 @@ class _LoginState extends State<Login> {
                           child: Text(
                             '¿Olvidaste tu contraseña?',
                             style: TextStyle(
-                              color: Colors
-                                  .black, 
-                              decoration:
-                                  TextDecoration.underline,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline,
                             ),
                           ),
                         ),
                       ),
                       SizedBox(height: 20),
+                      _buildLoginButton()
                     ],
                   ),
                 ),
@@ -130,7 +124,7 @@ class _LoginState extends State<Login> {
         labelText: 'Usuario',
         border: OutlineInputBorder(),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Colors.transparent,
         errorText: usuariovacio
             ? 'Campo requerido'
             : incorrectos
@@ -179,12 +173,12 @@ class _LoginState extends State<Login> {
     //   await pref.setString('IDRegistro', response['regi_Id'].toString());
     //   await pref.setString('EsAdmin', response['usua_EsAdmin'].toString());
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Inicio(), 
-        ),
-      );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Inicio(),
+      ),
+    );
     // } else {
     //   setState(() {
     //     usuariooController.clear();
@@ -202,7 +196,7 @@ class _LoginState extends State<Login> {
         labelText: 'Contraseña',
         border: OutlineInputBorder(),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Colors.transparent,
         errorText: contravacia
             ? 'Campo requerido'
             : incorrectos

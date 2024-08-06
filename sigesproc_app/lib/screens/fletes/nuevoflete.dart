@@ -241,7 +241,6 @@ class _NuevoFleteState extends State<NuevoFlete> {
     bool isError = false;
     String errorMessage = '';
 
-    // Determinar qué mensaje de error mostrar basado en el label
     if (label == 'Salida') {
       isError = _ubicacionSalidaError;
       errorMessage = _ubicacionSalidaErrorMessage;
@@ -250,12 +249,14 @@ class _NuevoFleteState extends State<NuevoFlete> {
       errorMessage = _ubicacionLlegadaErrorMessage;
     }
 
+    FocusNode focusNode = FocusNode();
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<BodegaViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return const Iterable<BodegaViewModel>.empty();
+              return bodegas; // Mostrar todas las opciones cuando el campo está vacío
             }
             return bodegas.where((BodegaViewModel option) {
               return option.bodeDescripcion!
@@ -267,8 +268,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
               option.bodeDescripcion!,
           fieldViewBuilder: (BuildContext context,
               TextEditingController textEditingController,
-              FocusNode focusNode,
+              FocusNode fieldFocusNode,
               VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
             textEditingController.text = controller.text;
             return TextField(
               controller: textEditingController,
@@ -280,8 +282,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 fillColor: Colors.black,
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: isError ? errorMessage : null,
-                errorMaxLines:
-                    3, 
+                errorMaxLines: 3,
                 errorStyle: TextStyle(
                   color: Colors.red,
                   fontSize: 12,
@@ -292,10 +293,19 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFFFF0C6)),
                 ),
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                  onPressed: () {
+                    if (focusNode.hasFocus) {
+                      focusNode.unfocus();
+                    } else {
+                      focusNode.requestFocus();
+                    }
+                  },
+                ),
               ),
               style: TextStyle(color: Colors.white),
-              maxLines:
-                  null, 
+              maxLines: null,
             );
           },
           optionsViewBuilder: (BuildContext context,
@@ -306,27 +316,24 @@ class _NuevoFleteState extends State<NuevoFlete> {
               child: Material(
                 elevation: 4.0,
                 child: Container(
-                  width: constraints.maxWidth, // Ancho igual al TextField
+                  width: constraints.maxWidth,
                   color: Colors.black,
-                  child: SingleChildScrollView(
-                    child: ListView.builder(
-                      padding: EdgeInsets.all(8.0),
-                      itemCount: options.length,
-                      shrinkWrap:
-                          true, // Ajustar la altura del ListView al contenido
-                      itemBuilder: (BuildContext context, int index) {
-                        final BodegaViewModel option = options.elementAt(index);
-                        return GestureDetector(
-                          onTap: () {
-                            onSelected(option);
-                          },
-                          child: ListTile(
-                            title: Text(option.bodeDescripcion!,
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                        );
-                      },
-                    ),
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      final BodegaViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.bodeDescripcion!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -349,12 +356,14 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Widget _buildProyectoAutocomplete(TextEditingController controller) {
+    FocusNode focusNode = FocusNode();
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<ProyectoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return const Iterable<ProyectoViewModel>.empty();
+              return proyectos; // Mostrar todas las opciones cuando el campo está vacío
             }
             return proyectos.where((ProyectoViewModel option) {
               return option.proyNombre!
@@ -366,8 +375,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
               option.proyNombre!,
           fieldViewBuilder: (BuildContext context,
               TextEditingController textEditingController,
-              FocusNode focusNode,
+              FocusNode fieldFocusNode,
               VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
             textEditingController.text = controller.text;
             return TextField(
               controller: textEditingController,
@@ -388,10 +398,19 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFFFF0C6)),
                 ),
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                  onPressed: () {
+                    if (focusNode.hasFocus) {
+                      focusNode.unfocus();
+                    } else {
+                      focusNode.requestFocus();
+                    }
+                  },
+                ),
               ),
               style: TextStyle(color: Colors.white),
-              maxLines:
-                  null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+              maxLines: null,
             );
           },
           optionsViewBuilder: (BuildContext context,
@@ -726,50 +745,67 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Future<void> guardarFlete() async {
-  flete.usuaCreacion = 3;
-  flete.flenEstado = false;
-  if (flete.flenDestinoProyecto == null) {
-    flete.flenDestinoProyecto = false;
-  }
-
-  print('Flete data: ${flete.toJson()}');
-
-  if (selectedInsumos.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Debe seleccionar al menos un insumo')),
-    );
-    return;
-  }
-
-  final int? newId = await FleteEncabezadoService.insertarFlete(flete);
-  if (newId != null) {
-    print('New Flete ID: $newId');
-    for (int i = 0; i < selectedInsumos.length; i++) {
-      final detalle = FleteDetalleViewModel(
-        fldeCantidad: selectedCantidades[i],
-        flenId: newId,
-        inppId: selectedInsumos[i].inppId,
-        usuaCreacion: 3,
-      );
-      print('Detalle data: ${detalle.toJson()}');
-      await FleteDetalleService.insertarFleteDetalle(detalle);
+    flete.usuaCreacion = 3;
+    flete.flenEstado = false;
+    if (flete.flenDestinoProyecto == null) {
+      flete.flenDestinoProyecto = false;
     }
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Flete(),
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Flete enviado con éxito')),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al enviar el flete')),
-    );
-  }
-}
 
+    print('Flete data: ${flete.toJson()}');
+
+    // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
+    bool hayCantidadesInvalidas = false;
+    for (int i = 0; i < selectedInsumos.length; i++) {
+      if (selectedCantidades[i] <= 0) {
+        quantityControllers[i].text = '1';
+        hayCantidadesInvalidas = true;
+      }
+    }
+
+    if (hayCantidadesInvalidas) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('No se puede guardar insumos con cantidad 0 o vacía.')),
+      );
+      return;
+    }
+
+    if (selectedInsumos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Debe seleccionar al menos un insumo')),
+      );
+      return;
+    }
+
+    final int? newId = await FleteEncabezadoService.insertarFlete(flete);
+    if (newId != null) {
+      print('New Flete ID: $newId');
+      for (int i = 0; i < selectedInsumos.length; i++) {
+        final detalle = FleteDetalleViewModel(
+          fldeCantidad: selectedCantidades[i],
+          flenId: newId,
+          inppId: selectedInsumos[i].inppId,
+          usuaCreacion: 3,
+        );
+        print('Detalle data: ${detalle.toJson()}');
+        await FleteDetalleService.insertarFleteDetalle(detalle);
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Flete(),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Flete enviado con éxito')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar el flete')),
+      );
+    }
+  }
 
   Widget _buildFleteView() {
     return SingleChildScrollView(
@@ -936,107 +972,109 @@ class _NuevoFleteState extends State<NuevoFlete> {
             ],
           ),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: ListView.builder(
-              itemCount: insumos.length,
-              itemBuilder: (context, index) {
-                int? stock = insumos[index].bopiStock;
-                int cantidad = selectedCantidades.length > index
-                    ? selectedCantidades[index]
-                    : 0; // Cantidad inicial es 0
-                bool cantidadExcedida = cantidad > (stock ?? 0);
+       Expanded(
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+    child: ListView.builder(
+      itemCount: insumos.length,
+      itemBuilder: (context, index) {
+        int? stock = insumos[index].bopiStock;
+        int cantidad = selectedCantidades.length > index
+            ? selectedCantidades[index]
+            : 0; // Cantidad inicial es 0
+        bool cantidadExcedida = cantidad > (stock ?? 0);
 
-                return ListTile(
-                  title: Text(
-                    '${insumos[index].insuDescripcion ?? ''}',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Material: ${insumos[index].mateDescripcion}',
-                          style: TextStyle(color: Colors.white70)),
-                      Text('Unidad: ${insumos[index].unmeNombre}',
-                          style: TextStyle(color: Colors.white70)),
-                      Text(
-                        'Stock: ${stock! - (selectedInsumos.contains(insumos[index]) ? cantidad : 0)}',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                      if (selectedInsumos.contains(insumos[index]))
-                        Row(
-                          children: [
-                            Text('Cantidad: ',
-                                style: TextStyle(color: Colors.white70)),
-                            SizedBox(
-                              width: 30,
-                              child: TextField(
-                                controller: quantityControllers[index],
-                                keyboardType: TextInputType.number,
-                                style: TextStyle(color: Colors.white),
-                                onChanged: (value) {
-                                  setState(() {
-                                    int? cantidad = int.tryParse(value);
-                                    if (cantidad == null || cantidad <= 0) {
-                                      selectedCantidades[index] = 1;
-                                      quantityControllers[index].text = '1';
-                                    } else if (cantidad > stock!) {
-                                      selectedCantidades[index] = stock;
-                                      quantityControllers[index].text =
-                                          stock.toString();
-                                      cantidadExcedida =
-                                          true; // Activar mensaje de advertencia
-                                      print('mayor');
-                                    } else {
-                                      selectedCantidades[index] = cantidad;
-                                      cantidadExcedida =
-                                          false; // Desactivar mensaje de advertencia
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      if (cantidadExcedida)
-                        Text(
-                          'La cantidad no puede ser mayor que el stock disponible.',
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                    ],
-                  ),
-                  trailing: Checkbox(
-                    value: selectedInsumos.contains(insumos[index]),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          selectedInsumos.add(insumos[index]);
-                          if (selectedCantidades.length <= index) {
-                            selectedCantidades.add(1); // Añadir 1 por defecto
-                            quantityControllers[index].text =
-                                '1'; // Establecer el controlador en 1
-                          } else {
-                            selectedCantidades[index] = 1;
-                            quantityControllers[index].text = '1';
-                          }
-                        } else {
-                          int removeIndex =
-                              selectedInsumos.indexOf(insumos[index]);
-                          selectedInsumos.removeAt(removeIndex);
-                          selectedCantidades[removeIndex] =
-                              0; // Restablecer la cantidad a 0
-                          quantityControllers[index].text =
-                              ''; // Limpiar el controlador
-                        }
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
+        return ListTile(
+          title: Text(
+            '${insumos[index].insuDescripcion ?? ''}',
+            style: TextStyle(color: Colors.white),
           ),
-        ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Material: ${insumos[index].mateDescripcion}',
+                  style: TextStyle(color: Colors.white70)),
+              Text('Unidad: ${insumos[index].unmeNombre}',
+                  style: TextStyle(color: Colors.white70)),
+              Text(
+                'Stock: ${insumos[index].bopiStock}',
+                style: TextStyle(color: Colors.white70),
+              ),
+              if (selectedInsumos.contains(insumos[index]))
+                Row(
+                  children: [
+                    Text('Cantidad: ',
+                        style: TextStyle(color: Colors.white70)),
+                    SizedBox(
+                      width: 30,
+                      child: TextField(
+                        controller: quantityControllers[index],
+                        keyboardType: TextInputType.number,
+                        style: TextStyle(color: Colors.white),
+                        onChanged: (value) {
+                          setState(() {
+                            int? cantidad = int.tryParse(value);
+                            if (cantidad == null || cantidad <= 0) {
+                              // selectedCantidades[index] = 1;
+                              // quantityControllers[index].text = '1';
+                              cantidadExcedida = false; // Desactivar mensaje de advertencia
+                            } else if (cantidad > stock!) {
+                              selectedCantidades[index] = cantidad;
+                              cantidadExcedida = true; // Activar mensaje de advertencia
+                            } else {
+                              selectedCantidades[index] = cantidad;
+                              cantidadExcedida = false; // Desactivar mensaje de advertencia
+                            }
+                          });
+                        },
+                        onSubmitted: (value) {
+                          setState(() {
+                            int? cantidad = int.tryParse(value);
+                            if (cantidad != null && cantidad > stock!) {
+                              selectedCantidades[index] = stock;
+                              quantityControllers[index].text = stock.toString();
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              if (cantidadExcedida)
+                Text(
+                  'La cantidad no puede ser mayor que el stock disponible.',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                ),
+            ],
+          ),
+          trailing: Checkbox(
+            value: selectedInsumos.contains(insumos[index]),
+            onChanged: (bool? value) {
+              setState(() {
+                if (value == true) {
+                  selectedInsumos.add(insumos[index]);
+                  if (selectedCantidades.length <= index) {
+                    // selectedCantidades.add(1); // Añadir 1 por defecto
+                    // quantityControllers[index].text = '1'; // Establecer el controlador en 1
+                  } else {
+                    selectedCantidades[index] = 1;
+                    quantityControllers[index].text = '1';
+                  }
+                } else {
+                  int removeIndex = selectedInsumos.indexOf(insumos[index]);
+                  selectedInsumos.removeAt(removeIndex);
+                  selectedCantidades[removeIndex] = 0; // Restablecer la cantidad a 0
+                  quantityControllers[removeIndex].text = ''; // Limpiar el controlador
+                }
+              });
+            },
+          ),
+        );
+      },
+    ),
+  ),
+),
+
       ],
     );
   }
@@ -1231,7 +1269,6 @@ class _NuevoFleteState extends State<NuevoFlete> {
     bool isError = false;
     String errorMessage = '';
 
-    // Determinar qué mensaje de error mostrar basado en el label
     if (label == 'Encargado') {
       isError = _isEmpleadoError;
       errorMessage = _empleadoErrorMessage;
@@ -1243,12 +1280,14 @@ class _NuevoFleteState extends State<NuevoFlete> {
       errorMessage = _supervisorLlegadaErrorMessage;
     }
 
+    FocusNode focusNode = FocusNode();
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<EmpleadoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return const Iterable<EmpleadoViewModel>.empty();
+              return empleados; // Mostrar todas las opciones cuando el campo está vacío
             }
             return empleados.where((EmpleadoViewModel option) {
               return option.empleado!
@@ -1263,8 +1302,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
               option.empleado!,
           fieldViewBuilder: (BuildContext context,
               TextEditingController textEditingController,
-              FocusNode focusNode,
+              FocusNode fieldFocusNode,
               VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
             textEditingController.text = controller.text;
             return TextField(
               controller: textEditingController,
@@ -1287,6 +1327,16 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                  onPressed: () {
+                    if (focusNode.hasFocus) {
+                      focusNode.unfocus();
+                    } else {
+                      focusNode.requestFocus();
+                    }
+                  },
                 ),
               ),
               style: TextStyle(color: Colors.white),
