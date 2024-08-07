@@ -133,6 +133,9 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                     _filteredProcesosVenta.remove(procesoventa);
                   });
                   Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bien raíz eliminado con éxito')),
+                  );
                 } catch (e) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -162,7 +165,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       builder: (BuildContext context) {
         return AlertDialog(
           title:
-              Text('Propiedad vendida', style: TextStyle(color: Colors.white)),
+              Text('Propiedad en venta', style: TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -262,31 +265,52 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
           return Card(
             margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 0),
             color: Color(0xFF171717),
-            child: ListTile(
-              title: Text(procesoventa.descripcion ?? 'N/A',
-                  style: TextStyle(color: Colors.white)),
-              subtitle: Text(
-                  'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
-                  style: TextStyle(color: Colors.white70)),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.info_outline, color: Colors.white),
-                    onPressed: () => _verDetalles(
-                        procesoventa.btrpId,
-                        procesoventa.btrpTerrenoOBienRaizId,
-                        procesoventa.btrpBienoterrenoId),
+            child: Stack(
+              children: [
+                ListTile(
+                  title: Text(procesoventa.descripcion ?? 'N/A',
+                      style: TextStyle(color: Colors.white)),
+                  subtitle: Text(
+                      'Agente: ${procesoventa.agenDNI ?? 'N/A'} - ${procesoventa.agenNombreCompleto ?? 'N/A'}',
+                      style: TextStyle(color: Colors.white70)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (procesoventa.btrpIdentificador == true)
+                        IconButton(
+                            icon: Icon(Icons.sell, color: Colors.white),
+                            onPressed: () =>
+                                _modalVender(context, procesoventa)),
+                      IconButton(
+                        icon: Icon(Icons.info_outline, color: Colors.white),
+                        onPressed: () => _verDetalles(
+                            procesoventa.btrpId,
+                            procesoventa.btrpTerrenoOBienRaizId,
+                            procesoventa.btrpBienoterrenoId),
+                      ),
+                      Icon(
+                          procesoventa.btrpIdentificador == true
+                              ? Icons.adjust
+                              : Icons.adjust,
+                          color: procesoventa.btrpIdentificador == true
+                              ? Colors.green
+                              : Colors.red),
+                    ],
                   ),
-                  Icon(
-                      procesoventa.btrpIdentificador == true
-                          ? Icons.adjust
-                          : Icons.adjust,
-                      color: procesoventa.btrpIdentificador == true
-                          ? Colors.green
-                          : Colors.red),
-                ],
-              ),
+                ),
+                if (procesoventa.btrpIdentificador == true)
+                  Positioned(
+                    right: 2,
+                    bottom: 40,
+                    left: 310,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: Colors.red),
+                      onPressed: () {
+                        _modalEliminar(context, procesoventa);
+                      },
+                    ),
+                  ),
+              ],
             ),
           );
         } else {
@@ -334,11 +358,14 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              procesoventa.descripcion ?? 'N/A',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            child: Text(procesoventa.descripcion ?? 'N/A',
+                                style: TextStyle(color: Colors.white)),
                           ),
+                          if (procesoventa.btrpIdentificador == true)
+                            IconButton(
+                                icon: Icon(Icons.sell, color: Colors.white),
+                                onPressed: () =>
+                                    _modalVender(context, procesoventa)),
                           IconButton(
                             icon: Icon(Icons.info_outline, color: Colors.white),
                             onPressed: () => _verDetalles(

@@ -15,7 +15,7 @@ class FleteEncabezadoViewModel {
   bool? flenEstado;
   bool? flenDestinoProyecto;
   int? bollId;
-  int? boprId;
+  int? boatId;
   int? emtrId;
   int? emssId;
   int? emslId;
@@ -43,7 +43,7 @@ class FleteEncabezadoViewModel {
     this.flenEstado,
     this.flenDestinoProyecto,
     this.bollId,
-    this.boprId,
+    this.boatId,
     this.emtrId,
     this.emssId,
     this.emslId,
@@ -80,7 +80,7 @@ class FleteEncabezadoViewModel {
       flenEstado: json['flen_Estado'],
       flenDestinoProyecto: json['flen_DestinoProyecto'],
       bollId: json['boll_Id'],
-      boprId: json['bopr_Id'],
+      boatId: json['boat_Id'],
       emtrId: json['emtr_Id'],
       emssId: json['emss_Id'],
       emslId: json['emsl_Id'],
@@ -114,7 +114,7 @@ class FleteEncabezadoViewModel {
       'flen_Estado': flenEstado,
       'flen_DestinoProyecto': flenDestinoProyecto,
       'boll_Id': bollId,
-      'bopr_Id': boprId,
+      'boat_Id': boatId,
       'emtr_Id': emtrId,
       'emss_Id': emssId,
       'emsl_Id': emslId,

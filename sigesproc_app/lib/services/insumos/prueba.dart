@@ -13,44 +13,64 @@ class MapaPrueba extends StatefulWidget {
 }
 
 class _MapaPruebaState extends State<MapaPrueba> {
-   final ubicacionController = Location();
+  final ubicacionController = Location();
 
   static const tegus = LatLng(14.105713888889, -87.204008333333);
   static const elprogreso = LatLng(15.400913888889, -87.812019444444);
 
   LatLng? ubicacionactual;
   Map<PolylineId, Polyline> polylines = {};
+  StreamSubscription<LocationData>? locationSubscription;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) async => await iniciarMapa());
+    WidgetsBinding.instance.addPostFrameCallback((_) async => await iniciarMapa());
+  }
+
+  @override
+  void dispose() {
+    locationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> iniciarMapa() async {
-    await ubicacionActualizada();
-    final coordinates = await polylinePuntos();
+    bool ubicacionObtenida = await ubicacionActualizada();
+    if (ubicacionObtenida) {
+      locationSubscription = ubicacionController.onLocationChanged.listen((currentLocation) {
+        if (currentLocation.latitude != null && currentLocation.longitude != null) {
+          LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+          setState(() {
+            ubicacionactual = nuevaUbicacion;
+          });
+          _actualizarPolyline(nuevaUbicacion, elprogreso);
+        }
+      });
+    }
+    final coordinates = await polylinePuntos(ubicacionObtenida ? ubicacionactual! : tegus, elprogreso);
     generarPolylineporPuntos(coordinates);
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
         body: ubicacionactual == null
-            ? const Center(child: CircularProgressIndicator(
+            ? const Center(
+                child: CircularProgressIndicator(
                   color: Color(0xFFFFF0C6),
-                ),)
+                ),
+              )
             : GoogleMap(
                 initialCameraPosition: const CameraPosition(
                   target: tegus,
                   zoom: 13,
                 ),
                 markers: {
-                  Marker(
-                    markerId: const MarkerId('currentLocation'),
-                    icon: BitmapDescriptor.defaultMarker,
-                    position: ubicacionactual!,
-                  ),
+                  if (ubicacionactual != null)
+                    Marker(
+                      markerId: const MarkerId('currentLocation'),
+                      icon: BitmapDescriptor.defaultMarker,
+                      position: ubicacionactual!,
+                    ),
                   const Marker(
                     markerId: MarkerId('sourceLocation'),
                     icon: BitmapDescriptor.defaultMarker,
@@ -66,45 +86,41 @@ class _MapaPruebaState extends State<MapaPrueba> {
               ),
       );
 
-  Future<void> ubicacionActualizada() async {
-    bool servicioAceptado;
-    PermissionStatus permisoAceptado;
-
-    servicioAceptado = await ubicacionController.serviceEnabled();
-    if (servicioAceptado) {
+  Future<bool> ubicacionActualizada() async {
+    bool servicioAceptado = await ubicacionController.serviceEnabled();
+    if (!servicioAceptado) {
       servicioAceptado = await ubicacionController.requestService();
-    } else {
-      return;
+      if (!servicioAceptado) return false;
     }
 
-    permisoAceptado = await ubicacionController.hasPermission();
+    PermissionStatus permisoAceptado = await ubicacionController.hasPermission();
     if (permisoAceptado == PermissionStatus.denied) {
       permisoAceptado = await ubicacionController.requestPermission();
       if (permisoAceptado != PermissionStatus.granted) {
-        return;
+        return false;
       }
     }
 
-    ubicacionController.onLocationChanged.listen((currentLocation) {
-      if (currentLocation.latitude != null &&
-          currentLocation.longitude != null) {
-        setState(() {
-          ubicacionactual = LatLng(
-            currentLocation.latitude!,
-            currentLocation.longitude!,
-          );
-        });
-      }
-    });
+    final currentLocation = await ubicacionController.getLocation();
+    if (currentLocation.latitude != null && currentLocation.longitude != null) {
+      setState(() {
+        ubicacionactual = LatLng(
+          currentLocation.latitude!,
+          currentLocation.longitude!,
+        );
+      });
+      return true;
+    }
+    return false;
   }
 
-  Future<List<LatLng>> polylinePuntos() async {
+  Future<List<LatLng>> polylinePuntos(LatLng inicio, LatLng destino) async {
     final polylines = PolylinePoints();
 
     final result = await polylines.getRouteBetweenCoordinates(
       gmak,
-      PointLatLng(tegus.latitude, tegus.longitude),
-      PointLatLng(elprogreso.latitude, elprogreso.longitude),
+      PointLatLng(inicio.latitude, inicio.longitude),
+      PointLatLng(destino.latitude, destino.longitude),
       travelMode: TravelMode.driving,
     );
 
@@ -118,8 +134,7 @@ class _MapaPruebaState extends State<MapaPrueba> {
     }
   }
 
-  Future<void> generarPolylineporPuntos(
-      List<LatLng> polylineCoordenadas) async {
+  Future<void> generarPolylineporPuntos(List<LatLng> polylineCoordenadas) async {
     const id = PolylineId('polyline');
 
     final polyline = Polyline(
@@ -130,5 +145,10 @@ class _MapaPruebaState extends State<MapaPrueba> {
     );
 
     setState(() => polylines[id] = polyline);
+  }
+
+  Future<void> _actualizarPolyline(LatLng inicio, LatLng destino) async {
+    final coordinates = await polylinePuntos(inicio, destino);
+    generarPolylineporPuntos(coordinates);
   }
 }
