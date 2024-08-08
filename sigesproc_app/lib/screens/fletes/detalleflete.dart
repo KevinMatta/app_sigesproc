@@ -115,377 +115,414 @@ class _DetalleFleteState extends State<DetalleFlete> {
     return null;
   }
 
- Future<void> iniciarMapa() async {
-  bool ubicacionObtenida = await ubicacionActualizada();
-  LatLng inicio;
-  LatLng? destino;
+  Future<void> iniciarMapa() async {
+    bool ubicacionObtenida = await ubicacionActualizada();
+    LatLng inicio;
+    LatLng? destino;
 
-  final bodegaOrigen = await _bodegaOrigenFuture;
-  final destinoData = await _destinoFuture;
+    final bodegaOrigen = await _bodegaOrigenFuture;
+    final destinoData = await _destinoFuture;
 
-  if (bodegaOrigen != null) {
-    inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!) ?? LatLng(0, 0);
-  } else {
-    inicio = LatLng(0, 0);
-  }
+    if (bodegaOrigen != null) {
+      inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!) ??
+          LatLng(0, 0);
+    } else {
+      inicio = LatLng(0, 0);
+    }
 
-  if (destinoData is ProyectoViewModel) {
-    destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
-  } else if (destinoData is BodegaViewModel) {
-    destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
-  }
+    if (destinoData is ProyectoViewModel) {
+      destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
+    } else if (destinoData is BodegaViewModel) {
+      destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
+    }
 
-  if (ubicacionObtenida) {
-    locationSubscription = ubicacionController.onLocationChanged.listen((currentLocation) {
-      if (currentLocation.latitude != null && currentLocation.longitude != null) {
-        LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
-        if (mounted) {
-          setState(() {
-            ubicacionactual = nuevaUbicacion;
-          });
-          if (destino != null) {
-            _actualizarPolyline(nuevaUbicacion, destino);
+    if (ubicacionObtenida) {
+      locationSubscription =
+          ubicacionController.onLocationChanged.listen((currentLocation) {
+        if (currentLocation.latitude != null &&
+            currentLocation.longitude != null) {
+          LatLng nuevaUbicacion =
+              LatLng(currentLocation.latitude!, currentLocation.longitude!);
+          if (mounted) {
+            setState(() {
+              ubicacionactual = nuevaUbicacion;
+            });
+            if (destino != null) {
+              _actualizarPolyline(nuevaUbicacion, destino);
+            }
           }
         }
-      }
-    });
+      });
+    }
+
+    if (destino != null) {
+      final coordinates = await polylinePuntos(
+        ubicacionObtenida ? ubicacionactual! : inicio,
+        destino,
+      );
+      generarPolylineporPuntos(coordinates);
+    } else {
+      // Muestra un mensaje de error si la ubicación del destino es inválida
+      print('Ubicación del destino inválida');
+    }
   }
 
-  if (destino != null) {
-    final coordinates = await polylinePuntos(
-      ubicacionObtenida ? ubicacionactual! : inicio,
-      destino,
-    );
-    generarPolylineporPuntos(coordinates);
-  } else {
-    // Muestra un mensaje de error si la ubicación del destino es inválida
-    print('Ubicación del destino inválida');
-  }
-}
-
-
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: Colors.black,
-      title: Row(
-        children: [
-          Image.asset(
-            'lib/assets/logo-sigesproc.png',
-            height: 60,
-          ),
-          SizedBox(width: 5),
-          Text(
-            'SIGESPROC',
-            style: TextStyle(
-              color: Color(0xFFFFF0C6),
-              fontSize: 20,
-            ),
-          ),
-        ],
-      ),
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
-        child: Column(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
           children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 60,
+            ),
+            SizedBox(width: 5),
             Text(
-              'Detalle Flete',
+              'SIGESPROC',
               style: TextStyle(
                 color: Color(0xFFFFF0C6),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
-            ),
-            SizedBox(height: 4.0),
-            Container(
-              height: 2.0,
-              color: Color(0xFFFFF0C6),
             ),
           ],
         ),
-      ),
-      iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-      actions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.notifications),
-          onPressed: () {},
-        ),
-        IconButton(
-          icon: Icon(Icons.person),
-          onPressed: () {},
-        ),
-      ],
-    ),
-    body: Container(
-      color: Colors.black,
-      child: FutureBuilder<FleteEncabezadoViewModel?>(
-        future: _fleteFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: SpinKitCircle(
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(40.0),
+          child: Column(
+            children: [
+              Text(
+                'Detalle Flete',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 4.0),
+              Container(
+                height: 2.0,
                 color: Color(0xFFFFF0C6),
               ),
-            );
-          } else if (!snapshot.hasData || snapshot.data == null) {
-            return Center(
-              child: Text(
-                'No se encontraron detalles para el flete con ID: ${widget.flenId}',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          } else {
-            final flete = snapshot.data!;
-            return Stack(
-              children: [
-                Positioned.fill(
-                  child: FutureBuilder(
-                    future: Future.wait([_bodegaOrigenFuture, _destinoFuture]),
-                    builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
-                      if (ubicacionactual == null) {
-                        return Center(
-                          child: SpinKitCircle(
-                            color: Color(0xFFFFF0C6),
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Error al cargar ubicaciones',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        );
-                      } else if (!snapshot.hasData ||
-                          snapshot.data == null ||
-                          snapshot.data!.isEmpty) {
-                        return Center(
-                          child: SpinKitCircle(
-                            color: Color(0xFFFFF0C6),
-                          ),
-                        );
-                      } else {
-                        final bodegaOrigen = snapshot.data![0] as BodegaViewModel?;
-                        final destinoData = snapshot.data![1];
-
-                        if (bodegaOrigen == null || destinoData == null) {
-                          return Center(
-                            child: Text(
-                              'No se encontraron ubicaciones válidas',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }
-
-                        LatLng inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!) ?? LatLng(0, 0);
-                        LatLng? destino;
-
-                        if (destinoData is ProyectoViewModel) {
-                          destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
-                          if (destino == null) {
+            ],
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Container(
+        color: Colors.black,
+        child: FutureBuilder<FleteEncabezadoViewModel?>(
+          future: _fleteFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: SpinKitCircle(
+                  color: Color(0xFFFFF0C6),
+                ),
+              );
+            } else if (!snapshot.hasData || snapshot.data == null) {
+              return Center(
+                child: Text(
+                  'No se encontraron detalles para el flete con ID: ${widget.flenId}',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            } else {
+              final flete = snapshot.data!;
+              return Stack(
+                children: [
+                  Positioned(
+                    child: Container(
+                      height: 624,
+                      child: FutureBuilder(
+                        future:
+                            Future.wait([_bodegaOrigenFuture, _destinoFuture]),
+                        builder:
+                            (context, AsyncSnapshot<List<dynamic>> snapshot) {
+                          if (ubicacionactual == null) {
                             return Center(
-                              child: Text(
-                                'Ubicación del destino inválida',
-                                style: TextStyle(color: Colors.white),
+                              child: SpinKitCircle(
+                                color: Color(0xFFFFF0C6),
                               ),
                             );
-                          }
-                        } else if (destinoData is BodegaViewModel) {
-                          destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
-                        } else {
-                          destino = LatLng(0, 0);
-                        }
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error al cargar ubicaciones',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            );
+                          } else if (!snapshot.hasData ||
+                              snapshot.data == null ||
+                              snapshot.data!.isEmpty) {
+                            return Center(
+                              child: SpinKitCircle(
+                                color: Color(0xFFFFF0C6),
+                              ),
+                            );
+                          } else {
+                            final bodegaOrigen =
+                                snapshot.data![0] as BodegaViewModel?;
+                            final destinoData = snapshot.data![1];
 
-                        return GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: ubicacionactual ?? inicio,
-                            zoom: 13,
-                          ),
-                          markers: {
-                            if (ubicacionactual != null)
-                              Marker(
-                                markerId: const MarkerId('currentLocation'),
-                                icon: carritoIcono ?? BitmapDescriptor.defaultMarker,
-                                position: ubicacionactual!,
+                            if (bodegaOrigen == null || destinoData == null) {
+                              return Center(
+                                child: Text(
+                                  'No se encontraron ubicaciones válidas',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              );
+                            }
+
+                            LatLng inicio = obtenerCoordenadasDeEnlace(
+                                    bodegaOrigen.bodeLinkUbicacion!) ??
+                                LatLng(0, 0);
+                            LatLng? destino;
+
+                            if (destinoData is ProyectoViewModel) {
+                              destino = obtenerCoordenadasDeEnlace(
+                                  destinoData.proyLinkUbicacion);
+                              if (destino == null) {
+                                return Center(
+                                  child: Text(
+                                    'Ubicación del destino inválida',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                );
+                              }
+                            } else if (destinoData is BodegaViewModel) {
+                              destino = obtenerCoordenadasDeEnlace(
+                                  destinoData.bodeLinkUbicacion);
+                            } else {
+                              destino = LatLng(0, 0);
+                            }
+
+                            return GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: ubicacionactual ?? inicio,
+                                zoom: 13,
                               ),
-                            if (ubicacionactual == null)
-                              Marker(
-                                markerId: const MarkerId('sourceLocation'),
-                                icon: BitmapDescriptor.defaultMarker,
-                                position: inicio,
-                              ),
-                            Marker(
-                              markerId: const MarkerId('destinationLocation'),
-                              icon: BitmapDescriptor.defaultMarker,
-                              position: destino!,
-                            )
-                          },
-                          polylines: Set<Polyline>.of(polylines.values),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: ExpansionTile(
-                    collapsedBackgroundColor: Color(0xFFFFF0C6),
-                    backgroundColor: Color(0xFFFFF0C6),
-                    title: Text(
-                      'Ver Detalles',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
+                              markers: {
+                                if (ubicacionactual != null)
+                                  Marker(
+                                    markerId: const MarkerId('currentLocation'),
+                                    icon: carritoIcono ??
+                                        BitmapDescriptor.defaultMarker,
+                                    position: ubicacionactual!,
+                                  ),
+                                if (ubicacionactual == null)
+                                  Marker(
+                                    markerId: const MarkerId('sourceLocation'),
+                                    icon: BitmapDescriptor.defaultMarker,
+                                    position: inicio,
+                                  ),
+                                Marker(
+                                  markerId:
+                                      const MarkerId('destinationLocation'),
+                                  icon: BitmapDescriptor.defaultMarker,
+                                  position: destino!,
+                                )
+                              },
+                              polylines: Set<Polyline>.of(polylines.values),
+                            );
+                          }
+                        },
+                      ),
                     ),
-                    onExpansionChanged: (bool expanding) => setState(() => isExpanded = expanding),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Encargado: ${flete.encargado}',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Fecha y Hora de salida: ${formatDateTime(flete.flenFechaHoraSalida)}',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Fecha y Hora de llegada: ${flete.flenFechaHoraLlegada == null ? 'No ha llegado.' : formatDateTime(flete.flenFechaHoraLlegada)}',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 10),
-                            FutureBuilder<List<FleteDetalleViewModel>>(
-                              future: _detallesFuture,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return Center(
-                                    child: SpinKitCircle(
-                                      color: Color(0xFFFFF0C6),
-                                    ),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: Text(
-                                      'Error al cargar los detalles del flete',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  );
-                                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                  return Center(
-                                    child: Text(
-                                      'No se encontraron materiales para el flete.',
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                  );
-                                } else {
-                                  final detalles = snapshot.data!;
-                                  return Container(
-                                    height: 100, //  Tamano
-                                    child: SingleChildScrollView(
-                                      child: Table(
-                                        border: TableBorder.all(color: Colors.black),
-                                        columnWidths: {
-                                          0: FlexColumnWidth(3),
-                                          1: FlexColumnWidth(1),
-                                        },
-                                        children: [
-                                          TableRow(
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  'Materiales',
-                                                  style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  'Cantidad',
-                                                  style: TextStyle(
-                                                      color: Colors.black,
-                                                      fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          ...detalles.map((detalle) {
-                                            return TableRow(
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: ExpansionTile(
+                      collapsedBackgroundColor: Color(0xFFFFF0C6),
+                      backgroundColor: Color(0xFFFFF0C6),
+                      title: Text(
+                        'Ver Detalles',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      onExpansionChanged: (bool expanding) =>
+                          setState(() => isExpanded = expanding),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Encargado: ${flete.encargado}',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Destino: ${flete.destino}',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Fecha y Hora de salida: ${formatDateTime(flete.flenFechaHoraSalida)}',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Fecha y Hora de llegada: ${flete.flenFechaHoraLlegada == null ? 'No ha llegado.' : formatDateTime(flete.flenFechaHoraLlegada)}',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 5),
+                              FutureBuilder<List<FleteDetalleViewModel>>(
+                                future: _detallesFuture,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                      child: SpinKitCircle(
+                                        color: Color(0xFFFFF0C6),
+                                      ),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                      child: Text(
+                                        'Error al cargar los detalles del flete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    );
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return Center(
+                                      child: Text(
+                                        'No se encontraron materiales para el flete.',
+                                        style: TextStyle(color: Colors.black),
+                                      ),
+                                    );
+                                  } else {
+                                    final detalles = snapshot.data!;
+                                    return Container(
+                                      height: 100, //  Tamano
+                                      child: SingleChildScrollView(
+                                        child: Table(
+                                          border: TableBorder.all(
+                                              color: Colors.black),
+                                          columnWidths: {
+                                            0: FlexColumnWidth(3),
+                                            1: FlexColumnWidth(1),
+                                          },
+                                          children: [
+                                            TableRow(
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsets.all(8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   child: Text(
-                                                    detalle.insuDescripcion ?? '',
-                                                    style: TextStyle(color: Colors.black),
+                                                    'Materiales',
+                                                    style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: const EdgeInsets.all(8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   child: Text(
-                                                    detalle.fldeCantidad.toString(),
-                                                    style: TextStyle(color: Colors.black),
+                                                    'Cantidad',
+                                                    style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   ),
                                                 ),
                                               ],
-                                            );
-                                          }).toList(),
-                                        ],
+                                            ),
+                                            ...detalles.map((detalle) {
+                                              return TableRow(
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      detalle.insuDescripcion ??
+                                                          '',
+                                                      style: TextStyle(
+                                                          color: Colors.black),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Text(
+                                                      detalle.fldeCantidad
+                                                          .toString(),
+                                                      style: TextStyle(
+                                                          color: Colors.black),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            }).toList(),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            );
-          }
-        },
+                ],
+              );
+            }
+          },
+        ),
       ),
-    ),
-  );
+    );
   }
-
 
   LatLng? obtenerCoordenadasDeEnlace(String? enlace) {
-  if (enlace == null || enlace.isEmpty) {
-    return null; // Devuelve null si el enlace es nulo o vacío
-  }
-
-  final uri = Uri.parse(enlace);
-  final coordenadas = uri.queryParameters['q']?.split(',');
-  if (coordenadas != null && coordenadas.length == 2) {
-    final lat = double.tryParse(coordenadas[0]);
-    final lng = double.tryParse(coordenadas[1]);
-    if (lat != null && lng != null) {
-      return LatLng(lat, lng);
+    if (enlace == null || enlace.isEmpty) {
+      return null; // Devuelve null si el enlace es nulo o vacío
     }
-  }
-  return null; // Devuelve null si no puede obtener las coordenadas
-}
 
+    final uri = Uri.parse(enlace);
+    final coordenadas = uri.queryParameters['q']?.split(',');
+    if (coordenadas != null && coordenadas.length == 2) {
+      final lat = double.tryParse(coordenadas[0]);
+      final lng = double.tryParse(coordenadas[1]);
+      if (lat != null && lng != null) {
+        return LatLng(lat, lng);
+      }
+    }
+    return null; // Devuelve null si no puede obtener las coordenadas
+  }
 
   Future<bool> ubicacionActualizada() async {
     bool servicioAceptado = await ubicacionController.serviceEnabled();

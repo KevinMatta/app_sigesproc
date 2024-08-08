@@ -16,11 +16,20 @@ class _FleteState extends State<Flete> {
   Future<List<FleteEncabezadoViewModel>>? _fletesFuture;
   TextEditingController _searchController = TextEditingController();
   List<FleteEncabezadoViewModel> _filteredFletes = [];
+  List<FleteEncabezadoViewModel> _allFletes = [];
+  int _currentPage = 0;
+  int _rowsPerPage = 10;
 
   @override
   void initState() {
     super.initState();
     _fletesFuture = FleteEncabezadoService.listarFletesEncabezado();
+    _fletesFuture!.then((fletes) {
+      setState(() {
+        _allFletes = fletes;
+        _filteredFletes = fletes;
+      });
+    });
     _searchController.addListener(_filterFletes);
   }
 
@@ -33,16 +42,12 @@ class _FleteState extends State<Flete> {
 
   void _filterFletes() {
     final query = _searchController.text.toLowerCase();
-    if (_fletesFuture != null) {
-      _fletesFuture!.then((fletes) {
-        setState(() {
-          _filteredFletes = fletes.where((flete) {
-            final salida = flete.salida?.toLowerCase() ?? '';
-            return salida.contains(query);
-          }).toList();
-        });
-      });
-    }
+    setState(() {
+      _filteredFletes = _allFletes.where((flete) {
+        final salida = flete.salida?.toLowerCase() ?? '';
+        return salida.contains(query);
+      }).toList();
+    });
   }
 
   void _onItemTapped(int index) {
@@ -51,31 +56,57 @@ class _FleteState extends State<Flete> {
     });
   }
 
-  Widget FleteRegistro(FleteEncabezadoViewModel flete) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Text(
-          flete.codigo.toString(),
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Color(0xFFFFF0C6),
-      ),
-      title: Text(
-        flete.salida ?? 'N/A',
-        style: TextStyle(color: Colors.white),
-      ),
-      subtitle: Text(
-        'Supervisor: ${flete.supervisorLlegada ?? 'N/A'}',
-        style: TextStyle(color: Colors.white70),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            flete.flenEstado == true ? Icons.adjust : Icons.adjust,
-            color: flete.flenEstado == true ? Colors.red : Colors.green,
+  void _previousPage() {
+    setState(() {
+      if (_currentPage > 0) {
+        _currentPage--;
+      }
+    });
+  }
+
+  void _nextPage() {
+    setState(() {
+      if (_filteredFletes.length > (_currentPage + 1) * _rowsPerPage) {
+        _currentPage++;
+      }
+    });
+  }
+
+  TableRow _buildFleteRow(FleteEncabezadoViewModel flete, int index) {
+    return TableRow(
+      children: [
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              (index + 1).toString(),
+              style: TextStyle(color: Colors.white),
+            ),
           ),
-          PopupMenuButton<int>(
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              flete.salida ?? 'N/A',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              flete.flenEstado == true ? Icons.adjust : Icons.adjust,
+              color: flete.flenEstado == true ? Colors.red : Colors.green,
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: PopupMenuButton<int>(
             color: Colors.black,
             icon: Icon(Icons.more_vert, color: Colors.white),
             onSelected: (int result) {
@@ -89,7 +120,7 @@ class _FleteState extends State<Flete> {
               } else if (result == 1) {
                 //  "Ver Verificación"
               } else if (result == 2) {
-                  _modalEliminar(context, flete);
+                //  "Eliminar"
               } else if (result == 3) {
                 //  "Incidencias"
               } else if (result == 4) {
@@ -160,60 +191,11 @@ class _FleteState extends State<Flete> {
               ],
             ],
           ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
-
-  void _modalEliminar(BuildContext context, FleteEncabezadoViewModel flete) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Eliminar Flete', style: TextStyle(color: Colors.white)),
-        content: Text(
-          '¿Está seguro de querer eliminar el flete hacia ${flete.destino}?',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Color(0xFF171717),
-        actions: [
-          TextButton(
-            child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () async {
-              try {
-                await FleteEncabezadoService.Eliminar(flete.flenId!);
-                setState(() {
-                  print(_filteredFletes);
-                  print(flete);
-                  _filteredFletes.remove(flete);
-                  print('entra a borrar');
-                  print(_filteredFletes.remove(flete));
-                  print(_filteredFletes);
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Flete eliminado con éxito')),
-                );
-              } catch (e) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al eliminar el registro')),
-                );
-              }
-            },
-          ),
-          TextButton(
-            child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -328,16 +310,106 @@ class _FleteState extends State<Flete> {
                       ),
                     );
                   } else {
-                    return ListView.builder(
-                      padding: EdgeInsets.only(bottom: 80.0),
-                      itemCount: _filteredFletes.isEmpty
-                          ? snapshot.data!.length
-                          : _filteredFletes.length,
-                      itemBuilder: (context, index) {
-                        return FleteRegistro(_filteredFletes.isEmpty
-                            ? snapshot.data![index]
-                            : _filteredFletes[index]);
-                      },
+                    _filteredFletes = _searchController.text.isEmpty
+                        ? snapshot.data!
+                        : _filteredFletes;
+                    final int totalRecords = _filteredFletes.length;
+                    final int startIndex = _currentPage * _rowsPerPage;
+                    final int endIndex = (startIndex + _rowsPerPage > totalRecords)
+                        ? totalRecords
+                        : startIndex + _rowsPerPage;
+
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Table(
+                              columnWidths: {
+                                0: FlexColumnWidth(1),
+                                1: FlexColumnWidth(3),
+                                2: FlexColumnWidth(2),
+                                3: FlexColumnWidth(2),
+                              },
+                              children: [
+                                TableRow(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF171717),
+                                  ),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'No.',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Salida',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Estado',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Acciones',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                ..._filteredFletes
+                                    .sublist(startIndex, endIndex)
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  final index = entry.key;
+                                  final flete = entry.value;
+                                  return _buildFleteRow(flete, startIndex + index);
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Mostrando ${startIndex + 1} al ${endIndex} de $totalRecords entradas',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: _previousPage,
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.arrow_forward),
+                              onPressed: _nextPage,
+                            ),
+                          ],
+                        ),
+                      ],
                     );
                   }
                 },

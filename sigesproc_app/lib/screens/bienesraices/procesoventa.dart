@@ -615,7 +615,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF171717),
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -623,14 +623,14 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 onPressed: () {
                   setState(() {
                     _selectedVenta = null;
-                    _reiniciarProcesosVentaFiltros(); // Reiniciar la lista y recargar los datos
+                    _reiniciarProcesosVentaFiltros(); 
                   });
                 },
                 child: Text(
                   'Regresar',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15,
                     decoration: TextDecoration.underline,
                   ),
                 ),

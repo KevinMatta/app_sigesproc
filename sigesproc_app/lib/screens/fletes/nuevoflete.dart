@@ -1200,7 +1200,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1217,7 +1217,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
               'Cancelar',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 15,
                 decoration: TextDecoration.underline,
               ),
             ),
@@ -1238,22 +1238,22 @@ class _NuevoFleteState extends State<NuevoFlete> {
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
             ),
             child: Text(
               'Regresar',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
+              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
           ElevatedButton(
             onPressed: guardarFlete,
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
             ),
             child: Text(
               'Guardar',
-              style: TextStyle(color: Colors.black),
+              style: TextStyle(color: Colors.black, fontSize: 15),
             ),
           ),
         ],
