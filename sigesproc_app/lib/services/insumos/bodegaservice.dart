@@ -22,7 +22,7 @@ class BodegaService {
 
   if (response.statusCode == 200) {
     Map<String, dynamic> data = json.decode(response.body);
-    return BodegaViewModel.fromJson(data['data']);  // Extraer la información del campo 'data'
+    return BodegaViewModel.fromJson(data['data']);  
   } else {
     throw Exception('Error al buscar bodega');
   }

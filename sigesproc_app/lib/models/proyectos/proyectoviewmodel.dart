@@ -5,6 +5,7 @@ class ProyectoViewModel {
   DateTime? proyFechaInicio;
   DateTime? proyFechaFin;
   String? proyDireccionExacta;
+  String? proyLinkUbicacion;
   int? esprId;
   int? clieId;
   int? ciudId;
@@ -28,6 +29,7 @@ class ProyectoViewModel {
     this.proyFechaInicio,
     this.proyFechaFin,
     this.proyDireccionExacta,
+    this.proyLinkUbicacion,
     this.esprId,
     this.ciudId,
     this.clieId,
@@ -53,6 +55,7 @@ class ProyectoViewModel {
       proyFechaInicio: json['proy_FechaInicio'] != null ? DateTime.parse(json['proy_FechaInicio']) : null,
       proyFechaFin: json['proy_FechaFin'] != null ? DateTime.parse(json['proy_FechaFin']) : null,
       proyDireccionExacta: json['proy_DireccionExacta'],
+      proyLinkUbicacion: json['proy_LinkUbicacion'],
       esprId: json['espr_Id'],
       clieId: json['clie_Id'],
       ciudId: json['ciud_Id'],
@@ -79,6 +82,7 @@ class ProyectoViewModel {
       'proy_FechaInicio': proyFechaInicio?.toIso8601String(),
       'proy_FechaFin': proyFechaFin?.toIso8601String(),
       'proy_DireccionExacta': proyDireccionExacta,
+      'proy_LinkUbicacion': proyLinkUbicacion,
       'espr_Id': esprId,
       'clie_Id': clieId,
       'ciud_Id': ciudId,

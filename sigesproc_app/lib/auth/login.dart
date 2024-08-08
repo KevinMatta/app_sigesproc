@@ -19,113 +19,185 @@ class _LoginState extends State<Login> {
   bool contravacia = false;
   bool incorrectos = false;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            color: Color(0xFFFFF0C6),
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height,
-            child: Stack(
-              children: <Widget>[
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 325,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('lib/assets/fondoarriba.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('lib/assets/fondoabajo.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 5,
-                  child: Image.asset(
-                    'lib/assets/logo-sigesproc.png',
-                    height: 160,
-                  ),
-                ),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(30.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(height: 100),
-                        Text(
-                          'Inicio de sesión',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+  Widget _cuadritoflotante() {
+  return Container(
+    width: 50,
+    height: 50,
+    decoration: BoxDecoration(
+      color: Colors.grey.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.2),
+          blurRadius: 10,
+          offset: Offset(0, 8),
+        ),
+      ],
+    ),
+  );
+}
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SafeArea(
+      child: SingleChildScrollView(
+        child: Container(
+          color: Colors.white,
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height,
+          child: Stack(
+            children: [
+              Positioned(
+                top: 100,
+                left: 30,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                bottom: 100,
+                right: 30,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                top: 60,
+                right: 70,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                bottom: 60,
+                left: 70,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                top: 200,
+                right: 20,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                top: 300,
+                left: 10,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                top: 400,
+                right: 10,
+                child: _cuadritoflotante(),
+              ),
+              Positioned(
+                top: 600,
+                left: 20,
+                child: _cuadritoflotante(),
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
                         ),
-                        SizedBox(height: 20),
-                        _buildusuariooField(),
-                        SizedBox(height: 10),
-                        _buildcontraField(),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const Reestablecer(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              '¿Olvidaste tu contraseña?',
-                              style: TextStyle(
-                                color: Colors.black,
-                                decoration: TextDecoration.underline,
-                              ),
+                        child: Card(
+                          color: Colors.black,
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              topRight: Radius.circular(15),
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 71, right: 71),
+                            child: Image.asset(
+                              'lib/assets/logo-sigesproc.png',
+                              height: 180,
                             ),
                           ),
                         ),
-                        SizedBox(height: 20),
-                        _buildLoginButton()
-                      ],
-                    ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(15),
+                          bottomRight: Radius.circular(15),
+                        ),
+                        child: Card(
+                          color: Color.fromARGB(224, 255, 255, 255),
+                          elevation: 5,
+                          child: Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(height: 20),
+                                Text(
+                                  'Inicio de sesión',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 20),
+                                usuariotextb(),
+                                SizedBox(height: 10),
+                                contratextb(),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const Reestablecer(),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      '¿Olvidaste tu contraseña?',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 20),
+                                botonLogin()
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildusuariooField() {
+
+  Widget usuariotextb() {
     return TextField(
       controller: usuariooController,
       decoration: InputDecoration(
-        prefixIcon: Icon(Icons.person),
+        prefixIcon: Icon(
+          Icons.person,
+          color: Colors.black,
+        ),
         labelText: 'Usuario',
-        border: OutlineInputBorder(),
+        labelStyle: TextStyle(color: Colors.black),
         filled: true,
-        fillColor: Colors.transparent,
+        fillColor: Colors.grey.withOpacity(0.3),
         errorText: usuariovacio
             ? 'Campo requerido'
             : incorrectos
@@ -189,15 +261,18 @@ class _LoginState extends State<Login> {
     // }
   }
 
-  Widget _buildcontraField() {
+  Widget contratextb() {
     return TextField(
       controller: contraController,
       decoration: InputDecoration(
-        prefixIcon: Icon(Icons.lock),
+        prefixIcon: Icon(
+          Icons.key,
+          color: Colors.black,
+        ),
         labelText: 'Contraseña',
-        border: OutlineInputBorder(),
+        labelStyle: TextStyle(color: Colors.black),
         filled: true,
-        fillColor: Colors.transparent,
+        fillColor: Colors.grey.withOpacity(0.3),
         errorText: contravacia
             ? 'Campo requerido'
             : incorrectos
@@ -208,10 +283,10 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget _buildLoginButton() {
+  Widget botonLogin() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF303030),
+        backgroundColor: Colors.black,
         padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -223,6 +298,7 @@ class _LoginState extends State<Login> {
         style: TextStyle(
           color: Colors.white,
           fontSize: 16,
+          decoration: TextDecoration.underline,
         ),
       ),
     );

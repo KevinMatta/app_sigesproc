@@ -25,9 +25,6 @@ class FleteDetalleService {
       'XApiKey': ApiService.apiKey,
     };
 
-    print('URL: $url');
-    print('Headers: $headers');
-    print('Body: $body');
 
     final response = await http.post(
       url,
@@ -35,8 +32,6 @@ class FleteDetalleService {
       body: body,
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Error al insertar el detalle del flete');

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
@@ -8,9 +9,11 @@ import 'package:sigesproc_app/consts.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/bodegaviewmodel.dart';
+import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
+import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 
 class DetalleFlete extends StatefulWidget {
   final int flenId;
@@ -25,9 +28,10 @@ class _DetalleFleteState extends State<DetalleFlete> {
   late Future<FleteEncabezadoViewModel?> _fleteFuture;
   late Future<List<FleteDetalleViewModel>> _detallesFuture;
   late Future<BodegaViewModel?> _bodegaOrigenFuture;
-  late Future<BodegaViewModel?> _bodegaDestinoFuture;
+  late Future<dynamic>
+      _destinoFuture; // Puede ser BodegaViewModel o ProyectoViewModel
 
-  final Location ubicacionController = Location();
+  final ubicacionController = Location();
   LatLng? ubicacionactual;
   Map<PolylineId, Polyline> polylines = {};
   StreamSubscription<LocationData>? locationSubscription;
@@ -38,116 +42,15 @@ class _DetalleFleteState extends State<DetalleFlete> {
     _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
     _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
     _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
-    _bodegaDestinoFuture = _fetchBodegaDestino(widget.flenId);
-
-    _initializeLocation();
+    _destinoFuture = _fetchDestino(widget.flenId);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) async => await iniciarMapa());
   }
 
   @override
   void dispose() {
     locationSubscription?.cancel();
     super.dispose();
-  }
-
-  Future<void> _initializeLocation() async {
-    bool ubicacionObtenida = await _checkLocationPermissions();
-    if (ubicacionObtenida) {
-      locationSubscription =
-          ubicacionController.onLocationChanged.listen((currentLocation) {
-        if (currentLocation.latitude != null &&
-            currentLocation.longitude != null) {
-          LatLng nuevaUbicacion =
-              LatLng(currentLocation.latitude!, currentLocation.longitude!);
-          setState(() {
-            ubicacionactual = nuevaUbicacion;
-          });
-          _updatePolyline(ubicacionactual!);
-        }
-      });
-    } else {
-      _updatePolyline(
-          null); // Si no se obtiene la ubicación, actualizar con ubicaciones de origen y destino
-    }
-  }
-
-  Future<bool> _checkLocationPermissions() async {
-    bool servicioAceptado = await ubicacionController.serviceEnabled();
-    if (!servicioAceptado) {
-      servicioAceptado = await ubicacionController.requestService();
-      if (!servicioAceptado) return false;
-    }
-
-    PermissionStatus permisoAceptado =
-        await ubicacionController.hasPermission();
-    if (permisoAceptado == PermissionStatus.denied) {
-      permisoAceptado = await ubicacionController.requestPermission();
-      if (permisoAceptado != PermissionStatus.granted) {
-        return false;
-      }
-    }
-
-    final currentLocation = await ubicacionController.getLocation();
-    if (currentLocation.latitude != null && currentLocation.longitude != null) {
-      setState(() {
-        ubicacionactual = LatLng(
-          currentLocation.latitude!,
-          currentLocation.longitude!,
-        );
-      });
-      return true;
-    }
-    return false;
-  }
-
-  Future<void> _updatePolyline(LatLng? currentLocation) async {
-    final bodegaDestino = await _bodegaDestinoFuture;
-    final bodegaOrigen = await _bodegaOrigenFuture;
-
-    if (bodegaDestino != null && bodegaOrigen != null) {
-      LatLng origen = _parseLocation(bodegaOrigen.bodeLinkUbicacion!);
-      LatLng destino = _parseLocation(bodegaDestino.bodeLinkUbicacion!);
-
-      final coordinates =
-          await _getPolylineCoordinates(currentLocation ?? origen, destino);
-      _generatePolyline(coordinates);
-    } else {
-      print('Datos insuficientes para trazar la polyline');
-    }
-  }
-
-  Future<void> _generatePolyline(List<LatLng> polylineCoordinates) async {
-    const id = PolylineId('polyline');
-
-    final polyline = Polyline(
-      polylineId: id,
-      color: Colors.blueAccent,
-      points: polylineCoordinates,
-      width: 5,
-    );
-
-    setState(() {
-      polylines[id] = polyline;
-    });
-  }
-
-  Future<List<LatLng>> _getPolylineCoordinates(LatLng start, LatLng end) async {
-    final polylines = PolylinePoints();
-
-    final result = await polylines.getRouteBetweenCoordinates(
-      gmak,
-      PointLatLng(start.latitude, start.longitude),
-      PointLatLng(end.latitude, end.longitude),
-      travelMode: TravelMode.driving,
-    );
-
-    if (result.points.isNotEmpty) {
-      return result.points
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
-    } else {
-      debugPrint(result.errorMessage);
-      return [];
-    }
   }
 
   Future<BodegaViewModel?> _fetchBodegaOrigen(int flenId) async {
@@ -163,24 +66,63 @@ class _DetalleFleteState extends State<DetalleFlete> {
     return null;
   }
 
-  Future<BodegaViewModel?> _fetchBodegaDestino(int flenId) async {
+  Future<dynamic> _fetchDestino(int flenId) async {
     try {
       FleteEncabezadoViewModel? flete =
           await FleteEncabezadoService.obtenerFleteDetalle(flenId);
       if (flete != null) {
-        return await BodegaService.buscar(flete.boatId!);
+        if (flete.flenDestinoProyecto!) {
+          return await ProyectoService.obtenerProyecto(flete.boatId!);
+        } else {
+          return await BodegaService.buscar(flete.boatId!);
+        }
       }
     } catch (e) {
-      print('Error fetching bodega destino: $e');
+      print('Error fetching destino: $e');
     }
     return null;
   }
 
-  String formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) {
-      return '--------';
+  Future<void> iniciarMapa() async {
+    bool ubicacionObtenida = await ubicacionActualizada();
+    LatLng inicio;
+    LatLng destino;
+
+    final bodegaOrigen = await _bodegaOrigenFuture;
+    final destinoData = await _destinoFuture;
+
+    if (bodegaOrigen != null) {
+      inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!);
+    } else {
+      inicio = LatLng(0, 0);
     }
-    return DateFormat('yyyy-MM-dd hh:mm a').format(dateTime);
+
+    if (destinoData is ProyectoViewModel) {
+      destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion!);
+    } else if (destinoData is BodegaViewModel) {
+      destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion!);
+    } else {
+      destino = LatLng(0, 0);
+    }
+
+    if (ubicacionObtenida) {
+      locationSubscription =
+          ubicacionController.onLocationChanged.listen((currentLocation) {
+        if (currentLocation.latitude != null &&
+            currentLocation.longitude != null) {
+          LatLng nuevaUbicacion =
+              LatLng(currentLocation.latitude!, currentLocation.longitude!);
+          setState(() {
+            ubicacionactual = nuevaUbicacion;
+          });
+          _actualizarPolyline(nuevaUbicacion, destino);
+        }
+      });
+    }
+
+    final coordinates = await polylinePuntos(
+        ubicacionObtenida ? ubicacionactual! : inicio, destino);
+    generarPolylineporPuntos(coordinates);
   }
 
   @override
@@ -244,7 +186,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
-                child: CircularProgressIndicator(
+                child: SpinKitCircle(
                   color: Color(0xFFFFF0C6),
                 ),
               );
@@ -268,94 +210,92 @@ class _DetalleFleteState extends State<DetalleFlete> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  FutureBuilder(
-                    future: Future.wait(
-                        [_bodegaOrigenFuture, _bodegaDestinoFuture]),
-                    builder: (context,
-                        AsyncSnapshot<List<BodegaViewModel?>> bodegaSnapshot) {
-                      if (bodegaSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFFFF0C6),
-                          ),
-                        );
-                      } else if (bodegaSnapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Error al cargar los detalles de las bodegas',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        );
-                      } else if (!bodegaSnapshot.hasData ||
-                          bodegaSnapshot.data!.isEmpty) {
-                        return Center(
-                          child: Text(
-                            'No se encontraron bodegas',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      } else {
-                        final bodegaOrigen = bodegaSnapshot.data![0];
-                        final bodegaDestino = bodegaSnapshot.data![1];
-                        print('Bodega Origen: $bodegaOrigen');
-                        print('Bodega Destino: $bodegaDestino');
-                        if (bodegaOrigen != null) {
-                          print(
-                              'bodegaOrigen.bodeLinkUbicacion: ${bodegaOrigen.bodeLinkUbicacion}');
-                        }
-                        if (bodegaDestino != null) {
-                          print(
-                              'bodegaDestino.bodeLinkUbicacion: ${bodegaDestino.bodeLinkUbicacion}');
-                        }
-                        LatLng cameraPosition = ubicacionactual ??
-                            _parseLocation(bodegaDestino!.bodeLinkUbicacion!);
-                        return Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Flexible(
-                                child: GoogleMap(
-                                  initialCameraPosition: CameraPosition(
-                                    target: cameraPosition,
-                                    zoom: 13,
-                                  ),
-                                  markers: {
-                                    if (ubicacionactual != null)
-                                      Marker(
-                                        markerId:
-                                            const MarkerId('currentLocation'),
-                                        icon: BitmapDescriptor.defaultMarker,
-                                        position: ubicacionactual!,
-                                      ),
-                                    if (bodegaOrigen?.bodeLinkUbicacion != null)
-                                      Marker(
-                                        markerId:
-                                            const MarkerId('originLocation'),
-                                        icon: BitmapDescriptor.defaultMarker,
-                                        position: _parseLocation(
-                                            bodegaOrigen!.bodeLinkUbicacion!),
-                                      ),
-                                    if (bodegaDestino?.bodeLinkUbicacion !=
-                                        null)
-                                      Marker(
-                                        markerId: const MarkerId(
-                                            'destinationLocation'),
-                                        icon: BitmapDescriptor.defaultMarker,
-                                        position: _parseLocation(
-                                            bodegaDestino!.bodeLinkUbicacion!),
-                                      ),
-                                  },
-                                  polylines: Set<Polyline>.of(polylines.values),
-                                ),
+                  Expanded(
+                    child: FutureBuilder(
+                      future:
+                          Future.wait([_bodegaOrigenFuture, _destinoFuture]),
+                      builder:
+                          (context, AsyncSnapshot<List<dynamic>> snapshot) {
+                        if (ubicacionactual == null) {
+                          return Center(
+                            child: SpinKitCircle(
+                              color: Color(0xFFFFF0C6),
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Error al cargar ubicaciones',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        } else if (!snapshot.hasData ||
+                            snapshot.data == null ||
+                            snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No se encontraron ubicaciones',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          );
+                        } else {
+                          final bodegaOrigen =
+                              snapshot.data![0] as BodegaViewModel?;
+                          final destinoData = snapshot.data![1];
+
+                          if (bodegaOrigen == null || destinoData == null) {
+                            return Center(
+                              child: Text(
+                                'No se encontraron ubicaciones válidas',
+                                style: TextStyle(color: Colors.white),
                               ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
+                            );
+                          }
+
+                          LatLng inicio = obtenerCoordenadasDeEnlace(
+                              bodegaOrigen.bodeLinkUbicacion!);
+                          LatLng destino;
+
+                          if (destinoData is ProyectoViewModel) {
+                            destino = obtenerCoordenadasDeEnlace(
+                                destinoData.proyLinkUbicacion!);
+                          } else if (destinoData is BodegaViewModel) {
+                            destino = obtenerCoordenadasDeEnlace(
+                                destinoData.bodeLinkUbicacion!);
+                          } else {
+                            destino = LatLng(0, 0);
+                          }
+
+                          return GoogleMap(
+                            initialCameraPosition: CameraPosition(
+                              target: ubicacionactual ?? inicio,
+                              zoom: 13,
+                            ),
+                            markers: {
+                              if (ubicacionactual != null)
+                                Marker(
+                                  markerId: const MarkerId('currentLocation'),
+                                  icon: BitmapDescriptor.defaultMarker,
+                                  position: ubicacionactual!,
+                                ),
+                              if (ubicacionactual != null)
+                              Marker(
+                                markerId: const MarkerId('sourceLocation'),
+                                icon: BitmapDescriptor.defaultMarker,
+                                position: inicio,
+                              ),
+                              Marker(
+                                markerId: const MarkerId('destinationLocation'),
+                                icon: BitmapDescriptor.defaultMarker,
+                                position: destino,
+                              )
+                            },
+                            polylines: Set<Polyline>.of(polylines.values),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                  SizedBox(height: 10),
                   ExpansionTile(
                     collapsedBackgroundColor: Color(0xFFFFF0C6),
                     backgroundColor: Color(0xFFFFF0C6),
@@ -402,7 +342,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return Center(
-                                    child: CircularProgressIndicator(
+                                    child: SpinKitCircle(
                                       color: Color(0xFFFFF0C6),
                                     ),
                                   );
@@ -507,9 +447,97 @@ class _DetalleFleteState extends State<DetalleFlete> {
     );
   }
 
-  LatLng _parseLocation(String locationLink) {
-    final uri = Uri.parse(locationLink);
-    final latLng = uri.queryParameters['q']!.split(',');
-    return LatLng(double.parse(latLng[0]), double.parse(latLng[1]));
+  LatLng obtenerCoordenadasDeEnlace(String enlace) {
+    final uri = Uri.parse(enlace);
+    final coordenadas = uri.queryParameters['q']?.split(',');
+    if (coordenadas != null && coordenadas.length == 2) {
+      final lat = double.tryParse(coordenadas[0]);
+      final lng = double.tryParse(coordenadas[1]);
+      if (lat != null && lng != null) {
+        return LatLng(lat, lng);
+      }
+    }
+    throw ArgumentError('Enlace de ubicación inválido: $enlace');
+  }
+
+  Future<bool> ubicacionActualizada() async {
+    bool servicioAceptado = await ubicacionController.serviceEnabled();
+    if (!servicioAceptado) {
+      servicioAceptado = await ubicacionController.requestService();
+      if (!servicioAceptado) return false;
+    }
+
+    PermissionStatus permisoAceptado =
+        await ubicacionController.hasPermission();
+    if (permisoAceptado == PermissionStatus.denied) {
+      permisoAceptado = await ubicacionController.requestPermission();
+      if (permisoAceptado != PermissionStatus.granted) {
+        return false;
+      }
+    }
+
+    final currentLocation = await ubicacionController.getLocation();
+    if (currentLocation.latitude != null && currentLocation.longitude != null) {
+      setState(() {
+        ubicacionactual = LatLng(
+          currentLocation.latitude!,
+          currentLocation.longitude!,
+        );
+      });
+      return true;
+    }
+    return false;
+  }
+
+  Future<List<LatLng>> polylinePuntos(LatLng inicio, LatLng destino) async {
+    final polylines = PolylinePoints();
+
+    final result = await polylines.getRouteBetweenCoordinates(
+      gmak,
+      PointLatLng(inicio.latitude, inicio.longitude),
+      PointLatLng(destino.latitude, destino.longitude),
+      travelMode: TravelMode.driving,
+    );
+    print('Result de polylinePuntos: $result');
+    print('Status: ${result.status}');
+    print('Error message: ${result.errorMessage}');
+    print('Number of points: ${result.points.length}');
+
+    if (result.points.isNotEmpty) {
+      print('Puntos obtenidos: ${result.points}');
+      return result.points
+          .map((point) => LatLng(point.latitude, point.longitude))
+          .toList();
+    } else {
+      print('No se obtuvieron puntos: ${result.points}');
+      debugPrint(result.errorMessage);
+      return [];
+    }
+  }
+
+  Future<void> generarPolylineporPuntos(
+      List<LatLng> polylineCoordenadas) async {
+    const id = PolylineId('polyline');
+
+    final polyline = Polyline(
+      polylineId: id,
+      color: Colors.blueAccent,
+      points: polylineCoordenadas,
+      width: 5,
+    );
+
+    setState(() => polylines[id] = polyline);
+  }
+
+  Future<void> _actualizarPolyline(LatLng inicio, LatLng destino) async {
+    final coordinates = await polylinePuntos(inicio, destino);
+    generarPolylineporPuntos(coordinates);
+  }
+
+  String formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) {
+      return '--------';
+    }
+    return DateFormat('yyyy-MM-dd hh:mm a').format(dateTime);
   }
 }

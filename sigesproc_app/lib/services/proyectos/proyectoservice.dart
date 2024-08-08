@@ -16,20 +16,13 @@ class ProyectoService {
     }
   }
 
-   static Future<List<ProyectoViewModel>> Buscar(int proyId) async {
-    final url = Uri.parse('${ApiService.apiUrl}/Proyecto/Buscar/$proyId');
-    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+   static Future<ProyectoViewModel?> obtenerProyecto(int proyId) async {
+    final List<ProyectoViewModel> proyectos = await listarProyectos();
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      // imprime el JSON sin procesar
-      // print('JSON Data: $data');
-
-      List<ProyectoViewModel> venta = data.map((json) => ProyectoViewModel.fromJson(json)).toList();
-
-      return venta;
-    } else {
-      throw Exception('Error al buscar proyecto');
+    try {
+      return proyectos.firstWhere((proyecto) => proyecto.proyId == proyId);
+    } catch (e) {
+      throw Exception('Flete con ID $proyId no encontrado');
     }
   }
 }

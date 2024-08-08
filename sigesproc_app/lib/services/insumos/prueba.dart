@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:sigesproc_app/consts.dart';
@@ -14,6 +15,7 @@ class MapaPrueba extends StatefulWidget {
 
 class _MapaPruebaState extends State<MapaPrueba> {
   final ubicacionController = Location();
+  // final Completer<GoogleMapController> _controller = Completer();
 
   static const tegus = LatLng(14.105713888889, -87.204008333333);
   static const elprogreso = LatLng(15.400913888889, -87.812019444444);
@@ -55,7 +57,7 @@ class _MapaPruebaState extends State<MapaPrueba> {
   Widget build(BuildContext context) => Scaffold(
         body: ubicacionactual == null
             ? const Center(
-                child: CircularProgressIndicator(
+                child: SpinKitCircle(
                   color: Color(0xFFFFF0C6),
                 ),
               )
@@ -116,6 +118,8 @@ class _MapaPruebaState extends State<MapaPrueba> {
 
   Future<List<LatLng>> polylinePuntos(LatLng inicio, LatLng destino) async {
     final polylines = PolylinePoints();
+    print('polynepuntos');
+    print(polylines);
 
     final result = await polylines.getRouteBetweenCoordinates(
       gmak,
@@ -123,12 +127,18 @@ class _MapaPruebaState extends State<MapaPrueba> {
       PointLatLng(destino.latitude, destino.longitude),
       travelMode: TravelMode.driving,
     );
+    print('result de polylinepuntos');
+    print(result);
 
     if (result.points.isNotEmpty) {
+      print('bueno');
+      print(result.points);
       return result.points
           .map((point) => LatLng(point.latitude, point.longitude))
           .toList();
     } else {
+      print('malo');
+      print(result.points);
       debugPrint(result.errorMessage);
       return [];
     }
