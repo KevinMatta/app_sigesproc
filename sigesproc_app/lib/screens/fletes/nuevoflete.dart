@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +19,7 @@ import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 class NuevoFlete extends StatefulWidget {
   @override
@@ -66,7 +69,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
   TextEditingController supervisorSalidaController = TextEditingController();
   TextEditingController supervisorLlegadaController = TextEditingController();
   TextEditingController salidaController = TextEditingController();
-
+  late StreamSubscription<bool> keyboardSubscription;
+  bool _isKeyboardVisible = false;
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
       primary: Color(0xFFFFF0C6),
@@ -101,7 +105,16 @@ class _NuevoFleteState extends State<NuevoFlete> {
     _cargarEmpleados();
     _cargarBodegas();
     _cargarProyectos();
+    var keyboardVisibilityController = KeyboardVisibilityController();
+    // Query
+    _isKeyboardVisible = keyboardVisibilityController.isVisible;
 
+    // Subscribe
+    keyboardSubscription = keyboardVisibilityController.onChange.listen((bool visible) {
+      setState(() {
+        _isKeyboardVisible = visible;
+      });
+    });
     if (flete.emtrId != null) {
       EmpleadoViewModel? encargado =
           empleados.firstWhere((emp) => emp.emplId == flete.emtrId);
@@ -130,16 +143,14 @@ class _NuevoFleteState extends State<NuevoFlete> {
         salidaController.text = salida.bodeDescripcion!;
       }
     }
-    // if (flete.boprId != null) {
-    //   if (esProyecto) {
-    //     ProyectoViewModel? llegadaProyecto =
-    //         proyectos.firstWhere((proy) => proy.proyId == flete.boprId);
-    //     if (llegadaProyecto != null) {
-    //       llegadaController.text = llegadaProyecto.proyNombre!;
-    //     }
-    //   }
-    // }
   }
+
+    @override
+  void dispose() {
+    keyboardSubscription.cancel();
+    super.dispose();
+  }
+
 
   Future<void> _cargarEmpleados() async {
     try {
@@ -817,8 +828,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
         padding: const EdgeInsets.all(16.0),
         child: _showInsumos ? _buildInsumosView() : _buildFleteView(),
       ),
-      bottomNavigationBar:
-          _showInsumos ? _buildInsumosBottomBar() : _buildFleteBottomBar(),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(bottom: _isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom : 0),
+        child: _showInsumos ? _buildInsumosBottomBar() : _buildFleteBottomBar(),
+      ),
     );
   }
 
