@@ -130,7 +130,11 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 try {
                   await ProcesoVentaService.Eliminar(procesoventa.btrpId);
                   setState(() {
+                    print(_filteredProcesosVenta);
+                    print(procesoventa);
                     _filteredProcesosVenta.remove(procesoventa);
+                    print(_filteredProcesosVenta.remove(procesoventa));
+                    print(_filteredProcesosVenta);
                   });
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(

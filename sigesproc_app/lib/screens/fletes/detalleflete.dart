@@ -115,53 +115,56 @@ class _DetalleFleteState extends State<DetalleFlete> {
     return null;
   }
 
-  Future<void> iniciarMapa() async {
-    bool ubicacionObtenida = await ubicacionActualizada();
-    LatLng inicio;
-    LatLng destino;
+ Future<void> iniciarMapa() async {
+  bool ubicacionObtenida = await ubicacionActualizada();
+  LatLng inicio;
+  LatLng? destino;
 
-    final bodegaOrigen = await _bodegaOrigenFuture;
-    final destinoData = await _destinoFuture;
+  final bodegaOrigen = await _bodegaOrigenFuture;
+  final destinoData = await _destinoFuture;
 
-    if (bodegaOrigen != null) {
-      inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!);
-    } else {
-      inicio = LatLng(0, 0);
-    }
+  if (bodegaOrigen != null) {
+    inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!) ?? LatLng(0, 0);
+  } else {
+    inicio = LatLng(0, 0);
+  }
 
-    if (destinoData is ProyectoViewModel) {
-      destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion!);
-    } else if (destinoData is BodegaViewModel) {
-      destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion!);
-    } else {
-      destino = LatLng(0, 0);
-    }
+  if (destinoData is ProyectoViewModel) {
+    destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
+  } else if (destinoData is BodegaViewModel) {
+    destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
+  }
 
-    if (ubicacionObtenida) {
-      locationSubscription =
-          ubicacionController.onLocationChanged.listen((currentLocation) {
-        if (currentLocation.latitude != null &&
-            currentLocation.longitude != null) {
-          LatLng nuevaUbicacion =
-              LatLng(currentLocation.latitude!, currentLocation.longitude!);
-          if (mounted) {
-            setState(() {
-              ubicacionactual = nuevaUbicacion;
-            });
+  if (ubicacionObtenida) {
+    locationSubscription = ubicacionController.onLocationChanged.listen((currentLocation) {
+      if (currentLocation.latitude != null && currentLocation.longitude != null) {
+        LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        if (mounted) {
+          setState(() {
+            ubicacionactual = nuevaUbicacion;
+          });
+          if (destino != null) {
             _actualizarPolyline(nuevaUbicacion, destino);
           }
         }
-      });
-    }
+      }
+    });
+  }
 
+  if (destino != null) {
     final coordinates = await polylinePuntos(
       ubicacionObtenida ? ubicacionactual! : inicio,
       destino,
     );
     generarPolylineporPuntos(coordinates);
+  } else {
+    // Muestra un mensaje de error si la ubicación del destino es inválida
+    print('Ubicación del destino inválida');
   }
+}
 
-  @override
+
+ @override
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
@@ -262,8 +265,7 @@ Widget build(BuildContext context) {
                           ),
                         );
                       } else {
-                        final bodegaOrigen =
-                            snapshot.data![0] as BodegaViewModel?;
+                        final bodegaOrigen = snapshot.data![0] as BodegaViewModel?;
                         final destinoData = snapshot.data![1];
 
                         if (bodegaOrigen == null || destinoData == null) {
@@ -275,16 +277,21 @@ Widget build(BuildContext context) {
                           );
                         }
 
-                        LatLng inicio = obtenerCoordenadasDeEnlace(
-                            bodegaOrigen.bodeLinkUbicacion!);
-                        LatLng destino;
+                        LatLng inicio = obtenerCoordenadasDeEnlace(bodegaOrigen.bodeLinkUbicacion!) ?? LatLng(0, 0);
+                        LatLng? destino;
 
                         if (destinoData is ProyectoViewModel) {
-                          destino = obtenerCoordenadasDeEnlace(
-                              destinoData.proyLinkUbicacion!);
+                          destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
+                          if (destino == null) {
+                            return Center(
+                              child: Text(
+                                'Ubicación del destino inválida',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }
                         } else if (destinoData is BodegaViewModel) {
-                          destino = obtenerCoordenadasDeEnlace(
-                              destinoData.bodeLinkUbicacion!);
+                          destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
                         } else {
                           destino = LatLng(0, 0);
                         }
@@ -298,8 +305,7 @@ Widget build(BuildContext context) {
                             if (ubicacionactual != null)
                               Marker(
                                 markerId: const MarkerId('currentLocation'),
-                                icon: carritoIcono ??
-                                    BitmapDescriptor.defaultMarker,
+                                icon: carritoIcono ?? BitmapDescriptor.defaultMarker,
                                 position: ubicacionactual!,
                               ),
                             if (ubicacionactual == null)
@@ -311,7 +317,7 @@ Widget build(BuildContext context) {
                             Marker(
                               markerId: const MarkerId('destinationLocation'),
                               icon: BitmapDescriptor.defaultMarker,
-                              position: destino,
+                              position: destino!,
                             )
                           },
                           polylines: Set<Polyline>.of(polylines.values),
@@ -332,8 +338,7 @@ Widget build(BuildContext context) {
                           fontSize: 18,
                           fontWeight: FontWeight.bold),
                     ),
-                    onExpansionChanged: (bool expanding) =>
-                        setState(() => isExpanded = expanding),
+                    onExpansionChanged: (bool expanding) => setState(() => isExpanded = expanding),
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -367,8 +372,7 @@ Widget build(BuildContext context) {
                             FutureBuilder<List<FleteDetalleViewModel>>(
                               future: _detallesFuture,
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
                                   return Center(
                                     child: SpinKitCircle(
                                       color: Color(0xFFFFF0C6),
@@ -381,8 +385,7 @@ Widget build(BuildContext context) {
                                       style: TextStyle(color: Colors.red),
                                     ),
                                   );
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
+                                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                   return Center(
                                     child: Text(
                                       'No se encontraron materiales para el flete.',
@@ -395,8 +398,7 @@ Widget build(BuildContext context) {
                                     height: 100, //  Tamano
                                     child: SingleChildScrollView(
                                       child: Table(
-                                        border: TableBorder.all(
-                                            color: Colors.black),
+                                        border: TableBorder.all(color: Colors.black),
                                         columnWidths: {
                                           0: FlexColumnWidth(3),
                                           1: FlexColumnWidth(1),
@@ -405,25 +407,21 @@ Widget build(BuildContext context) {
                                           TableRow(
                                             children: [
                                               Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
+                                                padding: const EdgeInsets.all(8.0),
                                                 child: Text(
                                                   'Materiales',
                                                   style: TextStyle(
                                                       color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                      fontWeight: FontWeight.bold),
                                                 ),
                                               ),
                                               Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
+                                                padding: const EdgeInsets.all(8.0),
                                                 child: Text(
                                                   'Cantidad',
                                                   style: TextStyle(
                                                       color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                      fontWeight: FontWeight.bold),
                                                 ),
                                               ),
                                             ],
@@ -432,23 +430,17 @@ Widget build(BuildContext context) {
                                             return TableRow(
                                               children: [
                                                 Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
+                                                  padding: const EdgeInsets.all(8.0),
                                                   child: Text(
-                                                    detalle.insuDescripcion ??
-                                                        '',
-                                                    style: TextStyle(
-                                                        color: Colors.black),
+                                                    detalle.insuDescripcion ?? '',
+                                                    style: TextStyle(color: Colors.black),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
+                                                  padding: const EdgeInsets.all(8.0),
                                                   child: Text(
-                                                    detalle.fldeCantidad
-                                                        .toString(),
-                                                    style: TextStyle(
-                                                        color: Colors.black),
+                                                    detalle.fldeCantidad.toString(),
+                                                    style: TextStyle(color: Colors.black),
                                                   ),
                                                 ),
                                               ],
@@ -477,18 +469,23 @@ Widget build(BuildContext context) {
   }
 
 
-  LatLng obtenerCoordenadasDeEnlace(String enlace) {
-    final uri = Uri.parse(enlace);
-    final coordenadas = uri.queryParameters['q']?.split(',');
-    if (coordenadas != null && coordenadas.length == 2) {
-      final lat = double.tryParse(coordenadas[0]);
-      final lng = double.tryParse(coordenadas[1]);
-      if (lat != null && lng != null) {
-        return LatLng(lat, lng);
-      }
-    }
-    throw ArgumentError('Enlace de ubicación inválido: $enlace');
+  LatLng? obtenerCoordenadasDeEnlace(String? enlace) {
+  if (enlace == null || enlace.isEmpty) {
+    return null; // Devuelve null si el enlace es nulo o vacío
   }
+
+  final uri = Uri.parse(enlace);
+  final coordenadas = uri.queryParameters['q']?.split(',');
+  if (coordenadas != null && coordenadas.length == 2) {
+    final lat = double.tryParse(coordenadas[0]);
+    final lng = double.tryParse(coordenadas[1]);
+    if (lat != null && lng != null) {
+      return LatLng(lat, lng);
+    }
+  }
+  return null; // Devuelve null si no puede obtener las coordenadas
+}
+
 
   Future<bool> ubicacionActualizada() async {
     bool servicioAceptado = await ubicacionController.serviceEnabled();
