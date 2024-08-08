@@ -300,9 +300,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 ),
                 if (procesoventa.btrpIdentificador == true)
                   Positioned(
-                    right: 2,
+                    right: 0,
                     bottom: 40,
-                    left: 310,
                     child: IconButton(
                       icon: Icon(Icons.close, color: Colors.red),
                       onPressed: () {
@@ -433,11 +432,19 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       return Builder(
                         builder: (BuildContext context) {
                           return Container(
-                            color: Colors.black,
+                            color: Color(0xFF171717),
                             child: Image.network(
                               'http://www.backsigespro.somee.com$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Text(
+                                    'Imagen no disponible',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
@@ -599,22 +606,29 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
           color: Colors.black,
           padding: const EdgeInsets.all(10.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              Spacer(),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF171717),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 onPressed: () {
                   setState(() {
                     _selectedVenta = null;
                     _reiniciarProcesosVentaFiltros(); // Reiniciar la lista y recargar los datos
                   });
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF171717),
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                ),
                 child: Text(
                   'Regresar',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],

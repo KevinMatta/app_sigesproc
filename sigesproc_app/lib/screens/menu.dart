@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/auth/login.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
-import 'package:sigesproc_app/screens/insumos/proveedor.dart';
+import 'package:sigesproc_app/screens/insumos/cotizaciones.dart';
 import 'inicio.dart';
 import 'proyectos/proyecto.dart';
 import 'fletes/flete.dart';
@@ -131,7 +131,7 @@ class MenuLateral extends StatelessWidget {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Proveedor()),
+          MaterialPageRoute(builder: (context) => Cotizacion()),
         );
         break;
       case 4:

@@ -4,25 +4,15 @@ import 'package:sigesproc_app/models/insumos/cotizacionviewmodel.dart';
 import '../apiservice.dart';
 
 class CotizacionService {
-  static Future<List<CotizacionViewModel>> listarCotizacionesPorProveedor(int provId) async {
-    final url = Uri.parse('${ApiService.apiUrl}/Cotizacion/ListarPorProveedor/$provId');
+   static Future<List<CotizacionViewModel>> listarCotizaciones() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Cotizacion/Listar');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      // imprime el JSON sin procesar
-      // print('JSON Data: $data');
-
-      List<CotizacionViewModel> cotizaciones = data.map((json) => CotizacionViewModel.fromJson(json)).toList();
-
-      // imprime los objetos después de la conversión
-      // cotizaciones.forEach((cotizacion) {
-      //   print('Cotizacion Object: ${cotizacion.toJson()}');
-      // });
-
-      return cotizaciones;
+      return data.map((json) => CotizacionViewModel.fromJson(json)).toList();
     } else {
-      throw Exception('Error al cargar las cotizaciones');
+      throw Exception('Error al cargar los datos');
     }
   }
 }

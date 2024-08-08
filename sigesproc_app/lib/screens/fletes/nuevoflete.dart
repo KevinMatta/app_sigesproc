@@ -1182,9 +1182,16 @@ class _NuevoFleteState extends State<NuevoFlete> {
       color: Colors.black,
       padding: const EdgeInsets.all(10.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          Spacer(),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -1193,13 +1200,13 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-            ),
             child: Text(
               'Cancelar',
-              style: TextStyle(color: Color(0xFFFFF0C6)),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                decoration: TextDecoration.underline,
+              ),
             ),
           ),
         ],
