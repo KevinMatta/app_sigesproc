@@ -502,13 +502,13 @@ class _NuevoFleteState extends State<NuevoFlete> {
           return actividades; // Mostrar las actividades filtradas
         }
         return actividades.where((ActividadPorEtapaViewModel option) {
-          return option.actividadetapa!
+          return option.etapDescripcion!
               .toLowerCase()
               .contains(textEditingValue.text.toLowerCase());
         });
       },
       displayStringForOption: (ActividadPorEtapaViewModel option) =>
-          option.actividadetapa!,
+          option.etapDescripcion! + ' - ' + option.actiDescripcion!,
       fieldViewBuilder: (BuildContext context,
           TextEditingController textEditingController,
           FocusNode fieldFocusNode,
@@ -564,7 +564,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
                       onSelected(option);
                     },
                     child: ListTile(
-                      title: Text(option.actividadetapa!,
+                      title: Text(option.etapDescripcion! + ' - ' + option.actiDescripcion!,
                           style: TextStyle(color: Colors.white)),
                     ),
                   );
@@ -576,7 +576,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
       },
       onSelected: (ActividadPorEtapaViewModel selection) {
         setState(() {
-          controller.text = selection.actividadetapa!;
+          controller.text = selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
           flete.boatId = selection.acetId;
           _actividadError = false;
           _actividadErrorMessage = '';

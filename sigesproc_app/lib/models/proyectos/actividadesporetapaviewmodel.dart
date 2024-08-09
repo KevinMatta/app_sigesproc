@@ -1,19 +1,22 @@
 class ActividadPorEtapaViewModel {
   int? acetId;
   final int? proyId;
-  final String? actividadetapa;
+  final String? etapDescripcion ;
+  final String? actiDescripcion;
 
   ActividadPorEtapaViewModel({
     this.acetId,
     this.proyId,
-    this.actividadetapa,
+    this.etapDescripcion,
+    this.actiDescripcion,
   });
 
   factory ActividadPorEtapaViewModel.fromJson(Map<String, dynamic> json) {
     return ActividadPorEtapaViewModel(
       acetId: json['acet_Id'],
       proyId: json['proy_Id'],
-      actividadetapa: json['actividadetapa']
+      etapDescripcion: json['etap_Descripcion'],
+      actiDescripcion: json['acti_Descripcion']
     );
   }
 
@@ -21,7 +24,8 @@ class ActividadPorEtapaViewModel {
     return {
       'acet_Id': acetId,
       'proy_Id': proyId,
-      'actividadetapa': actividadetapa
+      'etap_Descripcion': etapDescripcion,
+      'acti_Descripcion': actiDescripcion
     };
   }
 }

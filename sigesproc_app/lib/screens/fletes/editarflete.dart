@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
@@ -70,6 +71,9 @@ class _EditarFleteState extends State<EditarFlete> {
   TextEditingController salidaController = TextEditingController();
   late StreamSubscription<bool> keyboardSubscription;
   bool _isKeyboardVisible = false;
+  bool _isLoading = true;
+  bool isEditing = false;
+
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
       primary: Color(0xFFFFF0C6),
@@ -119,13 +123,16 @@ class _EditarFleteState extends State<EditarFlete> {
   }
 
   Future<void> _cargarDatosIniciales() async {
+    setState(() {
+      _isLoading = true; // Inicia el spinner
+    });
     try {
       // Cargar los datos del flete
       FleteEncabezadoViewModel? fleteCargado =
           await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
       if (fleteCargado != null) {
         flete = fleteCargado;
-        print(flete);
+        isEditing = true;
 
         selectedDate = flete.flenFechaHoraSalida;
         selectedTime = TimeOfDay.fromDateTime(flete.flenFechaHoraSalida!);
@@ -163,27 +170,44 @@ class _EditarFleteState extends State<EditarFlete> {
           }
         }
 
-        esProyecto = flete.flenDestinoProyecto!;
-        // if (esProyecto == true) {
-        //   ProyectoViewModel? llegada =
-        //         await ProyectoService.obtenerProyecto(flete.proyId!);
-        //     if (llegada != null) {
-        //       llegadaController.text = llegada.proyNombre!;
-        //     }
-        // } else {
-        //   BodegaViewModel? llegada =
-        //         await BodegaService.buscar(flete.boatId!);
-        //     print('Bodega de Llegada: $llegada');
-        //     if (llegada != null) {
-        //       llegadaController.text = llegada.bodeDescripcion!;
-        //     }
-        // }
+        esProyecto = flete.flenDestinoProyecto ?? false;
+        if (esProyecto) {
+          ProyectoViewModel? proyectoSeleccionado =
+              await ProyectoService.obtenerProyecto(flete.proyId!);
+          if (proyectoSeleccionado != null) {
+            llegadaController.text = proyectoSeleccionado.proyNombre!;
 
+            List<ActividadPorEtapaViewModel> actividades =
+                await ActividadPorEtapaService.obtenerActividadesPorProyecto(
+                    flete.proyId!);
+
+            if (actividades.isNotEmpty && flete.boatId != null) {
+              ActividadPorEtapaViewModel etapaactividad = actividades
+                  .firstWhere((actividad) => actividad.acetId == flete.boatId!,
+                      orElse: () => ActividadPorEtapaViewModel(
+                          etapDescripcion: '', actiDescripcion: ''));
+
+              if (etapaactividad.etapDescripcion!.isNotEmpty) {
+                actividadController.text = etapaactividad.etapDescripcion! +
+                    ' - ' +
+                    etapaactividad.actiDescripcion!;
+              }
+
+              setState(() {
+                this.actividades = actividades;
+              });
+            }
+          }
+        } else {
+          BodegaViewModel? llegada = await BodegaService.buscar(flete.boatId!);
+          if (llegada != null) {
+            llegadaController.text = llegada.bodeDescripcion!;
+          }
+        }
 
         // Cargar la bodega de salida
         if (flete.bollId != null) {
-          BodegaViewModel? salida =
-              await BodegaService.buscar(flete.bollId!);
+          BodegaViewModel? salida = await BodegaService.buscar(flete.bollId!);
           print('Bodega de Salida: $salida');
           if (salida != null) {
             salidaController.text = salida.bodeDescripcion!;
@@ -191,61 +215,69 @@ class _EditarFleteState extends State<EditarFlete> {
           }
         }
 
-        
+        if (flete.bollId != null) {
+          List<InsumoPorProveedorViewModel> insumosList =
+              await FleteDetalleService.listarInsumosPorProveedorPorBodega(
+                  flete.bollId!);
+
+          // Cargar los detalles de insumos ya seleccionados en el flete
+          List<FleteDetalleViewModel> detallesCargados =
+              await FleteDetalleService.Buscar(flete.flenId!);
+
+          setState(() {
+            selectedCantidades = [];
+            quantityControllers = [];
+
+            for (var insumo in insumosList) {
+              // Buscar si el insumo ya está en los detalles del flete
+              var detalle = detallesCargados.firstWhere(
+                  (detalle) => detalle.inppId == insumo.inppId,
+                  orElse: () => FleteDetalleViewModel());
+
+              // Si el insumo está en los detalles, se selecciona y se asigna la cantidad
+              if (detalle.fldeId != null) {
+                var cantidad = detalle.fldeCantidad;
+                print('cant $cantidad');
+                selectedInsumos.add(insumo);
+                quantityControllers
+                    .add(TextEditingController(text: cantidad.toString()));
+                selectedCantidades.add(cantidad!); // Añadir la cantidad real
+              } else {
+                // Insumo no seleccionado, pero se agrega a la lista
+                quantityControllers.add(TextEditingController(text: '1'));
+                selectedCantidades.add(1); // Añadir cantidad por defecto (1)
+              }
+            }
+
+            // Actualizar la lista de insumos a mostrar
+            insumos = insumosList;
+          });
+        }
       }
     } catch (e) {
       print('Error al cargar los datos del flete: $e');
+    } finally {
+      setState(() {
+        _isLoading =
+            false; // Detiene el spinner cuando los datos estén cargados
+      });
     }
   }
 
-  Future<void> _cargarInsumosYMarcarSeleccionados(int bodeId, int flenId) async {
+  Future<void> _cargarInsumosPorBodega(int bodeId) async {
     try {
-        List<InsumoPorProveedorViewModel> insumosList =
-            await FleteDetalleService.listarInsumosPorProveedorPorBodega(bodeId);
-
-        List<FleteDetalleViewModel> detallesCargados =
-            await FleteDetalleService.listarDetallesdeFlete(flenId);
-
-        setState(() {
-            for (var insumo in insumosList) {
-                var detalle = detallesCargados.firstWhere(
-                    (detalle) => detalle.inppId == insumo.inppId,
-                    orElse: () => FleteDetalleViewModel());
-
-                if (detalle.fldeId != null) {
-                    insumo.cantidad = detalle.fldeCantidad;
-                    insumo.bopiStock = detalle.bopiStock;  
-                    selectedInsumos.add(insumo);
-                    quantityControllers.add(TextEditingController(
-                        text: detalle.fldeCantidad.toString()));
-                } else {
-                    quantityControllers.add(TextEditingController(text: '1'));
-                }
-            }
-
-            insumos = insumosList;
-            selectedCantidades = List.generate(insumos.length, (index) => 1);
-        });
+      List<InsumoPorProveedorViewModel> insumosList =
+          await FleteDetalleService.listarInsumosPorProveedorPorBodega(bodeId);
+      setState(() {
+        insumos = insumosList;
+        quantityControllers = List.generate(
+            insumos.length, (index) => TextEditingController(text: '1'));
+        selectedCantidades = List.generate(insumos.length, (index) => 1);
+      });
     } catch (e) {
-        print('Error al cargar los insumos y detalles: $e');
+      print('Error al cargar los insumos: $e');
     }
-}
-
-Future<void> _cargarInsumosPorBodega(int bodeId) async {
-    try {
-        List<InsumoPorProveedorViewModel> insumosList =
-            await FleteDetalleService.listarInsumosPorProveedorPorBodega(bodeId);
-        setState(() {
-            insumos = insumosList;
-            quantityControllers = List.generate(
-                insumos.length, (index) => TextEditingController(text: '1'));
-            selectedCantidades = List.generate(insumos.length, (index) => 1);
-        });
-    } catch (e) {
-        print('Error al cargar los insumos: $e');
-    }
-}
-
+  }
 
   Future<void> _cargarEmpleados() async {
     try {
@@ -286,7 +318,11 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
     try {
       actividades =
           await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
-      setState(() {});
+      print('aaa $actividades');
+      setState(() {
+        actividadController
+            .clear(); // Limpia la selección de actividades previas
+      });
     } catch (e) {
       print('Error al cargar las actividades: $e');
     }
@@ -492,7 +528,7 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
               controller: textEditingController,
               focusNode: focusNode,
               decoration: InputDecoration(
-                labelText: 'Llegada',
+                labelText: 'Proyecto de Llegada',
                 border: OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.black,
@@ -574,21 +610,43 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
   Widget _buildActividadAutocomplete(TextEditingController controller) {
     return Autocomplete<ActividadPorEtapaViewModel>(
       optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return actividades;
+        // Si estamos en modo de edición, mostrar la actividad preseleccionada
+        if (textEditingValue.text.isEmpty &&
+            isEditing &&
+            flete.boatId != null) {
+          return actividades.where((ActividadPorEtapaViewModel option) {
+            return option.acetId == flete.boatId;
+          });
         }
+
+        // Mostrar las actividades que coincidan con el texto ingresado
         return actividades.where((ActividadPorEtapaViewModel option) {
-          return option.actividadetapa!
+          return option.etapDescripcion!
               .toLowerCase()
               .contains(textEditingValue.text.toLowerCase());
         });
       },
       displayStringForOption: (ActividadPorEtapaViewModel option) =>
-          option.actividadetapa!,
+          option.etapDescripcion! + ' - ' + option.actiDescripcion!,
       fieldViewBuilder: (BuildContext context,
           TextEditingController textEditingController,
           FocusNode fieldFocusNode,
           VoidCallback onFieldSubmitted) {
+        // Si estamos en modo de edición y la actividad está seleccionada, mostrarla
+        if (isEditing &&
+            textEditingController.text.isEmpty &&
+            flete.boatId != null) {
+          final selectedActivity = actividades.firstWhere(
+            (actividad) => actividad.acetId == flete.boatId,
+            orElse: () => ActividadPorEtapaViewModel(
+                etapDescripcion: '', actiDescripcion: ''),
+          );
+
+          textEditingController.text = selectedActivity.etapDescripcion! +
+              ' - ' +
+              selectedActivity.actiDescripcion!;
+        }
+
         return TextField(
           controller: textEditingController,
           focusNode: fieldFocusNode,
@@ -639,7 +697,10 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
                       onSelected(option);
                     },
                     child: ListTile(
-                      title: Text(option.actividadetapa!,
+                      title: Text(
+                          option.etapDescripcion! +
+                              ' - ' +
+                              option.actiDescripcion!,
                           style: TextStyle(color: Colors.white)),
                     ),
                   );
@@ -651,7 +712,8 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
       },
       onSelected: (ActividadPorEtapaViewModel selection) {
         setState(() {
-          controller.text = selection.actividadetapa!;
+          controller.text =
+              selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
           flete.boatId = selection.acetId;
           _actividadError = false;
           _actividadErrorMessage = '';
@@ -870,11 +932,18 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
           ),
         ],
       ),
-      body: Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
-        child: _showInsumos ? _buildInsumosView() : _buildFleteView(),
-      ),
+      body: _isLoading // Muestra el spinner mientras se cargan los datos
+          ? Container(
+              color: Colors.black, // Fondo negro
+              child: Center(
+                child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+              ),
+            )
+          : Container(
+              color: Colors.black,
+              padding: const EdgeInsets.all(16.0),
+              child: _showInsumos ? _buildInsumosView() : _buildFleteView(),
+            ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
             bottom: _isKeyboardVisible
@@ -886,7 +955,7 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
   }
 
   Future<void> guardarFlete() async {
-    flete.usuaCreacion = 3;
+    flete.usuaModificacion = 3;
     flete.flenEstado = false;
     if (flete.flenDestinoProyecto == null) {
       flete.flenDestinoProyecto = false;
@@ -925,7 +994,7 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
       return;
     }
 
-    final int? newId = await FleteEncabezadoService.insertarFlete(flete);
+    final int? newId = await FleteEncabezadoService.editarFlete(flete);
     if (newId != null) {
       print('New Flete ID: $newId');
       for (int i = 0; i < selectedInsumos.length; i++) {
@@ -933,10 +1002,10 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
           fldeCantidad: selectedCantidades[i],
           flenId: newId,
           inppId: selectedInsumos[i].inppId,
-          usuaCreacion: 3,
+          usuaModificacion: 3,
         );
         print('Detalle data: ${detalle.toJson()}');
-        await FleteDetalleService.insertarFleteDetalle(detalle);
+        await FleteDetalleService.editarFleteDetalle(detalle);
       }
       Navigator.push(context, MaterialPageRoute(builder: (context) => Flete()));
       ScaffoldMessenger.of(context)
@@ -1034,6 +1103,7 @@ Future<void> _cargarInsumosPorBodega(int bodeId) async {
       (emp) => emp.emplId == flete.emssId,
       orElse: () => EmpleadoViewModel(),
     );
+    print('emple $empleado');
 
     return Column(
       children: [

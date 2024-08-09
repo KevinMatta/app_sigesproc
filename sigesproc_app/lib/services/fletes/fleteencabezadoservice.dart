@@ -45,6 +45,33 @@ class FleteEncabezadoService {
     }
   }
 
+  static Future<int?> editarFlete(FleteEncabezadoViewModel flete) async {
+    final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Actualizar');
+    final body = jsonEncode(flete.toJson());
+    final headers = {
+      'Content-Type': 'application/json',
+      'XApiKey': ApiService.apiKey,
+    };
+
+    print('Body: $body');
+
+    final response = await http.put(
+      url,
+      headers: headers,
+      body: body,
+    );
+
+     print('Response status: ${response.statusCode}');
+     print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      return responseBody['data']['codeStatus'];
+    } else {
+      return null;
+    }
+  }
+
   static Future<FleteEncabezadoViewModel?> obtenerFleteDetalle(
       int flenId) async {
     final List<FleteEncabezadoViewModel> fletes =
