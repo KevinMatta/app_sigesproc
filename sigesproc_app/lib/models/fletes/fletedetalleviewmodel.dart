@@ -37,7 +37,7 @@ class FleteDetalleViewModel {
     this.bodeDescripcion,
     this.bodeId,
     this.bopiStock,
-    required this.inppId,
+    this.inppId,
     this.provDescripcion,
     this.insuDescripcion,
     this.usuaCreacionNombre,

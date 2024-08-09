@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
@@ -120,14 +121,17 @@ class _FleteState extends State<Flete> {
               } else if (result == 1) {
                 //  "Ver Verificación"
               } else if (result == 2) {
-                //  "Eliminar"
+                _modalEliminar(context, flete);
               } else if (result == 3) {
-                //  "Incidencias"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditarFlete(flenId: flete.flenId!),
+                  ),
+                );
               } else if (result == 4) {
                 // "Verificar"
-              } else if (result == 5) {
-                // "Editar"
-              }
+              } 
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
               if (flete.flenEstado == true) ...[
@@ -154,9 +158,16 @@ class _FleteState extends State<Flete> {
                 ),
               ] else ...[
                 const PopupMenuItem<int>(
+                  value: 0,
+                  child: Text(
+                    'Ver Detalle',
+                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  ),
+                ),
+                const PopupMenuItem<int>(
                   value: 3,
                   child: Text(
-                    'Incidencias',
+                    'Editar',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ),
@@ -164,20 +175,6 @@ class _FleteState extends State<Flete> {
                   value: 4,
                   child: Text(
                     'Verificar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 5,
-                  child: Text(
-                    'Editar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 0,
-                  child: Text(
-                    'Ver Detalle',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ),
@@ -195,6 +192,55 @@ class _FleteState extends State<Flete> {
         ),
       ],
     );
+  }
+
+  void _modalEliminar(BuildContext context, FleteEncabezadoViewModel flete) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Eliminar Flete', style: TextStyle(color: Colors.white)),
+        content: Text(
+          '¿Está seguro de querer eliminar el flete hacia ${flete.destino}?',
+          style: TextStyle(color: Colors.white),
+        ),
+         backgroundColor: Color(0xFF171717),
+        actions: [
+          TextButton(
+            child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            onPressed: () async {
+              try {
+                await FleteEncabezadoService.Eliminar(flete.flenId!);
+                setState(() {
+                  print(_filteredFletes);
+                  print(flete);
+                  _filteredFletes.remove(flete);
+                  print('entra a borrar');
+                  print(_filteredFletes.remove(flete));
+                  print(_filteredFletes);
+                });
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Flete eliminado con éxito')),
+                );
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al eliminar el registro')),
+                );
+              }
+            },
+          ),
+          TextButton(
+            child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
   }
 
   @override

@@ -1,5 +1,5 @@
 class FleteEncabezadoViewModel {
-  String codigo;
+  String? codigo;
   String? usuarioCreacion;
   String? usuarioModificacion;
   String? encargado;
@@ -16,6 +16,7 @@ class FleteEncabezadoViewModel {
   bool? flenDestinoProyecto;
   int? bollId;
   int? boatId;
+  int? proyId;
   int? emtrId;
   int? emssId;
   int? emslId;
@@ -27,7 +28,7 @@ class FleteEncabezadoViewModel {
   String? inppObservacion;
 
   FleteEncabezadoViewModel({
-    required this.codigo,
+    this.codigo,
     this.usuarioCreacion,
     this.usuarioModificacion,
     this.encargado,
@@ -44,6 +45,7 @@ class FleteEncabezadoViewModel {
     this.flenDestinoProyecto,
     this.bollId,
     this.boatId,
+    this.proyId,
     this.emtrId,
     this.emssId,
     this.emslId,
@@ -81,6 +83,7 @@ class FleteEncabezadoViewModel {
       flenDestinoProyecto: json['flen_DestinoProyecto'],
       bollId: json['boll_Id'],
       boatId: json['boat_Id'],
+      proyId: json['proy_Id'],
       emtrId: json['emtr_Id'],
       emssId: json['emss_Id'],
       emslId: json['emsl_Id'],
@@ -137,5 +140,10 @@ class FleteEncabezadoViewModel {
     }
 
     return data;
+  }
+
+   @override
+  String toString() {
+    return 'FleteEncabezadoViewModel(flenId: $flenId, $supervisorSalida, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, bollId: $bollId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion, flenEstadoFlete: $flenEstadoFlete)';
   }
 }

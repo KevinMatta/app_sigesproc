@@ -1,7 +1,7 @@
 class ProyectoViewModel {
-  int proyId;
-  String proyNombre;
-  String proyDescripcion;
+  int? proyId;
+  String? proyNombre;
+  String? proyDescripcion;
   DateTime? proyFechaInicio;
   DateTime? proyFechaFin;
   String? proyDireccionExacta;
@@ -23,9 +23,9 @@ class ProyectoViewModel {
   String? esprDescripcion;
 
   ProyectoViewModel({
-    required this.proyId,
-    required this.proyNombre,
-    required this.proyDescripcion,
+    this.proyId,
+    this.proyNombre,
+    this.proyDescripcion,
     this.proyFechaInicio,
     this.proyFechaFin,
     this.proyDireccionExacta,
@@ -52,17 +52,25 @@ class ProyectoViewModel {
       proyId: json['proy_Id'],
       proyNombre: json['proy_Nombre'],
       proyDescripcion: json['proy_Descripcion'],
-      proyFechaInicio: json['proy_FechaInicio'] != null ? DateTime.parse(json['proy_FechaInicio']) : null,
-      proyFechaFin: json['proy_FechaFin'] != null ? DateTime.parse(json['proy_FechaFin']) : null,
+      proyFechaInicio: json['proy_FechaInicio'] != null
+          ? DateTime.parse(json['proy_FechaInicio'])
+          : null,
+      proyFechaFin: json['proy_FechaFin'] != null
+          ? DateTime.parse(json['proy_FechaFin'])
+          : null,
       proyDireccionExacta: json['proy_DireccionExacta'],
       proyLinkUbicacion: json['proy_LinkUbicacion'],
       esprId: json['espr_Id'],
       clieId: json['clie_Id'],
       ciudId: json['ciud_Id'],
       usuaCreacion: json['usua_Creacion'],
-      proyFechaCreacion: json['proy_FechaCreacion'] != null ? DateTime.parse(json['proy_FechaCreacion']) : null,
+      proyFechaCreacion: json['proy_FechaCreacion'] != null
+          ? DateTime.parse(json['proy_FechaCreacion'])
+          : null,
       usuaModificacion: json['usua_Modificacion'],
-      proyFechaModificacion: json['proy_FechaModificacion'] != null ? DateTime.parse(json['proy_FechaModificacion']) : null,
+      proyFechaModificacion: json['proy_FechaModificacion'] != null
+          ? DateTime.parse(json['proy_FechaModificacion'])
+          : null,
       proyEstado: json['proy_Estado'],
       usuaCreacionNombre: json['usuaCreacion'],
       usuaModificacionNombre: json['usuaModificacion'],

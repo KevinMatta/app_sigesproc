@@ -3,8 +3,8 @@ class InsumoPorProveedorViewModel {
   int? insuId;
   int? provId;
   num? inppPreciocompra;
-  int usuaCreacion;
-  DateTime inppFechaCreacion;
+  int? usuaCreacion;
+  DateTime? inppFechaCreacion;
   int? usuaModificacion;
   DateTime? inppFechaModificacion;
   int? codigo;
@@ -30,8 +30,8 @@ class InsumoPorProveedorViewModel {
     this.insuId,
     this.provId,
     this.inppPreciocompra,
-    required this.usuaCreacion,
-    required this.inppFechaCreacion,
+    this.usuaCreacion,
+    this.inppFechaCreacion,
     this.usuaModificacion,
     this.inppFechaModificacion,
     this.codigo,
@@ -48,9 +48,9 @@ class InsumoPorProveedorViewModel {
     this.bopiStock,
     // this.inppObservacion,
     this.fldeLlegada,
-    required this.cantidad,
-    required this.cantidadError,
-    required this.stockRestante,
+    this.cantidad,
+    this.cantidadError,
+    this.stockRestante,
   });
 
   factory InsumoPorProveedorViewModel.fromJson(Map<String, dynamic> json) {
@@ -92,7 +92,7 @@ class InsumoPorProveedorViewModel {
       'prov_Id': provId,
       'inpp_Preciocompra': inppPreciocompra,
       'usua_Creacion': usuaCreacion,
-      'inpp_FechaCreacion': inppFechaCreacion.toIso8601String(),
+      'inpp_FechaCreacion': inppFechaCreacion?.toIso8601String(),
       'usua_Modificacion': usuaModificacion,
       'inpp_FechaModificacion': inppFechaModificacion?.toIso8601String(),
       'codigo': codigo,

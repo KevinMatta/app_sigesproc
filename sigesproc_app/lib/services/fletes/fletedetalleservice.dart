@@ -51,4 +51,6 @@ class FleteDetalleService {
       throw Exception('Error al cargar los datos');
     }
   }
+
+  
 }

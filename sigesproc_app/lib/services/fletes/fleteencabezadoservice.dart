@@ -45,19 +45,25 @@ class FleteEncabezadoService {
     }
   }
 
-   static Future<FleteEncabezadoViewModel?> obtenerFleteDetalle(int flenId) async {
-    final List<FleteEncabezadoViewModel> fletes = await listarFletesEncabezado();
+  static Future<FleteEncabezadoViewModel?> obtenerFleteDetalle(
+      int flenId) async {
+    final List<FleteEncabezadoViewModel> fletes =
+        await listarFletesEncabezado();
 
     try {
-      return fletes.firstWhere((flete) => flete.flenId == flenId);
+      final flete = fletes.firstWhere((flete) => flete.flenId == flenId);
+      return flete;
     } catch (e) {
+      print('Error: $e');
       throw Exception('Flete con ID $flenId no encontrado');
     }
   }
 
   static Future<void> Eliminar(int flenId) async {
-    final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Eliminar/$flenId');
-    final response = await http.delete(url, headers: ApiService.getHttpHeaders());
+    final url =
+        Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Eliminar/$flenId');
+    final response =
+        await http.delete(url, headers: ApiService.getHttpHeaders());
     if (response.statusCode != 200) {
       throw Exception('Error al eliminar el proceso de venta');
     }

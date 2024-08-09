@@ -22,7 +22,7 @@ class ProyectoService {
     try {
       return proyectos.firstWhere((proyecto) => proyecto.proyId == proyId);
     } catch (e) {
-      throw Exception('Flete con ID $proyId no encontrado');
+      throw Exception('Proyecto con ID $proyId no encontrado');
     }
   }
 }

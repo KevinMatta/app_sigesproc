@@ -15,4 +15,18 @@ class EmpleadoService {
       throw Exception('Error al cargar los datos');
     }
   }
+
+  static Future<EmpleadoViewModel?> obtenerEmpleado(
+      int empleId) async {
+    final List<EmpleadoViewModel> empleados =
+        await listarEmpleados();
+
+    try {
+      final empleado = empleados.firstWhere((flete) => flete.emplId == empleId);
+      return empleado;
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Flete con ID $empleId no encontrado');
+    }
+  }
 }

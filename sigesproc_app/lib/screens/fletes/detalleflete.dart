@@ -244,7 +244,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                 children: [
                   Positioned(
                     child: Container(
-                      height: 624,
+                      height: 640,
                       child: FutureBuilder(
                         future:
                             Future.wait([_bodegaOrigenFuture, _destinoFuture]),
