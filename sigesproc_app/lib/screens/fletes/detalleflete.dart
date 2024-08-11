@@ -1,12 +1,10 @@
-import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart';
-import 'package:sigesproc_app/consts.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/bodegaviewmodel.dart';
@@ -15,6 +13,11 @@ import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+const MAPBOX_ACCESS_TOKEN =
+    'pk.eyJ1Ijoic2V1Y2VkYWEiLCJhIjoiY2x6b28zYWRtMTRvYTJ5b3Bjd3ExN3Y5YyJ9.zX-cUTaYADoXEfN0mBKlXg';
 
 class DetalleFlete extends StatefulWidget {
   final int flenId;
@@ -29,14 +32,10 @@ class _DetalleFleteState extends State<DetalleFlete> {
   late Future<FleteEncabezadoViewModel?> _fleteFuture;
   late Future<List<FleteDetalleViewModel>> _detallesFuture;
   late Future<BodegaViewModel?> _bodegaOrigenFuture;
-  late Future<dynamic>
-      _destinoFuture; // Puede ser BodegaViewModel o ProyectoViewModel
+  late Future<dynamic> _destinoFuture;
 
-  final ubicacionController = Location();
   LatLng? ubicacionactual;
-  Map<PolylineId, Polyline> polylines = {};
-  StreamSubscription<LocationData>? locationSubscription;
-  BitmapDescriptor? carritoIcono;
+  Map<String, Polyline> polylines = {};
   bool isExpanded = false;
 
   @override
@@ -47,42 +46,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
     _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
     _destinoFuture = _fetchDestino(widget.flenId);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      carritoIcono = await createBitmapDescriptorFromIcon(
-          Icons.directions_car, Colors.red, 80);
       await iniciarMapa();
     });
-  }
-
-  @override
-  void dispose() {
-    locationSubscription?.cancel();
-    super.dispose();
-  }
-
-  Future<BitmapDescriptor> createBitmapDescriptorFromIcon(
-      IconData iconData, Color color, double size) async {
-    final pictureRecorder = ui.PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
-    final paint = Paint()..color = color;
-    final textPainter = TextPainter(textDirection: ui.TextDirection.ltr);
-
-    textPainter.text = TextSpan(
-      text: String.fromCharCode(iconData.codePoint),
-      style: TextStyle(
-        fontSize: size,
-        fontFamily: iconData.fontFamily,
-        color: color,
-      ),
-    );
-
-    textPainter.layout();
-    textPainter.paint(canvas, Offset.zero);
-    final picture = pictureRecorder.endRecording();
-    final image = await picture.toImage(size.toInt(), size.toInt());
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    final uint8List = byteData!.buffer.asUint8List();
-
-    return BitmapDescriptor.fromBytes(uint8List);
   }
 
   Future<BodegaViewModel?> _fetchBodegaOrigen(int flenId) async {
@@ -136,34 +101,33 @@ class _DetalleFleteState extends State<DetalleFlete> {
       destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
     }
 
-    if (ubicacionObtenida) {
-      locationSubscription =
-          ubicacionController.onLocationChanged.listen((currentLocation) {
-        if (currentLocation.latitude != null &&
-            currentLocation.longitude != null) {
-          LatLng nuevaUbicacion =
-              LatLng(currentLocation.latitude!, currentLocation.longitude!);
-          if (mounted) {
-            setState(() {
-              ubicacionactual = nuevaUbicacion;
-            });
-            if (destino != null) {
-              _actualizarPolyline(nuevaUbicacion, destino);
-            }
-          }
-        }
-      });
+    if (ubicacionObtenida && destino != null) {
+      _actualizarPolyline(ubicacionactual!, destino);
     }
+  }
 
-    if (destino != null) {
-      final coordinates = await polylinePuntos(
-        ubicacionObtenida ? ubicacionactual! : inicio,
-        destino,
-      );
-      generarPolylineporPuntos(coordinates);
+  Future<List<LatLng>> obtenerRutaMapbox(LatLng inicio, LatLng destino) async {
+    final url = Uri.parse(
+        'https://api.mapbox.com/directions/v5/mapbox/driving/${inicio.longitude},${inicio.latitude};${destino.longitude},${destino.latitude}?geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List<dynamic> coordinates = data['routes'][0]['geometry']['coordinates'];
+      List<LatLng> rutaPuntos =
+          coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
+
+      // Imprime los puntos de la ruta para depuración
+      print("Puntos de la ruta:");
+      rutaPuntos.forEach((punto) {
+        print("Lat: ${punto.latitude}, Lng: ${punto.longitude}");
+      });
+
+      return rutaPuntos;
     } else {
-      // Muestra un mensaje de error si la ubicación del destino es inválida
-      print('Ubicación del destino inválida');
+      throw Exception('No se pudo obtener la ruta');
     }
   }
 
@@ -244,7 +208,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
                 children: [
                   Positioned(
                     child: Container(
-                      height: 640,
                       child: FutureBuilder(
                         future:
                             Future.wait([_bodegaOrigenFuture, _destinoFuture]),
@@ -267,7 +230,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                               snapshot.data == null ||
                               snapshot.data!.isEmpty) {
                             return Center(
-                              child: SpinKitCircle(
+                              child: CircularProgressIndicator(
                                 color: Color(0xFFFFF0C6),
                               ),
                             );
@@ -308,33 +271,54 @@ class _DetalleFleteState extends State<DetalleFlete> {
                               destino = LatLng(0, 0);
                             }
 
-                            return GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target: ubicacionactual ?? inicio,
+                            return FlutterMap(
+                              options: MapOptions(
+                                center: ubicacionactual ?? inicio,
                                 zoom: 13,
                               ),
-                              markers: {
-                                if (ubicacionactual != null)
-                                  Marker(
-                                    markerId: const MarkerId('currentLocation'),
-                                    icon: carritoIcono ??
-                                        BitmapDescriptor.defaultMarker,
-                                    position: ubicacionactual!,
-                                  ),
-                                if (ubicacionactual == null)
-                                  Marker(
-                                    markerId: const MarkerId('sourceLocation'),
-                                    icon: BitmapDescriptor.defaultMarker,
-                                    position: inicio,
-                                  ),
-                                Marker(
-                                  markerId:
-                                      const MarkerId('destinationLocation'),
-                                  icon: BitmapDescriptor.defaultMarker,
-                                  position: destino!,
-                                )
-                              },
-                              polylines: Set<Polyline>.of(polylines.values),
+                              children: [
+                                TileLayer(
+                                  urlTemplate:
+                                      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+                                  additionalOptions: const {
+                                    'accessToken': MAPBOX_ACCESS_TOKEN,
+                                    'id': 'mapbox/streets-v12'
+                                  },
+                                ),
+                                MarkerLayer(
+                                  markers: [
+                                    if (ubicacionactual != null)
+                                      Marker(
+                                        point: ubicacionactual!,
+                                        builder: (context) => Icon(
+                                          Icons.directions_car,
+                                          color: Colors.red,
+                                          size: 25,
+                                        ),
+                                      ),
+                                    if (ubicacionactual == null)
+                                      Marker(
+                                        point: inicio,
+                                        builder: (context) => Icon(
+                                          Icons.location_on,
+                                          color: Colors.redAccent,
+                                          size: 25,
+                                        ),
+                                      ),
+                                    Marker(
+                                      point: destino!,
+                                      builder: (context) => Icon(
+                                        Icons.location_on,
+                                        color: Colors.red,
+                                        size: 30,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                PolylineLayer(
+                                  polylines: polylines.values.toList(),
+                                ),
+                              ],
                             );
                           }
                         },
@@ -399,7 +383,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
                                     return Center(
-                                      child: SpinKitCircle(
+                                      child: CircularProgressIndicator(
                                         color: Color(0xFFFFF0C6),
                                       ),
                                     );
@@ -509,7 +493,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
   LatLng? obtenerCoordenadasDeEnlace(String? enlace) {
     if (enlace == null || enlace.isEmpty) {
-      return null; // Devuelve null si el enlace es nulo o vacío
+      return null;
     }
 
     final uri = Uri.parse(enlace);
@@ -521,83 +505,48 @@ class _DetalleFleteState extends State<DetalleFlete> {
         return LatLng(lat, lng);
       }
     }
-    return null; // Devuelve null si no puede obtener las coordenadas
+    return null;
   }
 
   Future<bool> ubicacionActualizada() async {
-    bool servicioAceptado = await ubicacionController.serviceEnabled();
+    bool servicioAceptado = await Geolocator.isLocationServiceEnabled();
     if (!servicioAceptado) {
-      servicioAceptado = await ubicacionController.requestService();
+      servicioAceptado = await Geolocator.openLocationSettings();
       if (!servicioAceptado) return false;
     }
 
-    PermissionStatus permisoAceptado =
-        await ubicacionController.hasPermission();
-    if (permisoAceptado == PermissionStatus.denied) {
-      permisoAceptado = await ubicacionController.requestPermission();
-      if (permisoAceptado != PermissionStatus.granted) {
+    LocationPermission permisoAceptado = await Geolocator.checkPermission();
+    if (permisoAceptado == LocationPermission.denied) {
+      permisoAceptado = await Geolocator.requestPermission();
+      if (permisoAceptado != LocationPermission.whileInUse &&
+          permisoAceptado != LocationPermission.always) {
         return false;
       }
     }
 
-    final currentLocation = await ubicacionController.getLocation();
-    if (currentLocation.latitude != null && currentLocation.longitude != null) {
-      setState(() {
-        ubicacionactual = LatLng(
-          currentLocation.latitude!,
-          currentLocation.longitude!,
-        );
-      });
-      return true;
-    }
-    return false;
-  }
-
-  Future<List<LatLng>> polylinePuntos(LatLng inicio, LatLng destino) async {
-    final polylines = PolylinePoints();
-
-    final result = await polylines.getRouteBetweenCoordinates(
-      gmak,
-      PointLatLng(inicio.latitude, inicio.longitude),
-      PointLatLng(destino.latitude, destino.longitude),
-      travelMode: TravelMode.driving,
-    );
-    print('Result de polylinePuntos: $result');
-    print('Status: ${result.status}');
-    print('Error message: ${result.errorMessage}');
-    print('Number of points: ${result.points.length}');
-
-    if (result.points.isNotEmpty) {
-      print('Puntos obtenidos: ${result.points}');
-      return result.points
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
-    } else {
-      print('No se obtuvieron puntos: ${result.points}');
-      debugPrint(result.errorMessage);
-      return [];
-    }
-  }
-
-  Future<void> generarPolylineporPuntos(
-      List<LatLng> polylineCoordenadas) async {
-    const id = PolylineId('polyline');
-
-    final polyline = Polyline(
-      polylineId: id,
-      color: Colors.blueAccent,
-      points: polylineCoordenadas,
-      width: 5,
-    );
-
-    if (mounted) {
-      setState(() => polylines[id] = polyline);
-    }
+    final currentLocation = await Geolocator.getCurrentPosition();
+    setState(() {
+      ubicacionactual = LatLng(
+        currentLocation.latitude,
+        currentLocation.longitude,
+      );
+    });
+    return true;
   }
 
   Future<void> _actualizarPolyline(LatLng inicio, LatLng destino) async {
-    final coordinates = await polylinePuntos(inicio, destino);
-    generarPolylineporPuntos(coordinates);
+    final List<LatLng> polylineCoordenadas =
+        await obtenerRutaMapbox(inicio, destino);
+
+    final polyline = Polyline(
+      points: polylineCoordenadas,
+      strokeWidth: 2,
+      color: Colors.blueAccent,
+    );
+
+    setState(() {
+      polylines['route'] = polyline;
+    });
   }
 
   String formatDateTime(DateTime? dateTime) {

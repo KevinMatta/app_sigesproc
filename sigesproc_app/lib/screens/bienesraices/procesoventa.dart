@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/screens/proyectos/utilidad.dart';
-import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,6 +21,18 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   TextEditingController _searchController = TextEditingController();
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
   List<ProcesoVentaViewModel>? _selectedVenta;
+  bool _valorFueEditado = false;
+  bool _fechaFueEditada = false;
+
+  final ThemeData darkTheme = ThemeData.dark().copyWith(
+    colorScheme: ColorScheme.dark(
+      primary: Color(0xFFFFF0C6),
+      onPrimary: Colors.black,
+      surface: Colors.black,
+      onSurface: Colors.white,
+    ),
+    dialogBackgroundColor: Colors.black,
+  );
 
   @override
   void initState() {
@@ -161,93 +173,158 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     );
   }
 
+  bool _isValorInvalido(String valor) {
+    if (valor.isEmpty) return true;
+    final number = double.tryParse(valor);
+    return number == null || number <= 0;
+  }
+
+  bool _isFechaInvalida(String fecha) {
+    if (fecha.isEmpty) return true;
+    try {
+      DateFormat('dd/MM/yyyy').parseStrict(fecha);
+      return false;
+    } catch (e) {
+      return true;
+    }
+  }
+
   void _modalVender(BuildContext context, ProcesoVentaViewModel venta) {
     TextEditingController valorController = TextEditingController();
     TextEditingController fechaController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title:
-              Text('Propiedad en venta', style: TextStyle(color: Colors.white)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: valorController,
-                decoration: InputDecoration(
-                  hintText: 'Valor de venta',
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.white24,
-                ),
-                style: TextStyle(color: Colors.white),
-                keyboardType: TextInputType.number,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Propiedad en venta',
+                  style: TextStyle(color: Colors.white)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: valorController,
+                    decoration: InputDecoration(
+                      hintText: 'Valor de venta',
+                      hintStyle: TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: Colors.white24,
+                      errorText: _valorFueEditado &&
+                              _isValorInvalido(valorController.text)
+                          ? 'Ingrese un valor válido'
+                          : null,
+                    ),
+                    style: TextStyle(color: Colors.white),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter
+                          .digitsOnly, // Permitir solo dígitos
+                    ],
+                    onChanged: (text) {
+                      setState(() {
+                        _valorFueEditado = true;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: fechaController,
+                    decoration: InputDecoration(
+                      hintText: 'Fecha de venta',
+                      hintStyle: TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: Colors.white24,
+                      suffixIcon:
+                          Icon(Icons.calendar_today, color: Colors.white54),
+                      errorText: _fechaFueEditada &&
+                              _isFechaInvalida(fechaController.text)
+                          ? 'Ingrese una fecha válida'
+                          : null,
+                    ),
+                    style: TextStyle(color: Colors.white),
+                    keyboardType: TextInputType.datetime,
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                        builder: (BuildContext context, Widget? child) {
+                          return Theme(
+                            data: darkTheme,
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (pickedDate != null) {
+                        fechaController.text =
+                            DateFormat('dd/MM/yyyy').format(pickedDate);
+                        setState(() {
+                          _fechaFueEditada = true;
+                        });
+                      }
+                    },
+                    onChanged: (text) {
+                      setState(() {
+                        _fechaFueEditada = true;
+                      });
+                    },
+                  ),
+                ],
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: fechaController,
-                decoration: InputDecoration(
-                  hintText: 'Fecha de venta',
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.white24,
-                  suffixIcon: Icon(Icons.calendar_today, color: Colors.white54),
-                ),
-                style: TextStyle(color: Colors.white),
-                keyboardType: TextInputType.datetime,
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2101),
-                  );
-                  if (pickedDate != null) {
-                    fechaController.text =
-                        DateFormat('dd/MM/yyyy').format(pickedDate);
-                  }
-                },
-              ),
-            ],
-          ),
-          backgroundColor: Color(0xFF171717),
-          actions: [
-            TextButton(
-              child:
-                  Text('Guardar', style: TextStyle(color: Color(0xFFFFF0C6))),
-              onPressed: () async {
-                try {
-                  venta.btrpPrecioVentaFinal =
-                      double.parse(valorController.text);
-                  venta.btrpFechaVendida =
-                      DateFormat('dd/MM/yyyy').parse(fechaController.text);
+              backgroundColor: Color(0xFF171717),
+              actions: [
+                TextButton(
+                  child: Text('Guardar',
+                      style: TextStyle(color: Color(0xFFFFF0C6))),
+                  onPressed: () async {
+                    setState(() {
+                      _valorFueEditado = true;
+                      _fechaFueEditada = true;
+                    });
 
-                  await ProcesoVentaService.venderProcesoVenta(venta);
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Propiedad vendida con éxito')),
-                  );
-                  setState(() {
-                    _selectedVenta = null;
-                    _reiniciarProcesosVentaFiltros();
-                  });
-                } catch (e) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al vender la propiedad')),
-                  );
-                }
-              },
-            ),
-            TextButton(
-              child:
-                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+                    if (_isValorInvalido(valorController.text) ||
+                        _isFechaInvalida(fechaController.text)) {
+                      return; // Mostrar errores si hay
+                    }
+
+                    try {
+                      venta.btrpPrecioVentaFinal =
+                          double.parse(valorController.text);
+                      venta.btrpFechaVendida =
+                          DateFormat('dd/MM/yyyy').parse(fechaController.text);
+
+                      await ProcesoVentaService.venderProcesoVenta(venta);
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Propiedad vendida con éxito')),
+                      );
+                      setState(() {
+                        _selectedVenta = null;
+                        _reiniciarProcesosVentaFiltros();
+                      });
+                    } catch (e) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error al vender la propiedad')),
+                      );
+                    }
+                  },
+                ),
+                TextButton(
+                  child: Text('Cancelar',
+                      style: TextStyle(color: Color(0xFFFFF0C6))),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _valorFueEditado = false;
+                    _fechaFueEditada = false;
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -623,7 +700,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 onPressed: () {
                   setState(() {
                     _selectedVenta = null;
-                    _reiniciarProcesosVentaFiltros(); 
+                    _reiniciarProcesosVentaFiltros();
                   });
                 },
                 child: Text(
