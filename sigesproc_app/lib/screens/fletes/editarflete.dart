@@ -105,6 +105,9 @@ class _EditarFleteState extends State<EditarFlete> {
   @override
   void initState() {
     super.initState();
+    _cargarEmpleados();
+    _cargarBodegas();
+    _cargarProyectos();
     _cargarDatosIniciales();
     var keyboardVisibilityController = KeyboardVisibilityController();
     _isKeyboardVisible = keyboardVisibilityController.isVisible;
@@ -114,6 +117,34 @@ class _EditarFleteState extends State<EditarFlete> {
         _isKeyboardVisible = visible;
       });
     });
+    if (flete.emtrId != null) {
+      EmpleadoViewModel? encargado =
+          empleados.firstWhere((emp) => emp.emplId == flete.emtrId);
+      if (encargado != null) {
+        encargadoController.text = encargado.empleado!;
+      }
+    }
+    if (flete.emssId != null) {
+      EmpleadoViewModel? supervisorSalida =
+          empleados.firstWhere((emp) => emp.emplId == flete.emssId);
+      if (supervisorSalida != null) {
+        supervisorSalidaController.text = supervisorSalida.empleado!;
+      }
+    }
+    if (flete.emslId != null) {
+      EmpleadoViewModel? supervisorLlegada =
+          empleados.firstWhere((emp) => emp.emplId == flete.emslId);
+      if (supervisorLlegada != null) {
+        supervisorLlegadaController.text = supervisorLlegada.empleado!;
+      }
+    }
+    if (flete.bollId != null) {
+      BodegaViewModel? salida =
+          bodegas.firstWhere((bode) => bode.bodeId == flete.bollId);
+      if (salida != null) {
+        salidaController.text = salida.bodeDescripcion!;
+      }
+    }
   }
 
   @override
@@ -954,25 +985,26 @@ class _EditarFleteState extends State<EditarFlete> {
     );
   }
 
-  Future<void> guardarFlete() async {
+   Future<void> editarFlete() async {
     flete.usuaModificacion = 3;
-    flete.flenEstado = false;
-    if (flete.flenDestinoProyecto == null) {
-      flete.flenDestinoProyecto = false;
-    }
-
+    flete.flenFechaHoraLlegada = null;
     print('Flete data: ${flete.toJson()}');
 
+    // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
     bool hayCantidadesInvalidas = false;
     for (int i = 0; i < selectedInsumos.length; i++) {
       int? stock = selectedInsumos[i].bopiStock;
       int? cantidad = int.tryParse(quantityControllers[i].text);
 
       if (cantidad == null || cantidad <= 0) {
+        print(
+            'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
         quantityControllers[i].text = '1';
         selectedCantidades[i] = 1;
         hayCantidadesInvalidas = true;
       } else if (cantidad > stock!) {
+        print(
+            'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
         quantityControllers[i].text = stock.toString();
         selectedCantidades[i] = stock;
         hayCantidadesInvalidas = true;
@@ -982,37 +1014,49 @@ class _EditarFleteState extends State<EditarFlete> {
     }
 
     if (hayCantidadesInvalidas) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text('Cantidades ajustadas. Por favor, revise las cantidades.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Cantidades ajustadas. Por favor, revise las cantidades.')),
+      );
       return;
     }
 
     if (selectedInsumos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Debe seleccionar al menos un insumo')));
+        SnackBar(content: Text('Debe seleccionar al menos un insumo')),
+      );
       return;
     }
 
-    final int? newId = await FleteEncabezadoService.editarFlete(flete);
+    final int? newId = widget.flenId;
     if (newId != null) {
       print('New Flete ID: $newId');
       for (int i = 0; i < selectedInsumos.length; i++) {
         final detalle = FleteDetalleViewModel(
           fldeCantidad: selectedCantidades[i],
+          fldeTipodeCarga: true,
           flenId: newId,
           inppId: selectedInsumos[i].inppId,
           usuaModificacion: 3,
+          usuaCreacion: 3,
         );
         print('Detalle data: ${detalle.toJson()}');
-        await FleteDetalleService.editarFleteDetalle(detalle);
+        await FleteDetalleService.insertarFleteDetalle(detalle);
       }
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Flete()));
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Flete enviado con éxito')));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Flete(),
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Flete enviado con éxito')),
+      );
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error al enviar el flete')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar el flete')),
+      );
     }
   }
 
@@ -1278,44 +1322,46 @@ class _EditarFleteState extends State<EditarFlete> {
   }
 
   Widget _buildInsumosBottomBar() {
-  return Container(
-    color: Colors.black,
-    padding: const EdgeInsets.all(16.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton(
-          onPressed: _hideInsumosView,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF171717),
-            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0), // Bordes menos redondeados
+    return Container(
+      color: Colors.black,
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton(
+            onPressed: _hideInsumosView,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(8.0), // Bordes menos redondeados
+              ),
+            ),
+            child: Text(
+              'Regresar',
+              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
-          child: Text(
-            'Regresar',
-            style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: guardarFlete,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFFFF0C6),
-            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0), // Bordes menos redondeados
+          ElevatedButton(
+            onPressed: editarFlete,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(8.0), // Bordes menos redondeados
+              ),
+            ),
+            child: Text(
+              'Guardar',
+              style: TextStyle(color: Colors.black, fontSize: 15),
             ),
           ),
-          child: Text(
-            'Guardar',
-            style: TextStyle(color: Colors.black, fontSize: 15),
-          ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _fechaSalida() {
     return TextField(
@@ -1456,106 +1502,89 @@ class _EditarFleteState extends State<EditarFlete> {
 
     FocusNode focusNode = FocusNode();
 
-    // Agregamos un listener para capturar lo que se escribe en el input
-    controller.addListener(() {
-      print("Texto en el input: ${controller.text}");
-    });
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<EmpleadoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
-            final query = textEditingValue.text
-                .trim()
-                .toLowerCase(); // Elimina espacios y convierte a minúsculas
-            if (query.isEmpty) {
-              print('Mostrando todos los empleados');
-              return empleados;
+            if (textEditingValue.text.isEmpty) {
+              print('empleados $empleados');
+              return empleados.isNotEmpty ? empleados : [];
             }
-
-            print('Texto que se busca: $query');
-
             return empleados.where((EmpleadoViewModel option) {
-              final empleadoName = option.empleado!
-                  .toLowerCase(); // Convierte a minúsculas para una comparación más robusta
-              final match = empleadoName.contains(
-                  query); // Comprueba si el nombre contiene el texto buscado
-              if (match) {
-                print('Coincidencia encontrada: ${option.empleado}');
-              }
-              return match;
-            }).toList();
+              return option.empleado!
+                      .toLowerCase()
+                      .contains(textEditingValue.text.toLowerCase()) ||
+                  option.emplDNI!
+                      .toLowerCase()
+                      .contains(textEditingValue.text.toLowerCase());
+            });
           },
           displayStringForOption: (EmpleadoViewModel option) =>
               option.empleado!,
           fieldViewBuilder: (BuildContext context,
-    TextEditingController textEditingController,
-    FocusNode fieldFocusNode,
-    VoidCallback onFieldSubmitted) {
-    
-  // Aquí sincronizamos el valor del controlador
-  textEditingController.value = controller.value.copyWith();
-  
-  focusNode = fieldFocusNode;
-
-  return TextField(
-    controller: textEditingController,
-    focusNode: focusNode,
-    decoration: InputDecoration(
-      labelText: label,
-      border: OutlineInputBorder(),
-      filled: true,
-      fillColor: Colors.black,
-      labelStyle: TextStyle(color: Colors.white),
-      errorText: isError ? errorMessage : null,
-      errorMaxLines: 3,
-      errorStyle: TextStyle(
-        color: Colors.red,
-        fontSize: 12,
-      ),
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-      ),
-      suffixIcon: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (controller.text.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
-              onPressed: () {
-                setState(() {
-                  controller.clear();
-                  if (label == 'Encargado') {
-                    flete.emtrId = null;
-                  } else if (label == 'Supervisor de Salida') {
-                    flete.emssId = null;
-                  } else if (label == 'Supervisor de Llegada') {
-                    flete.emslId = null;
-                  }
-                });
-              },
-            ),
-          IconButton(
-            icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-            onPressed: () {
-              if (focusNode.hasFocus) {
-                focusNode.unfocus();
-              } else {
-                focusNode.requestFocus();
-              }
-            },
-          ),
-        ],
-      ),
-    ),
-    style: TextStyle(color: Colors.white),
-    maxLines: null,
-  );
-},
-
+              TextEditingController textEditingController,
+              FocusNode fieldFocusNode,
+              VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: isError ? errorMessage : null,
+                errorMaxLines: 3,
+                errorStyle: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                ),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (controller.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            controller.clear();
+                            if (label == 'Encargado') {
+                              flete.emtrId = null;
+                            } else if (label == 'Supervisor de Salida') {
+                              flete.emssId = null;
+                            } else if (label == 'Supervisor de Llegada') {
+                              flete.emslId = null;
+                            }
+                          });
+                        },
+                      ),
+                    IconButton(
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                      onPressed: () {
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              style: TextStyle(color: Colors.white),
+              maxLines: null,
+            );
+          },
           optionsViewBuilder: (BuildContext context,
               AutocompleteOnSelected<EmpleadoViewModel> onSelected,
               Iterable<EmpleadoViewModel> options) {
@@ -1566,23 +1595,29 @@ class _EditarFleteState extends State<EditarFlete> {
                 child: Container(
                   width: constraints.maxWidth,
                   color: Colors.black,
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      final EmpleadoViewModel option = options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: ListTile(
-                          title: Text(option.empleado!,
+                  child: options.isEmpty
+                      ? ListTile(
+                          title: Text('No hay coincidencias',
                               style: TextStyle(color: Colors.white)),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.all(8.0),
+                          itemCount: options.length,
+                          shrinkWrap: true,
+                          itemBuilder: (BuildContext context, int index) {
+                            final EmpleadoViewModel option =
+                                options.elementAt(index);
+                            return GestureDetector(
+                              onTap: () {
+                                onSelected(option);
+                              },
+                              child: ListTile(
+                                title: Text(option.empleado!,
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ),
             );
@@ -1597,10 +1632,6 @@ class _EditarFleteState extends State<EditarFlete> {
               } else if (label == 'Supervisor de Llegada') {
                 flete.emslId = selection.emplId;
               }
-              // Esto asegura que el campo de texto se actualice visualmente
-              controller.selection = TextSelection.fromPosition(
-                TextPosition(offset: controller.text.length),
-              );
             });
           },
         );

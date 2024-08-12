@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
+import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 
 class VerificarFlete extends StatefulWidget {
   final int flenId;
@@ -15,8 +17,27 @@ class VerificarFlete extends StatefulWidget {
 class _VerificarFleteState extends State<VerificarFlete> {
   DateTime? fechaHoraLlegada;
 
+  List<TextEditingController> quantityControllers = [];
   List<FleteDetalleViewModel> insumosNoRecibidos = [];
   List<FleteDetalleViewModel> insumosVerificados = [];
+
+  FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
+    codigo: '',
+    flenFechaHoraSalida: null,
+    flenFechaHoraEstablecidaDeLlegada: null,
+    emtrId: null,
+    emssId: null,
+    emslId: null,
+    bollId: null,
+    boatId: null,
+    flenEstado: null,
+    flenDestinoProyecto: null,
+    usuaCreacion: null,
+    flenFechaCreacion: null,
+    usuaModificacion: null,
+    flenFechaModificacion: null,
+    flenEstadoFlete: null,
+  );
 
   @override
   void initState() {
@@ -80,7 +101,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
 
       if (horaSeleccionada != null) {
         setState(() {
-          fechaHoraLlegada = DateTime(
+          flete.flenFechaHoraLlegada = DateTime(
             fechaSeleccionada.year,
             fechaSeleccionada.month,
             fechaSeleccionada.day,
@@ -106,6 +127,84 @@ class _VerificarFleteState extends State<VerificarFlete> {
     });
   }
 
+   // Future<void> verificarFlete() async {
+  //   FleteEncabezadoViewModel? fleteCargado =
+  //         await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+  //   fleteCargado!.flenDestinoProyecto = true;
+  //   fleteCargado.flenFechaHoraLlegada = flete.flenFechaHoraLlegada;
+  //   fleteCargado.usuaModificacion = 3;
+
+  //   print('Flete data: ${fleteCargado.toJson()}');
+
+  //   // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
+  //   bool hayCantidadesInvalidas = false;
+  //   for (int i = 0; i < insumosVerificados.length; i++) {
+  //     int? stock = insumosVerificados[i].fldeCantidad;
+  //     int? cantidad = int.tryParse(quantityControllers[i].text);
+
+  //     if (cantidad == null || cantidad <= 0) {
+  //       print(
+  //           'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+  //       quantityControllers[i].text = '1';
+  //       selectedCantidades[i] = 1;
+  //       hayCantidadesInvalidas = true;
+  //     } else if (cantidad > stock!) {
+  //       print(
+  //           'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+  //       quantityControllers[i].text = stock.toString();
+  //       selectedCantidades[i] = stock;
+  //       hayCantidadesInvalidas = true;
+  //     } else {
+  //       selectedCantidades[i] = cantidad;
+  //     }
+  //   }
+
+  //   if (hayCantidadesInvalidas) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //           content: Text(
+  //               'Cantidades ajustadas. Por favor, revise las cantidades.')),
+  //     );
+  //     return;
+  //   }
+
+  //   if (selectedInsumos.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Debe seleccionar al menos un insumo')),
+  //     );
+  //     return;
+  //   }
+
+  //   final int? newId = await FleteEncabezadoService.insertarFlete(flete);
+  //   if (newId != null) {
+  //     print('New Flete ID: $newId');
+  //     for (int i = 0; i < selectedInsumos.length; i++) {
+  //       final detalle = FleteDetalleViewModel(
+  //         fldeCantidad: selectedCantidades[i],
+  //         flenId: newId,
+  //         inppId: selectedInsumos[i].inppId,
+  //         usuaCreacion: 3,
+  //       );
+  //       print('Detalle data: ${detalle.toJson()}');
+  //       await FleteDetalleService.insertarFleteDetalle(detalle);
+  //     }
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) => Flete(),
+  //       ),
+  //     );
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Flete enviado con éxito')),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error al enviar el flete')),
+  //     );
+  //   }
+  // }
+
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -216,7 +315,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
             right: 0,
             child: Container(
               color: Colors.black,
-              padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0),
+              padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -250,6 +349,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                    // onPressed: verificarFlete,
                     onPressed: () {
                       // Acción para guardar
                     },
@@ -271,6 +371,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
     );
   }
 
+  
   Widget _buildFechaHoraLlegadaInput() {
     return TextField(
       readOnly: true,

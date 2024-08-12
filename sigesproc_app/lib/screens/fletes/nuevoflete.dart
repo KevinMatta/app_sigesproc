@@ -795,7 +795,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
       }
 
-      if (esProyecto && _noActividadesError) {
+      if (esProyecto && _noActividadesError && flete.boatId == null) {
         _proyectoError = true;
         _proyectoErrorMessage = 'El proyecto no tiene actividades, seleccione otro proyecto.';
         return;
@@ -961,6 +961,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
       for (int i = 0; i < selectedInsumos.length; i++) {
         final detalle = FleteDetalleViewModel(
           fldeCantidad: selectedCantidades[i],
+          fldeTipodeCarga: true,
           flenId: newId,
           inppId: selectedInsumos[i].inppId,
           usuaCreacion: 3,
@@ -1063,61 +1064,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
                       )
                     ],
                   ),
-                  SizedBox(height: 10),
-                  // Table(
-                  //   border: TableBorder.all(color: Colors.white),
-                  //   columnWidths: {
-                  //     0: FlexColumnWidth(3),
-                  //     1: FlexColumnWidth(1),
-                  //   },
-                  //   children: [
-                  //     TableRow(
-                  //       children: [
-                  //         Padding(
-                  //           padding: const EdgeInsets.all(8.0),
-                  //           child: Text(
-                  //             'Materiales',
-                  //             style: TextStyle(color: Colors.white),
-                  //           ),
-                  //         ),
-                  //         Padding(
-                  //           padding: const EdgeInsets.all(8.0),
-                  //           child: Text(
-                  //             'Cantidad',
-                  //             style: TextStyle(color: Colors.white),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //     TableRow(
-                  //       children: [
-                  //         Padding(
-                  //           padding: const EdgeInsets.all(8.0),
-                  //           child: Text(
-                  //             'Material',
-                  //             style: TextStyle(color: Colors.white),
-                  //           ),
-                  //         ),
-                  //         Padding(
-                  //           padding: const EdgeInsets.all(8.0),
-                  //           child: TextField(
-                  //             decoration: InputDecoration(
-                  //               border: InputBorder.none,
-                  //               hintText: 'Ingrese Cantidad',
-                  //               hintStyle: TextStyle(color: Colors.white54),
-                  //             ),
-                  //             style: TextStyle(color: Colors.white),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ],
-                  // ),
                 ],
               ),
             ),
           ),
-          SizedBox(height: 10),
         ],
       ),
     );
