@@ -28,6 +28,10 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+
+  flutter_localizations:
+    sdk: flutter
+    
   flutter:
     sdk: flutter
     
@@ -47,6 +51,7 @@ dependencies:
   google_fonts: 
   intl: 
   data_tables: ^1.4.0 
+  
 
 dev_dependencies:
   flutter_test:

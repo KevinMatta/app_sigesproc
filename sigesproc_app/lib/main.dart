@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/auth/login.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -16,6 +17,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFFFFF0C6)),
         useMaterial3: true,
       ),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('es', 'ES'), // Español
+      ],
       home: Login(), 
     );
   }

@@ -1,5 +1,5 @@
 class ProyectoViewModel {
-  int? proyId;
+  int proyId;
   String? proyNombre;
   String? proyDescripcion;
   DateTime? proyFechaInicio;
@@ -23,7 +23,7 @@ class ProyectoViewModel {
   String? esprDescripcion;
 
   ProyectoViewModel({
-    this.proyId,
+    required this.proyId,
     this.proyNombre,
     this.proyDescripcion,
     this.proyFechaInicio,
