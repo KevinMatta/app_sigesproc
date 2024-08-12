@@ -62,6 +62,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
   String _proyectoErrorMessage = '';
   bool _actividadError = false;
   String _actividadErrorMessage = '';
+  bool _noActividadesError = false;
   TextEditingController llegadaController = TextEditingController();
   TextEditingController actividadController = TextEditingController();
   List<TextEditingController> quantityControllers = [];
@@ -110,7 +111,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
     _isKeyboardVisible = keyboardVisibilityController.isVisible;
 
     // Subscribe
-    keyboardSubscription = keyboardVisibilityController.onChange.listen((bool visible) {
+    keyboardSubscription =
+        keyboardVisibilityController.onChange.listen((bool visible) {
       setState(() {
         _isKeyboardVisible = visible;
       });
@@ -145,12 +147,11 @@ class _NuevoFleteState extends State<NuevoFlete> {
     }
   }
 
-    @override
+  @override
   void dispose() {
     keyboardSubscription.cancel();
     super.dispose();
   }
-
 
   Future<void> _cargarEmpleados() async {
     try {
@@ -189,9 +190,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
 
   Future<void> _cargarActividadesPorProyecto(int proyId) async {
     try {
-      actividades =
-          await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
-      setState(() {});
+      actividades = await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
+        _noActividadesError = true; 
     } catch (e) {
       print('Error al cargar las actividades: $e');
     }
@@ -322,15 +322,35 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFFFF0C6)),
                 ),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                  onPressed: () {
-                    if (focusNode.hasFocus) {
-                      focusNode.unfocus();
-                    } else {
-                      focusNode.requestFocus();
-                    }
-                  },
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (controller.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            controller.clear();
+                            if (label == 'Salida') {
+                              flete.bollId = null;
+                            } else if (label == 'Llegada') {
+                              flete.boatId = null;
+                            }
+                          });
+                        },
+                      ),
+                    IconButton(
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                      onPressed: () {
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
               style: TextStyle(color: Colors.white),
@@ -393,7 +413,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
         Autocomplete<ProyectoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return proyectos; // Mostrar todas las opciones cuando el campo está vacío
+              return proyectos.isNotEmpty ? proyectos : [];
             }
             return proyectos.where((ProyectoViewModel option) {
               return option.proyNombre!
@@ -429,15 +449,31 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFFFF0C6)),
                 ),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                  onPressed: () {
-                    if (focusNode.hasFocus) {
-                      focusNode.unfocus();
-                    } else {
-                      focusNode.requestFocus();
-                    }
-                  },
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (controller.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            controller.clear();
+                            flete.boatId = null;
+                          });
+                        },
+                      ),
+                    IconButton(
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                      onPressed: () {
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
               style: TextStyle(color: Colors.white),
@@ -451,27 +487,31 @@ class _NuevoFleteState extends State<NuevoFlete> {
               child: Material(
                 elevation: 4.0,
                 child: Container(
-                  width: MediaQuery.of(context).size.width -
-                      73, // Ancho igual al TextField
+                  width: MediaQuery.of(context).size.width - 73,
                   color: Colors.black,
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    shrinkWrap:
-                        true, // Ajustar la altura del ListView al contenido
-                    itemBuilder: (BuildContext context, int index) {
-                      final ProyectoViewModel option = options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: ListTile(
-                          title: Text(option.proyNombre!,
+                  child: options.isEmpty
+                      ? ListTile(
+                          title: Text('No hay coincidencias',
                               style: TextStyle(color: Colors.white)),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.all(8.0),
+                          itemCount: options.length,
+                          shrinkWrap: true,
+                          itemBuilder: (BuildContext context, int index) {
+                            final ProyectoViewModel option =
+                                options.elementAt(index);
+                            return GestureDetector(
+                              onTap: () {
+                                onSelected(option);
+                              },
+                              child: ListTile(
+                                title: Text(option.proyNombre!,
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ),
             );
@@ -496,10 +536,12 @@ class _NuevoFleteState extends State<NuevoFlete> {
   }
 
   Widget _buildActividadAutocomplete(TextEditingController controller) {
+    FocusNode focusNode = FocusNode();
+
     return Autocomplete<ActividadPorEtapaViewModel>(
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
-          return actividades; // Mostrar las actividades filtradas
+          return actividades.isNotEmpty ? actividades : [];
         }
         return actividades.where((ActividadPorEtapaViewModel option) {
           return option.etapDescripcion!
@@ -513,6 +555,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
           TextEditingController textEditingController,
           FocusNode fieldFocusNode,
           VoidCallback onFieldSubmitted) {
+        focusNode = fieldFocusNode;
+        textEditingController.text = controller.text;
         return TextField(
           controller: textEditingController,
           focusNode: fieldFocusNode,
@@ -527,15 +571,30 @@ class _NuevoFleteState extends State<NuevoFlete> {
               color: Colors.red,
               fontSize: 12,
             ),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-              onPressed: () {
-                if (fieldFocusNode.hasFocus) {
-                  fieldFocusNode.unfocus();
-                } else {
-                  fieldFocusNode.requestFocus();
-                }
-              },
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (controller.text.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                    onPressed: () {
+                      setState(() {
+                        controller.clear();
+                        flete.boatId = null;
+                      });
+                    },
+                  ),
+                IconButton(
+                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                  onPressed: () {
+                    if (focusNode.hasFocus) {
+                      focusNode.unfocus();
+                    } else {
+                      focusNode.requestFocus();
+                    }
+                  },
+                ),
+              ],
             ),
           ),
           style: TextStyle(color: Colors.white),
@@ -549,34 +608,42 @@ class _NuevoFleteState extends State<NuevoFlete> {
           child: Material(
             elevation: 4.0,
             child: Container(
-              width: MediaQuery.of(context).size.width -
-                  73, // Ancho igual al TextField
+              width: MediaQuery.of(context).size.width - 73,
               color: Colors.black,
-              child: ListView.builder(
-                padding: EdgeInsets.all(8.0),
-                itemCount: options.length,
-                shrinkWrap: true, // Ajustar la altura del ListView al contenido
-                itemBuilder: (BuildContext context, int index) {
-                  final ActividadPorEtapaViewModel option =
-                      options.elementAt(index);
-                  return GestureDetector(
-                    onTap: () {
-                      onSelected(option);
-                    },
-                    child: ListTile(
-                      title: Text(option.etapDescripcion! + ' - ' + option.actiDescripcion!,
+              child: options.isEmpty
+                  ? ListTile(
+                      title: Text('No hay coincidencias',
                           style: TextStyle(color: Colors.white)),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.all(8.0),
+                      itemCount: options.length,
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int index) {
+                        final ActividadPorEtapaViewModel option =
+                            options.elementAt(index);
+                        return GestureDetector(
+                          onTap: () {
+                            onSelected(option);
+                          },
+                          child: ListTile(
+                            title: Text(
+                                option.etapDescripcion! +
+                                    ' - ' +
+                                    option.actiDescripcion!,
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ),
         );
       },
       onSelected: (ActividadPorEtapaViewModel selection) {
         setState(() {
-          controller.text = selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
+          controller.text =
+              selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
           flete.boatId = selection.acetId;
           _actividadError = false;
           _actividadErrorMessage = '';
@@ -713,14 +780,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _ubicacionSalidaErrorMessage =
             'La ubicación de salida no puede estar vacía';
       }
-      if (esProyecto && flete.boatId == null) {
+      if (esProyecto && flete.boatId == null && _noActividadesError == false) {
         _proyectoError = true;
-        _proyectoErrorMessage = 'Debe seleccionar un proyecto';
-      } else if (!esProyecto && flete.boatId == null) {
-        _ubicacionLlegadaError = true;
-        _ubicacionLlegadaErrorMessage =
-            'La ubicación de llegada no puede estar vacía';
-      } else if (flete.bollId == flete.boatId && !esProyecto) {
+        _proyectoErrorMessage = 'La ubicación de llegada no puede estar vacía';
+      }  else if (flete.bollId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma bodega.';
@@ -730,6 +793,12 @@ class _NuevoFleteState extends State<NuevoFlete> {
       if (esProyecto && actividades.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
         _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
+      }
+
+      if (esProyecto && _noActividadesError) {
+        _proyectoError = true;
+        _proyectoErrorMessage = 'El proyecto no tiene actividades, seleccione otro proyecto.';
+        return;
       }
 
       // Mostrar errores si los hay
@@ -829,7 +898,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
         child: _showInsumos ? _buildInsumosView() : _buildFleteView(),
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: _isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom : 0),
+        padding: EdgeInsets.only(
+            bottom: _isKeyboardVisible
+                ? MediaQuery.of(context).viewInsets.bottom
+                : 0),
         child: _showInsumos ? _buildInsumosBottomBar() : _buildFleteBottomBar(),
       ),
     );
@@ -1227,39 +1299,46 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
-  Widget _buildInsumosBottomBar() {
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ElevatedButton(
-            onPressed: _hideInsumosView,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            ),
-            child: Text(
-              'Regresar',
-              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+ Widget _buildInsumosBottomBar() {
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          onPressed: _hideInsumosView,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF171717),
+            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0), // Bordes menos redondeados
             ),
           ),
-          ElevatedButton(
-            onPressed: guardarFlete,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            ),
-            child: Text(
-              'Guardar',
-              style: TextStyle(color: Colors.black, fontSize: 15),
+          child: Text(
+            'Regresar',
+            style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: guardarFlete,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFFFF0C6),
+            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0), // Bordes menos redondeados
             ),
           ),
-        ],
-      ),
-    );
-  }
+          child: Text(
+            'Guardar',
+            style: TextStyle(color: Colors.black, fontSize: 15),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _fechaSalida() {
     return TextField(
@@ -1405,7 +1484,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
         return Autocomplete<EmpleadoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return empleados; // Mostrar todas las opciones cuando el campo está vacío
+              return empleados.isNotEmpty ? empleados : [];
             }
             return empleados.where((EmpleadoViewModel option) {
               return option.empleado!
@@ -1434,8 +1513,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 fillColor: Colors.black,
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: isError ? errorMessage : null,
-                errorMaxLines:
-                    3, // Permitir que el texto de error se expanda en varias líneas
+                errorMaxLines: 3,
                 errorStyle: TextStyle(
                   color: Colors.red,
                   fontSize: 12,
@@ -1446,20 +1524,41 @@ class _NuevoFleteState extends State<NuevoFlete> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFFFF0C6)),
                 ),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                  onPressed: () {
-                    if (focusNode.hasFocus) {
-                      focusNode.unfocus();
-                    } else {
-                      focusNode.requestFocus();
-                    }
-                  },
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (controller.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            controller.clear();
+                            if (label == 'Encargado') {
+                              flete.emtrId = null;
+                            } else if (label == 'Supervisor de Salida') {
+                              flete.emssId = null;
+                            } else if (label == 'Supervisor de Llegada') {
+                              flete.emslId = null;
+                            }
+                          });
+                        },
+                      ),
+                    IconButton(
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                      onPressed: () {
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
               style: TextStyle(color: Colors.white),
-              maxLines:
-                  null, // Permitir que el campo de texto se expanda para mostrar el mensaje completo
+              maxLines: null,
             );
           },
           optionsViewBuilder: (BuildContext context,
@@ -1470,28 +1569,31 @@ class _NuevoFleteState extends State<NuevoFlete> {
               child: Material(
                 elevation: 4.0,
                 child: Container(
-                  width: constraints.maxWidth, // Ancho igual al TextField
+                  width: constraints.maxWidth,
                   color: Colors.black,
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    shrinkWrap:
-                        true, // Ajustar la altura del ListView al contenido
-                    itemBuilder: (BuildContext context, int index) {
-                      final EmpleadoViewModel option = options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: ListTile(
-                          title: Text(
-                            '${option.empleado}',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                  child: options.isEmpty
+                      ? ListTile(
+                          title: Text('No hay coincidencias',
+                              style: TextStyle(color: Colors.white)),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.all(8.0),
+                          itemCount: options.length,
+                          shrinkWrap: true,
+                          itemBuilder: (BuildContext context, int index) {
+                            final EmpleadoViewModel option =
+                                options.elementAt(index);
+                            return GestureDetector(
+                              onTap: () {
+                                onSelected(option);
+                              },
+                              child: ListTile(
+                                title: Text(option.empleado!,
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ),
             );

@@ -932,9 +932,9 @@ class _EditarFleteState extends State<EditarFlete> {
           ),
         ],
       ),
-      body: _isLoading // Muestra el spinner mientras se cargan los datos
+      body: _isLoading
           ? Container(
-              color: Colors.black, // Fondo negro
+              color: Colors.black,
               child: Center(
                 child: SpinKitCircle(color: Color(0xFFFFF0C6)),
               ),
@@ -1278,34 +1278,44 @@ class _EditarFleteState extends State<EditarFlete> {
   }
 
   Widget _buildInsumosBottomBar() {
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ElevatedButton(
-            onPressed: _hideInsumosView,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          onPressed: _hideInsumosView,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF171717),
+            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0), // Bordes menos redondeados
             ),
-            child: Text('Regresar',
-                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15)),
           ),
-          ElevatedButton(
-            onPressed: guardarFlete,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+          child: Text(
+            'Regresar',
+            style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: guardarFlete,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFFFF0C6),
+            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0), // Bordes menos redondeados
             ),
-            child: Text('Guardar',
-                style: TextStyle(color: Colors.black, fontSize: 15)),
           ),
-        ],
-      ),
-    );
-  }
+          child: Text(
+            'Guardar',
+            style: TextStyle(color: Colors.black, fontSize: 15),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _fechaSalida() {
     return TextField(
@@ -1446,66 +1456,106 @@ class _EditarFleteState extends State<EditarFlete> {
 
     FocusNode focusNode = FocusNode();
 
+    // Agregamos un listener para capturar lo que se escribe en el input
+    controller.addListener(() {
+      print("Texto en el input: ${controller.text}");
+    });
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<EmpleadoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text.isEmpty) {
+            final query = textEditingValue.text
+                .trim()
+                .toLowerCase(); // Elimina espacios y convierte a minúsculas
+            if (query.isEmpty) {
+              print('Mostrando todos los empleados');
               return empleados;
             }
+
+            print('Texto que se busca: $query');
+
             return empleados.where((EmpleadoViewModel option) {
-              return option.empleado!
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase()) ||
-                  option.emplDNI!
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase());
-            });
+              final empleadoName = option.empleado!
+                  .toLowerCase(); // Convierte a minúsculas para una comparación más robusta
+              final match = empleadoName.contains(
+                  query); // Comprueba si el nombre contiene el texto buscado
+              if (match) {
+                print('Coincidencia encontrada: ${option.empleado}');
+              }
+              return match;
+            }).toList();
           },
           displayStringForOption: (EmpleadoViewModel option) =>
               option.empleado!,
           fieldViewBuilder: (BuildContext context,
-              TextEditingController textEditingController,
-              FocusNode fieldFocusNode,
-              VoidCallback onFieldSubmitted) {
-            focusNode = fieldFocusNode;
-            textEditingController.text = controller.text;
-            return TextField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                labelText: label,
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.black,
-                labelStyle: TextStyle(color: Colors.white),
-                errorText: isError ? errorMessage : null,
-                errorMaxLines: 3,
-                errorStyle: TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                  onPressed: () {
-                    if (focusNode.hasFocus) {
-                      focusNode.unfocus();
-                    } else {
-                      focusNode.requestFocus();
-                    }
-                  },
-                ),
-              ),
-              style: TextStyle(color: Colors.white),
-              maxLines: null,
-            );
-          },
+    TextEditingController textEditingController,
+    FocusNode fieldFocusNode,
+    VoidCallback onFieldSubmitted) {
+    
+  // Aquí sincronizamos el valor del controlador
+  textEditingController.value = controller.value.copyWith();
+  
+  focusNode = fieldFocusNode;
+
+  return TextField(
+    controller: textEditingController,
+    focusNode: focusNode,
+    decoration: InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(),
+      filled: true,
+      fillColor: Colors.black,
+      labelStyle: TextStyle(color: Colors.white),
+      errorText: isError ? errorMessage : null,
+      errorMaxLines: 3,
+      errorStyle: TextStyle(
+        color: Colors.red,
+        fontSize: 12,
+      ),
+      errorBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+      ),
+      suffixIcon: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (controller.text.isNotEmpty)
+            IconButton(
+              icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+              onPressed: () {
+                setState(() {
+                  controller.clear();
+                  if (label == 'Encargado') {
+                    flete.emtrId = null;
+                  } else if (label == 'Supervisor de Salida') {
+                    flete.emssId = null;
+                  } else if (label == 'Supervisor de Llegada') {
+                    flete.emslId = null;
+                  }
+                });
+              },
+            ),
+          IconButton(
+            icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+            onPressed: () {
+              if (focusNode.hasFocus) {
+                focusNode.unfocus();
+              } else {
+                focusNode.requestFocus();
+              }
+            },
+          ),
+        ],
+      ),
+    ),
+    style: TextStyle(color: Colors.white),
+    maxLines: null,
+  );
+},
+
           optionsViewBuilder: (BuildContext context,
               AutocompleteOnSelected<EmpleadoViewModel> onSelected,
               Iterable<EmpleadoViewModel> options) {
@@ -1527,7 +1577,7 @@ class _EditarFleteState extends State<EditarFlete> {
                           onSelected(option);
                         },
                         child: ListTile(
-                          title: Text('${option.empleado}',
+                          title: Text(option.empleado!,
                               style: TextStyle(color: Colors.white)),
                         ),
                       );
@@ -1547,6 +1597,10 @@ class _EditarFleteState extends State<EditarFlete> {
               } else if (label == 'Supervisor de Llegada') {
                 flete.emslId = selection.emplId;
               }
+              // Esto asegura que el campo de texto se actualice visualmente
+              controller.selection = TextSelection.fromPosition(
+                TextPosition(offset: controller.text.length),
+              );
             });
           },
         );

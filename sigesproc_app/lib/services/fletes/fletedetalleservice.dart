@@ -72,6 +72,7 @@ class FleteDetalleService {
       throw Exception('Error al cargar los datos');
     }
   }
+  
   static Future<List<FleteDetalleViewModel>> listarDetallesdeFlete(int flenId) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Buscar/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
