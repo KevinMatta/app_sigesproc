@@ -985,77 +985,120 @@ class _EditarFleteState extends State<EditarFlete> {
     );
   }
 
-   Future<void> editarFlete() async {
-    flete.usuaModificacion = 3;
-    flete.flenFechaHoraLlegada = null;
-    print('Flete data: ${flete.toJson()}');
+  Future<void> editarFlete() async {
+    try {
+      flete.usuaModificacion = 3;
+      flete.usuaCreacion = 3;
+      flete.flenFechaHoraLlegada = null;
 
-    // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
-    bool hayCantidadesInvalidas = false;
-    for (int i = 0; i < selectedInsumos.length; i++) {
-      int? stock = selectedInsumos[i].bopiStock;
-      int? cantidad = int.tryParse(quantityControllers[i].text);
+      print('Flete data: ${flete.toJson()}');
 
-      if (cantidad == null || cantidad <= 0) {
-        print(
-            'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
-        quantityControllers[i].text = '1';
-        selectedCantidades[i] = 1;
-        hayCantidadesInvalidas = true;
-      } else if (cantidad > stock!) {
-        print(
-            'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
-        quantityControllers[i].text = stock.toString();
-        selectedCantidades[i] = stock;
-        hayCantidadesInvalidas = true;
-      } else {
-        selectedCantidades[i] = cantidad;
-      }
-    }
-
-    if (hayCantidadesInvalidas) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Cantidades ajustadas. Por favor, revise las cantidades.')),
-      );
-      return;
-    }
-
-    if (selectedInsumos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Debe seleccionar al menos un insumo')),
-      );
-      return;
-    }
-
-    final int? newId = widget.flenId;
-    if (newId != null) {
-      print('New Flete ID: $newId');
+      // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
+      bool hayCantidadesInvalidas = false;
       for (int i = 0; i < selectedInsumos.length; i++) {
-        final detalle = FleteDetalleViewModel(
-          fldeCantidad: selectedCantidades[i],
-          fldeTipodeCarga: true,
-          flenId: newId,
-          inppId: selectedInsumos[i].inppId,
-          usuaModificacion: 3,
-          usuaCreacion: 3,
-        );
-        print('Detalle data: ${detalle.toJson()}');
-        await FleteDetalleService.insertarFleteDetalle(detalle);
+        int? stock = selectedInsumos[i].bopiStock;
+        int? cantidad = int.tryParse(quantityControllers[i].text);
+
+        if (cantidad == null || cantidad <= 0) {
+          print(
+              'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+          quantityControllers[i].text = '1';
+          selectedCantidades[i] = 1;
+          hayCantidadesInvalidas = true;
+        } else if (cantidad > stock!) {
+          print(
+              'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+          quantityControllers[i].text = stock.toString();
+          selectedCantidades[i] = stock;
+          hayCantidadesInvalidas = true;
+        } else {
+          selectedCantidades[i] = cantidad;
+        }
       }
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Flete(),
-        ),
-      );
+
+      if (hayCantidadesInvalidas) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Cantidades ajustadas. Por favor, revise las cantidades.')),
+        );
+        return;
+      }
+
+      if (selectedInsumos.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Debe seleccionar al menos un insumo')),
+        );
+        return;
+      }
+
+      final int? newId = widget.flenId;
+      if (newId != null) {
+        print('New Flete ID: $newId');
+
+        // Obtener los detalles existentes para verificar cambios
+        final detallesExistentes =
+            await FleteDetalleService.listarDetallesdeFlete(newId);
+
+        // Insertar o actualizar detalles
+       for (int i = 0; i < selectedInsumos.length; i++) {
+  final detalleExistente = detallesExistentes.firstWhere(
+    (detalle) => detalle.inppId == selectedInsumos[i].inppId,
+    orElse: () => FleteDetalleViewModel(), // Crear un objeto vacío
+  );
+
+  final detalle = FleteDetalleViewModel(
+    fldeId: detalleExistente.fldeId,  // Solo se pasa si existe, en caso de creación será null
+    fldeCantidad: selectedCantidades[i],
+    fldeTipodeCarga: true,
+    flenId: newId,
+    inppId: selectedInsumos[i].inppId,
+    usuaModificacion: 3,
+    usuaCreacion: 3,
+  );
+
+  if (detalleExistente.fldeId != null) {
+    // Actualizar detalle existente
+    await FleteDetalleService.editarFleteDetalle(detalle);
+  } else {
+    // Insertar nuevo detalle
+    await FleteDetalleService.insertarFleteDetalle(detalle);
+  }
+}
+
+
+        // Eliminar insumos que fueron desmarcados
+        for (var detalle in detallesExistentes) {
+          final insumoCorrespondiente = selectedInsumos.firstWhere(
+            (insumo) => insumo.inppId == detalle.inppId,
+            orElse: () =>
+                InsumoPorProveedorViewModel(inppId: 0), // Crear un objeto vacío
+          );
+
+          if (insumoCorrespondiente == null) {
+            await FleteDetalleService.Eliminar(detalle.fldeId!);
+          }
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Flete(),
+          ),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Flete enviado con éxito')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al enviar el flete')),
+        );
+      }
+    } catch (e) {
+      print('Error al editar el flete: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Flete enviado con éxito')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al enviar el flete')),
+        SnackBar(content: Text('Ocurrió un error al editar el flete')),
       );
     }
   }
