@@ -127,7 +127,9 @@ class LineaDeTiempo extends StatelessWidget {
                                     Text(
                                       etapa.etapDescripcion ?? 'N/A',
                                       style: TextStyle(
-                                        color: Color(0xFFFFF0C6),
+                                        color: etapa.etprEstado == true
+                                            ? Colors.green
+                                            : Colors.red,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -148,14 +150,14 @@ class LineaDeTiempo extends StatelessWidget {
                                 Text(
                                   _formatDate(etapa.etprFechaInicio),
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Color(0xFFFFF0C6),
                                     fontSize: 10, 
                                   ),
                                 ),
                                 Text(
                                   _formatDate(etapa.etprFechaFin),
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Color(0xFFFFF0C6),
                                     fontSize: 10, 
                                   ),
                                 ),
