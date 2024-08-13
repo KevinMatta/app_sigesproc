@@ -1,5 +1,5 @@
 class InsumoPorProveedorViewModel {
-  int inppId;
+  int? inppId;
   int? insuId;
   int? provId;
   num? inppPreciocompra;
@@ -26,7 +26,7 @@ class InsumoPorProveedorViewModel {
   int? stockRestante;
 
   InsumoPorProveedorViewModel({
-    required this.inppId,
+    this.inppId,
     this.insuId,
     this.provId,
     this.inppPreciocompra,

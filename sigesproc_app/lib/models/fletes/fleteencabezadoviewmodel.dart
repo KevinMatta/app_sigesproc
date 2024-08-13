@@ -112,6 +112,7 @@ class FleteEncabezadoViewModel {
       'estado': estado,
       'salida': salida,
       'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
+      'flen_FechaHoraLlegada': flenFechaHoraLlegada?.toIso8601String(),
       'flen_FechaHoraEstablecidaDeLlegada':
           flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
       'flen_Estado': flenEstado,
@@ -127,10 +128,6 @@ class FleteEncabezadoViewModel {
       'inpp_Observacion': inppObservacion,
     };
 
-    if (flenFechaHoraLlegada != null) {
-      data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
-    }
-
     if (flenFechaCreacion != null) {
       data['flen_FechaCreacion'] = flenFechaCreacion?.toIso8601String();
     }
@@ -144,6 +141,6 @@ class FleteEncabezadoViewModel {
 
    @override
   String toString() {
-    return 'FleteEncabezadoViewModel(flenId: $flenId, $supervisorSalida, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, bollId: $bollId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion, flenEstadoFlete: $flenEstadoFlete)';
+    return 'FleteEncabezadoViewModel(flenId: $flenId, $supervisorSalida, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, bollId: $bollId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion, flenEstadoFlete: $flenEstadoFlete)';
   }
 }

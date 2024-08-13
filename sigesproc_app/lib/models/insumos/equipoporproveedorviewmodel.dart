@@ -1,12 +1,12 @@
 class EquipoPorProveedorViewModel {
-  int eqppId;
+  int? eqppId;
   int? equsId;
   int? provId;
   num? eqppPreciocompra;
-  int usuaCreacion;
-  DateTime eqppFechaCreacion;
+  int? usuaCreacion;
+  DateTime? equsFechaCreacion;
   int? usuaModificacion;
-  DateTime? eqppFechaModificacion;
+  DateTime? equsFechaModificacion;
   int? codigo;
   String? equsDescripcion;
   String? equsNombre;
@@ -16,18 +16,16 @@ class EquipoPorProveedorViewModel {
   int? bopiStock;
   String? usuaCreacionNombre;
   String? usuaModificacionNombre;
-  int cantidad;
-  bool? fldeTipodeCarga;
 
   EquipoPorProveedorViewModel({
-    required this.eqppId,
+    this.eqppId,
     this.equsId,
     this.provId,
     this.eqppPreciocompra,
-    required this.usuaCreacion,
-    required this.eqppFechaCreacion,
+    this.usuaCreacion,
+    this.equsFechaCreacion,
     this.usuaModificacion,
-    this.eqppFechaModificacion,
+    this.equsFechaModificacion,
     this.codigo,
     this.equsDescripcion,
     this.equsNombre,
@@ -37,8 +35,6 @@ class EquipoPorProveedorViewModel {
     this.bopiStock,
     this.usuaCreacionNombre,
     this.usuaModificacionNombre,
-    required this.cantidad,
-    this.fldeTipodeCarga,
   });
 
   factory EquipoPorProveedorViewModel.fromJson(Map<String, dynamic> json) {
@@ -48,10 +44,12 @@ class EquipoPorProveedorViewModel {
       provId: json['prov_Id'],
       eqppPreciocompra: json['eqpp_Preciocompra']?.toDouble(),
       usuaCreacion: json['usua_Creacion'],
-      eqppFechaCreacion: DateTime.parse(json['eqpp_FechaCreacion']),
+      equsFechaCreacion: json['equs_FechaCreacion'] != null
+          ? DateTime.parse(json['equs_FechaCreacion'])
+          : null,
       usuaModificacion: json['usua_Modificacion'],
-      eqppFechaModificacion: json['eqpp_FechaModificacion'] != null
-          ? DateTime.parse(json['eqpp_FechaModificacion'])
+      equsFechaModificacion: json['equs_FechaModificacion'] != null
+          ? DateTime.parse(json['equs_FechaModificacion'])
           : null,
       codigo: json['codigo'],
       equsDescripcion: json['equs_Descripcion'],
@@ -62,8 +60,6 @@ class EquipoPorProveedorViewModel {
       bopiStock: json['bopi_Stock'],
       usuaCreacionNombre: json['usuaCreacion'],
       usuaModificacionNombre: json['usuaModificacion'],
-      cantidad: json['cantidad'],
-      fldeTipodeCarga: json['flde_TipodeCarga'],
     );
   }
 
@@ -74,9 +70,9 @@ class EquipoPorProveedorViewModel {
       'prov_Id': provId,
       'eqpp_Preciocompra': eqppPreciocompra,
       'usua_Creacion': usuaCreacion,
-      'eqpp_FechaCreacion': eqppFechaCreacion.toIso8601String(),
+      'eqpp_FechaCreacion': equsFechaCreacion?.toIso8601String(),
       'usua_Modificacion': usuaModificacion,
-      'eqpp_FechaModificacion': eqppFechaModificacion?.toIso8601String(),
+      'eqpp_FechaModificacion': equsFechaModificacion?.toIso8601String(),
       'codigo': codigo,
       'equs_Descripcion': equsDescripcion,
       'equs_Nombre': equsNombre,
@@ -86,8 +82,6 @@ class EquipoPorProveedorViewModel {
       'bopi_Stock': bopiStock,
       'usuaCreacion': usuaCreacionNombre,
       'usuaModificacion': usuaModificacionNombre,
-      'cantidad': cantidad,
-      'flde_TipodeCarga': fldeTipodeCarga,
     };
   }
 }

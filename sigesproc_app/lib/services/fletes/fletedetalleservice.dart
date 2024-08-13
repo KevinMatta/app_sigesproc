@@ -104,6 +104,7 @@ class FleteDetalleService {
         Uri.parse('${ApiService.apiUrl}/FleteDetalle/Eliminar/$fldeId');
     final response =
         await http.delete(url, headers: ApiService.getHttpHeaders());
+    print('response eliminar $response');
     if (response.statusCode != 200) {
       throw Exception('Error al eliminar el flete detalle');
     }
