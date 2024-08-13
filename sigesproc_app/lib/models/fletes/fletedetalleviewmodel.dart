@@ -24,6 +24,7 @@ class FleteDetalleViewModel {
   String? unmeNomenclatura;
   bool? verificado;
   bool? fldeLlegada;
+  bool? fldeTipodeCarga;
 
   FleteDetalleViewModel({
     this.codigo,
@@ -51,6 +52,7 @@ class FleteDetalleViewModel {
     this.unmeNomenclatura,
     this.verificado,
     this.fldeLlegada,
+    this.fldeTipodeCarga,
   });
 
   factory FleteDetalleViewModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +82,7 @@ class FleteDetalleViewModel {
       unmeNomenclatura: json['unme_Nomenclatura'],
       verificado: json['verificado'],
       fldeLlegada: json['flde_llegada'],
+      fldeTipodeCarga: json['flde_TipodeCarga'],
     );
   }
 
@@ -158,6 +161,9 @@ class FleteDetalleViewModel {
     }
     if (fldeLlegada != null) {
       data['flde_llegada'] = fldeLlegada;
+    }
+    if (fldeTipodeCarga != null) {
+      data['flde_TipodeCarga'] = fldeTipodeCarga;
     }
 
     return data;

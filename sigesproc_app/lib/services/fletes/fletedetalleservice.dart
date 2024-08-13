@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
+import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/insumoporproveedorviewmodel.dart';
 import '../apiservice.dart';
 
@@ -12,6 +13,17 @@ class FleteDetalleService {
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => InsumoPorProveedorViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+  static Future<List<EquipoPorProveedorViewModel>> listarEquiposdeSeguridadPorBodega(int bodeId) async {
+    final url = Uri.parse('${ApiService.apiUrl}/EquipoSeguridad/BuscarEquipoPorProveedor/$bodeId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => EquipoPorProveedorViewModel.fromJson(json)).toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
@@ -72,6 +84,7 @@ class FleteDetalleService {
       throw Exception('Error al cargar los datos');
     }
   }
+  
   static Future<List<FleteDetalleViewModel>> listarDetallesdeFlete(int flenId) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Buscar/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
@@ -83,6 +96,17 @@ class FleteDetalleService {
           .toList();
     } else {
       throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<void> Eliminar(int fldeId) async {
+    final url =
+        Uri.parse('${ApiService.apiUrl}/FleteDetalle/Eliminar/$fldeId');
+    final response =
+        await http.delete(url, headers: ApiService.getHttpHeaders());
+    print('response eliminar $response');
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar el flete detalle');
     }
   }
 

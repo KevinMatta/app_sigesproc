@@ -3,6 +3,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
+import 'package:sigesproc_app/screens/fletes/verificacionflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'detalleflete.dart';
@@ -130,7 +131,12 @@ class _FleteState extends State<Flete> {
                   ),
                 );
               } else if (result == 4) {
-                // "Verificar"
+                 Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VerificarFlete(flenId: flete.flenId!),
+                  ),
+                );
               } 
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
@@ -212,12 +218,7 @@ class _FleteState extends State<Flete> {
               try {
                 await FleteEncabezadoService.Eliminar(flete.flenId!);
                 setState(() {
-                  print(_filteredFletes);
-                  print(flete);
                   _filteredFletes.remove(flete);
-                  print('entra a borrar');
-                  print(_filteredFletes.remove(flete));
-                  print(_filteredFletes);
                 });
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
