@@ -62,19 +62,31 @@ class _ProyectoState extends State<Proyecto> {
     super.dispose();
   }
 
-  void _proyectoFiltrado() {
-    final query = _searchController.text.toLowerCase();
-    if (_proyectosFuture != null) {
-      _proyectosFuture!.then((proyectos) {
-        setState(() {
-          _proyectosFiltrados = proyectos.where((proyecto) {
-            final salida = proyecto.proyNombre?.toLowerCase() ?? '';
-            return salida.contains(query);
-          }).toList();
-        });
+void _proyectoFiltrado() {
+  final query = _searchController.text.toLowerCase();
+  if (_proyectosFuture != null) {
+    _proyectosFuture!.then((proyectos) {
+      setState(() {
+        _proyectosFiltrados = proyectos.where((proyecto) {
+          final salida = proyecto.proyNombre?.toLowerCase() ?? '';
+          return salida.contains(query);
+        }).toList();
+
+        // Ajustar la página actual solo si es necesario (para evitar desbordamiento)
+        final totalRecords = _proyectosFiltrados.length;
+        if (totalRecords == 0) {
+          _currentPage = 0; // Restablecer la página a 0 si no hay registros
+        } else {
+          final maxPages = (totalRecords / _rowsPerPage).ceil();
+          if (_currentPage >= maxPages) {
+            _currentPage = maxPages - 1; // Ajustar a la última página válida
+          }
+        }
       });
-    }
+    });
   }
+}
+
 
   void _toggleExpansion(int projectId) {
     setState(() {
@@ -100,10 +112,11 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
     builder: (BuildContext context) {
       return Dialog(
         child: Container(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 22.0),
           decoration: BoxDecoration(
             color: Color(0xFF171717),
             borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(color: Color(0xFFFFF0C6), width: 2),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -112,19 +125,13 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Aplicamos el truncado manual
-                  Expanded(
-                    child: Text(
-                      'Proyecto: ${_truncateWithEllipsis(15, proyecto.proyNombre ?? "N/A")}',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  Icon(
+                    Icons.adjust,
+                    color: proyecto.proyEstado == true ? Colors.green : Colors.red,
+                    size: 25,
                   ),
                   IconButton(
-                    icon: Icon(Icons.cancel_outlined, color: Color(0xFFFFF0C6)),  // Cambia el color del icono de cerrar
+                    icon: Icon(Icons.cancel_outlined, color: Color(0xFFFFF0C6)),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -132,59 +139,178 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
                 ],
               ),
               SizedBox(height: 10),
-              Text(
-                'Descripción: ${proyecto.proyDescripcion ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
+              Center(
+                child: Text(
+                  'Proyecto',
+                  style: TextStyle(
+                    color: Color(0xFFFFF0C6),
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              Text(
-                'Fecha Inicio: ${_formatDate(proyecto.proyFechaInicio)}',
-                style: TextStyle(color: Colors.white),
-              ),
-              Text(
-                'Fecha Fin: ${_formatDate(proyecto.proyFechaFin)}',
-                style: TextStyle(color: Colors.white),
-              ),
-              Text(
-                'Dirección: ${proyecto.proyDireccionExacta ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
+              Center(
+                child: Text(
+                  '( ${proyecto.proyNombre ?? "N/A"} )',
+                  style: TextStyle(
+                    color: Color(0xFFFFF0C6),
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               SizedBox(height: 10),
-              // Placeholder para la imagen
               Container(
-                height: 200,
-                color: Colors.grey,
-                child: Center(
-                  child: Text(
-                    'Espacio para Imagen',
-                    style: TextStyle(color: Colors.white),
+                height: 180,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    'https://www.ulmaconstruction.com.mx/es-mx/proyectos/construcciones-industriales-energeticas/fabrica-de-tequila/@@images/cd5843a7-6296-4ef0-9d07-b0ef4668a103.jpeg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Text(
+                            'Imagen no disponible',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
               SizedBox(height: 10),
               Text(
-                'Estado: ${proyecto.proyEstado == true ? "Activo" : "Inactivo"}',
-                style: TextStyle(color: Colors.white),
-              ),
-              Text(
-                'Estado Nombre: ${proyecto.estaNombre ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
-              ),
-              Text(
-                'País: ${proyecto.paisNombre ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
-              ),
-              Text(
-                'Ciudad: ${proyecto.ciudDescripcion ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
-              ),
-              Text(
                 'Cliente: ${proyecto.clieNombreCompleto ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Color(0xFFF4EAD5)),
               ),
               Text(
-                'Especificación: ${proyecto.esprDescripcion ?? "N/A"}',
-                style: TextStyle(color: Colors.white),
+                'Estado: ${proyecto.proyEstado == true ? "En Ejecución" : "Finalizado"}',
+                style: TextStyle(color: Color(0xFFF4EAD5)),
               ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Progreso:',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: 0.5, // Simulación del progreso
+                              backgroundColor: Colors.grey,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4EAD5)),
+                              minHeight: 20,
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: Text(
+                            '50%', // porcentaje
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(128, 38, 38, 38),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 5,
+                      height: 40,
+                      color: Colors.green,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Notificación',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Ha iniciado el Proyecto',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.notifications_none_outlined, color: Color(0xFFFFF0C6), size: 20),
+                  ],
+                ),
+              ),
+              SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(128, 38, 38, 38),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 5,
+                      height: 40,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Alerta',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'No están los materiales en la obra',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.notifications_none_outlined, color: Color(0xFFFFF0C6), size: 20),
+                  ],
+                ),
+              ),
+
             ],
           ),
         ),
@@ -192,6 +318,8 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
     },
   );
 }
+
+
 
 
 
@@ -309,7 +437,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
       width: double.infinity,  // Ocupa todo el ancho disponible
       margin: EdgeInsets.symmetric(vertical: 4.0),
       decoration: BoxDecoration(
-        color: Color(0xFF171717),
+        color: Color.fromARGB(130, 23, 23, 23),
         borderRadius: BorderRadius.circular(5),
       ),
       child: Padding(

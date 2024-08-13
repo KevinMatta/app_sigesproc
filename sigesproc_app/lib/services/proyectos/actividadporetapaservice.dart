@@ -24,19 +24,34 @@ class ActividadesPorEtapaService {
   //   return actividades.where((actividad) => actividad.proyId == proyId).toList();
   // }
   
-    static Future<List<ActividadesPorEtapaViewModel>> listarActividadPorEtapa(int id) async {
-    final url = Uri.parse('${ApiService.apiUrl}/ActividadPorEtapa/Listar/$id');
-    final response = await http.post(url, headers: ApiService.getHttpHeaders());
+  static Future<List<ActividadesPorEtapaViewModel>> listarActividadPorEtapa(int id) async {
+  final url = Uri.parse('${ApiService.apiUrl}/ActividadPorEtapa/Listar');
+  final response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json', 
+      ...ApiService.getHttpHeaders(), 
+    },
+    body: json.encode(id), // Se envía el id en el cuerpo de la solicitud
+  );
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    if (responseData['success'] == true && responseData['code'] == 200) {
+      List<dynamic> data = responseData['data'];
       return data
           .map((json) => ActividadesPorEtapaViewModel.fromJson(json))
           .toList();
     } else {
-      throw Exception('Error al cargar los datos');
+      throw Exception('Error en la operación: ${responseData['message']}');
     }
+  } else {
+    throw Exception('Error al cargar los datos');
   }
+}
+
+
 
 
 
