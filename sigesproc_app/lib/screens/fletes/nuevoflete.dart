@@ -279,10 +279,12 @@ class _NuevoFleteState extends State<NuevoFlete> {
 
   Future<void> _cargarEquiposDeSeguridadPorBodega(int bodeId) async {
     try {
+      print('entra a equi');
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorBodega(bodeId);
       setState(() {
         equiposdeSeguridad = equiposList;
+        print('equipos $equiposdeSeguridad');
         equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
             (index) => TextEditingController(text: '1'));
         selectedCantidadesequipos =
@@ -752,6 +754,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
       if (flete.flenFechaHoraSalida == null) {
         _fechaSalidaError = true;
         _fechaSalidaErrorMessage = 'La fecha de salida no puede estar vacía';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fecha de salida inválida')),
+        );
       }
 
       // Validar Fecha y Hora Establecida de Llegada
@@ -759,12 +764,18 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
             'La fecha de llegada no puede estar vacía';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fecha de llegada inválida.')),
+        );
       } else if (flete.flenFechaHoraSalida != null &&
           flete.flenFechaHoraSalida!
               .isAfter(flete.flenFechaHoraEstablecidaDeLlegada!)) {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
             'La fecha de salida no puede ser posterior a la de llegada.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fechas Inválidas.')),
+        );
       } else if (flete.flenFechaHoraEstablecidaDeLlegada!
               .difference(flete.flenFechaHoraSalida!)
               .inMinutes <
@@ -772,37 +783,58 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
             'Debe haber al menos 5 minutos de diferencia entre salida y llegada.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fechas Inválidas.')),
+        );
       }
 
       // Validar Empleados
       if (flete.emtrId == null) {
         _isEmpleadoError = true;
         _empleadoErrorMessage = 'El encargado no puede estar vacío';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Empleado encargado inválido.')),
+        );
       }
       if (flete.emssId == null) {
         _isSupervisorSalidaError = true;
         _supervisorSalidaErrorMessage =
             'El supervisor de salida no puede estar vacío';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Empleado supervisor inválido.')),
+        );
       }
       if (flete.emslId == null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'El supervisor de llegada no puede estar vacío';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Empleado supervisor inválido.')),
+        );
       }
       if (flete.emtrId == flete.emssId && flete.emtrId != null) {
         _isSupervisorSalidaError = true;
         _supervisorSalidaErrorMessage =
             'El supervisor de salida debe ser diferente al encargado';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Empleados Inválidos.')),
+        );
       }
       if (flete.emtrId == flete.emslId && flete.emtrId != null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'El supervisor de llegada debe ser diferente al encargado';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Empleados Inválidos.')),
+        );
       }
       if (flete.emssId == flete.emslId && flete.emssId != null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'El supervisor de llegada debe ser diferente al de salida';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Supervisores Inválidos.')),
+        );
       }
       if (flete.emtrId == flete.emssId &&
           flete.emssId == flete.emslId &&
@@ -811,6 +843,9 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'Los supervisores deben ser diferentes';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Supervisores Inválidos.')),
+        );
       }
 
       // Validar Ubicaciones
@@ -818,23 +853,35 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
             'La ubicación de salida no puede estar vacía';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ubicación Inválida.')),
+        );
       }
       if (flete.bollId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma bodega.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ubicaciones Inválidas.')),
+        );
       }
 
       // Validar Actividad por Etapa
       if (esProyecto && actividades.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
         _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ubicacion de llegada inválida.')),
+        );
       }
 
       if (esProyecto && _noActividadesError && flete.boatId == null) {
         _proyectoError = true;
         _proyectoErrorMessage =
             'El proyecto no tiene actividades, seleccione otro.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ubicacion de llegada inválida.')),
+        );
         return;
       }
 
@@ -951,22 +998,34 @@ class _NuevoFleteState extends State<NuevoFlete> {
       flete.flenDestinoProyecto = false;
     }
 
-    print('Flete data: ${flete.toJson()}');
-
     // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
     bool hayCantidadesInvalidas = false;
     bool hayCantidadesInvalidase = false;
 
+    // Filtrar insumos con cantidades inválidas o nulas
+    selectedInsumos.removeWhere((insumo) {
+      int? cantidad = int.tryParse(
+          quantityControllers[selectedInsumos.indexOf(insumo)].text);
+      if (cantidad == null || cantidad <= 0) {
+        print(
+            'Eliminando insumo ${insumo.insuDescripcion} con cantidad nula o inválida.');
+        return true; // Eliminar el insumo del arreglo
+      }
+      return false;
+    });
+
+    // Verificar cantidades restantes en insumos
     for (int i = 0; i < selectedInsumos.length; i++) {
       int? stock = selectedInsumos[i].bopiStock;
       int? cantidad = int.tryParse(quantityControllers[i].text);
 
-      if (cantidad == null || cantidad <= 0) {
+      if (cantidad! <= 0) {
         print(
             'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
         quantityControllers[i].text = '1';
         selectedCantidades[i] = 1;
         hayCantidadesInvalidas = true;
+      } else if (cantidad == null) {
       } else if (cantidad > stock!) {
         print(
             'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
@@ -978,19 +1037,33 @@ class _NuevoFleteState extends State<NuevoFlete> {
       }
     }
 
+    // Filtrar equipos con cantidades inválidas o nulas
+    selectedEquipos.removeWhere((equipo) {
+      int? cantidad = int.tryParse(
+          equipoQuantityControllers[selectedEquipos.indexOf(equipo)].text);
+      if (cantidad == null || cantidad <= 0) {
+        print(
+            'Eliminando equipo ${equipo.equsNombre} con cantidad nula o inválida.');
+        return true; // Eliminar el equipo del arreglo
+      }
+      return false;
+    });
+
+    // Verificar cantidades restantes en equipos
     for (int i = 0; i < selectedEquipos.length; i++) {
       int? stocke = selectedEquipos[i].bopiStock;
       int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
 
-      if (cantidade == null || cantidade <= 0) {
+      if (cantidade! <= 0 ) {
         print(
             'Cantidad inválida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
         equipoQuantityControllers[i].text = '1';
         selectedCantidadesequipos[i] = 1;
         hayCantidadesInvalidase = true;
+      } else if (cantidade == null) {
       } else if (cantidade > stocke!) {
         print(
-            'Cantidad excedida para insumo ${selectedEquipos[i].equsNombre}: $cantidade');
+            'Cantidad excedida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
         equipoQuantityControllers[i].text = stocke.toString();
         selectedCantidadesequipos[i] = stocke;
         hayCantidadesInvalidase = true;
@@ -1032,6 +1105,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
     print('fleteaa $flete');
 
     final int? flenIdNuevo = await FleteEncabezadoService.insertarFlete(flete);
+    print('guardo e id $flenIdNuevo');
     if (flenIdNuevo != null) {
       for (int i = 0; i < selectedInsumos.length; i++) {
         final detalle = FleteDetalleViewModel(
@@ -1159,242 +1233,246 @@ class _NuevoFleteState extends State<NuevoFlete> {
     );
   }
 
-  Widget _buildInsumosView() {
-    final empleado = empleados.firstWhere(
-      (emp) => emp.emplId == flete.emssId,
-      orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A'),
-    );
+ Widget _buildInsumosView() {
+  final empleado = empleados.firstWhere(
+    (emp) => emp.emplId == flete.emssId,
+    orElse: () => EmpleadoViewModel(emplId: 0, empleado: 'N/A'),
+  );
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Supervisor de envío: ${empleado.emplNombre} ${empleado.emplApellido}',
-                style: TextStyle(fontSize: 16, color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                'Flete del ${DateFormat('EEE d MMM, hh:mm a').format(flete.flenFechaHoraSalida ?? DateTime.now())}',
-                style: TextStyle(fontSize: 14, color: Colors.white70),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Equipos de Seguridad',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+  return Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Supervisor de envío: ${empleado.emplNombre} ${empleado.emplApellido}',
+              style: TextStyle(fontSize: 16, color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              'Flete del ${DateFormat('EEE d MMM, hh:mm a').format(flete.flenFechaHoraSalida ?? DateTime.now())}',
+              style: TextStyle(fontSize: 14, color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Equipos de Seguridad',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                Switch(
+                  value: _showEquiposDeSeguridad,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _showEquiposDeSeguridad = value;
+                      if (_showEquiposDeSeguridad) {
+                        _cargarEquiposDeSeguridadPorBodega(flete.bollId!);
+                      }
+                    });
+                  },
+                  activeColor: Color(0xFFFFF0C6),
+                )
+              ],
+            ),
+          ],
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: ListView.builder(
+            itemCount: _showEquiposDeSeguridad
+                ? equiposdeSeguridad.length
+                : insumos.length,
+            itemBuilder: (context, index) {
+              if (_showEquiposDeSeguridad) {
+                // Renderizar Equipos de Seguridad
+                final equipo = equiposdeSeguridad[index];
+                int? stockE = equipo.bopiStock;
+                int cantidadE = selectedCantidadesequipos.length > index
+                    ? selectedCantidadesequipos[index]
+                    : 0;
+                bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
+
+                return ListTile(
+                  title: Text(
+                    '${equipo.equsNombre ?? ''}',
+                    style: TextStyle(color: Colors.white),
                   ),
-                  Switch(
-                    value: _showEquiposDeSeguridad,
-                    onChanged: (bool value) {
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Descripción: ${equipo.equsDescripcion ?? ''}',
+                          style: TextStyle(color: Colors.white70)),
+                      Text('Stock: ${equipo.bopiStock ?? 0}',
+                          style: TextStyle(color: Colors.white70)),
+                      if (selectedEquipos.contains(equipo))
+                        Row(
+                          children: [
+                            Text('Cantidad: ',
+                                style: TextStyle(color: Colors.white70)),
+                            SizedBox(
+                              width: 30,
+                              child: TextField(
+                                controller: equipoQuantityControllers[index],
+                                keyboardType: TextInputType.number,
+                                style: TextStyle(color: Colors.white),
+                                onChanged: (value) {
+                                  setState(() {
+                                    int? cantidadE = int.tryParse(value);
+                                    if (cantidadE == null || cantidadE <= 0) {
+                                      cantidadExcedidaE = false;
+                                    } else if (cantidadE > stockE!) {
+                                      selectedCantidadesequipos[index] =
+                                          cantidadE;
+                                      cantidadExcedidaE = true;
+                                    } else {
+                                      selectedCantidadesequipos[index] =
+                                          cantidadE;
+                                      cantidadExcedidaE = false;
+                                    }
+                                  });
+                                },
+                                onSubmitted: (value) {
+                                  setState(() {
+                                    int? cantidadE = int.tryParse(value);
+                                    if (cantidadE != null &&
+                                        cantidadE > stockE!) {
+                                      selectedCantidadesequipos[index] = stockE;
+                                      equipoQuantityControllers[index].text =
+                                          stockE.toString();
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (cantidadExcedidaE)
+                        Text(
+                          'La cantidad no puede ser mayor que el stock disponible.',
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                    ],
+                  ),
+                  trailing: Checkbox(
+                    value: selectedEquipos.contains(equipo),
+                    onChanged: (bool? value) {
                       setState(() {
-                        _showEquiposDeSeguridad = value;
+                        if (value == true) {
+                          selectedEquipos.add(equipo);
+                          equipoQuantityControllers[index].text = '1';
+                        } else {
+                          int removeIndex =
+                              selectedEquipos.indexOf(equipo);
+                          selectedEquipos.removeAt(removeIndex);
+                          selectedCantidadesequipos[removeIndex] = 0;
+                          equipoQuantityControllers[removeIndex].clear();
+                        }
                       });
                     },
-                    activeColor: Color(0xFFFFF0C6),
-                  )
-                ],
-              ),
-            ],
+                  ),
+                );
+              } else {
+                // Renderizar Insumos
+                final insumo = insumos[index];
+                int? stock = insumo.bopiStock;
+                int cantidad = selectedCantidades.length > index
+                    ? selectedCantidades[index]
+                    : 0;
+                bool cantidadExcedida = cantidad > (stock ?? 0);
+
+                return ListTile(
+                  title: Text(
+                    '${insumo.insuDescripcion ?? ''}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Material: ${insumo.mateDescripcion}',
+                          style: TextStyle(color: Colors.white70)),
+                      Text('Unidad: ${insumo.unmeNombre}',
+                          style: TextStyle(color: Colors.white70)),
+                      Text('Stock: ${insumo.bopiStock}',
+                          style: TextStyle(color: Colors.white70)),
+                      if (selectedInsumos.contains(insumo))
+                        Row(
+                          children: [
+                            Text('Cantidad: ',
+                                style: TextStyle(color: Colors.white70)),
+                            SizedBox(
+                              width: 30,
+                              child: TextField(
+                                controller: quantityControllers[index],
+                                keyboardType: TextInputType.number,
+                                style: TextStyle(color: Colors.white),
+                                onChanged: (value) {
+                                  setState(() {
+                                    int? cantidad = int.tryParse(value);
+                                    if (cantidad == null || cantidad <= 0) {
+                                      cantidadExcedida = false;
+                                    } else if (cantidad > stock!) {
+                                      selectedCantidades[index] = cantidad;
+                                      cantidadExcedida = true;
+                                    } else {
+                                      selectedCantidades[index] = cantidad;
+                                      cantidadExcedida = false;
+                                    }
+                                  });
+                                },
+                                onSubmitted: (value) {
+                                  setState(() {
+                                    int? cantidad = int.tryParse(value);
+                                    if (cantidad != null &&
+                                        cantidad > stock!) {
+                                      selectedCantidades[index] = stock;
+                                      quantityControllers[index].text =
+                                          stock.toString();
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (cantidadExcedida)
+                        Text(
+                          'La cantidad no puede ser mayor que el stock disponible.',
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                    ],
+                  ),
+                  trailing: Checkbox(
+                    value: selectedInsumos.contains(insumo),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedInsumos.add(insumo);
+                          quantityControllers[index].text = '1';
+                        } else {
+                          int removeIndex =
+                              selectedInsumos.indexOf(insumo);
+                          selectedInsumos.removeAt(removeIndex);
+                          selectedCantidades[removeIndex] = 0;
+                          quantityControllers[removeIndex].clear();
+                        }
+                      });
+                    },
+                  ),
+                );
+              }
+            },
           ),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: ListView.builder(
-              itemCount: _showEquiposDeSeguridad
-                  ? equiposdeSeguridad.length
-                  : insumos.length,
-              itemBuilder: (context, index) {
-                if (_showEquiposDeSeguridad) {
-                  // Renderizar Equipos de Seguridad
-                  final equipo = equiposdeSeguridad[index];
-                  int? stockE = equipo.bopiStock;
-                  int cantidadE = selectedCantidadesequipos.length > index
-                      ? selectedCantidadesequipos[index]
-                      : 0;
-                  bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
-
-                  return ListTile(
-                    title: Text(
-                      '${equipo.equsNombre ?? ''}',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Descripción: ${equipo.equsDescripcion ?? ''}',
-                            style: TextStyle(color: Colors.white70)),
-                        Text('Stock: ${equipo.bopiStock ?? 0}',
-                            style: TextStyle(color: Colors.white70)),
-                        if (selectedEquipos.contains(equipo))
-                          Row(
-                            children: [
-                              Text('Cantidad: ',
-                                  style: TextStyle(color: Colors.white70)),
-                              SizedBox(
-                                width: 30,
-                                child: TextField(
-                                  controller: equipoQuantityControllers[index],
-                                  keyboardType: TextInputType.number,
-                                  style: TextStyle(color: Colors.white),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      int? cantidadE = int.tryParse(value);
-                                      if (cantidadE == null || cantidadE <= 0) {
-                                        cantidadExcedidaE = false;
-                                      } else if (cantidadE > stockE!) {
-                                        selectedCantidadesequipos[index] =
-                                            cantidadE;
-                                        cantidadExcedidaE = true;
-                                      } else {
-                                        selectedCantidadesequipos[index] =
-                                            cantidadE;
-                                        cantidadExcedidaE = false;
-                                      }
-                                    });
-                                  },
-                                  onSubmitted: (value) {
-                                    setState(() {
-                                      int? cantidadE = int.tryParse(value);
-                                      if (cantidadE != null &&
-                                          cantidadE > stockE!) {
-                                        selectedCantidadesequipos[index] =
-                                            stockE;
-                                        equipoQuantityControllers[index].text =
-                                            stockE.toString();
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        if (cantidadExcedidaE)
-                          Text(
-                            'La cantidad no puede ser mayor que el stock disponible.',
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          ),
-                      ],
-                    ),
-                    trailing: Checkbox(
-                      value: selectedEquipos.contains(equipo),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selectedEquipos.add(equipo);
-                            equipoQuantityControllers[index].text = '1';
-                          } else {
-                            int removeIndex = selectedEquipos.indexOf(equipo);
-                            selectedEquipos.removeAt(removeIndex);
-                            selectedCantidadesequipos[removeIndex] = 0;
-                            equipoQuantityControllers[removeIndex].clear();
-                          }
-                        });
-                      },
-                    ),
-                  );
-                } else {
-                  // Renderizar Insumos
-                  final insumo = insumos[index];
-                  int? stock = insumo.bopiStock;
-                  int cantidad = selectedCantidades.length > index
-                      ? selectedCantidades[index]
-                      : 0;
-                  bool cantidadExcedida = cantidad > (stock ?? 0);
-
-                  return ListTile(
-                    title: Text(
-                      '${insumo.insuDescripcion ?? ''}',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Material: ${insumo.mateDescripcion}',
-                            style: TextStyle(color: Colors.white70)),
-                        Text('Unidad: ${insumo.unmeNombre}',
-                            style: TextStyle(color: Colors.white70)),
-                        Text('Stock: ${insumo.bopiStock}',
-                            style: TextStyle(color: Colors.white70)),
-                        if (selectedInsumos.contains(insumo))
-                          Row(
-                            children: [
-                              Text('Cantidad: ',
-                                  style: TextStyle(color: Colors.white70)),
-                              SizedBox(
-                                width: 30,
-                                child: TextField(
-                                  controller: quantityControllers[index],
-                                  keyboardType: TextInputType.number,
-                                  style: TextStyle(color: Colors.white),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      int? cantidad = int.tryParse(value);
-                                      if (cantidad == null || cantidad <= 0) {
-                                        cantidadExcedida = false;
-                                      } else if (cantidad > stock!) {
-                                        selectedCantidades[index] = cantidad;
-                                        cantidadExcedida = true;
-                                      } else {
-                                        selectedCantidades[index] = cantidad;
-                                        cantidadExcedida = false;
-                                      }
-                                    });
-                                  },
-                                  onSubmitted: (value) {
-                                    setState(() {
-                                      int? cantidad = int.tryParse(value);
-                                      if (cantidad != null &&
-                                          cantidad > stock!) {
-                                        selectedCantidades[index] = stock;
-                                        quantityControllers[index].text =
-                                            stock.toString();
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        if (cantidadExcedida)
-                          Text(
-                            'La cantidad no puede ser mayor que el stock disponible.',
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          ),
-                      ],
-                    ),
-                    trailing: Checkbox(
-                      value: selectedInsumos.contains(insumo),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selectedInsumos.add(insumo);
-                            quantityControllers[index].text = '1';
-                          } else {
-                            int removeIndex = selectedInsumos.indexOf(insumo);
-                            selectedInsumos.removeAt(removeIndex);
-                            selectedCantidades[removeIndex] = 0;
-                            quantityControllers[removeIndex].clear();
-                          }
-                        });
-                      },
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget _buildFleteBottomBar() {
     return Container(
