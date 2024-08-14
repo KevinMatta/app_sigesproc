@@ -4,18 +4,46 @@ import 'package:sigesproc_app/models/proyectos/etapaporproyectoviewmodel.dart';
 import '../apiservice.dart';
 
 class EtapaPorProyectoService {
-  static Future<List<EtapaPorProyectoViewModel>> listarEtapasPorProyecto(int id) async {
-    final url = Uri.parse('${ApiService.apiUrl}/EtapaPorProyecto/Listar/$id');
-    final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
+  //   static Future<List<EtapaPorProyectoViewModel>> listarEtapasPorProyecto(int id) async {
+  //   final url = Uri.parse('${ApiService.apiUrl}/EtapaPorProyecto/Listar/$id');
+  //   final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+  //   if (response.statusCode == 200) {
+  //     List<dynamic> data = json.decode(response.body);
+  //     return data
+  //         .map((json) => EtapaPorProyectoViewModel.fromJson(json))
+  //         .toList();
+  //   } else {
+  //     throw Exception('Error al cargar los datos');
+  //   }
+  // }
+
+  static Future<List<EtapaPorProyectoViewModel>> listarEtapasPorProyecto(int id) async {
+    final url = Uri.parse('${ApiService.apiUrl}/EtapaPorProyecto/Listar');
+    final response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json', 
+      ...ApiService.getHttpHeaders(), 
+    },
+    body: json.encode(id), // Se envía el id en el cuerpo de la solicitud
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    if (responseData['success'] == true && responseData['code'] == 200) {
+      List<dynamic> data = responseData['data'];
       return data
           .map((json) => EtapaPorProyectoViewModel.fromJson(json))
           .toList();
     } else {
-      throw Exception('Error al cargar los datos');
+      throw Exception('Error en la operación: ${responseData['message']}');
     }
+  } else {
+    throw Exception('Error al cargar los datos');
+  }
   }
 
   static Future<EtapaPorProyectoViewModel> insertarEtapaPorProyecto(EtapaPorProyectoViewModel etapa) async {

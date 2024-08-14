@@ -1,6 +1,6 @@
 class ActividadesPorEtapaViewModel {
   int acetId;
-  String acetObservacion;
+  String? acetObservacion;
   int? acetCantidad;
   int? esprId;
   int? emplId;
@@ -57,37 +57,41 @@ class ActividadesPorEtapaViewModel {
     this.unmeNomenclatura,
   });
 
-  // Factory method to create an instance from JSON
+  // Metodo de fábrica para crear una instancia de JSON
   factory ActividadesPorEtapaViewModel.fromJson(Map<String, dynamic> json) {
-    return ActividadesPorEtapaViewModel(
-      acetId: json['acet_Id'],
-      acetObservacion: json['acet_Observacion'],
-      acetCantidad: json['acet_Cantidad'],
-      esprId: json['espr_Id'],
-      emplId: json['empl_Id'],
-      acetFechaInicio: json['acet_FechaInicio'] != null ? DateTime.parse(json['acet_FechaInicio']) : null,
-      acetFechaFin: json['acet_FechaFin'] != null ? DateTime.parse(json['acet_FechaFin']) : null,
-      acetPrecioManoObraEstimado: json['acet_PrecioManoObraEstimado']?.toDouble(),
-      acetPrecioManoObraFinal: json['acet_PrecioManoObraFinal']?.toDouble(),
-      actiId: json['acti_Id'],
-      unmeId: json['unme_Id'],
-      etprId: json['etpr_Id'],
-      usuaCreacion: json['usua_Creacion'],
-      acetFechaCreacion: json['acet_FechaCreacion'] != null ? DateTime.parse(json['acet_FechaCreacion']) : null,
-      usuaModificacion: json['usua_Modificacion'],
-      acetFechaModificacion: json['acet_FechaModificacion'] != null ? DateTime.parse(json['acet_FechaModificacion']) : null,
-      acetEstado: json['acet_Estado'],
-      esprDescripcion: json['espr_Descripcion'],
-      proyId: json['proy_Id'],
-      proyDescripcion: json['proy_Descripcion'],
-      proyNombre: json['proy_Nombre'],
-      emplNombreCompleto: json['empl_NombreCompleto'],
-      etapDescripcion: json['etap_Descripcion'],
-      actiDescripcion: json['acti_Descripcion'],
-      unmeNombre: json['unme_Nombre'],
-      unmeNomenclatura: json['unme_Nomenclatura'],
-    );
-  }
+  return ActividadesPorEtapaViewModel(
+    acetId: json['acet_Id'],
+    acetObservacion: json['acet_Observacion'] ?? '',
+    acetCantidad: json['acet_Cantidad'],
+    esprId: json['espr_Id'],
+    emplId: json['empl_Id'],
+    acetFechaInicio: json['acet_FechaInicio'] != null ? DateTime.parse(json['acet_FechaInicio']) : null,
+    acetFechaFin: json['acet_FechaFin'] != null ? DateTime.parse(json['acet_FechaFin']) : null,
+    acetPrecioManoObraEstimado: json['acet_PrecioManoObraEstimado']?.toDouble(),
+    acetPrecioManoObraFinal: json['acet_PrecioManoObraFinal']?.toDouble(),
+    actiId: json['acti_Id'],
+    unmeId: json['unme_Id'],
+    etprId: json['etpr_Id'],
+    usuaCreacion: json['usua_Creacion'],
+    acetFechaCreacion: json['acet_FechaCreacion'] != null ? DateTime.parse(json['acet_FechaCreacion']) : null,
+    usuaModificacion: json['usua_Modificacion'],
+    acetFechaModificacion: json['acet_FechaModificacion'] != null ? DateTime.parse(json['acet_FechaModificacion']) : null,
+    
+    // Manejo de acetEstado para convertir 1/0/null a true/false
+    acetEstado: json['acet_Estado'] == 1 ? true : (json['acet_Estado'] == 0 ? false : null),
+    
+    // Manejo de posibles nulls para Strings
+    esprDescripcion: json['espr_Descripcion'] ?? '',
+    proyId: json['proy_Id'],
+    proyDescripcion: json['proy_Descripcion'] ?? '',
+    proyNombre: json['proy_Nombre'] ?? '',
+    emplNombreCompleto: json['empl_NombreCompleto'] ?? '',
+    etapDescripcion: json['etap_Descripcion'] ?? '',
+    actiDescripcion: json['acti_Descripcion'] ?? '',
+    unmeNombre: json['unme_Nombre'] ?? '',
+    unmeNomenclatura: json['unme_Nomenclatura'] ?? '',
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {
