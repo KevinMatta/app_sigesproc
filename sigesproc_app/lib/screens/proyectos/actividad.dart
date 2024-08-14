@@ -61,11 +61,14 @@ class _ActividadState extends State<Actividad> {
     });
   }
 
-  //Modal para control de calidad
+  //"Modal" para control de calidad
   Future<void> _showActivityDialog(ActividadesPorEtapaViewModel actividad) async {
   TextEditingController descripcionController = TextEditingController();
   TextEditingController metrosController = TextEditingController();
   DateTime? selectedDate;
+
+  final _formKey = GlobalKey<FormState>();
+  bool showFechaError = false;
 
   showDialog(
     context: context,
@@ -82,94 +85,125 @@ class _ActividadState extends State<Actividad> {
             style: TextStyle(color: Color(0xFFFFF0C6)),
           ),
         ),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 10),
-                Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Ingresar la descripción:',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
-                ),
-              ),           
-              SizedBox(height: 5),
-              TextField(
-                controller: descripcionController,
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Color(0xFF222222),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Ingresar los metros:',
-                style: TextStyle(color: Color(0xFFFFF0C6)),
-                ),
-              ),
-              SizedBox(height: 5),
-              TextField(
-                controller: metrosController,
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Color(0xFF222222),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 10),
-              ListTile(
-                  title: Text(
-                    selectedDate == null
-                        ? 'Seleccionar Fecha'
-                        : DateFormat('dd-MM-yyyy').format(selectedDate!),
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                  trailing: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-                onTap: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    locale: const Locale("es", "ES"),
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2101),
-                    builder: (context, child) {
-                      return Theme(
-                        data: ThemeData.dark().copyWith(
-                          colorScheme: ColorScheme.dark(
-                            primary: Color(0xFFFFF0C6),
-                            surface: Colors.black,
-                          ),
-                          dialogBackgroundColor: Color(0xFF222222),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Ingresar la descripción:',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    TextFormField(
+                      controller: descripcionController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintStyle: TextStyle(color: Colors.white54),
+                        filled: true,
+                        fillColor: Color(0xFF222222),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide.none,
                         ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null && picked != selectedDate) {
-                    setState(() {
-                      selectedDate = picked;
-                    });
-                  }
-                },
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'La descripción es requerida';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Ingresar los metros:',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    TextFormField(
+                      controller: metrosController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintStyle: TextStyle(color: Colors.white54),
+                        filled: true,
+                        fillColor: Color(0xFF222222),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Los metros son requeridos';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    ListTile(
+                      title: Text(
+                        selectedDate == null
+                            ? 'Seleccionar Fecha'
+                            : DateFormat('dd-MM-yyyy').format(selectedDate!),
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                      trailing:
+                          Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+                      onTap: () async {
+                        DateTime? picked = await showDatePicker(
+                          context: context,
+                          locale: const Locale("es", "ES"),
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                          builder: (context, child) {
+                            return Theme(
+                              data: ThemeData.dark().copyWith(
+                                colorScheme: ColorScheme.dark(
+                                  primary: Color(0xFFFFF0C6),
+                                  surface: Colors.black,
+                                ),
+                                dialogBackgroundColor: Color(0xFF222222),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null && picked != selectedDate) {
+                          setState(() {
+                            selectedDate = picked;
+                            showFechaError = false;
+                          });
+                        }
+                      },
+                    ),
+                    if (showFechaError) 
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: Text(
+                            'La fecha es requerida',
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            );
+          },
         ),
         actions: [
           Center(
@@ -180,10 +214,10 @@ class _ActividadState extends State<Actividad> {
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF222222), // Color de fondo del botón "Cancelar"
+                      backgroundColor: Color(0xFF222222),
                       padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8), // Borde menos redondeado
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     onPressed: () {
@@ -191,52 +225,64 @@ class _ActividadState extends State<Actividad> {
                     },
                     child: Text(
                       'Cancelar',
-                      style: TextStyle(color: Colors.white), // Color del texto "Cancelar"
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  SizedBox(width: 10), // Espacio entre los dos botones
+                  SizedBox(width: 10),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFFF0C6), // Color de fondo del botón "Guardar"
+                      backgroundColor: Color(0xFFFFF0C6),
                       padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8), // Borde menos redondeado
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        final controlDeCalidadesViewModel =
-                            ControlDeCalidadesPorActividadesViewModel(
-                          coacId: 0,
-                          codigo: 0,
-                          cocaId: 0,
+                        if (selectedDate == null) {
+                          setState(() {
+                            showFechaError = true;
+                          });
+                          return;
+                        }
+
+                        final controlDeCalidadesViewModel = ControlDeCalidadesPorActividadesViewModel(
                           cocaDescripcion: descripcionController.text,
-                          cocaFecha: selectedDate ?? DateTime.now(),
+                          cocaFecha: selectedDate!,
                           usuaCreacion: 3,
-                          cocaFechaCreacion: DateTime.now(),
-                          usuaModificacion: 0,
-                          cocaFechaModificacion: null,
-                          cocaEstado: false,
+                          // cocaFechaCreacion: DateTime.now(),
+                          cocaMetrosTrabajados: double.tryParse(metrosController.text) ?? 0.0,
                           acetId: actividad.acetId,
-                          cocaMetrosTrabajados:
-                              double.tryParse(metrosController.text) ?? 0.0,
-                          cocaResultado: '',
-                          actiDescripcion: '',
-                          acetCantidad: 0,
-                          usuaCreacionNombre: '',
-                          usuaModificacionNombre: '',
                         );
 
-                        // ControlDeCalidadesPorActividadesService
-                        //     .actualizarcontrolDeCalidadesPorActividades(
-                        //         controlDeCalidadesViewModel);
-
-                        Navigator.of(context).pop();
+                        try {
+                          final respuesta = await ControlDeCalidadesPorActividadesService.insertarControlCalidad(controlDeCalidadesViewModel);
+                          
+                          if (respuesta.success) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("Guardado con éxito"),
+                              backgroundColor: Colors.green,
+                            ));
+                            Navigator.of(context).pop();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("No se pudo guardar."),
+                              backgroundColor: Colors.red,
+                            ));
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Error al guardar"),
+                            backgroundColor: Colors.red,
+                          ));
+                        }
                       }
                     },
+
+
                     child: Text(
                       'Guardar',
-                      style: TextStyle(color: Colors.black), // Color del texto "Guardar"
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 ],
@@ -244,10 +290,11 @@ class _ActividadState extends State<Actividad> {
             ),
           ),
         ],
-        );
-      },
-    );
-  }
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
