@@ -112,7 +112,6 @@ class FleteEncabezadoViewModel {
       'estado': estado,
       'salida': salida,
       'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
-      'flen_FechaHoraLlegada': flenFechaHoraLlegada?.toIso8601String(),
       'flen_FechaHoraEstablecidaDeLlegada':
           flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
       'flen_Estado': flenEstado,
@@ -127,6 +126,10 @@ class FleteEncabezadoViewModel {
       'flen_EstadoFlete': flenEstadoFlete,
       'inpp_Observacion': inppObservacion,
     };
+
+    if (flenFechaHoraLlegada != null) {
+    data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
+  }
 
     if (flenFechaCreacion != null) {
       data['flen_FechaCreacion'] = flenFechaCreacion?.toIso8601String();

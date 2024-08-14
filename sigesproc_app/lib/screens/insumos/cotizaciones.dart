@@ -47,6 +47,13 @@ class _CotizacionState extends State<Cotizacion> {
         final salida = cotizacion.provDescripcion?.toLowerCase() ?? '';
         return salida.contains(query);
       }).toList();
+
+      final totalRecords = _cotizacionesFiltrados.length;
+      final maxPages = (totalRecords / _rowsPerPage).ceil();
+
+      if(_currentPage >= maxPages){
+        _currentPage = maxPages - 1;
+      }
     });
   }
 

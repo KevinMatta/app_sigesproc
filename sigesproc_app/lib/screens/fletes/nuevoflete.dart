@@ -198,7 +198,12 @@ class _NuevoFleteState extends State<NuevoFlete> {
     try {
       actividades =
           await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
-      _noActividadesError = true;
+      if (actividades.isEmpty) {
+        print('que $actividades');
+        _noActividadesError = true;
+      } else {
+        _noActividadesError = false;
+      }
     } catch (e) {
       print('Error al cargar las actividades: $e');
     }
@@ -439,132 +444,134 @@ class _NuevoFleteState extends State<NuevoFlete> {
   Widget _buildProyectoAutocomplete(TextEditingController controller) {
     FocusNode focusNode = FocusNode();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Autocomplete<ProyectoViewModel>(
-          optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text.isEmpty) {
-              return proyectos.isNotEmpty ? proyectos : [];
-            }
-            return proyectos.where((ProyectoViewModel option) {
-              return option.proyNombre!
-                  .toLowerCase()
-                  .contains(textEditingValue.text.toLowerCase());
-            });
-          },
-          displayStringForOption: (ProyectoViewModel option) =>
-              option.proyNombre!,
-          fieldViewBuilder: (BuildContext context,
-              TextEditingController textEditingController,
-              FocusNode fieldFocusNode,
-              VoidCallback onFieldSubmitted) {
-            focusNode = fieldFocusNode;
-            textEditingController.text = controller.text;
-            return TextField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                labelText: 'Llegada',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.black,
-                labelStyle: TextStyle(color: Colors.white),
-                errorText: _proyectoError ? _proyectoErrorMessage : null,
-                errorStyle: TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                ),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (controller.text.isNotEmpty)
-                      IconButton(
-                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
-                        onPressed: () {
-                          setState(() {
-                            controller.clear();
-                            flete.boatId = null;
-                          });
-                        },
-                      ),
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Autocomplete<ProyectoViewModel>(
+        optionsBuilder: (TextEditingValue textEditingValue) {
+          if (textEditingValue.text.isEmpty) {
+            return proyectos.isNotEmpty ? proyectos : [];
+          }
+          return proyectos.where((ProyectoViewModel option) {
+            return option.proyNombre!
+                .toLowerCase()
+                .contains(textEditingValue.text.toLowerCase());
+          });
+        },
+        displayStringForOption: (ProyectoViewModel option) =>
+            option.proyNombre!,
+        fieldViewBuilder: (BuildContext context,
+            TextEditingController textEditingController,
+            FocusNode fieldFocusNode,
+            VoidCallback onFieldSubmitted) {
+          focusNode = fieldFocusNode;
+          textEditingController.text = controller.text;
+          return TextField(
+            controller: textEditingController,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              labelText: 'Llegada',
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.black,
+              labelStyle: TextStyle(color: Colors.white),
+              errorText: _proyectoError ? _proyectoErrorMessage : null,
+              errorStyle: TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+              errorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+              ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (controller.text.isNotEmpty)
                     IconButton(
-                      icon:
-                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                      icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
                       onPressed: () {
-                        if (focusNode.hasFocus) {
-                          focusNode.unfocus();
-                        } else {
-                          focusNode.requestFocus();
-                        }
+                        setState(() {
+                          controller.clear();
+                          flete.boatId = null;
+                        });
                       },
                     ),
-                  ],
-                ),
+                  IconButton(
+                    icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                    onPressed: () {
+                      if (focusNode.hasFocus) {
+                        focusNode.unfocus();
+                      } else {
+                        focusNode.requestFocus();
+                      }
+                    },
+                  ),
+                ],
               ),
-              style: TextStyle(color: Colors.white),
-            );
-          },
-          optionsViewBuilder: (BuildContext context,
-              AutocompleteOnSelected<ProyectoViewModel> onSelected,
-              Iterable<ProyectoViewModel> options) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: Container(
-                  width: MediaQuery.of(context).size.width - 73,
-                  color: Colors.black,
-                  child: options.isEmpty
-                      ? ListTile(
-                          title: Text('No hay coincidencias',
-                              style: TextStyle(color: Colors.white)),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.all(8.0),
-                          itemCount: options.length,
-                          shrinkWrap: true,
-                          itemBuilder: (BuildContext context, int index) {
-                            final ProyectoViewModel option =
-                                options.elementAt(index);
-                            return GestureDetector(
-                              onTap: () {
-                                onSelected(option);
-                              },
-                              child: ListTile(
-                                title: Text(option.proyNombre!,
-                                    style: TextStyle(color: Colors.white)),
-                              ),
-                            );
-                          },
-                        ),
-                ),
+            ),
+            style: TextStyle(color: Colors.white),
+          );
+        },
+        optionsViewBuilder: (BuildContext context,
+            AutocompleteOnSelected<ProyectoViewModel> onSelected,
+            Iterable<ProyectoViewModel> options) {
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Material(
+              elevation: 4.0,
+              child: Container(
+                width: MediaQuery.of(context).size.width - 73,
+                color: Colors.black,
+                child: options.isEmpty
+                    ? ListTile(
+                        title: Text('No hay coincidencias',
+                            style: TextStyle(color: Colors.white)),
+                      )
+                    : ListView.builder(
+                        padding: EdgeInsets.all(8.0),
+                        itemCount: options.length,
+                        shrinkWrap: true,
+                        itemBuilder: (BuildContext context, int index) {
+                          final ProyectoViewModel option =
+                              options.elementAt(index);
+                          return GestureDetector(
+                            onTap: () {
+                              onSelected(option);
+                            },
+                            child: ListTile(
+                              title: Text(option.proyNombre!,
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                          );
+                        },
+                      ),
               ),
-            );
-          },
-          onSelected: (ProyectoViewModel selection) {
-            setState(() {
-              controller.text = selection.proyNombre!;
-              _cargarActividadesPorProyecto(selection.proyId!);
-              actividadController.clear();
-              flete.boatId = null;
-              _proyectoError = false;
-              _proyectoErrorMessage = '';
-            });
-          },
-        ),
-        if (actividades.isNotEmpty)
-          SizedBox(height: 20), // Añadir espacio entre los widgets
-        if (actividades.isNotEmpty)
-          _buildActividadAutocomplete(actividadController),
-      ],
-    );
+            ),
+          );
+        },
+        onSelected: (ProyectoViewModel selection) async {
+          setState(() {
+            controller.text = selection.proyNombre!;
+            _proyectoError = false;
+            _proyectoErrorMessage = '';
+            flete.boatId =
+                null; // Limpia cualquier selección previa de actividad
+            actividadController.clear();
+          });
+
+          // Cargar actividades inmediatamente después de seleccionar el proyecto
+          await _cargarActividadesPorProyecto(selection.proyId!);
+
+          // Forzar la actualización del estado para que se muestre el autocomplete de actividades
+          setState(() {});
+        },
+      ),
+      if (actividades.isNotEmpty)
+        SizedBox(height: 20), // Añadir espacio entre los widgets
+      if (actividades.isNotEmpty)
+        _buildActividadAutocomplete(actividadController),
+    ]);
   }
 
   Widget _buildActividadAutocomplete(TextEditingController controller) {
@@ -812,10 +819,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
         _ubicacionSalidaErrorMessage =
             'La ubicación de salida no puede estar vacía';
       }
-      if (esProyecto && flete.boatId == null && _noActividadesError == false) {
-        _proyectoError = true;
-        _proyectoErrorMessage = 'La ubicación de llegada no puede estar vacía';
-      } else if (flete.bollId == flete.boatId && !esProyecto) {
+      if (flete.bollId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma bodega.';
@@ -830,7 +834,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
       if (esProyecto && _noActividadesError && flete.boatId == null) {
         _proyectoError = true;
         _proyectoErrorMessage =
-            'El proyecto no tiene actividades, seleccione otro proyecto.';
+            'El proyecto no tiene actividades, seleccione otro.';
         return;
       }
 
@@ -986,7 +990,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
         hayCantidadesInvalidase = true;
       } else if (cantidade > stocke!) {
         print(
-            'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidade');
+            'Cantidad excedida para insumo ${selectedEquipos[i].equsNombre}: $cantidade');
         equipoQuantityControllers[i].text = stocke.toString();
         selectedCantidadesequipos[i] = stocke;
         hayCantidadesInvalidase = true;
@@ -1013,7 +1017,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
       return;
     }
 
-    if (selectedInsumos.isEmpty || selectedEquipos.isEmpty) {
+    // Cambiar la condición para verificar si ambos están vacíos
+    if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
+      print('insumos vacio $selectedInsumos');
+      print('equipos vacio $selectedEquipos');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(
@@ -1021,6 +1028,8 @@ class _NuevoFleteState extends State<NuevoFlete> {
       );
       return;
     }
+
+    print('fleteaa $flete');
 
     final int? flenIdNuevo = await FleteEncabezadoService.insertarFlete(flete);
     if (flenIdNuevo != null) {
@@ -1043,7 +1052,7 @@ class _NuevoFleteState extends State<NuevoFlete> {
           inppId: selectedEquipos[i].eqppId,
           usuaCreacion: 3,
         );
-        print('Detalle data: ${detalle.toJson()}');
+        print('Detalle eq: ${detalle.toJson()}');
         await FleteDetalleService.insertarFleteDetalle(detalle);
       }
       Navigator.push(
@@ -1186,13 +1195,10 @@ class _NuevoFleteState extends State<NuevoFlete> {
                     onChanged: (bool value) {
                       setState(() {
                         _showEquiposDeSeguridad = value;
-                        if (_showEquiposDeSeguridad) {
-                          _cargarEquiposDeSeguridadPorBodega(flete.bollId!);
-                        }
                       });
                     },
                     activeColor: Color(0xFFFFF0C6),
-                  ),
+                  )
                 ],
               ),
             ],

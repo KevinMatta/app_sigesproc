@@ -49,6 +49,13 @@ class _FleteState extends State<Flete> {
         final salida = flete.salida?.toLowerCase() ?? '';
         return salida.contains(query);
       }).toList();
+
+      final totalRecords = _filteredFletes.length;
+      final maxPages = (totalRecords / _rowsPerPage).ceil();
+
+      if(_currentPage >= maxPages){
+        _currentPage = maxPages - 1;
+      }
     });
   }
 
