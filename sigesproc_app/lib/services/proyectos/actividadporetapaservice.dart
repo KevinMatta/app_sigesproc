@@ -25,14 +25,14 @@ class ActividadesPorEtapaService {
   // }
   
   static Future<List<ActividadesPorEtapaViewModel>> listarActividadPorEtapa(int id) async {
-  final url = Uri.parse('${ApiService.apiUrl}/ActividadPorEtapa/Listar');
-  final response = await http.post(
+  final url = Uri.parse('${ApiService.apiUrl}/ActividadPorEtapa/Listar/$id');
+  final response = await http.get(
     url,
     headers: {
-      'Content-Type': 'application/json', 
+      // 'Content-Type': 'application/json', 
       ...ApiService.getHttpHeaders(), 
     },
-    body: json.encode(id), // Se envía el id en el cuerpo de la solicitud
+    // body: json.encode(id), // Se envía el id en el cuerpo de la solicitud
   );
 
   if (response.statusCode == 200) {
