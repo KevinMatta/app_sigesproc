@@ -87,34 +87,6 @@ class _FleteState extends State<Flete> {
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              (index + 1).toString(),
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              flete.salida ?? 'N/A',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-        
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              flete.flenEstado == true ? Icons.adjust : Icons.adjust,
-              color: flete.flenEstado == true ? Colors.red : Colors.green,
-            ),
-          ),
-        ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
             child: PopupMenuButton<int>(
             color: Colors.black,
             icon: Icon(Icons.more_vert, color: Colors.white),
@@ -151,7 +123,7 @@ class _FleteState extends State<Flete> {
                 const PopupMenuItem<int>(
                   value: 0,
                   child: Text(
-                    'Ver Detalle',
+                    'Detalle',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ),
@@ -173,7 +145,7 @@ class _FleteState extends State<Flete> {
                 const PopupMenuItem<int>(
                   value: 0,
                   child: Text(
-                    'Ver Detalle',
+                    'Detalle',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ),
@@ -203,6 +175,35 @@ class _FleteState extends State<Flete> {
           ),
           ),
         ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              (index + 1).toString(),
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              flete.salida ?? 'N/A',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              flete.flenEstado == true ? Icons.adjust : Icons.adjust,
+              color: flete.flenEstado == true ? Colors.red : Colors.green,
+            ),
+          ),
+        ),
+        
       ],
     );
   }
@@ -379,10 +380,10 @@ class _FleteState extends State<Flete> {
                           child: SingleChildScrollView(
                             child: Table(
                               columnWidths: {
+                                3: FlexColumnWidth(2),
                                 0: FlexColumnWidth(1),
                                 1: FlexColumnWidth(3),
                                 2: FlexColumnWidth(2),
-                                3: FlexColumnWidth(2),
                               },
                               children: [
                                 TableRow(
@@ -390,6 +391,16 @@ class _FleteState extends State<Flete> {
                                     color: Color(0xFF171717),
                                   ),
                                   children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Acciones',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
@@ -420,16 +431,7 @@ class _FleteState extends State<Flete> {
                                         ),
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Acciones',
-                                        style: TextStyle(
-                                          color: Color(0xFFFFF0C6),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
+                                    
                                   ],
                                 ),
                                 ..._filteredFletes

@@ -51,7 +51,7 @@ class _CotizacionState extends State<Cotizacion> {
       final totalRecords = _cotizacionesFiltrados.length;
       final maxPages = (totalRecords / _rowsPerPage).ceil();
 
-      if(_currentPage >= maxPages){
+      if (_currentPage >= maxPages) {
         _currentPage = maxPages - 1;
       }
     });
@@ -91,6 +91,16 @@ class _CotizacionState extends State<Cotizacion> {
   TableRow _buildCotizacionRow(CotizacionViewModel cotizacion, int index) {
     return TableRow(
       children: [
+        // Acciones primero
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              icon: Icon(Icons.info_outline, color: Colors.white),
+              onPressed: () => _verArticulos(cotizacion.cotiId),
+            ),
+          ),
+        ),
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -115,16 +125,6 @@ class _CotizacionState extends State<Cotizacion> {
             child: Text(
               cotizacion.provDescripcion ?? 'N/A',
               style: TextStyle(color: Colors.white70),
-            ),
-          ),
-        ),
-       
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              icon: Icon(Icons.info_outline, color: Colors.white),
-              onPressed: () => _verArticulos(cotizacion.cotiId),
             ),
           ),
         ),
@@ -358,14 +358,17 @@ class _CotizacionState extends State<Cotizacion> {
                             ),
                           );
                         } else {
-                          _cotizacionesFiltrados = _searchController.text.isEmpty
-                              ? snapshot.data!
-                              : _cotizacionesFiltrados;
-                          final int totalRecords = _cotizacionesFiltrados.length;
+                          _cotizacionesFiltrados =
+                              _searchController.text.isEmpty
+                                  ? snapshot.data!
+                                  : _cotizacionesFiltrados;
+                          final int totalRecords =
+                              _cotizacionesFiltrados.length;
                           final int startIndex = _currentPage * _rowsPerPage;
-                          final int endIndex = (startIndex + _rowsPerPage > totalRecords)
-                              ? totalRecords
-                              : startIndex + _rowsPerPage;
+                          final int endIndex =
+                              (startIndex + _rowsPerPage > totalRecords)
+                                  ? totalRecords
+                                  : startIndex + _rowsPerPage;
 
                           return Column(
                             children: [
@@ -373,10 +376,11 @@ class _CotizacionState extends State<Cotizacion> {
                                 child: SingleChildScrollView(
                                   child: Table(
                                     columnWidths: {
-                                      0: FlexColumnWidth(1),
-                                      1: FlexColumnWidth(3),
+                                      0: FlexColumnWidth(
+                                          2), // Ajusta el ancho de la columna de acciones
+                                      1: FlexColumnWidth(1),
                                       2: FlexColumnWidth(3),
-                                      3: FlexColumnWidth(2),
+                                      3: FlexColumnWidth(3),
                                     },
                                     children: [
                                       TableRow(
@@ -384,6 +388,17 @@ class _CotizacionState extends State<Cotizacion> {
                                           color: Color(0xFF171717),
                                         ),
                                         children: [
+                                          // Encabezado para las acciones
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Artículos',
+                                              style: TextStyle(
+                                                color: Color(0xFFFFF0C6),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
@@ -414,17 +429,6 @@ class _CotizacionState extends State<Cotizacion> {
                                               ),
                                             ),
                                           ),
-                                         
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Artículos',
-                                              style: TextStyle(
-                                                color: Color(0xFFFFF0C6),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
                                         ],
                                       ),
                                       ..._cotizacionesFiltrados
@@ -434,7 +438,8 @@ class _CotizacionState extends State<Cotizacion> {
                                           .map((entry) {
                                         final index = entry.key;
                                         final cotizacion = entry.value;
-                                        return _buildCotizacionRow(cotizacion, startIndex + index);
+                                        return _buildCotizacionRow(
+                                            cotizacion, startIndex + index);
                                       }).toList(),
                                     ],
                                   ),
@@ -475,7 +480,8 @@ class _CotizacionState extends State<Cotizacion> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF171717),
-                        padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 35, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

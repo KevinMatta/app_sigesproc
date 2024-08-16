@@ -89,95 +89,102 @@ class _LoginState extends State<Login> {
                   child: _cuadritoflotante(),
                 ),
                 Center(
-  child: Padding(
-    padding: const EdgeInsets.all(30.0),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width * 0.8, // Ancho adaptativo
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Card(
-                  color: Color.fromARGB(224, 255, 255, 255),
-                  elevation: 5,
                   child: Padding(
                     padding: const EdgeInsets.all(30.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: 100), // Espacio ajustado para el logo
-                        Text(
-                          'Inicio de sesión',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        usuariotextb(),
-                        SizedBox(height: 10),
-                        contratextb(),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const Reestablecer(),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width *
+                                  0.8, // Ancho adaptativo
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Card(
+                                  color: Color.fromARGB(224, 255, 255, 255),
+                                  elevation: 5,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(30.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                            height:
+                                                100), // Espacio ajustado para el logo
+                                        Text(
+                                          'Inicio de sesión',
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 20),
+                                        usuariotextb(),
+                                        SizedBox(height: 10),
+                                        contratextb(),
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const Reestablecer(),
+                                                ),
+                                              );
+                                            },
+                                            child: Text(
+                                              '¿Olvidaste tu contraseña?',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 20),
+                                        botonLogin()
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
-                            child: Text(
-                              '¿Olvidaste tu contraseña?',
-                              style: TextStyle(
-                                color: Colors.black,
-                                decoration: TextDecoration.underline,
                               ),
                             ),
-                          ),
+                            Positioned(
+                              top:
+                                  -100, // Mantén esto si necesitas ajustar la posición vertical
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Card(
+                                    color: Colors.black,
+                                    elevation: 1,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 40.0),
+                                      child: Image.asset(
+                                        'lib/assets/logo-sigesproc.png',
+                                        height: 180,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 20),
-                        botonLogin()
                       ],
                     ),
                   ),
                 ),
-              ),
-            ),
-            Positioned(
-              top: -100, // Mantén esto si necesitas ajustar la posición vertical
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Card(
-                    color: Colors.black,
-                    elevation: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                      child: Image.asset(
-                        'lib/assets/logo-sigesproc.png',
-                        height: 180,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ),
-),
-
               ],
             ),
           ),

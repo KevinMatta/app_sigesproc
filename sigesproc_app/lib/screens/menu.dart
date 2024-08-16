@@ -17,8 +17,7 @@ class MenuLateral extends StatelessWidget {
     return Drawer(
       child: Container(
         color: Colors.black,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
@@ -40,11 +39,9 @@ class MenuLateral extends StatelessWidget {
                 children: List.generate(6, (index) => _crearItem(context, index)),
               ),
             ),
-            // Positioned(
-            //     bottom: 80,
-            //     right: 20,
-            //     child: Login(),
-            //   ),
+            Spacer(),
+            _crearCerrarSesionItem(context),
+            SizedBox(height: 20), // Espacio inferior para que no quede pegado al borde
           ],
         ),
       ),
@@ -105,6 +102,24 @@ class MenuLateral extends StatelessWidget {
           _navigateToScreen(context, index);
         },
       ),
+    );
+  }
+
+  Widget _crearCerrarSesionItem(BuildContext context) {
+    return ListTile(
+      leading: Icon(Icons.exit_to_app, color: Color(0xFFFFF0C6)),
+      title: Text(
+        'Cerrar sesión',
+        style: TextStyle(
+          color: Color(0xFFFFF0C6),
+        ),
+      ),
+      onTap: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Login()),
+        );
+      },
     );
   }
 
