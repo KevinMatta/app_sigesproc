@@ -148,82 +148,72 @@ class _CotizacionState extends State<Cotizacion> {
     });
   }
 
-  Widget ArticuloRegistro(ArticuloViewModel articulo) {
-    bool isExpanded = false;
-    print('dentro: $articulo');
-
-    return StatefulBuilder(
-      builder: (BuildContext context, StateSetter setState) {
-        return ExpansionTile(
-          leading: CircleAvatar(
-            child: Text(
-              articulo.codigo.toString(),
-              style: TextStyle(color: Colors.black),
+ Widget ArticuloRegistro(ArticuloViewModel articulo) {
+  return ListTile(
+    leading: CircleAvatar(
+      child: Text(
+        articulo.codigo.toString(),
+        style: TextStyle(color: Colors.black),
+      ),
+      backgroundColor: Color(0xFFFFF0C6),
+    ),
+    title: Text(
+      articulo.articulo,
+      style: TextStyle(color: Colors.white),
+    ),
+    subtitle: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Precio: ${articulo.precio}',
+              style: TextStyle(color: Colors.white70),
             ),
-            backgroundColor: Color(0xFFFFF0C6),
-          ),
-          title: Text(
-            articulo.articulo,
-            style: TextStyle(color: Colors.white),
-          ),
-          subtitle: Text(
-            'Precio: ${articulo.precio}',
-            style: TextStyle(color: Colors.white70),
-          ),
-          trailing: Icon(
-            isExpanded ? Icons.arrow_drop_down : Icons.arrow_right,
-            color: Colors.white,
-          ),
-          children: <Widget>[
-            ListTile(
-              title: Text(
-                'Cantidad: ${articulo.cantidad}',
-                style: TextStyle(color: Colors.white),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Subtotal: ${articulo.subtotal}',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  Text(
-                    'Impuesto: ${articulo.impuesto}',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  Text(
-                    'Total: ${articulo.total}',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
+            Text(
+              'Cantidad: ${articulo.cantidad}',
+              style: TextStyle(color: Colors.white70),
             ),
           ],
-          onExpansionChanged: (bool expanded) {
-            setState(() => isExpanded = expanded);
-          },
-        );
-      },
-    );
-  }
-
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Alineación a la izquierda
+          children: [
+            Text(
+              'Impuesto: ${articulo.impuesto}',
+              style: TextStyle(color: Colors.white70),
+            ),
+            Text(
+              'Total: ${articulo.total}',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Row(
+       title: Row(
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],

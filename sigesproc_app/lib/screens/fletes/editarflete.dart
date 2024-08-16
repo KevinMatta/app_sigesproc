@@ -7,6 +7,7 @@ import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/actividadesporetapaviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/actividadesporetapaservice.dart';
@@ -79,6 +80,7 @@ class _EditarFleteState extends State<EditarFlete> {
   bool _isKeyboardVisible = false;
   bool _isLoading = true;
   bool isEditing = false;
+  int _selectedIndex = 2;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -97,7 +99,7 @@ class _EditarFleteState extends State<EditarFlete> {
     emtrId: null,
     emssId: null,
     emslId: null,
-    bollId: null,
+    boasId: null,
     boatId: null,
     flenEstado: null,
     flenDestinoProyecto: null,
@@ -144,9 +146,9 @@ class _EditarFleteState extends State<EditarFlete> {
         supervisorLlegadaController.text = supervisorLlegada.empleado!;
       }
     }
-    if (flete.bollId != null) {
+    if (flete.boasId != null) {
       BodegaViewModel? salida =
-          bodegas.firstWhere((bode) => bode.bodeId == flete.bollId);
+          bodegas.firstWhere((bode) => bode.bodeId == flete.boasId);
       if (salida != null) {
         salidaController.text = salida.bodeDescripcion!;
       }
@@ -157,6 +159,12 @@ class _EditarFleteState extends State<EditarFlete> {
   void dispose() {
     keyboardSubscription.cancel();
     super.dispose();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   Future<void> _cargarDatosIniciales() async {
@@ -243,19 +251,19 @@ class _EditarFleteState extends State<EditarFlete> {
         }
 
         // Cargar la bodega de salida
-        if (flete.bollId != null) {
-          BodegaViewModel? salida = await BodegaService.buscar(flete.bollId!);
+        if (flete.boasId != null) {
+          BodegaViewModel? salida = await BodegaService.buscar(flete.boasId!);
           print('Bodega de Salida: $salida');
           if (salida != null) {
             salidaController.text = salida.bodeDescripcion!;
-            _cargarInsumosPorBodega(flete.bollId!);
+            _cargarInsumosPorBodega(flete.boasId!);
           }
         }
 
-        if (flete.bollId != null) {
+        if (flete.boasId != null) {
           List<InsumoPorProveedorViewModel> insumosList =
               await FleteDetalleService.listarInsumosPorProveedorPorBodega(
-                  flete.bollId!);
+                  flete.boasId!);
 
           // Cargar los detalles de insumos ya seleccionados en el flete
           List<FleteDetalleViewModel> detallesCargados =
@@ -292,7 +300,7 @@ class _EditarFleteState extends State<EditarFlete> {
 
           List<EquipoPorProveedorViewModel> equiposList =
               await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
-                  flete.bollId!);
+                  flete.boasId!);
 
           // Cargar los detalles de insumos ya seleccionados en el flete
           List<FleteDetalleViewModel> detallesCargadose =
@@ -374,7 +382,7 @@ class _EditarFleteState extends State<EditarFlete> {
     setState(() {
       _showEquiposDeSeguridad = value;
       if (_showEquiposDeSeguridad) {
-        _cargarEquiposDeSeguridadPorBodega(flete.bollId!);
+        _cargarEquiposDeSeguridadPorBodega(flete.boasId!);
       }
     });
   }
@@ -587,8 +595,8 @@ class _EditarFleteState extends State<EditarFlete> {
             setState(() {
               controller.text = selection.bodeDescripcion!;
               if (label == 'Salida') {
-                flete.bollId = selection.bodeId;
-                _cargarInsumosPorBodega(flete.bollId!);
+                flete.boasId = selection.bodeId;
+                _cargarInsumosPorBodega(flete.boasId!);
               } else if (label == 'Llegada') {
                 flete.boatId = selection.bodeId;
               }
@@ -940,7 +948,7 @@ class _EditarFleteState extends State<EditarFlete> {
             'Los supervisores deben ser diferentes';
       }
 
-      if (flete.bollId == null) {
+      if (flete.boasId == null) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
             'La ubicación de salida no puede estar vacía';
@@ -952,7 +960,7 @@ class _EditarFleteState extends State<EditarFlete> {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'La ubicación de llegada no puede estar vacía';
-      } else if (flete.bollId == flete.boatId && !esProyecto) {
+      } else if (flete.boasId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma bodega.';
@@ -988,14 +996,17 @@ class _EditarFleteState extends State<EditarFlete> {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],
@@ -1050,6 +1061,10 @@ class _EditarFleteState extends State<EditarFlete> {
                 ? MediaQuery.of(context).viewInsets.bottom
                 : 0),
         child: _showInsumos ? _buildInsumosBottomBar() : _buildFleteBottomBar(),
+      ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
       ),
     );
   }
@@ -1370,7 +1385,7 @@ class _EditarFleteState extends State<EditarFlete> {
                       setState(() {
                         _showEquiposDeSeguridad = value;
                         if (_showEquiposDeSeguridad) {
-                          _cargarEquiposDeSeguridadPorBodega(flete.bollId!);
+                          _cargarEquiposDeSeguridadPorBodega(flete.boasId!);
                         }
                       });
                     },
@@ -1776,7 +1791,7 @@ class _EditarFleteState extends State<EditarFlete> {
           } else {
             final selectedBodega = bodegas
                 .firstWhere((bodega) => bodega.bodeDescripcion == newValue);
-            if (selectedBodega.bodeId == flete.bollId) {
+            if (selectedBodega.bodeId == flete.boasId) {
               _mostrarDialogoError('Error',
                   'La bodega de llegada no puede ser la misma que la de salida.');
             } else {

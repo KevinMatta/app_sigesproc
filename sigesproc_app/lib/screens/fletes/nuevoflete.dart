@@ -29,6 +29,7 @@ class NuevoFlete extends StatefulWidget {
 }
 
 class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
+  int _selectedIndex = 2;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   DateTime? establishedDate;
@@ -97,7 +98,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     emtrId: null,
     emssId: null,
     emslId: null,
-    bollId: null,
+    boasId: null,
     boatId: null,
     flenEstado: null,
     flenDestinoProyecto: null,
@@ -148,9 +149,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         supervisorLlegadaController.text = supervisorLlegada.empleado!;
       }
     }
-    if (flete.bollId != null) {
+    if (flete.boasId != null) {
       BodegaViewModel? salida =
-          bodegas.firstWhere((bode) => bode.bodeId == flete.bollId);
+          bodegas.firstWhere((bode) => bode.bodeId == flete.boasId);
       if (salida != null) {
         salidaController.text = salida.bodeDescripcion!;
       }
@@ -162,6 +163,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     keyboardSubscription.cancel();
     _tabController?.dispose();
     super.dispose();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   Future<void> _cargarEmpleados() async {
@@ -320,7 +327,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         return Autocomplete<BodegaViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return bodegas; // Mostrar todas las opciones cuando el campo está vacío
+              return bodegas.isNotEmpty ? bodegas : [];// Mostrar todas las opciones cuando el campo está vacío
             }
             return bodegas.where((BodegaViewModel option) {
               return option.bodeDescripcion!
@@ -367,7 +374,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                           setState(() {
                             controller.clear();
                             if (label == 'Salida') {
-                              flete.bollId = null;
+                              flete.boasId = null;
                             } else if (label == 'Llegada') {
                               flete.boatId = null;
                             }
@@ -427,9 +434,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             setState(() {
               controller.text = selection.bodeDescripcion!;
               if (label == 'Salida') {
-                flete.bollId = selection.bodeId;
-                _cargarInsumosPorBodega(flete.bollId!);
-                _cargarEquiposDeSeguridadPorBodega(flete.bollId!);
+                flete.boasId = selection.bodeId;
+                _cargarInsumosPorBodega(flete.boasId!);
+                _cargarEquiposDeSeguridadPorBodega(flete.boasId!);
               } else if (label == 'Llegada') {
                 flete.boatId = selection.bodeId;
               }
@@ -837,12 +844,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       }
 
       // Validar Ubicaciones
-      if (flete.bollId == null) {
+      if (flete.boasId == null) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
             'La ubicación de salida no puede estar vacía';
       }
-      if (flete.bollId == flete.boatId && !esProyecto) {
+      if (flete.boasId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma bodega.';
@@ -912,14 +919,17 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],
@@ -966,6 +976,10 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             onPressed: () {},
           ),
         ],
+      ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
       ),
       body: Container(
         color: Colors.black,
@@ -1342,7 +1356,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             icon: Icons.arrow_downward, // Icono inicial
             activeIcon: Icons.close, // Icono cuando se despliega
             backgroundColor: Color(0xFF171717), // Color de fondo
-            foregroundColor: Colors.white, // Color del icono
+            foregroundColor: Color(0xFFFFF0C6), // Color del icono
             buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0), // Forma rectangular con bordes redondeados
@@ -1354,13 +1368,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               SpeedDialChild(
                 child: Icon(Icons.arrow_back),
                 backgroundColor: Color(0xFFFFF0C6),
-                foregroundColor: Colors.black,
+                foregroundColor: Color(0xFF171717),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
-                label: 'Cancelar',
-                labelBackgroundColor: Color(0xFF171717), 
-                labelStyle: TextStyle(color: Colors.white),
+                labelBackgroundColor: Color(0xFFFFF0C6), 
+                labelStyle: TextStyle(color: Color(0xFF171717)),
                 onTap: () {
                   Navigator.pushReplacement(
                     context,
@@ -1371,13 +1384,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                 },
               ),
               SpeedDialChild(
-                child: Icon(Icons.add_circle_outline),
+                child: Icon(Icons.add),
                 backgroundColor: Color(0xFFFFF0C6),
-                foregroundColor: Colors.black,
+                foregroundColor: Color(0xFF171717),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
-                label: 'Insumos',
                 labelBackgroundColor: Color(0xFF171717), 
                 labelStyle: TextStyle(color: Colors.white),
                 onTap: _validarCamposYMostrarInsumos,
@@ -1484,35 +1496,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               ),
             ),
           ),
-          SizedBox(height: 10),
-          Card(
-            color: Color(0xFF171717),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Insumos',
-                        style:
-                            TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
-                      ),
-                      FloatingActionButton(
-                        onPressed: _validarCamposYMostrarInsumos,
-                        backgroundColor: Color(0xFFFFF0C6),
-                        mini: true,
-                        child:
-                            Icon(Icons.add_circle_outline, color: Colors.black),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          
         ],
       ),
     );
@@ -1626,7 +1610,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           } else {
             final selectedBodega = bodegas
                 .firstWhere((bodega) => bodega.bodeDescripcion == newValue);
-            if (selectedBodega.bodeId == flete.bollId) {
+            if (selectedBodega.bodeId == flete.boasId) {
               _mostrarDialogoError('Error',
                   'La bodega de llegada no puede ser la misma que la de salida.');
             } else {

@@ -34,7 +34,7 @@ class MenuLateral extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Column(
                 children: List.generate(6, (index) => _crearItem(context, index)),
               ),
