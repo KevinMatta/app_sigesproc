@@ -35,6 +35,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   DateTime? establishedDate;
   TimeOfDay? establishedTime;
   bool esProyecto = false;
+  bool esProyectosalida = false;
   bool _showInsumos = false;
   bool _showEquiposDeSeguridad = false;
   bool _desabilitartextbox = false;
@@ -71,6 +72,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   bool _actividadError = false;
   String _actividadErrorMessage = '';
   bool _noActividadesError = false;
+  String _actividadErrorMessagesalida = '';
+  bool _noActividadesErrorsalida = false;
   TextEditingController llegadaController = TextEditingController();
   TextEditingController actividadController = TextEditingController();
   List<TextEditingController> quantityControllers = [];
@@ -447,7 +450,18 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildProyectoAutocomplete(TextEditingController controller) {
+  Widget _buildProyectoAutocomplete(String label, TextEditingController controller) {
+    bool isError = false;
+    String errorMessage = '';
+
+    if (label == 'Salida') {
+      isError = _ubicacionSalidaError;
+      errorMessage = _ubicacionSalidaErrorMessage;
+    } else if (label == 'Llegada') {
+      isError = _ubicacionLlegadaError;
+      errorMessage = _ubicacionLlegadaErrorMessage;
+    }
+
     FocusNode focusNode = FocusNode();
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -852,18 +866,38 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       if (flete.boasId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
-            'Las ubicaciones de salida y llegada no pueden ser la misma bodega.';
+            'Las ubicaciones de salida y llegada no pueden ser la misma.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ubicaciones Inválidas.')),
+        );
+      }
+      if (flete.boasId == flete.boatId && !esProyectosalida) {
+        _ubicacionSalidaError = true;
+        _ubicacionSalidaErrorMessage =
+            'Las ubicaciones de salida y llegada no pueden ser la misma.';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Ubicaciones Inválidas.')),
         );
       }
 
       // Validar Actividad por Etapa
+      if (esProyectosalida && actividades.isNotEmpty && flete.boasId == null) {
+        _actividadError = true;
+        _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
+      }
       if (esProyecto && actividades.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
         _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
       }
+      
 
+      if (esProyectosalida && _noActividadesErrorsalida && flete.boasId == null) {
+        _proyectoError = true;
+        _proyectoErrorMessage =
+            'El proyecto no tiene actividades, seleccione otro.';
+
+        return;
+      }
       if (esProyecto && _noActividadesError && flete.boatId == null) {
         _proyectoError = true;
         _proyectoErrorMessage =
@@ -1476,6 +1510,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   _buildAutocomplete(
                       'Supervisor de Llegada', supervisorLlegadaController),
                   SizedBox(height: 20),
+                  _switch('¿Salida de Proyecto?', esProyectosalida, (value) {
+                    setState(() {
+                      esProyectosalida = value;
+                    });
+                  }),
+                  SizedBox(height: 20),
                   _switch('¿Dirigido a Proyecto?', esProyecto, (value) {
                     setState(() {
                       esProyecto = value;
@@ -1487,10 +1527,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                     style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
                   ),
                   SizedBox(height: 10),
-                  _buildBodegaAutocomplete('Salida', salidaController),
+                  esProyectosalida
+                      ? _buildProyectoAutocomplete('Salida', salidaController)
+                      : _buildBodegaAutocomplete('Salida', salidaController),
                   SizedBox(height: 20),
                   esProyecto
-                      ? _buildProyectoAutocomplete(llegadaController)
+                      ? _buildProyectoAutocomplete('Llegada', llegadaController)
                       : _buildBodegaAutocomplete('Llegada', llegadaController),
                 ],
               ),
@@ -1571,58 +1613,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildLlegadaDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Llegada',
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.black,
-        labelStyle: TextStyle(color: Colors.white),
-      ),
-      items: esProyecto
-          ? proyectos.map((ProyectoViewModel proyecto) {
-              return DropdownMenuItem<String>(
-                value: proyecto.proyNombre,
-                child: Text(
-                  proyecto.proyNombre!,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14),
-                ),
-              );
-            }).toList()
-          : bodegas.map((BodegaViewModel bodega) {
-              return DropdownMenuItem<String>(
-                value: bodega.bodeDescripcion,
-                child: Text(
-                  bodega.bodeDescripcion!,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14),
-                ),
-              );
-            }).toList(),
-      onChanged: (newValue) {
-        setState(() {
-          if (esProyecto) {
-            flete.boatId = proyectos
-                .firstWhere((proyecto) => proyecto.proyNombre == newValue)
-                .proyId;
-          } else {
-            final selectedBodega = bodegas
-                .firstWhere((bodega) => bodega.bodeDescripcion == newValue);
-            if (selectedBodega.bodeId == flete.boasId) {
-              _mostrarDialogoError('Error',
-                  'La bodega de llegada no puede ser la misma que la de salida.');
-            } else {
-              flete.boatId = selectedBodega.bodeId;
-            }
-          }
-        });
-      },
-      dropdownColor: Colors.black,
-      style: TextStyle(color: Colors.white),
-    );
-  }
+ 
 
   Widget _buildAutocomplete(String label, TextEditingController controller) {
     bool isError = false;
