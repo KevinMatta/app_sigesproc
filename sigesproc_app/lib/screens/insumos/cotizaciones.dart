@@ -91,16 +91,6 @@ class _CotizacionState extends State<Cotizacion> {
   TableRow _buildCotizacionRow(CotizacionViewModel cotizacion, int index) {
     return TableRow(
       children: [
-        // Acciones primero
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              icon: Icon(Icons.info_outline, color: Colors.white),
-              onPressed: () => _verArticulos(cotizacion.cotiId),
-            ),
-          ),
-        ),
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -125,6 +115,16 @@ class _CotizacionState extends State<Cotizacion> {
             child: Text(
               cotizacion.provDescripcion ?? 'N/A',
               style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        ),
+       
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              icon: Icon(Icons.info_outline, color: Colors.white),
+              onPressed: () => _verArticulos(cotizacion.cotiId),
             ),
           ),
         ),
@@ -376,11 +376,10 @@ class _CotizacionState extends State<Cotizacion> {
                                 child: SingleChildScrollView(
                                   child: Table(
                                     columnWidths: {
-                                      0: FlexColumnWidth(
-                                          2), // Ajusta el ancho de la columna de acciones
-                                      1: FlexColumnWidth(1),
+                                      0: FlexColumnWidth(1),
+                                      1: FlexColumnWidth(3),
                                       2: FlexColumnWidth(3),
-                                      3: FlexColumnWidth(3),
+                                      3: FlexColumnWidth(2),
                                     },
                                     children: [
                                       TableRow(
@@ -388,17 +387,6 @@ class _CotizacionState extends State<Cotizacion> {
                                           color: Color(0xFF171717),
                                         ),
                                         children: [
-                                          // Encabezado para las acciones
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Artículos',
-                                              style: TextStyle(
-                                                color: Color(0xFFFFF0C6),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
@@ -429,6 +417,17 @@ class _CotizacionState extends State<Cotizacion> {
                                               ),
                                             ),
                                           ),
+                                         
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Artículos',
+                                              style: TextStyle(
+                                                color: Color(0xFFFFF0C6),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       ..._cotizacionesFiltrados
@@ -438,8 +437,7 @@ class _CotizacionState extends State<Cotizacion> {
                                           .map((entry) {
                                         final index = entry.key;
                                         final cotizacion = entry.value;
-                                        return _buildCotizacionRow(
-                                            cotizacion, startIndex + index);
+                                        return _buildCotizacionRow(cotizacion, startIndex + index);
                                       }).toList(),
                                     ],
                                   ),

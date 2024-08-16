@@ -24,7 +24,7 @@ class _LoginState extends State<Login> {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.5),
+        color: Colors.grey.withOpacity(0.4),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -92,15 +92,15 @@ class _LoginState extends State<Login> {
                   child: Padding(
                     padding: const EdgeInsets.all(30.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize
+                          .min, // Cambiar el comportamiento del eje principal
                       children: [
                         Stack(
                           clipBehavior: Clip.none,
                           alignment: Alignment.center,
                           children: [
                             Container(
-                              width: MediaQuery.of(context).size.width *
-                                  0.8, // Ancho adaptativo
+                              width: MediaQuery.of(context).size.width * 0.8,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: Card(
@@ -113,8 +113,7 @@ class _LoginState extends State<Login> {
                                           MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
-                                            height:
-                                                100), // Espacio ajustado para el logo
+                                            height: 50), // Reducir el tamaño
                                         Text(
                                           'Inicio de sesión',
                                           style: TextStyle(
@@ -158,8 +157,7 @@ class _LoginState extends State<Login> {
                               ),
                             ),
                             Positioned(
-                              top:
-                                  -100, // Mantén esto si necesitas ajustar la posición vertical
+                              top: -90, // Ajuste para centrar el logo
                               child: Container(
                                 width: MediaQuery.of(context).size.width * 0.8,
                                 child: ClipRRect(
@@ -172,7 +170,7 @@ class _LoginState extends State<Login> {
                                           horizontal: 40.0),
                                       child: Image.asset(
                                         'lib/assets/logo-sigesproc.png',
-                                        height: 180,
+                                        height: 150, // Tamaño del logo
                                       ),
                                     ),
                                   ),

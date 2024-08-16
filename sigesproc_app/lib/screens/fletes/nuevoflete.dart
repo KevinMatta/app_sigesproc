@@ -21,6 +21,7 @@ import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class NuevoFlete extends StatefulWidget {
   @override
@@ -110,7 +111,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-        _tabController = TabController(length: 2, vsync: this); // 2 tabs
+    _tabController = TabController(length: 2, vsync: this); // 2 tabs
 
     _cargarEmpleados();
     _cargarBodegas();
@@ -283,7 +284,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
   Future<void> _cargarEquiposDeSeguridadPorBodega(int bodeId) async {
     try {
-            print('entra a equi');
+      print('entra a equi');
 
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorBodega(bodeId);
@@ -902,7 +903,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     );
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -980,7 +981,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       ),
     );
   }
-
 
   Future<void> guardarFlete() async {
     flete.usuaCreacion = 3;
@@ -1152,7 +1152,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         final insumo = insumos[index];
         int? stock = insumo.bopiStock;
-        int cantidad = selectedCantidades.length > index ? selectedCantidades[index] : 0;
+        int cantidad =
+            selectedCantidades.length > index ? selectedCantidades[index] : 0;
         bool cantidadExcedida = cantidad > (stock ?? 0);
 
         return ListTile(
@@ -1163,9 +1164,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Material: ${insumo.mateDescripcion}', style: TextStyle(color: Colors.white70)),
-              Text('Unidad: ${insumo.unmeNombre}', style: TextStyle(color: Colors.white70)),
-              Text('Stock: ${insumo.bopiStock}', style: TextStyle(color: Colors.white70)),
+              Text('Material: ${insumo.mateDescripcion}',
+                  style: TextStyle(color: Colors.white70)),
+              Text('Unidad: ${insumo.unmeNombre}',
+                  style: TextStyle(color: Colors.white70)),
+              Text('Stock: ${insumo.bopiStock}',
+                  style: TextStyle(color: Colors.white70)),
               if (selectedInsumos.contains(insumo))
                 Row(
                   children: [
@@ -1195,7 +1199,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                             int? cantidad = int.tryParse(value);
                             if (cantidad != null && cantidad > stock!) {
                               selectedCantidades[index] = stock;
-                              quantityControllers[index].text = stock.toString();
+                              quantityControllers[index].text =
+                                  stock.toString();
                             }
                           });
                         },
@@ -1231,13 +1236,15 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     );
   }
 
-   Widget _buildEquiposTab() {
+  Widget _buildEquiposTab() {
     return ListView.builder(
       itemCount: equiposdeSeguridad.length,
       itemBuilder: (context, index) {
         final equipo = equiposdeSeguridad[index];
         int? stockE = equipo.bopiStock;
-        int cantidadE = selectedCantidadesequipos.length > index ? selectedCantidadesequipos[index] : 0;
+        int cantidadE = selectedCantidadesequipos.length > index
+            ? selectedCantidadesequipos[index]
+            : 0;
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
 
         return ListTile(
@@ -1248,8 +1255,10 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Descripción: ${equipo.equsDescripcion ?? ''}', style: TextStyle(color: Colors.white70)),
-              Text('Stock: ${equipo.bopiStock ?? 0}', style: TextStyle(color: Colors.white70)),
+              Text('Descripción: ${equipo.equsDescripcion ?? ''}',
+                  style: TextStyle(color: Colors.white70)),
+              Text('Stock: ${equipo.bopiStock ?? 0}',
+                  style: TextStyle(color: Colors.white70)),
               if (selectedEquipos.contains(equipo))
                 Row(
                   children: [
@@ -1279,7 +1288,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                             int? cantidadE = int.tryParse(value);
                             if (cantidadE != null && cantidadE > stockE!) {
                               selectedCantidadesequipos[index] = stockE;
-                              equipoQuantityControllers[index].text = stockE.toString();
+                              equipoQuantityControllers[index].text =
+                                  stockE.toString();
                             }
                           });
                         },
@@ -1319,70 +1329,66 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     return _showInsumos ? _buildInsumosBottomBar() : _buildFleteBottomBar();
   }
 
-  Widget _buildFleteBottomBar() {
-  bool _isExpanded = false; // Variable para controlar la expansión de los botones
-
-  return StatefulBuilder(
-    builder: (BuildContext context, StateSetter setState) {
-      return Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          if (_isExpanded) ...[
-            Positioned(
-              bottom: 80.0, // Ajusta la posición del botón superior
-              right: 16.0,
-              child: FloatingActionButton.extended(
-                backgroundColor: Color(0xFFFFF0C6),
-                onPressed: () {
-                  setState(() {
-                    _isExpanded = false; // Ocultar botones después de hacer clic
-                  });
-                  _validarCamposYMostrarInsumos(); // Llamar a la función original de Insumos
-                },
-                label: Text('Insumos', style: TextStyle(color: Colors.black)),
-                icon: Icon(Icons.add_circle_outline, color: Colors.black),
-              ),
+ Widget _buildFleteBottomBar() {
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(10.0), 
+    child: Row(
+      children: [
+        Spacer(),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
+          child: SpeedDial(
+            icon: Icons.arrow_downward, // Icono inicial
+            activeIcon: Icons.close, // Icono cuando se despliega
+            backgroundColor: Color(0xFF171717), // Color de fondo
+            foregroundColor: Colors.white, // Color del icono
+            buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0), // Forma rectangular con bordes redondeados
             ),
-            Positioned(
-              bottom: 150.0, // Ajusta la posición del botón inferior
-              right: 16.0,
-              child: FloatingActionButton.extended(
+            childrenButtonSize: Size(56.0, 56.0),
+            spaceBetweenChildren: 10.0, // Espacio entre los botones secundarios
+            overlayColor: Colors.transparent,
+            children: [
+              SpeedDialChild(
+                child: Icon(Icons.arrow_back),
                 backgroundColor: Color(0xFFFFF0C6),
-                onPressed: () {
-                  Navigator.push(
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                label: 'Cancelar',
+                labelBackgroundColor: Color(0xFF171717), 
+                labelStyle: TextStyle(color: Colors.white),
+                onTap: () {
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => Flete(),
                     ),
                   );
                 },
-                label: Text('Cancelar', style: TextStyle(color: Colors.black)),
-                icon: Icon(Icons.arrow_back, color: Colors.black),
               ),
-            ),
-          ],
-          Positioned(
-            right: 16.0,
-            bottom: 16.0,
-            child: FloatingActionButton(
-              backgroundColor: Color(0xFFFFF0C6),
-              onPressed: () {
-                setState(() {
-                  _isExpanded = !_isExpanded; // Alternar expansión de los botones
-                });
-              },
-              child: Icon(
-                _isExpanded ? Icons.close : Icons.arrow_downward,
-                color: Colors.black,
+              SpeedDialChild(
+                child: Icon(Icons.add_circle_outline),
+                backgroundColor: Color(0xFFFFF0C6),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                label: 'Insumos',
+                labelBackgroundColor: Color(0xFF171717), 
+                labelStyle: TextStyle(color: Colors.white),
+                onTap: _validarCamposYMostrarInsumos,
               ),
-            ),
+            ],
           ),
-        ],
-      );
-    },
+        ),
+      ],
+    ),
   );
 }
-
 
   Widget _buildInsumosBottomBar() {
     return Container(
@@ -1511,8 +1517,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       ),
     );
   }
-
-  
 
   Widget _fechaSalida() {
     return TextField(

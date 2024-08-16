@@ -380,10 +380,10 @@ class _FleteState extends State<Flete> {
                           child: SingleChildScrollView(
                             child: Table(
                               columnWidths: {
+                                0: FlexColumnWidth(2),
+                                1: FlexColumnWidth(1),
+                                2: FlexColumnWidth(3),
                                 3: FlexColumnWidth(2),
-                                0: FlexColumnWidth(1),
-                                1: FlexColumnWidth(3),
-                                2: FlexColumnWidth(2),
                               },
                               children: [
                                 TableRow(
