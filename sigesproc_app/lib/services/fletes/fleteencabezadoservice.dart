@@ -8,6 +8,9 @@ class FleteEncabezadoService {
     final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Listar');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data
@@ -34,8 +37,8 @@ class FleteEncabezadoService {
       body: body,
     );
 
-     print('Response status: ${response.statusCode}');
-     print('Response body: ${response.body}');
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
@@ -61,7 +64,7 @@ class FleteEncabezadoService {
       body: body,
     );
 
-     print('Response body: ${response.body}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);

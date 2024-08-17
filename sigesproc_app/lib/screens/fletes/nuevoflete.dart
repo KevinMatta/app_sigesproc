@@ -105,6 +105,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     boatId: null,
     flenEstado: null,
     flenDestinoProyecto: null,
+    flenSalidaProyecto: null,
     usuaCreacion: null,
     flenFechaCreacion: null,
     usuaModificacion: null,
@@ -150,13 +151,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           empleados.firstWhere((emp) => emp.emplId == flete.emslId);
       if (supervisorLlegada != null) {
         supervisorLlegadaController.text = supervisorLlegada.empleado!;
-      }
-    }
-    if (flete.boasId != null) {
-      BodegaViewModel? salida =
-          bodegas.firstWhere((bode) => bode.bodeId == flete.boasId);
-      if (salida != null) {
-        salidaController.text = salida.bodeDescripcion!;
       }
     }
   }
@@ -209,15 +203,22 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _cargarActividadesPorProyecto(int proyId) async {
+  Future<void> _cargarActividadesPorProyecto(int proyId, String tipo) async {
     try {
       actividades =
           await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
       if (actividades.isEmpty) {
-        print('que $actividades');
-        _noActividadesError = true;
+        if (tipo == 'Salida') {
+          _noActividadesErrorsalida = true;
+        } else {
+          _noActividadesError = true;
+        }
       } else {
-        _noActividadesError = false;
+        if (tipo == 'Salida') {
+          _noActividadesErrorsalida = false;
+        } else {
+          _noActividadesError = false;
+        }
       }
     } catch (e) {
       print('Error al cargar las actividades: $e');
@@ -330,7 +331,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         return Autocomplete<BodegaViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return bodegas.isNotEmpty ? bodegas : [];// Mostrar todas las opciones cuando el campo está vacío
+              return bodegas.isNotEmpty
+                  ? bodegas
+                  : []; // Mostrar todas las opciones cuando el campo está vacío
             }
             return bodegas.where((BodegaViewModel option) {
               return option.bodeDescripcion!
@@ -450,7 +453,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildProyectoAutocomplete(String label, TextEditingController controller) {
+  Widget _buildProyectoAutocomplete(
+      String label, TextEditingController controller) {
     bool isError = false;
     String errorMessage = '';
 
@@ -488,12 +492,13 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             controller: textEditingController,
             focusNode: focusNode,
             decoration: InputDecoration(
-              labelText: 'Llegada',
+              labelText:
+                  label, // Cambiado para que el label se muestre dinámicamente
               border: OutlineInputBorder(),
               filled: true,
               fillColor: Colors.black,
               labelStyle: TextStyle(color: Colors.white),
-              errorText: _proyectoError ? _proyectoErrorMessage : null,
+              errorText: isError ? errorMessage : null,
               errorStyle: TextStyle(
                 color: Colors.red,
                 fontSize: 12,
@@ -513,7 +518,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                       onPressed: () {
                         setState(() {
                           controller.clear();
-                          flete.boatId = null;
+                          if (label == 'Salida') {
+                            flete.boasId = null; // Limpia la ID de salida
+                          } else if (label == 'Llegada') {
+                            flete.boatId = null; // Limpia la ID de llegada
+                          }
                         });
                       },
                     ),
@@ -575,13 +584,18 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             controller.text = selection.proyNombre!;
             _proyectoError = false;
             _proyectoErrorMessage = '';
-            flete.boatId =
-                null; // Limpia cualquier selección previa de actividad
+            if (label == 'Salida') {
+              flete.boasId =
+                  null; // Limpia cualquier selección previa de actividad
+            } else if (label == 'Llegada') {
+              flete.boatId =
+                  null; // Limpia cualquier selección previa de actividad
+            }
             actividadController.clear();
           });
 
           // Cargar actividades inmediatamente después de seleccionar el proyecto
-          await _cargarActividadesPorProyecto(selection.proyId!);
+          await _cargarActividadesPorProyecto(selection.proyId, label);
 
           // Forzar la actualización del estado para que se muestre el autocomplete de actividades
           setState(() {});
@@ -590,11 +604,13 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       if (actividades.isNotEmpty)
         SizedBox(height: 20), // Añadir espacio entre los widgets
       if (actividades.isNotEmpty)
-        _buildActividadAutocomplete(actividadController),
+        _buildActividadAutocomplete(
+            actividadController, label), // Agregar el segundo argumento 'label'
     ]);
   }
 
-  Widget _buildActividadAutocomplete(TextEditingController controller) {
+  Widget _buildActividadAutocomplete(
+      TextEditingController controller, String label) {
     FocusNode focusNode = FocusNode();
 
     return Autocomplete<ActividadPorEtapaViewModel>(
@@ -639,7 +655,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                     onPressed: () {
                       setState(() {
                         controller.clear();
-                        flete.boatId = null;
+                        if (label == 'Salida') {
+                          flete.boasId = null;
+                        } else {
+                          flete.boatId = null;
+                        }
                       });
                     },
                   ),
@@ -659,51 +679,15 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           style: TextStyle(color: Colors.white),
         );
       },
-      optionsViewBuilder: (BuildContext context,
-          AutocompleteOnSelected<ActividadPorEtapaViewModel> onSelected,
-          Iterable<ActividadPorEtapaViewModel> options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: Container(
-              width: MediaQuery.of(context).size.width - 73,
-              color: Colors.black,
-              child: options.isEmpty
-                  ? ListTile(
-                      title: Text('No hay coincidencias',
-                          style: TextStyle(color: Colors.white)),
-                    )
-                  : ListView.builder(
-                      padding: EdgeInsets.all(8.0),
-                      itemCount: options.length,
-                      shrinkWrap: true,
-                      itemBuilder: (BuildContext context, int index) {
-                        final ActividadPorEtapaViewModel option =
-                            options.elementAt(index);
-                        return GestureDetector(
-                          onTap: () {
-                            onSelected(option);
-                          },
-                          child: ListTile(
-                            title: Text(
-                                option.etapDescripcion! +
-                                    ' - ' +
-                                    option.actiDescripcion!,
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ),
-        );
-      },
       onSelected: (ActividadPorEtapaViewModel selection) {
         setState(() {
           controller.text =
               selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
-          flete.boatId = selection.acetId;
+          if (label == 'Salida') {
+            flete.boasId = selection.acetId;
+          } else {
+            flete.boatId = selection.acetId;
+          }
           _actividadError = false;
           _actividadErrorMessage = '';
         });
@@ -723,8 +707,13 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           value: value,
           onChanged: (bool newValue) {
             setState(() {
-              flete.flenDestinoProyecto = newValue;
-              llegadaController.clear();
+              if (label == '¿Salida de Proyecto?') {
+                esProyectosalida = newValue;
+                salidaController.clear();
+              } else {
+                esProyecto = newValue;
+                llegadaController.clear();
+              }
             });
             onChanged(newValue);
           },
@@ -768,13 +757,15 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       _actividadError = false;
       _actividadErrorMessage = '';
 
+      bool hayErrores = false;
+      String mensajeErrorGeneral =
+          'Por favor completa todos los datos requeridos.';
+
       // Validar Fecha y Hora de Salida
       if (flete.flenFechaHoraSalida == null) {
         _fechaSalidaError = true;
         _fechaSalidaErrorMessage = 'La fecha de salida no puede estar vacía';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fecha de salida inválida')),
-        );
+        hayErrores = true;
       }
 
       // Validar Fecha y Hora Establecida de Llegada
@@ -782,18 +773,14 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
             'La fecha de llegada no puede estar vacía';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fecha de llegada inválida.')),
-        );
+        hayErrores = true;
       } else if (flete.flenFechaHoraSalida != null &&
           flete.flenFechaHoraSalida!
               .isAfter(flete.flenFechaHoraEstablecidaDeLlegada!)) {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
             'La fecha de salida no puede ser posterior a la de llegada.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fechas Inválidas.')),
-        );
+        hayErrores = true;
       } else if (flete.flenFechaHoraEstablecidaDeLlegada!
               .difference(flete.flenFechaHoraSalida!)
               .inMinutes <
@@ -801,49 +788,44 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
             'Debe haber al menos 5 minutos de diferencia entre salida y llegada.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fechas Inválidas.')),
-        );
+        hayErrores = true;
       }
 
       // Validar Empleados
       if (flete.emtrId == null) {
         _isEmpleadoError = true;
         _empleadoErrorMessage = 'El encargado no puede estar vacío';
+        hayErrores = true;
       }
       if (flete.emssId == null) {
         _isSupervisorSalidaError = true;
         _supervisorSalidaErrorMessage =
             'El supervisor de salida no puede estar vacío';
+        hayErrores = true;
       }
       if (flete.emslId == null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'El supervisor de llegada no puede estar vacío';
+        hayErrores = true;
       }
       if (flete.emtrId == flete.emssId && flete.emtrId != null) {
         _isSupervisorSalidaError = true;
         _supervisorSalidaErrorMessage =
             'El supervisor de salida debe ser diferente al encargado';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Empleados Inválidos.')),
-        );
+        hayErrores = true;
       }
       if (flete.emtrId == flete.emslId && flete.emtrId != null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'El supervisor de llegada debe ser diferente al encargado';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Empleados Inválidos.')),
-        );
+        hayErrores = true;
       }
       if (flete.emssId == flete.emslId && flete.emssId != null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'El supervisor de llegada debe ser diferente al de salida';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Supervisores Inválidos.')),
-        );
+        hayErrores = true;
       }
       if (flete.emtrId == flete.emssId &&
           flete.emssId == flete.emslId &&
@@ -852,9 +834,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
             'Los supervisores deben ser diferentes';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Supervisores Inválidos.')),
-        );
+        hayErrores = true;
       }
 
       // Validar Ubicaciones
@@ -862,86 +842,59 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
             'La ubicación de salida no puede estar vacía';
+        hayErrores = true;
       }
       if (flete.boasId == flete.boatId && !esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ubicaciones Inválidas.')),
-        );
+        hayErrores = true;
       }
       if (flete.boasId == flete.boatId && !esProyectosalida) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
             'Las ubicaciones de salida y llegada no pueden ser la misma.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ubicaciones Inválidas.')),
-        );
+        hayErrores = true;
       }
 
       // Validar Actividad por Etapa
       if (esProyectosalida && actividades.isNotEmpty && flete.boasId == null) {
         _actividadError = true;
         _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
+        hayErrores = true;
       }
       if (esProyecto && actividades.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
         _actividadErrorMessage = 'Debe seleccionar una actividad por etapa';
+        hayErrores = true;
       }
-      
 
-      if (esProyectosalida && _noActividadesErrorsalida && flete.boasId == null) {
+      if (esProyectosalida &&
+          _noActividadesErrorsalida &&
+          flete.boasId == null) {
         _proyectoError = true;
         _proyectoErrorMessage =
             'El proyecto no tiene actividades, seleccione otro.';
-
-        return;
+        hayErrores = true;
       }
       if (esProyecto && _noActividadesError && flete.boatId == null) {
         _proyectoError = true;
         _proyectoErrorMessage =
             'El proyecto no tiene actividades, seleccione otro.';
-
-        return;
+        hayErrores = true;
       }
 
       // Mostrar errores si los hay
-      if (_fechaSalidaError ||
-          _fechaHoraEstablecidaError ||
-          _isEmpleadoError ||
-          _isSupervisorSalidaError ||
-          _isSupervisorLlegadaError ||
-          _ubicacionSalidaError ||
-          _ubicacionLlegadaError ||
-          _proyectoError ||
-          _actividadError) {
+      if (hayErrores) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(mensajeErrorGeneral)),
+        );
         return;
       }
 
       // Si no hay errores, mostrar la vista de insumos
       _showInsumosView();
     });
-  }
-
-  void _mostrarDialogoError(String titulo, String mensaje) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(titulo),
-          content: Text(mensaje),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -1377,64 +1330,67 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     return _showInsumos ? _buildInsumosBottomBar() : _buildFleteBottomBar();
   }
 
- Widget _buildFleteBottomBar() {
-  return Container(
-    color: Colors.black,
-    padding: const EdgeInsets.all(10.0), 
-    child: Row(
-      children: [
-        Spacer(),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
-          child: SpeedDial(
-            icon: Icons.arrow_downward, // Icono inicial
-            activeIcon: Icons.close, // Icono cuando se despliega
-            backgroundColor: Color(0xFF171717), // Color de fondo
-            foregroundColor: Color(0xFFFFF0C6), // Color del icono
-            buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0), // Forma rectangular con bordes redondeados
+  Widget _buildFleteBottomBar() {
+    return Container(
+      color: Colors.black,
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        children: [
+          Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(
+                bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
+            child: SpeedDial(
+              icon: Icons.arrow_downward, // Icono inicial
+              activeIcon: Icons.close, // Icono cuando se despliega
+              backgroundColor: Color(0xFF171717), // Color de fondo
+              foregroundColor: Color(0xFFFFF0C6), // Color del icono
+              buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                    12.0), // Forma rectangular con bordes redondeados
+              ),
+              childrenButtonSize: Size(56.0, 56.0),
+              spaceBetweenChildren:
+                  10.0, // Espacio entre los botones secundarios
+              overlayColor: Colors.transparent,
+              children: [
+                SpeedDialChild(
+                  child: Icon(Icons.arrow_back),
+                  backgroundColor: Color(0xFFFFF0C6),
+                  foregroundColor: Color(0xFF171717),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  labelBackgroundColor: Color(0xFFFFF0C6),
+                  labelStyle: TextStyle(color: Color(0xFF171717)),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Flete(),
+                      ),
+                    );
+                  },
+                ),
+                SpeedDialChild(
+                  child: Icon(Icons.add),
+                  backgroundColor: Color(0xFFFFF0C6),
+                  foregroundColor: Color(0xFF171717),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  labelBackgroundColor: Color(0xFF171717),
+                  labelStyle: TextStyle(color: Colors.white),
+                  onTap: _validarCamposYMostrarInsumos,
+                ),
+              ],
             ),
-            childrenButtonSize: Size(56.0, 56.0),
-            spaceBetweenChildren: 10.0, // Espacio entre los botones secundarios
-            overlayColor: Colors.transparent,
-            children: [
-              SpeedDialChild(
-                child: Icon(Icons.arrow_back),
-                backgroundColor: Color(0xFFFFF0C6),
-                foregroundColor: Color(0xFF171717),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                labelBackgroundColor: Color(0xFFFFF0C6), 
-                labelStyle: TextStyle(color: Color(0xFF171717)),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Flete(),
-                    ),
-                  );
-                },
-              ),
-              SpeedDialChild(
-                child: Icon(Icons.add),
-                backgroundColor: Color(0xFFFFF0C6),
-                foregroundColor: Color(0xFF171717),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                labelBackgroundColor: Color(0xFF171717), 
-                labelStyle: TextStyle(color: Colors.white),
-                onTap: _validarCamposYMostrarInsumos,
-              ),
-            ],
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildInsumosBottomBar() {
     return Container(
@@ -1538,7 +1494,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               ),
             ),
           ),
-          
         ],
       ),
     );
@@ -1612,8 +1567,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       ),
     );
   }
-
- 
 
   Widget _buildAutocomplete(String label, TextEditingController controller) {
     bool isError = false;
