@@ -14,7 +14,8 @@ class FleteEncabezadoViewModel {
   DateTime? flenFechaHoraLlegada;
   bool? flenEstado;
   bool? flenDestinoProyecto;
-  int? bollId;
+  bool? flenSalidaProyecto;
+  int? boasId;
   int? boatId;
   int? proyId;
   int? emtrId;
@@ -43,7 +44,8 @@ class FleteEncabezadoViewModel {
     this.flenFechaHoraLlegada,
     this.flenEstado,
     this.flenDestinoProyecto,
-    this.bollId,
+    this.flenSalidaProyecto,
+    this.boasId,
     this.boatId,
     this.proyId,
     this.emtrId,
@@ -81,7 +83,8 @@ class FleteEncabezadoViewModel {
           : null,
       flenEstado: json['flen_Estado'],
       flenDestinoProyecto: json['flen_DestinoProyecto'],
-      bollId: json['boll_Id'],
+      flenSalidaProyecto: json['flen_SalidaProyecto'],
+      boasId: json['boas_Id'],
       boatId: json['boat_Id'],
       proyId: json['proy_Id'],
       emtrId: json['emtr_Id'],
@@ -112,12 +115,12 @@ class FleteEncabezadoViewModel {
       'estado': estado,
       'salida': salida,
       'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
-      'flen_FechaHoraLlegada': flenFechaHoraLlegada?.toIso8601String(),
       'flen_FechaHoraEstablecidaDeLlegada':
           flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
       'flen_Estado': flenEstado,
       'flen_DestinoProyecto': flenDestinoProyecto,
-      'boll_Id': bollId,
+      'flen_SalidaProyecto': flenSalidaProyecto,
+      'boas_Id': boasId,
       'boat_Id': boatId,
       'emtr_Id': emtrId,
       'emss_Id': emssId,
@@ -127,6 +130,14 @@ class FleteEncabezadoViewModel {
       'flen_EstadoFlete': flenEstadoFlete,
       'inpp_Observacion': inppObservacion,
     };
+
+    if (flenId != null) {
+      data['flen_Id'] = flenId;
+    }
+
+    if (flenFechaHoraLlegada != null) {
+      data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
+    }
 
     if (flenFechaCreacion != null) {
       data['flen_FechaCreacion'] = flenFechaCreacion?.toIso8601String();
@@ -139,8 +150,8 @@ class FleteEncabezadoViewModel {
     return data;
   }
 
-   @override
+  @override
   String toString() {
-    return 'FleteEncabezadoViewModel(flenId: $flenId, $supervisorSalida, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, bollId: $bollId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion, flenEstadoFlete: $flenEstadoFlete)';
+    return 'FleteEncabezadoViewModel(flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
   }
 }

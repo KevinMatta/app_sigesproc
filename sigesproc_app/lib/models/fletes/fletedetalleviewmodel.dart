@@ -2,6 +2,7 @@ class FleteDetalleViewModel {
   int? codigo;
   int? fldeId;
   int? fldeCantidad;
+  bool? fldeTipodeCarga;
   int? flenId;
   int? usuaCreacion;
   DateTime? fldeFechaCreacion;
@@ -24,12 +25,12 @@ class FleteDetalleViewModel {
   String? unmeNomenclatura;
   bool? verificado;
   bool? fldeLlegada;
-  bool? fldeTipodeCarga;
 
   FleteDetalleViewModel({
     this.codigo,
     this.fldeId,
     this.fldeCantidad,
+    this.fldeTipodeCarga,
     this.flenId,
     this.usuaCreacion,
     this.fldeFechaCreacion,
@@ -52,7 +53,6 @@ class FleteDetalleViewModel {
     this.unmeNomenclatura,
     this.verificado,
     this.fldeLlegada,
-    this.fldeTipodeCarga,
   });
 
   factory FleteDetalleViewModel.fromJson(Map<String, dynamic> json) {
@@ -60,6 +60,7 @@ class FleteDetalleViewModel {
       codigo: json['codigo'],
       fldeId: json['flde_Id'],
       fldeCantidad: json['flde_Cantidad'],
+      fldeTipodeCarga: json['flde_TipodeCarga'],
       flenId: json['flen_Id'],
       usuaCreacion: json['usua_Creacion'],
       fldeFechaCreacion: json['flde_FechaCreacion'] != null ? DateTime.parse(json['flde_FechaCreacion']) : null,
@@ -82,7 +83,6 @@ class FleteDetalleViewModel {
       unmeNomenclatura: json['unme_Nomenclatura'],
       verificado: json['verificado'],
       fldeLlegada: json['flde_llegada'],
-      fldeTipodeCarga: json['flde_TipodeCarga'],
     );
   }
 
@@ -97,6 +97,9 @@ class FleteDetalleViewModel {
     }
     if (fldeCantidad != null) {
       data['flde_Cantidad'] = fldeCantidad;
+    }
+    if (fldeTipodeCarga != null) {
+      data['flde_TipodeCarga'] = fldeTipodeCarga;
     }
     if (flenId != null) {
       data['flen_Id'] = flenId;
@@ -162,10 +165,11 @@ class FleteDetalleViewModel {
     if (fldeLlegada != null) {
       data['flde_llegada'] = fldeLlegada;
     }
-    if (fldeTipodeCarga != null) {
-      data['flde_TipodeCarga'] = fldeTipodeCarga;
-    }
-
     return data;
+  }
+
+   @override
+  String toString() {
+    return 'FleteDetalleViewModel(flenId: $flenId, fldeId $fldeId cantidad: $fldeCantidad, insudescripcion: $insuDescripcion, fldeLlegada: $fldeLlegada, fldeTipodeCarga: $fldeTipodeCarga';
   }
 }

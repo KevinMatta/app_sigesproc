@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
@@ -21,6 +22,8 @@ class _VerificarFleteState extends State<VerificarFlete> {
   List<FleteDetalleViewModel> insumosNoRecibidos = [];
   List<FleteDetalleViewModel> insumosVerificados = [];
 
+  int _selectedIndex = 2;
+
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
     flenFechaHoraSalida: null,
@@ -28,7 +31,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
     emtrId: null,
     emssId: null,
     emslId: null,
-    bollId: null,
+    boasId: null,
     boatId: null,
     flenEstado: null,
     flenDestinoProyecto: null,
@@ -43,6 +46,12 @@ class _VerificarFleteState extends State<VerificarFlete> {
   void initState() {
     super.initState();
     _cargarInsumos();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   Future<void> _cargarInsumos() async {
@@ -211,18 +220,21 @@ class _VerificarFleteState extends State<VerificarFlete> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Row(
+       title: Row(
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],
@@ -367,6 +379,10 @@ class _VerificarFleteState extends State<VerificarFlete> {
             ),
           ),
         ],
+      ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
       ),
     );
   }

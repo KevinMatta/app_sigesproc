@@ -49,6 +49,13 @@ class _FleteState extends State<Flete> {
         final salida = flete.salida?.toLowerCase() ?? '';
         return salida.contains(query);
       }).toList();
+
+      final totalRecords = _filteredFletes.length;
+      final maxPages = (totalRecords / _rowsPerPage).ceil();
+
+      if(_currentPage >= maxPages){
+        _currentPage = maxPages - 1;
+      }
     });
   }
 
@@ -77,34 +84,6 @@ class _FleteState extends State<Flete> {
   TableRow _buildFleteRow(FleteEncabezadoViewModel flete, int index) {
     return TableRow(
       children: [
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              (index + 1).toString(),
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              flete.salida ?? 'N/A',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-        
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              flete.flenEstado == true ? Icons.adjust : Icons.adjust,
-              color: flete.flenEstado == true ? Colors.red : Colors.green,
-            ),
-          ),
-        ),
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -144,7 +123,7 @@ class _FleteState extends State<Flete> {
                 const PopupMenuItem<int>(
                   value: 0,
                   child: Text(
-                    'Ver Detalle',
+                    'Detalle',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ),
@@ -166,7 +145,7 @@ class _FleteState extends State<Flete> {
                 const PopupMenuItem<int>(
                   value: 0,
                   child: Text(
-                    'Ver Detalle',
+                    'Detalle',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ),
@@ -196,6 +175,35 @@ class _FleteState extends State<Flete> {
           ),
           ),
         ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              (index + 1).toString(),
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              flete.salida ?? 'N/A',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              flete.flenEstado == true ? Icons.adjust : Icons.adjust,
+              color: flete.flenEstado == true ? Colors.red : Colors.green,
+            ),
+          ),
+        ),
+        
       ],
     );
   }
@@ -253,14 +261,17 @@ class _FleteState extends State<Flete> {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],
@@ -372,9 +383,9 @@ class _FleteState extends State<Flete> {
                           child: SingleChildScrollView(
                             child: Table(
                               columnWidths: {
-                                0: FlexColumnWidth(1),
-                                1: FlexColumnWidth(3),
-                                2: FlexColumnWidth(2),
+                                0: FlexColumnWidth(2),
+                                1: FlexColumnWidth(1),
+                                2: FlexColumnWidth(3),
                                 3: FlexColumnWidth(2),
                               },
                               children: [
@@ -383,6 +394,16 @@ class _FleteState extends State<Flete> {
                                     color: Color(0xFF171717),
                                   ),
                                   children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Acciones',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
@@ -413,16 +434,7 @@ class _FleteState extends State<Flete> {
                                         ),
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Acciones',
-                                        style: TextStyle(
-                                          color: Color(0xFFFFF0C6),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
+                                    
                                   ],
                                 ),
                                 ..._filteredFletes

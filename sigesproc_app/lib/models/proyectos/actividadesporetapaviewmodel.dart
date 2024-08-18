@@ -28,4 +28,9 @@ class ActividadPorEtapaViewModel {
       'acti_Descripcion': actiDescripcion
     };
   }
+
+   @override
+  String toString() {
+    return 'ActividadPorEtapaViewModel(acet: $acetId,proy $proyId, etapdes: $etapDescripcion, actides: $actiDescripcion)';
+  }
 }

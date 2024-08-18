@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sigesproc_app/screens/fletes/prueba.dart';
 import 'menu.dart';
 
 class Inicio extends StatefulWidget {
@@ -38,14 +37,17 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],
@@ -55,12 +57,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
           IconButton(
             icon: Icon(Icons.notifications),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MapaPrueba(),
-                ),
-              );
+             
             },
           ),
           IconButton(
@@ -69,17 +66,19 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
           ),
         ],
         bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: 'Cotizaciones'),
-            Tab(text: 'Fletes'),
-            Tab(text: 'Proyectos'),
-            Tab(text: 'Bienes'),
-          ],
-          labelColor: Color(0xFFFFF0C6),
-          unselectedLabelColor: Colors.white,
-          indicatorColor: Color(0xFFFFF0C6),
-        ),
+  controller: _tabController,
+  labelPadding: EdgeInsets.symmetric(horizontal: 5.0), // Aumentar espacio entre pestañas
+  tabs: [
+    Tab(text: 'Cotizaciones'),
+    Tab(text: 'Fletes'),
+    Tab(text: 'Proyectos'),
+    Tab(text: 'Bienes'),
+  ],
+  labelColor: Color(0xFFFFF0C6),
+  unselectedLabelColor: Colors.white,
+  indicatorColor: Color(0xFFFFF0C6),
+),
+
       ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,

@@ -20,176 +20,176 @@ class _LoginState extends State<Login> {
   bool incorrectos = false;
 
   Widget _cuadritoflotante() {
-  return Container(
-    width: 50,
-    height: 50,
-    decoration: BoxDecoration(
-      color: Colors.grey.withOpacity(0.5),
-      borderRadius: BorderRadius.circular(10),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.2),
-          blurRadius: 10,
-          offset: Offset(0, 8),
-        ),
-      ],
-    ),
-  );
-}
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+    );
+  }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: SafeArea(
-      child: SingleChildScrollView(
-        child: Container(
-          color: Colors.white,
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height,
-          child: Stack(
-            children: [
-              Positioned(
-                top: 50,
-                left: 30,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                bottom: 110,
-                right: 30,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                top: 10,
-                right: 70,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                bottom: 80,
-                left: 70,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                top: 150,
-                right: 20,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                top: 250,
-                left: 10,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                top: 350,
-                right: 10,
-                child: _cuadritoflotante(),
-              ),
-              Positioned(
-                top: 550,
-                left: 20,
-                child: _cuadritoflotante(),
-              ),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        alignment: Alignment.topCenter,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Card(
-                              color: Color.fromARGB(224, 255, 255, 255),
-                              elevation: 5,
-                              child: Padding(
-                                padding: const EdgeInsets.all(30.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: 80), // Ajustar espacio para el logo
-                                    Text(
-                                      'Inicio de sesión',
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    SizedBox(height: 20),
-                                    usuariotextb(),
-                                    SizedBox(height: 10),
-                                    contratextb(),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => const Reestablecer(),
-                                            ),
-                                          );
-                                        },
-                                        child: Text(
-                                          '¿Olvidaste tu contraseña?',
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            color: Colors.white,
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 50,
+                  left: 30,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  bottom: 110,
+                  right: 30,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 70,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  bottom: 80,
+                  left: 70,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  top: 150,
+                  right: 20,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  top: 250,
+                  left: 10,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  top: 350,
+                  right: 10,
+                  child: _cuadritoflotante(),
+                ),
+                Positioned(
+                  top: 550,
+                  left: 20,
+                  child: _cuadritoflotante(),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(30.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize
+                          .min, // Cambiar el comportamiento del eje principal
+                      children: [
+                        Stack(
+                          clipBehavior: Clip.none,
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Card(
+                                  color: Color.fromARGB(224, 255, 255, 255),
+                                  elevation: 5,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(30.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                            height: 50), // Reducir el tamaño
+                                        Text(
+                                          'Inicio de sesión',
                                           style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
                                             color: Colors.black,
-                                            decoration: TextDecoration.underline,
                                           ),
                                         ),
-                                      ),
+                                        SizedBox(height: 20),
+                                        usuariotextb(),
+                                        SizedBox(height: 10),
+                                        contratextb(),
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const Reestablecer(),
+                                                ),
+                                              );
+                                            },
+                                            child: Text(
+                                              '¿Olvidaste tu contraseña?',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 20),
+                                        botonLogin()
+                                      ],
                                     ),
-                                    SizedBox(height: 20),
-                                    botonLogin()
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: -100, // Ajustar posición hacia arriba
-                            child: ClipRRect(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(15),
-                          topRight: Radius.circular(15),
-                        ),
-                        child: Card(
-                          color: Colors.black,
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(15),
-                              topRight: Radius.circular(15),
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10),
+                            Positioned(
+                              top: -90, // Ajuste para centrar el logo
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Card(
+                                    color: Colors.black,
+                                    elevation: 1,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 40.0),
+                                      child: Image.asset(
+                                        'lib/assets/logo-sigesproc.png',
+                                        height: 150, // Tamaño del logo
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 73, right: 73),
-                            child: Image.asset(
-                              'lib/assets/logo-sigesproc.png',
-                              height: 180,
-                            ),
-                          ),
+                          ],
                         ),
-                      ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget usuariotextb() {
     return TextField(

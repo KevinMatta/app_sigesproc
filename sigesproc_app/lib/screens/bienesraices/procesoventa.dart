@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
-import 'package:sigesproc_app/screens/proyectos/utilidad.dart';
+import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ProcesoVenta extends StatefulWidget {
   @override
@@ -567,21 +566,12 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       SizedBox(height: 8.0),
                       InkWell(
                         onTap: () {
-                          String linkUbicacion = venta.linkUbicacion ?? '';
-                          if (linkUbicacion.isNotEmpty) {
-                            final Uri uri = Uri.parse(linkUbicacion);
-                            final List<String> coordinates =
-                                uri.queryParameters['q']?.split(',') ?? [];
-                            if (coordinates.length == 2) {
-                              double latitude = double.parse(coordinates[0]);
-                              double longitude = double.parse(coordinates[1]);
-                              MapUtils.openMapWithPosition(latitude, longitude);
-                            } else {
-                              print("Error parseando coordenadas");
-                            }
-                          } else {
-                            print("Link no disponible");
-                          }
+                          Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UbicacionBienRaiz(btrpId: venta.btrpId, btrpTerrenoOBienRaizId: venta.btrpTerrenoOBienRaizId ? 1 : 0, btrpBienoterrenoId: venta.btrpBienoterrenoId!),
+                  ),
+                );
                         },
                         child: Text(
                           'Ver ubicación',
@@ -726,9 +716,21 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         backgroundColor: Colors.black,
         title: Row(
           children: [
-            Image.asset('lib/assets/logo-sigesproc.png', height: 60),
-            SizedBox(width: 10),
-            Text('SIGESPROC', style: TextStyle(color: Color(0xFFFFF0C6))),
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50, // Ajusta la altura si es necesario
+            ),
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
+              ),
+            ),
           ],
         ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),

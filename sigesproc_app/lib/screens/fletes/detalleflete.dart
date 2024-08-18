@@ -55,7 +55,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
       FleteEncabezadoViewModel? flete =
           await FleteEncabezadoService.obtenerFleteDetalle(flenId);
       if (flete != null) {
-        return await BodegaService.buscar(flete.bollId!);
+        return await BodegaService.buscar(flete.boasId!);
       }
     } catch (e) {
       print('Error fetching bodega origen: $e');
@@ -136,18 +136,21 @@ class _DetalleFleteState extends State<DetalleFlete> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Row(
+       title: Row(
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 60,
+              height: 50, // Ajusta la altura si es necesario
             ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
+            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto a la izquierda
               ),
             ),
           ],
