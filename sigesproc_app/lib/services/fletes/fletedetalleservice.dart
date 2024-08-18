@@ -11,8 +11,8 @@ class FleteDetalleService {
     final url =
         Uri.parse('${ApiService.apiUrl}/InsumoPorProveedor/Buscar/$bodeId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response status insumos: ${response.statusCode}');
-    print('Response body nsumos: ${response.body}');
+    // print('Response status insumos: ${response.statusCode}');
+    // print('Response body nsumos: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -88,8 +88,8 @@ class FleteDetalleService {
     final url =
         Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarDetalles/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response status buscar: ${response.statusCode}');
-    print('Response body buscar: ${response.body}');
+    // print('Response status buscar: ${response.statusCode}');
+    // print('Response body buscar: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);

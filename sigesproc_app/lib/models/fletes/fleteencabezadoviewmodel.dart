@@ -131,9 +131,13 @@ class FleteEncabezadoViewModel {
       'inpp_Observacion': inppObservacion,
     };
 
+    if (flenId != null) {
+      data['flen_Id'] = flenId;
+    }
+
     if (flenFechaHoraLlegada != null) {
-    data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
-  }
+      data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
+    }
 
     if (flenFechaCreacion != null) {
       data['flen_FechaCreacion'] = flenFechaCreacion?.toIso8601String();
@@ -146,8 +150,8 @@ class FleteEncabezadoViewModel {
     return data;
   }
 
-   @override
+  @override
   String toString() {
-    return 'FleteEncabezadoViewModel(flenId: $flenId, $supervisorSalida, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion, flenEstadoFlete: $flenEstadoFlete)';
+    return 'FleteEncabezadoViewModel(flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
   }
 }

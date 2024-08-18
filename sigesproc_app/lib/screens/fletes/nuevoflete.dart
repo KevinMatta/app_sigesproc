@@ -986,9 +986,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   Future<void> guardarFlete() async {
     flete.usuaCreacion = 3;
     flete.flenEstado = false;
-    if (flete.flenDestinoProyecto == null) {
-      flete.flenDestinoProyecto = false;
-    }
+    flete.flenSalidaProyecto = esProyectosalida;
+    flete.flenDestinoProyecto = esProyecto;
 
     // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
     bool hayCantidadesInvalidas = false;
@@ -1153,8 +1152,10 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         final insumo = insumos[index];
         int? stock = insumo.bopiStock;
-        int cantidad =
-            selectedCantidades.length > index ? selectedCantidades[index] : 0;
+        bool isSelected = selectedInsumos.contains(insumo);
+        int cantidad = isSelected
+            ? selectedCantidades[selectedInsumos.indexOf(insumo)]
+            : 0;
         bool cantidadExcedida = cantidad > (stock ?? 0);
 
         return ListTile(
@@ -1171,37 +1172,43 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   style: TextStyle(color: Colors.white70)),
               Text('Stock: ${insumo.bopiStock}',
                   style: TextStyle(color: Colors.white70)),
-              if (selectedInsumos.contains(insumo))
+              if (isSelected)
                 Row(
                   children: [
                     Text('Cantidad: ', style: TextStyle(color: Colors.white70)),
                     SizedBox(
-                      width: 30,
+                      width: 50,
                       child: TextField(
-                        controller: quantityControllers[index],
+                        controller: quantityControllers[
+                            selectedInsumos.indexOf(insumo)],
                         keyboardType: TextInputType.number,
                         style: TextStyle(color: Colors.white),
                         onChanged: (value) {
                           setState(() {
-                            int? cantidad = int.tryParse(value);
-                            if (cantidad == null || cantidad <= 0) {
+                            int? nuevaCantidad = int.tryParse(value);
+                            if (nuevaCantidad == null || nuevaCantidad <= 0) {
                               cantidadExcedida = false;
-                            } else if (cantidad > stock!) {
-                              selectedCantidades[index] = cantidad;
+                            } else if (nuevaCantidad > stock!) {
+                              selectedCantidades[
+                                  selectedInsumos.indexOf(insumo)] = stock!;
                               cantidadExcedida = true;
                             } else {
-                              selectedCantidades[index] = cantidad;
+                              selectedCantidades[selectedInsumos
+                                  .indexOf(insumo)] = nuevaCantidad;
                               cantidadExcedida = false;
                             }
                           });
                         },
                         onSubmitted: (value) {
                           setState(() {
-                            int? cantidad = int.tryParse(value);
-                            if (cantidad != null && cantidad > stock!) {
-                              selectedCantidades[index] = stock;
-                              quantityControllers[index].text =
-                                  stock.toString();
+                            int? nuevaCantidad = int.tryParse(value);
+                            if (nuevaCantidad != null &&
+                                nuevaCantidad > stock!) {
+                              selectedCantidades[
+                                  selectedInsumos.indexOf(insumo)] = stock!;
+                              quantityControllers[
+                                      selectedInsumos.indexOf(insumo)]
+                                  .text = stock.toString();
                             }
                           });
                         },
@@ -1217,17 +1224,18 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             ],
           ),
           trailing: Checkbox(
-            value: selectedInsumos.contains(insumo),
+            value: isSelected,
             onChanged: (bool? value) {
               setState(() {
                 if (value == true) {
                   selectedInsumos.add(insumo);
-                  quantityControllers[index].text = '1';
+                  quantityControllers.add(TextEditingController(text: '1'));
+                  selectedCantidades.add(1);
                 } else {
                   int removeIndex = selectedInsumos.indexOf(insumo);
                   selectedInsumos.removeAt(removeIndex);
-                  selectedCantidades[removeIndex] = 0;
-                  quantityControllers[removeIndex].clear();
+                  quantityControllers.removeAt(removeIndex);
+                  selectedCantidades.removeAt(removeIndex);
                 }
               });
             },
@@ -1243,8 +1251,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         final equipo = equiposdeSeguridad[index];
         int? stockE = equipo.bopiStock;
-        int cantidadE = selectedCantidadesequipos.length > index
-            ? selectedCantidadesequipos[index]
+        bool isSelected = selectedEquipos.contains(equipo);
+        int cantidadE = isSelected
+            ? selectedCantidadesequipos[selectedEquipos.indexOf(equipo)]
             : 0;
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
 
@@ -1260,37 +1269,43 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   style: TextStyle(color: Colors.white70)),
               Text('Stock: ${equipo.bopiStock ?? 0}',
                   style: TextStyle(color: Colors.white70)),
-              if (selectedEquipos.contains(equipo))
+              if (isSelected)
                 Row(
                   children: [
                     Text('Cantidad: ', style: TextStyle(color: Colors.white70)),
                     SizedBox(
-                      width: 30,
+                      width: 50,
                       child: TextField(
-                        controller: equipoQuantityControllers[index],
+                        controller: equipoQuantityControllers[
+                            selectedEquipos.indexOf(equipo)],
                         keyboardType: TextInputType.number,
                         style: TextStyle(color: Colors.white),
                         onChanged: (value) {
                           setState(() {
-                            int? cantidadE = int.tryParse(value);
-                            if (cantidadE == null || cantidadE <= 0) {
+                            int? nuevaCantidadE = int.tryParse(value);
+                            if (nuevaCantidadE == null || nuevaCantidadE <= 0) {
                               cantidadExcedidaE = false;
-                            } else if (cantidadE > stockE!) {
-                              selectedCantidadesequipos[index] = cantidadE;
+                            } else if (nuevaCantidadE > stockE!) {
+                              selectedCantidadesequipos[
+                                  selectedEquipos.indexOf(equipo)] = stockE!;
                               cantidadExcedidaE = true;
                             } else {
-                              selectedCantidadesequipos[index] = cantidadE;
+                              selectedCantidadesequipos[selectedEquipos
+                                  .indexOf(equipo)] = nuevaCantidadE;
                               cantidadExcedidaE = false;
                             }
                           });
                         },
                         onSubmitted: (value) {
                           setState(() {
-                            int? cantidadE = int.tryParse(value);
-                            if (cantidadE != null && cantidadE > stockE!) {
-                              selectedCantidadesequipos[index] = stockE;
-                              equipoQuantityControllers[index].text =
-                                  stockE.toString();
+                            int? nuevaCantidadE = int.tryParse(value);
+                            if (nuevaCantidadE != null &&
+                                nuevaCantidadE > stockE!) {
+                              selectedCantidadesequipos[
+                                  selectedEquipos.indexOf(equipo)] = stockE!;
+                              equipoQuantityControllers[
+                                      selectedEquipos.indexOf(equipo)]
+                                  .text = stockE.toString();
                             }
                           });
                         },
@@ -1306,17 +1321,19 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             ],
           ),
           trailing: Checkbox(
-            value: selectedEquipos.contains(equipo),
+            value: isSelected,
             onChanged: (bool? value) {
               setState(() {
                 if (value == true) {
                   selectedEquipos.add(equipo);
-                  equipoQuantityControllers[index].text = '1';
+                  equipoQuantityControllers
+                      .add(TextEditingController(text: '1'));
+                  selectedCantidadesequipos.add(1);
                 } else {
                   int removeIndex = selectedEquipos.indexOf(equipo);
                   selectedEquipos.removeAt(removeIndex);
-                  selectedCantidadesequipos[removeIndex] = 0;
-                  equipoQuantityControllers[removeIndex].clear();
+                  equipoQuantityControllers.removeAt(removeIndex);
+                  selectedCantidadesequipos.removeAt(removeIndex);
                 }
               });
             },

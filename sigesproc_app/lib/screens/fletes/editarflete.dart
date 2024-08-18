@@ -30,7 +30,8 @@ class EditarFlete extends StatefulWidget {
   _EditarFleteState createState() => _EditarFleteState();
 }
 
-class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin {
+class _EditarFleteState extends State<EditarFlete>
+    with TickerProviderStateMixin {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   DateTime? establishedDate;
@@ -171,7 +172,7 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
 
   Future<void> _cargarDatosIniciales() async {
     setState(() {
-      _isLoading = true; 
+      _isLoading = true;
     });
     try {
       FleteEncabezadoViewModel? fleteCargado =
@@ -215,179 +216,191 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
 
         esProyecto = flete.flenDestinoProyecto ?? false;
         if (esProyecto) {
-            print('Es un proyecto: sí');
-            ProyectoViewModel? proyectoSeleccionado =
-                await ProyectoService.obtenerProyecto(flete.proyId!);
-            print('Proyecto seleccionado: $proyectoSeleccionado');
-            if (proyectoSeleccionado != null) {
-                llegadaController.text = proyectoSeleccionado.proyNombre!;
+          print('Es un proyecto: sí');
+          ProyectoViewModel? proyectoSeleccionado =
+              await ProyectoService.obtenerProyecto(flete.proyId!);
+          print('Proyecto seleccionado: $proyectoSeleccionado');
+          if (proyectoSeleccionado != null) {
+            llegadaController.text = proyectoSeleccionado.proyNombre!;
 
-                List<ActividadPorEtapaViewModel> actividades =
-                    await ActividadPorEtapaService.obtenerActividadesPorProyecto(
-                        flete.proyId!);
-                print('Actividades cargadas: $actividades');
+            List<ActividadPorEtapaViewModel> actividades =
+                await ActividadPorEtapaService.obtenerActividadesPorProyecto(
+                    flete.proyId!);
+            print('Actividades cargadas: $actividades');
 
-                if (actividades.isNotEmpty && flete.boatId != null) {
-                    ActividadPorEtapaViewModel etapaactividad = actividades
-                        .firstWhere((actividad) => actividad.acetId == flete.boatId!,
-                            orElse: () => ActividadPorEtapaViewModel(
-                                etapDescripcion: '', actiDescripcion: ''));
-                    print('Etapa actividad seleccionada: $etapaactividad');
+            if (actividades.isNotEmpty && flete.boatId != null) {
+              ActividadPorEtapaViewModel etapaactividad = actividades
+                  .firstWhere((actividad) => actividad.acetId == flete.boatId!,
+                      orElse: () => ActividadPorEtapaViewModel(
+                          etapDescripcion: '', actiDescripcion: ''));
+              print('Etapa actividad seleccionada: $etapaactividad');
 
-                    if (etapaactividad.etapDescripcion!.isNotEmpty) {
-                        actividadController.text = etapaactividad.etapDescripcion! +
-                            ' - ' +
-                            etapaactividad.actiDescripcion!;
-                    }
+              if (etapaactividad.etapDescripcion!.isNotEmpty) {
+                actividadController.text = etapaactividad.etapDescripcion! +
+                    ' - ' +
+                    etapaactividad.actiDescripcion!;
+              }
 
-                    setState(() {
-                        this.actividades = actividades;
-                    });
-                } else {
-                    print('No se encontraron actividades o boatId es nulo');
-                }
+              setState(() {
+                this.actividades = actividades;
+              });
             } else {
-                print('El proyecto seleccionado es nulo');
+              print('No se encontraron actividades o boatId es nulo');
             }
+          } else {
+            print('El proyecto seleccionado es nulo');
+          }
         } else {
-            print('Es un proyecto: no');
-            BodegaViewModel? llegada = await BodegaService.buscar(flete.boatId!);
-            print('Bodega de llegada cargada: $llegada');
-            if (llegada != null) {
-                llegadaController.text = llegada.bodeDescripcion!;
-            } else {
-                print('La bodega de llegada es nula');
-            }
+          print('Es un proyecto: no');
+          BodegaViewModel? llegada = await BodegaService.buscar(flete.boatId!);
+          print('Bodega de llegada cargada: $llegada');
+          if (llegada != null) {
+            llegadaController.text = llegada.bodeDescripcion!;
+          } else {
+            print('La bodega de llegada es nula');
+          }
         }
 
         esProyectosalida = flete.flenSalidaProyecto ?? false;
         if (esProyectosalida) {
-            print('Es un proyecto de salida: sí');
-            ProyectoViewModel? proyectoSeleccionado =
-                await ProyectoService.obtenerProyecto(flete.proyId!);
-            print('Proyecto de salida seleccionado: $proyectoSeleccionado');
-            if (proyectoSeleccionado != null) {
-                salidaController.text = proyectoSeleccionado.proyNombre!;
+          print('Es un proyecto de salida: sí');
+          ProyectoViewModel? proyectoSeleccionado =
+              await ProyectoService.obtenerProyecto(flete.proyId!);
+          print('Proyecto de salida seleccionado: $proyectoSeleccionado');
+          if (proyectoSeleccionado != null) {
+            salidaController.text = proyectoSeleccionado.proyNombre!;
 
-                List<ActividadPorEtapaViewModel> actividades =
-                    await ActividadPorEtapaService.obtenerActividadesPorProyecto(
-                        flete.proyId!);
-                print('Actividades de salida cargadas: $actividades');
+            List<ActividadPorEtapaViewModel> actividades =
+                await ActividadPorEtapaService.obtenerActividadesPorProyecto(
+                    flete.proyId!);
+            print('Actividades de salida cargadas: $actividades');
 
-                if (actividades.isNotEmpty && flete.boasId != null) {
-                    ActividadPorEtapaViewModel etapaactividad = actividades
-                        .firstWhere((actividad) => actividad.acetId == flete.boasId!,
-                            orElse: () => ActividadPorEtapaViewModel(
-                                etapDescripcion: '', actiDescripcion: ''));
-                    print('Etapa actividad de salida seleccionada: $etapaactividad');
+            if (actividades.isNotEmpty && flete.boasId != null) {
+              ActividadPorEtapaViewModel etapaactividad = actividades
+                  .firstWhere((actividad) => actividad.acetId == flete.boasId!,
+                      orElse: () => ActividadPorEtapaViewModel(
+                          etapDescripcion: '', actiDescripcion: ''));
+              print('Etapa actividad de salida seleccionada: $etapaactividad');
 
-                    if (etapaactividad.etapDescripcion!.isNotEmpty) {
-                        actividadController.text = etapaactividad.etapDescripcion! +
-                            ' - ' +
-                            etapaactividad.actiDescripcion!;
-                    }
+              if (etapaactividad.etapDescripcion!.isNotEmpty) {
+                actividadController.text = etapaactividad.etapDescripcion! +
+                    ' - ' +
+                    etapaactividad.actiDescripcion!;
+              }
 
-                    setState(() {
-                        this.actividades = actividades;
-                    });
-                } else {
-                    print('No se encontraron actividades de salida o boasId es nulo');
-                }
+              setState(() {
+                this.actividades = actividades;
+              });
             } else {
-                print('El proyecto de salida seleccionado es nulo');
+              print('No se encontraron actividades de salida o boasId es nulo');
             }
+          } else {
+            print('El proyecto de salida seleccionado es nulo');
+          }
         } else {
-            print('Es un proyecto de salida: no');
-            BodegaViewModel? salida = await BodegaService.buscar(flete.boasId!);
-            print('Bodega de salida cargada: $salida');
-            if (salida != null) {
-                salidaController.text = salida.bodeDescripcion!;
-            } else {
-                print('La bodega de salida es nula');
-            }
+          print('Es un proyecto de salida: no');
+          BodegaViewModel? salida = await BodegaService.buscar(flete.boasId!);
+          print('Bodega de salida cargada: $salida');
+          if (salida != null) {
+            salidaController.text = salida.bodeDescripcion!;
+          } else {
+            print('La bodega de salida es nula');
+          }
         }
 
-        print('a entrar a boasid diferente a nulo');
-
         if (flete.boasId != null) {
-            print('Cargando insumos para la bodega de salida');
-            List<InsumoPorProveedorViewModel> insumosList =
-                await FleteDetalleService.listarInsumosPorProveedorPorBodega(flete.boasId!);
-            print('Insumos cargados: $insumosList');
+          print('Cargando insumos para la bodega de salida');
+          List<InsumoPorProveedorViewModel> insumosList =
+              await FleteDetalleService.listarInsumosPorProveedorPorBodega(
+                  flete.boasId!);
+          print('Insumos cargados: $insumosList');
 
-            // Cargar los detalles de insumos ya seleccionados en el flete
-            List<FleteDetalleViewModel> detallesCargados =
-                await FleteDetalleService.Buscar(flete.flenId!);
-            print('Detalles de insumos cargados: $detallesCargados');
+          // Cargar los detalles de insumos ya seleccionados en el flete
+          List<FleteDetalleViewModel> detallesCargados =
+              await FleteDetalleService.Buscar(flete.flenId!);
+          print('Detalles de insumos cargados: $detallesCargados');
 
-            setState(() {
-                selectedCantidades = [];
-                quantityControllers = [];
+          setState(() {
+            selectedCantidades = [];
+            quantityControllers = [];
+            selectedInsumos = [];
 
-                for (var insumo in insumosList) {
-                    var detalle = detallesCargados.firstWhere(
-                        (detalle) => detalle.inppId == insumo.inppId,
-                        orElse: () => FleteDetalleViewModel());
+            for (var detalle in detallesCargados) {
+              var insumo = insumosList.firstWhere(
+                  (insumo) => insumo.inppId == detalle.inppId,
+                   orElse: () => InsumoPorProveedorViewModel());
 
-                    if (detalle.fldeId != null) {
-                        var cantidad = detalle.fldeCantidad;
-                        print('Cantidad seleccionada para insumo: $cantidad');
-                        selectedInsumos.add(insumo);
-                        quantityControllers.add(TextEditingController(text: cantidad.toString()));
-                        selectedCantidades.add(cantidad!);
-                    } else {
-                        quantityControllers.add(TextEditingController(text: '1'));
-                        selectedCantidades.add(1);
-                    }
-                }
+              if (insumo != null) {
+                selectedInsumos.add(insumo);
+                selectedCantidades.add(detalle.fldeCantidad!);
+                quantityControllers.add(TextEditingController(
+                    text: detalle.fldeCantidad.toString()));
+                print(
+                    'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+              }
+            }
 
-                insumos = insumosList;
-            });
+            // Asegurarse de que la lista de insumos contenga todos los insumos, no solo los seleccionados
+            for (var insumo in insumosList) {
+              if (!selectedInsumos.contains(insumo)) {
+                quantityControllers.add(TextEditingController(text: '1'));
+                selectedCantidades.add(1);
+              }
+            }
 
-            print('Cargando equipos de seguridad para la bodega de salida');
-            List<EquipoPorProveedorViewModel> equiposList =
-                await FleteDetalleService.listarEquiposdeSeguridadPorBodega(flete.boasId!);
-            print('Equipos cargados: $equiposList');
+            insumos = insumosList;
+          });
 
-            List<FleteDetalleViewModel> detallesCargadose =
-                await FleteDetalleService.Buscar(flete.flenId!);
-            print('Detalles de equipos cargados: $detallesCargadose');
+          print('Cargando equipos de seguridad para la bodega de salida');
+          List<EquipoPorProveedorViewModel> equiposList =
+              await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
+                  flete.boasId!);
+          print('Equipos cargados: $equiposList');
 
-            setState(() {
-                selectedCantidadesequipos = [];
-                equipoQuantityControllers = [];
+          List<FleteDetalleViewModel> detallesCargadose =
+              await FleteDetalleService.Buscar(flete.flenId!);
+          print('Detalles de equipos cargados: $detallesCargadose');
 
-                for (var equipo in equiposList) {
-                    var detallee = detallesCargadose.firstWhere(
-                        (detalle) => detalle.inppId == equipo.eqppId,
-                        orElse: () => FleteDetalleViewModel());
+          setState(() {
+            selectedCantidadesequipos = [];
+            equipoQuantityControllers = [];
+            selectedEquipos = [];
 
-                    if (detallee.fldeId != null) {
-                        var cantidade = detallee.fldeCantidad;
-                        print('Cantidad seleccionada para equipo: $cantidade');
-                        selectedEquipos.add(equipo);
-                        equipoQuantityControllers.add(TextEditingController(text: cantidade.toString()));
-                        selectedCantidadesequipos.add(cantidade!);
-                    } else {
-                        equipoQuantityControllers.add(TextEditingController(text: '1'));
-                        selectedCantidadesequipos.add(1);
-                    }
-                }
+            for (var detalle in detallesCargadose) {
+              var equipo = equiposList.firstWhere(
+                  (equipo) => equipo.eqppId == detalle.inppId,
+                  orElse: () => EquipoPorProveedorViewModel());
 
-                equiposdeSeguridad = equiposList;
-            });
+              if (equipo != null) {
+                selectedEquipos.add(equipo);
+                selectedCantidadesequipos.add(detalle.fldeCantidad!);
+                equipoQuantityControllers.add(TextEditingController(
+                    text: detalle.fldeCantidad.toString()));
+                print(
+                    'Cantidad seleccionada para equipo ${equipo.equsNombre}: ${detalle.fldeCantidad}');
+              }
+            }
+
+            // Asegurarse de que la lista de equipos contenga todos los equipos, no solo los seleccionados
+            for (var equipo in equiposList) {
+              if (!selectedEquipos.contains(equipo)) {
+                equipoQuantityControllers.add(TextEditingController(text: '1'));
+                selectedCantidadesequipos.add(1);
+              }
+            }
+
+            equiposdeSeguridad = equiposList;
+          });
         }
       }
     } catch (e) {
       print('Error al cargar los datos del flete: $e');
     } finally {
       setState(() {
-        _isLoading = false; 
+        _isLoading = false;
       });
     }
   }
-
- 
 
   Future<void> _cargarEmpleados() async {
     try {
@@ -425,25 +438,26 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
   }
 
   Future<void> _cargarActividadesPorProyecto(int proyId, String tipo) async {
-  try {
-    actividades = await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
-    if (actividades.isEmpty) {
-      if (tipo == 'Salida') {
-        _noActividadesErrorsalida = true;
+    try {
+      actividades =
+          await ActividadPorEtapaService.obtenerActividadesPorProyecto(proyId);
+      if (actividades.isEmpty) {
+        if (tipo == 'Salida') {
+          _noActividadesErrorsalida = true;
+        } else {
+          _noActividadesError = true;
+        }
       } else {
-        _noActividadesError = true;
+        if (tipo == 'Salida') {
+          _noActividadesErrorsalida = false;
+        } else {
+          _noActividadesError = false;
+        }
       }
-    } else {
-      if (tipo == 'Salida') {
-        _noActividadesErrorsalida = false;
-      } else {
-        _noActividadesError = false;
-      }
+    } catch (e) {
+      print('Error al cargar las actividades: $e');
     }
-  } catch (e) {
-    print('Error al cargar las actividades: $e');
   }
-}
 
   Future<void> _FechaSeleccionada({required bool isSalida}) async {
     DateTime? pickedDate = await showDatePicker(
@@ -551,7 +565,9 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
         return Autocomplete<BodegaViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
             if (textEditingValue.text.isEmpty) {
-              return bodegas.isNotEmpty ? bodegas : [];// Mostrar todas las opciones cuando el campo está vacío
+              return bodegas.isNotEmpty
+                  ? bodegas
+                  : []; // Mostrar todas las opciones cuando el campo está vacío
             }
             return bodegas.where((BodegaViewModel option) {
               return option.bodeDescripcion!
@@ -827,7 +843,6 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
     ]);
   }
 
-
   Widget _buildActividadAutocomplete(
       TextEditingController controller, String label) {
     FocusNode focusNode = FocusNode();
@@ -925,11 +940,14 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
         Switch(
           value: value,
           onChanged: (bool newValue) {
+            print(newValue);
             setState(() {
               if (label == '¿Salida de Proyecto?') {
+                print('salida');
                 esProyectosalida = newValue;
                 salidaController.clear();
               } else {
+                print('llegada');
                 esProyecto = newValue;
                 llegadaController.clear();
               }
@@ -954,7 +972,7 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
     });
   }
 
-   void _validarCamposYMostrarInsumos() {
+  void _validarCamposYMostrarInsumos() {
     setState(() {
       // Resetear todos los errores
       _fechaSalidaError = false;
@@ -1156,7 +1174,7 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
                 child: Column(
                   children: [
                     Text(
-                      'Nuevo Flete',
+                      'Editar Flete',
                       style: TextStyle(
                         color: Color(0xFFFFF0C6),
                         fontSize: 18,
@@ -1195,10 +1213,10 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
               ),
             )
           : Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
-        child: _showInsumos ? _buildTabsView() : _buildFleteView(),
-      ),
+              color: Colors.black,
+              padding: const EdgeInsets.all(16.0),
+              child: _showInsumos ? _buildTabsView() : _buildFleteView(),
+            ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
             bottom: _isKeyboardVisible
@@ -1211,14 +1229,15 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
 
   Future<void> editarFlete() async {
     try {
+      flete.flenFechaHoraLlegada = DateTime(2024, 2, 2);
       flete.usuaModificacion = 3;
-      flete.flenFechaHoraLlegada = DateTime(2024, 9, 9, 12, 22);
-      flete.flenId = widget.flenId;
-
-      print('Flete data: ${flete.toJson()}');
+      flete.flenSalidaProyecto = esProyectosalida;
+      flete.flenDestinoProyecto = esProyecto;
 
       bool hayCantidadesInvalidas = false;
       bool hayCantidadesInvalidase = false;
+
+      // Verificar insumos seleccionados
       for (int i = 0; i < selectedInsumos.length; i++) {
         int? stock = selectedInsumos[i].bopiStock;
         int? cantidad = int.tryParse(quantityControllers[i].text);
@@ -1245,6 +1264,8 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
           selectedCantidades[i] = cantidad;
         }
       }
+
+      // Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
         int? stocke = selectedEquipos[i].bopiStock;
         int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
@@ -1272,24 +1293,13 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
         }
       }
 
-      if (hayCantidadesInvalidas) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Cantidades ajustadas de Insumos. Por favor, revise las cantidades.')),
-        );
-        return;
-      }
-      if (hayCantidadesInvalidase) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Cantidades ajustadas de Equipos. Por favor, revise las cantidades.')),
-        );
+      // Si hay cantidades inválidas, detener la ejecución
+      if (hayCantidadesInvalidas || hayCantidadesInvalidase) {
         return;
       }
 
-      if (selectedInsumos.isEmpty || selectedEquipos.isEmpty) {
+      // Verificar que al menos un insumo o equipo esté seleccionado
+      if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(
@@ -1298,79 +1308,87 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
         return;
       }
 
-      print('flete $flete');
+      // Actualizar el flete
+      print('flete definitivo enviandose: $flete');
       await FleteEncabezadoService.editarFlete(flete);
-      final int? newId = widget.flenId;
-      if (newId != null) {
-        // Obtener los detalles existentes para verificar cambios
-        final detallesExistentes =
-            await FleteDetalleService.listarDetallesdeFlete(newId);
 
-        // Insertar o actualizar detalles
+      final int? fleteId = widget.flenId;
+      if (fleteId != null) {
+        // Obtener detalles existentes
+        final detallesExistentes =
+            await FleteDetalleService.listarDetallesdeFlete(fleteId);
+
+        // Procesar insumos
         for (int i = 0; i < selectedInsumos.length; i++) {
           final detalleExistente = detallesExistentes.firstWhere(
             (detalle) => detalle.inppId == selectedInsumos[i].inppId,
-            orElse: () => FleteDetalleViewModel(), // Crear un objeto vacío
+            orElse: () => FleteDetalleViewModel(),
           );
 
           final detalle = FleteDetalleViewModel(
-            fldeId: detalleExistente
-                .fldeId, // Solo se pasa si existe, en caso de creación será null
+            fldeId: detalleExistente.fldeId,
             fldeCantidad: selectedCantidades[i],
             fldeTipodeCarga: true,
-            flenId: newId,
+            flenId: fleteId,
             inppId: selectedInsumos[i].inppId,
             usuaModificacion: 3,
             usuaCreacion: 3,
           );
 
+          // Insertar o actualizar el detalle
           if (detalleExistente.fldeId != null) {
-            // Actualizar detalle existente
-            await FleteDetalleService.editarFleteDetalle(detalle);
+            // Eliminar y volver a insertar si la cantidad ha cambiado
+            if (detalleExistente.fldeCantidad != detalle.fldeCantidad) {
+              await FleteDetalleService.Eliminar(detalleExistente.fldeId!);
+              await FleteDetalleService.insertarFleteDetalle(detalle);
+            } else {
+              await FleteDetalleService.editarFleteDetalle(detalle);
+            }
           } else {
-            // Insertar nuevo detalle
             await FleteDetalleService.insertarFleteDetalle(detalle);
           }
         }
 
+        // Procesar equipos
         for (int i = 0; i < selectedEquipos.length; i++) {
           final detalleExistente = detallesExistentes.firstWhere(
             (detalle) => detalle.inppId == selectedEquipos[i].eqppId,
-            orElse: () => FleteDetalleViewModel(), // Crear un objeto vacío
+            orElse: () => FleteDetalleViewModel(),
           );
 
           final detalle = FleteDetalleViewModel(
-            fldeId: detalleExistente
-                .fldeId, // Solo se pasa si existe, en caso de creación será null
+            fldeId: detalleExistente.fldeId,
             fldeCantidad: selectedCantidadesequipos[i],
             fldeTipodeCarga: false,
-            flenId: newId,
+            flenId: fleteId,
             inppId: selectedEquipos[i].eqppId,
             usuaModificacion: 3,
             usuaCreacion: 3,
           );
 
+          // Insertar o actualizar el detalle
           if (detalleExistente.fldeId != null) {
-            // Actualizar detalle existente
-            await FleteDetalleService.editarFleteDetalle(detalle);
+            // Eliminar y volver a insertar si la cantidad ha cambiado
+            if (detalleExistente.fldeCantidad != detalle.fldeCantidad) {
+              await FleteDetalleService.Eliminar(detalleExistente.fldeId!);
+              await FleteDetalleService.insertarFleteDetalle(detalle);
+            } else {
+              await FleteDetalleService.editarFleteDetalle(detalle);
+            }
           } else {
-            // Insertar nuevo detalle
             await FleteDetalleService.insertarFleteDetalle(detalle);
           }
         }
 
-        // Eliminar insumos que fueron desmarcados
+        // Eliminar insumos y equipos que ya no están seleccionados
         for (var detalle in detallesExistentes) {
           final insumoCorrespondiente = selectedInsumos.firstWhere(
             (insumo) => insumo.inppId == detalle.inppId,
-            orElse: () =>
-                InsumoPorProveedorViewModel(), // Crear un objeto vacío
+            orElse: () => InsumoPorProveedorViewModel(),
           );
 
-          if (insumoCorrespondiente == null) {
+          if (insumoCorrespondiente.inppId == null) {
             await FleteDetalleService.Eliminar(detalle.fldeId!);
-            final s = detalle.fldeId;
-            print('se elimino $s');
           }
 
           final equipoCorrespondiente = selectedEquipos.firstWhere(
@@ -1378,10 +1396,12 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
             orElse: () => EquipoPorProveedorViewModel(),
           );
 
-          if (equipoCorrespondiente == null) {
+          if (equipoCorrespondiente.eqppId == null) {
             await FleteDetalleService.Eliminar(detalle.fldeId!);
           }
         }
+
+        // Navegar y mostrar mensaje de éxito
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -1390,11 +1410,11 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Flete enviado con éxito')),
+          SnackBar(content: Text('Flete actualizado con éxito')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al enviar el flete')),
+          SnackBar(content: Text('Error al actualizar el flete')),
         );
       }
     } catch (e) {
@@ -1405,7 +1425,7 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
     }
   }
 
-   Widget _buildTabsView() {
+  Widget _buildTabsView() {
     return TabBarView(
       controller: _tabController,
       children: [
@@ -1421,8 +1441,10 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
       itemBuilder: (context, index) {
         final insumo = insumos[index];
         int? stock = insumo.bopiStock;
-        int cantidad =
-            selectedCantidades.length > index ? selectedCantidades[index] : 0;
+        bool isSelected = selectedInsumos.contains(insumo);
+        int cantidad = isSelected
+            ? selectedCantidades[selectedInsumos.indexOf(insumo)]
+            : 0;
         bool cantidadExcedida = cantidad > (stock ?? 0);
 
         return ListTile(
@@ -1439,37 +1461,43 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
                   style: TextStyle(color: Colors.white70)),
               Text('Stock: ${insumo.bopiStock}',
                   style: TextStyle(color: Colors.white70)),
-              if (selectedInsumos.contains(insumo))
+              if (isSelected)
                 Row(
                   children: [
                     Text('Cantidad: ', style: TextStyle(color: Colors.white70)),
                     SizedBox(
-                      width: 30,
+                      width: 50,
                       child: TextField(
-                        controller: quantityControllers[index],
+                        controller: quantityControllers[
+                            selectedInsumos.indexOf(insumo)],
                         keyboardType: TextInputType.number,
                         style: TextStyle(color: Colors.white),
                         onChanged: (value) {
                           setState(() {
-                            int? cantidad = int.tryParse(value);
-                            if (cantidad == null || cantidad <= 0) {
+                            int? nuevaCantidad = int.tryParse(value);
+                            if (nuevaCantidad == null || nuevaCantidad <= 0) {
                               cantidadExcedida = false;
-                            } else if (cantidad > stock!) {
-                              selectedCantidades[index] = cantidad;
+                            } else if (nuevaCantidad > stock!) {
+                              selectedCantidades[
+                                  selectedInsumos.indexOf(insumo)] = stock!;
                               cantidadExcedida = true;
                             } else {
-                              selectedCantidades[index] = cantidad;
+                              selectedCantidades[selectedInsumos
+                                  .indexOf(insumo)] = nuevaCantidad;
                               cantidadExcedida = false;
                             }
                           });
                         },
                         onSubmitted: (value) {
                           setState(() {
-                            int? cantidad = int.tryParse(value);
-                            if (cantidad != null && cantidad > stock!) {
-                              selectedCantidades[index] = stock;
-                              quantityControllers[index].text =
-                                  stock.toString();
+                            int? nuevaCantidad = int.tryParse(value);
+                            if (nuevaCantidad != null &&
+                                nuevaCantidad > stock!) {
+                              selectedCantidades[
+                                  selectedInsumos.indexOf(insumo)] = stock!;
+                              quantityControllers[
+                                      selectedInsumos.indexOf(insumo)]
+                                  .text = stock.toString();
                             }
                           });
                         },
@@ -1485,17 +1513,18 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
             ],
           ),
           trailing: Checkbox(
-            value: selectedInsumos.contains(insumo),
+            value: isSelected,
             onChanged: (bool? value) {
               setState(() {
                 if (value == true) {
                   selectedInsumos.add(insumo);
-                  quantityControllers[index].text = '1';
+                  quantityControllers.add(TextEditingController(text: '1'));
+                  selectedCantidades.add(1);
                 } else {
                   int removeIndex = selectedInsumos.indexOf(insumo);
                   selectedInsumos.removeAt(removeIndex);
-                  selectedCantidades[removeIndex] = 0;
-                  quantityControllers[removeIndex].clear();
+                  quantityControllers.removeAt(removeIndex);
+                  selectedCantidades.removeAt(removeIndex);
                 }
               });
             },
@@ -1511,8 +1540,9 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
       itemBuilder: (context, index) {
         final equipo = equiposdeSeguridad[index];
         int? stockE = equipo.bopiStock;
-        int cantidadE = selectedCantidadesequipos.length > index
-            ? selectedCantidadesequipos[index]
+        bool isSelected = selectedEquipos.contains(equipo);
+        int cantidadE = isSelected
+            ? selectedCantidadesequipos[selectedEquipos.indexOf(equipo)]
             : 0;
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
 
@@ -1528,37 +1558,43 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
                   style: TextStyle(color: Colors.white70)),
               Text('Stock: ${equipo.bopiStock ?? 0}',
                   style: TextStyle(color: Colors.white70)),
-              if (selectedEquipos.contains(equipo))
+              if (isSelected)
                 Row(
                   children: [
                     Text('Cantidad: ', style: TextStyle(color: Colors.white70)),
                     SizedBox(
-                      width: 30,
+                      width: 50,
                       child: TextField(
-                        controller: equipoQuantityControllers[index],
+                        controller: equipoQuantityControllers[
+                            selectedEquipos.indexOf(equipo)],
                         keyboardType: TextInputType.number,
                         style: TextStyle(color: Colors.white),
                         onChanged: (value) {
                           setState(() {
-                            int? cantidadE = int.tryParse(value);
-                            if (cantidadE == null || cantidadE <= 0) {
+                            int? nuevaCantidadE = int.tryParse(value);
+                            if (nuevaCantidadE == null || nuevaCantidadE <= 0) {
                               cantidadExcedidaE = false;
-                            } else if (cantidadE > stockE!) {
-                              selectedCantidadesequipos[index] = cantidadE;
+                            } else if (nuevaCantidadE > stockE!) {
+                              selectedCantidadesequipos[
+                                  selectedEquipos.indexOf(equipo)] = stockE!;
                               cantidadExcedidaE = true;
                             } else {
-                              selectedCantidadesequipos[index] = cantidadE;
+                              selectedCantidadesequipos[selectedEquipos
+                                  .indexOf(equipo)] = nuevaCantidadE;
                               cantidadExcedidaE = false;
                             }
                           });
                         },
                         onSubmitted: (value) {
                           setState(() {
-                            int? cantidadE = int.tryParse(value);
-                            if (cantidadE != null && cantidadE > stockE!) {
-                              selectedCantidadesequipos[index] = stockE;
-                              equipoQuantityControllers[index].text =
-                                  stockE.toString();
+                            int? nuevaCantidadE = int.tryParse(value);
+                            if (nuevaCantidadE != null &&
+                                nuevaCantidadE > stockE!) {
+                              selectedCantidadesequipos[
+                                  selectedEquipos.indexOf(equipo)] = stockE!;
+                              equipoQuantityControllers[
+                                      selectedEquipos.indexOf(equipo)]
+                                  .text = stockE.toString();
                             }
                           });
                         },
@@ -1574,17 +1610,19 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
             ],
           ),
           trailing: Checkbox(
-            value: selectedEquipos.contains(equipo),
+            value: isSelected,
             onChanged: (bool? value) {
               setState(() {
                 if (value == true) {
                   selectedEquipos.add(equipo);
-                  equipoQuantityControllers[index].text = '1';
+                  equipoQuantityControllers
+                      .add(TextEditingController(text: '1'));
+                  selectedCantidadesequipos.add(1);
                 } else {
                   int removeIndex = selectedEquipos.indexOf(equipo);
                   selectedEquipos.removeAt(removeIndex);
-                  selectedCantidadesequipos[removeIndex] = 0;
-                  equipoQuantityControllers[removeIndex].clear();
+                  equipoQuantityControllers.removeAt(removeIndex);
+                  selectedCantidadesequipos.removeAt(removeIndex);
                 }
               });
             },
@@ -1766,7 +1804,6 @@ class _EditarFleteState extends State<EditarFlete> with TickerProviderStateMixin
       ),
     );
   }
-
 
   Widget _fechaSalida() {
     return TextField(

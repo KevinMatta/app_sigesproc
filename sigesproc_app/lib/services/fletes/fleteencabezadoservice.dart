@@ -56,7 +56,7 @@ class FleteEncabezadoService {
       'XApiKey': ApiService.apiKey,
     };
 
-    print('Body: $body');
+    print('Body editar: $body');
 
     final response = await http.put(
       url,
@@ -64,7 +64,7 @@ class FleteEncabezadoService {
       body: body,
     );
 
-    print('Response body: ${response.body}');
+    print('Response body editar: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);

@@ -167,4 +167,9 @@ class FleteDetalleViewModel {
     }
     return data;
   }
+
+   @override
+  String toString() {
+    return 'FleteDetalleViewModel(flenId: $flenId, fldeId $fldeId cantidad: $fldeCantidad, insudescripcion: $insuDescripcion, fldeLlegada: $fldeLlegada, fldeTipodeCarga: $fldeTipodeCarga';
+  }
 }
