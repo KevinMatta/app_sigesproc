@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/proyectos/etapaporproyectoviewmodel.dart';
 import '../menu.dart';
@@ -119,8 +120,7 @@ class LineaDeTiempo extends StatelessWidget {
                               : MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (!isLeftAligned)
-                              Spacer(), // Para empujar el contenido a la derecha
+                            if (!isLeftAligned) Spacer(), // Para empujar el contenido a la derecha
                             Column(
                               crossAxisAlignment: isLeftAligned
                                   ? CrossAxisAlignment.start
@@ -136,8 +136,6 @@ class LineaDeTiempo extends StatelessWidget {
                                             : Colors.red,
                                         size: 25,
                                       ),
-                                      // if (isLeftAligned)
-                                    //   SizedBox(width: 7),
                                     Text(
                                       _truncateWithEllipsis(20, etapa.etapDescripcion ?? 'N/A'),
                                       style: TextStyle(
@@ -146,8 +144,6 @@ class LineaDeTiempo extends StatelessWidget {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                     // if (!isLeftAligned)
-                                    //   SizedBox(width: 7),
                                     if (isLeftAligned)
                                       Icon(
                                         Icons.adjust,
@@ -187,30 +183,50 @@ class LineaDeTiempo extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFFF0C6),
-                    minimumSize: Size(150, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Regresar',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: SpeedDial(
+        icon: Icons.arrow_downward,
+        activeIcon: Icons.close,
+        backgroundColor: Color(0xFF171717),
+        foregroundColor: Color(0xFFFFF0C6),
+        buttonSize: Size(56.0, 56.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        childrenButtonSize: Size(56.0, 56.0),
+        spaceBetweenChildren: 10.0,
+        overlayColor: Colors.transparent,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.close),
+            backgroundColor: Color(0xFFFFF0C6),
+            foregroundColor: Color(0xFF171717),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            labelBackgroundColor: Color(0xFFFFF0C6),
+            labelStyle: TextStyle(color: Color(0xFF171717)),
+            onTap: () {
+              Navigator.pop(context); // Acción de regresar
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.arrow_back),
+            backgroundColor: Color(0xFFFFF0C6),
+            foregroundColor: Color(0xFF171717),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            labelBackgroundColor: Color(0xFFFFF0C6),
+            labelStyle: TextStyle(color: Color(0xFF171717)),
+            onTap: () {
+              // Acción sin definir
+            },
+          ),
+        ],
       ),
     );
   }
