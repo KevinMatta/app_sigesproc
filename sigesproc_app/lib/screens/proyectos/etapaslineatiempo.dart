@@ -14,6 +14,12 @@ class LineaDeTiempo extends StatelessWidget {
     return DateFormat('EEEE, dd MMMM yyyy', 'es').format(date);
   }
 
+  String _truncateWithEllipsis(int cutoff, String myString) {
+    return (myString.length <= cutoff)
+        ? myString
+        : '${myString.substring(0, cutoff)}...';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,11 +42,11 @@ class LineaDeTiempo extends StatelessWidget {
           ],
         ),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
+          preferredSize: Size.fromHeight(60.0),
           child: Column(
             children: [
               Text(
-                'Etapas del proyecto: $proyectoNombre',
+                'Proyecto: $proyectoNombre',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 15,
@@ -51,6 +57,14 @@ class LineaDeTiempo extends StatelessWidget {
               Container(
                 height: 2.0,
                 color: Color(0xFFFFF0C6),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Etapas:',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
@@ -120,27 +134,27 @@ class LineaDeTiempo extends StatelessWidget {
                                         color: etapa.etprEstado == true
                                             ? Colors.green
                                             : Colors.red,
-                                        size: 25, 
+                                        size: 25,
                                       ),
-                                    if (isLeftAligned)
-                                      SizedBox(width: 7),
+                                      // if (isLeftAligned)
+                                    //   SizedBox(width: 7),
                                     Text(
-                                      etapa.etapDescripcion ?? 'N/A',
+                                      _truncateWithEllipsis(20, etapa.etapDescripcion ?? 'N/A'),
                                       style: TextStyle(
                                         color: Color(0xFFFFF0C6),
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    if (!isLeftAligned)
-                                      SizedBox(width: 7),
+                                     // if (!isLeftAligned)
+                                    //   SizedBox(width: 7),
                                     if (isLeftAligned)
                                       Icon(
                                         Icons.adjust,
                                         color: etapa.etprEstado == true
                                             ? Colors.green
                                             : Colors.red,
-                                        size: 25, 
+                                        size: 25,
                                       ),
                                   ],
                                 ),
@@ -149,14 +163,14 @@ class LineaDeTiempo extends StatelessWidget {
                                   _formatDate(etapa.etprFechaInicio),
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10, 
+                                    fontSize: 10,
                                   ),
                                 ),
                                 Text(
                                   _formatDate(etapa.etprFechaFin),
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10, 
+                                    fontSize: 10,
                                   ),
                                 ),
                               ],

@@ -9,7 +9,7 @@
 //   DateTime? cocaFechaModificacion;
 //   bool? cocaEstado;
 //   int? acetId;
-//   double? cocaMetrosTrabajados;
+//   double? cocaCantidadtrabajada;
 //   String? cocaResultado;
 //   String? actiDescripcion;
 //   int? acetCantidad;
@@ -28,7 +28,7 @@
 //     this.cocaFechaModificacion,
 //     this.cocaEstado,
 //     this.acetId,
-//     this.cocaMetrosTrabajados,
+//     this.cocaCantidadtrabajada,
 //     this.cocaResultado,
 //     this.actiDescripcion,
 //     this.acetCantidad,
@@ -54,8 +54,8 @@
 //     cocaEstado: json['coca_Estado'] == 1 ? true : (json['coca_Estado'] == 0 ? false : null),
     
 //     acetId: json['acet_Id'],
-//     cocaMetrosTrabajados: json['coca_MetrosTrabajados'] != null 
-//         ? json['coca_MetrosTrabajados'].toDouble() 
+//     cocaCantidadtrabajada: json['coca_Cantidadtrabajada'] != null 
+//         ? json['coca_Cantidadtrabajada'].toDouble() 
 //         : null,
     
 //     // Manejo de posibles nulls para Strings
@@ -84,7 +84,7 @@
 //     'coca_Estado': cocaEstado == true ? 1 : (cocaEstado == false ? 0 : null),
     
 //     'acet_Id': acetId,
-//     'coca_MetrosTrabajados': cocaMetrosTrabajados,
+//     'coca_Cantidadtrabajada': cocaCantidadtrabajada,
     
 //     // Manejo de posibles nulls para Strings
 //     'coca_Resultado': (cocaResultado != null && cocaResultado!.isNotEmpty) ? cocaResultado : null,
@@ -109,7 +109,7 @@ class ControlDeCalidadesPorActividadesViewModel {
   // DateTime? cocaFechaModificacion;
   // bool? cocaEstado;
   int? acetId;
-  double? cocaMetrosTrabajados;
+  double? cocaCantidadtrabajada;
 
   ControlDeCalidadesPorActividadesViewModel({
     // this.cocaId,
@@ -122,7 +122,7 @@ class ControlDeCalidadesPorActividadesViewModel {
     // this.cocaFechaModificacion,
     // this.cocaEstado,
     this.acetId,
-    this.cocaMetrosTrabajados,
+    this.cocaCantidadtrabajada,
   });
 
   Map<String, dynamic> toJson() {
@@ -137,7 +137,7 @@ class ControlDeCalidadesPorActividadesViewModel {
       // 'coca_FechaModificacion': cocaFechaModificacion?.toIso8601String(),
       // 'coca_Estado': cocaEstado,
       'acet_Id': acetId,
-      'coca_MetrosTrabajados': cocaMetrosTrabajados,
+      'coca_Cantidadtrabajada': cocaCantidadtrabajada,
     };
   }
 }

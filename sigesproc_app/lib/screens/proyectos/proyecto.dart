@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/proyectos/actividadporetapaviewmodel.dart';
@@ -25,6 +27,11 @@ class _ProyectoState extends State<Proyecto> {
 
   Map<int, bool> _expandedProjects = {};
   Map<int, Future<List<EtapaPorProyectoViewModel>>?> _etapasPorProyecto = {};
+  bool _isLoadingEtapas = false;
+
+  ScrollController _scrollController = ScrollController();
+  double _savedScrollPosition = 0.0; // Variable para almacenar la posición del scroll
+  int _savedCurrentPage = 0; // Variable para almacenar la página actual
 
   @override
   void initState() {
@@ -59,6 +66,8 @@ class _ProyectoState extends State<Proyecto> {
   void dispose() {
     _searchController.removeListener(_proyectoFiltrado);
     _searchController.dispose();
+
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -88,17 +97,41 @@ void _proyectoFiltrado() {
 }
 
 
+
   void _toggleExpansion(int projectId) {
+    // Guardar la posición del scroll y la página actual antes de cargar las etapas
+    _savedScrollPosition = _scrollController.position.pixels;
+    _savedCurrentPage = _currentPage;
+
     setState(() {
       if (_expandedProjects.containsKey(projectId) && _expandedProjects[projectId] == true) {
         _expandedProjects[projectId] = false;
       } else {
         _expandedProjects.updateAll((key, value) => false);
         _expandedProjects[projectId] = true;
-        _etapasPorProyecto[projectId] = EtapaPorProyectoService.listarEtapasPorProyecto(projectId);
+        _isLoadingEtapas = true;
+
+        _etapasPorProyecto[projectId] = EtapaPorProyectoService.listarEtapasPorProyecto(projectId).then((value) {
+          setState(() {
+            _isLoadingEtapas = false;
+          });
+
+          // Restaurar la posición del scroll y la página actual después de que las etapas se hayan cargado
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _currentPage = _savedCurrentPage;
+            _scrollController.animateTo(
+              _savedScrollPosition,
+              duration: Duration(milliseconds: 100),
+              curve: Curves.easeOut,
+            );
+          });
+
+          return value;
+        });
       }
     });
   }
+
 
   String _truncateWithEllipsis(int cutoff, String myString) {
   return (myString.length <= cutoff)
@@ -167,9 +200,29 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    'https://www.ulmaconstruction.com.mx/es-mx/proyectos/construcciones-industriales-energeticas/fabrica-de-tequila/@@images/cd5843a7-6296-4ef0-9d07-b0ef4668a103.jpeg',
+                borderRadius: BorderRadius.circular(10),
+                child: proyecto.iccaImagen != null && proyecto.iccaImagen!.startsWith("data:image/")
+            ? Image.memory(
+                base64Decode(proyecto.iccaImagen!.split(',').last),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Text(
+                        'Imagen no disponible',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )
+            : proyecto.iccaImagen != null
+                ? Image.network(
+                    '/uploads/${proyecto.iccaImagen}',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -185,8 +238,20 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
                         ),
                       );
                     },
+                  )
+                : Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Text(
+                        'Imagen no disponible',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+              ),
               ),
               SizedBox(height: 10),
               Text(
@@ -347,94 +412,76 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
 }
 
 
-
- TableRow _buildProyectoRow(ProyectoViewModel proyecto, int index) {
-  return TableRow(
-    children: [
-      // Enumeración
-      TableCell(
-        child: InkWell(
-          onTap: () => _navigateToLineaDeTiempo(context, proyecto), // Navega a la línea de tiempo al hacer clic
+  TableRow _buildProyectoRow(ProyectoViewModel proyecto, int index) {
+    return TableRow(
+      children: [
+        TableCell(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              (index + 1).toString(),
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
-      ),
-      // Celda para el nombre del proyecto con truncamiento si es demasiado largo
-      TableCell(
-        child: InkWell(
-          onTap: () => _navigateToLineaDeTiempo(context, proyecto), // Navega a la línea de tiempo al hacer clic
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              proyecto.proyNombre ?? 'N/A',
-              style: TextStyle(color: Colors.white),
-              overflow: TextOverflow.ellipsis, // Truncamiento del texto
-            ),
-          ),
-        ),
-      ),
-      // Celda para el menú de acciones y etapas expandidas
-      TableCell(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                icon: Icon(Icons.info_outlined, color: Color(0xFFFFF0C6)),
-                onPressed: () => _showProjectDetails(proyecto),
-              ),
-              IconButton(
-                icon: Icon(
-                  _expandedProjects[proyecto.proyId] == true
-                      ? Icons.arrow_drop_down
-                      : Icons.arrow_left_outlined,
-                  color: Color(0xFFF4EAD5),
-                  size: 33,
+            padding: const EdgeInsets.only(top: 0, bottom: 0), // Ajuste de padding superior e inferior
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center, // Centrar los íconos horizontalmente
+              children: [
+                GestureDetector(
+                  onTap: () => _showProjectDetails(proyecto),
+                  child: Icon(Icons.info_outlined, color: Color(0xFFFFF0C6), size: 22),
                 ),
-                onPressed: () => _toggleExpansion(proyecto.proyId),
-              ),
-            ],
+                SizedBox(width: 4), // Añadir espacio entre los íconos
+                GestureDetector(
+                  onTap: () => _toggleExpansion(proyecto.proyId),
+                  child: Icon(
+                    _expandedProjects[proyecto.proyId] == true
+                        ? Icons.arrow_drop_down
+                        : Icons.arrow_right_outlined,
+                    color: Color(0xFFFFF0C6),
+                    size: 25,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    ],
-  );
-}
-
-
-void _navigateToActividades(BuildContext context, int etprId) async {
-  try {
-    List<ActividadesPorEtapaViewModel> actividades =
-        await ActividadesPorEtapaService.listarActividadPorEtapa(etprId);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Actividad(key: Key(etprId.toString()), // Proporcionando la key
-        actividades: actividades, // Proporcionando el ID de la etapa),
-      )),
-    );
-  } catch (error) {
-    // Manejo del error en caso de que la llamada falle
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error al cargar las actividades: $error'),
-      ),
+        TableCell(
+          child: InkWell(
+            onTap: () => _navigateToLineaDeTiempo(context, proyecto),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                (index + 1).toString(),
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+        TableCell(
+          child: InkWell(
+            onTap: () => _navigateToLineaDeTiempo(context, proyecto),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                proyecto.proyNombre ?? 'N/A',
+                style: TextStyle(color: Colors.white),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
-}
 
+  Widget _buildEtapasColumn(List<EtapaPorProyectoViewModel> etapas) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: etapas.map((etapa) {
+        return _buildEtapasRow(etapa);
+      }).toList(),
+    );
+  }
 
 Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
   return InkWell(
     onTap: () => _navigateToActividades(context, etapa.etprId),
     child: Container(
-      width: double.infinity,  // Ocupa todo el ancho disponible
       margin: EdgeInsets.symmetric(vertical: 4.0),
       decoration: BoxDecoration(
         color: Color.fromARGB(130, 23, 23, 23),
@@ -445,36 +492,23 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
         child: Row(
           children: [
             Icon(
-              Icons.keyboard_arrow_right_outlined,
-              size: 30,
+              Icons.arrow_outward_outlined, // Viñeta
+              size: 20,
               color: Color(0xFFFFF0C6),
             ),
             SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    etapa.etapDescripcion ?? 'N/A',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    etapa.proyNombre ?? 'N/A',
-                    style: TextStyle(
-                      color: Colors.white54,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              child: Text(
+                etapa.etapDescripcion ?? 'N/A',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Icon(
-              1 == 1 ? Icons.adjust : Icons.adjust,
+              etapa.etprEstado == true ? Icons.adjust : Icons.adjust, // Estado
               color: etapa.etprEstado == true ? Colors.green : Colors.red,
               size: 15,
             ),
@@ -486,8 +520,23 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
 }
 
 
-
-
+  void _navigateToActividades(BuildContext context, int etprId) async {
+    try {
+      List<ActividadesPorEtapaViewModel> actividades = await ActividadesPorEtapaService.listarActividadPorEtapa(etprId);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Actividad(key: Key(etprId.toString()), actividades: actividades),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cargar las actividades: $error'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -503,10 +552,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
             SizedBox(width: 5),
             Text(
               'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
-              ),
+              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 20),
             ),
           ],
         ),
@@ -516,30 +562,17 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
             children: [
               Text(
                 'Proyectos',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
+              Container(height: 2.0, color: Color(0xFFFFF0C6)),
             ],
           ),
         ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
+          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+          IconButton(icon: Icon(Icons.person), onPressed: () {}),
         ],
       ),
       drawer: MenuLateral(
@@ -584,27 +617,17 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                 future: _proyectosFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-                    );
+                    return Center(child: SpinKitCircle(color: Color(0xFFFFF0C6)));
                   } else if (snapshot.hasError) {
                     return Center(
-                      child: Text(
-                        'Error al cargar los datos',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                      child: Text('Error al cargar los datos', style: TextStyle(color: Colors.red)),
                     );
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return Center(
-                      child: Text(
-                        'No hay datos disponibles',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)),
                     );
                   } else {
-                    _proyectosFiltrados = _searchController.text.isEmpty
-                        ? snapshot.data!
-                        : _proyectosFiltrados;
+                    _proyectosFiltrados = _searchController.text.isEmpty ? snapshot.data! : _proyectosFiltrados;
                     final int totalRecords = _proyectosFiltrados.length;
                     final int startIndex = _currentPage * _rowsPerPage;
                     final int endIndex = (startIndex + _rowsPerPage > totalRecords)
@@ -614,119 +637,114 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                     return Column(
                       children: [
                         Expanded(
-  child: SingleChildScrollView(
-    child: Table(
-      columnWidths: {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(3),
-        2: FlexColumnWidth(2),
-      },
-      children: [
-        TableRow(
-          decoration: BoxDecoration(
-            color: Color(0xFF171717),
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'No.',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Descripción',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Acciones',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        ..._proyectosFiltrados
-            .sublist(startIndex, endIndex)
-            .asMap()
-            .entries
-            .expand((entry) {
-          final index = entry.key;
-          final proyecto = entry.value;
-          final List<TableRow> rows = [
-            _buildProyectoRow(proyecto, startIndex + index),
-          ];
+                          child: _isLoadingEtapas
+                              ? Center(child: SpinKitCircle(color: Color(0xFFFFF0C6)))
+                              : SingleChildScrollView(
+                                  controller: _scrollController,
+                                  child: Table(
+                                    columnWidths: {
+                                      0: FlexColumnWidth(1.5),  // Acciones
+                                      1: FlexColumnWidth(1),  // No.
+                                      2: FlexColumnWidth(4),  // Descripción
+                                    },
+                                    children: [
+                                      TableRow(
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFF171717),
+                                        ),
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Acciones',
+                                              style: TextStyle(
+                                                color: Color(0xFFFFF0C6),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'No.',
+                                              style: TextStyle(
+                                                color: Color(0xFFFFF0C6),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Descripción',
+                                              style: TextStyle(
+                                                color: Color(0xFFFFF0C6),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      ..._proyectosFiltrados
+                                          .sublist(startIndex, endIndex)
+                                          .asMap()
+                                          .entries
+                                          .expand((entry) {
+                                        final index = entry.key;
+                                        final proyecto = entry.value;
+                                        final List<TableRow> rows = [
+                                          _buildProyectoRow(proyecto, startIndex + index),
+                                        ];
 
-          if (_expandedProjects[proyecto.proyId] == true) {
-            rows.add(
-              TableRow(
-                children: [
-                  TableCell(
-                    child: SizedBox.shrink(),
-                  ),
-                  TableCell(
-                  child: FutureBuilder<List<EtapaPorProyectoViewModel>>(
-                    future: _etapasPorProyecto[proyecto.proyId],
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Error al cargar las etapas',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'No hay etapas disponibles',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: snapshot.data!
-                              .map((etapa) => _buildEtapasRow(etapa))
-                              .toList(),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                  TableCell(
-                    child: SizedBox.shrink(),
-                  ),
-                ],
-              ),
-            );
-          }
+                                        if (_expandedProjects[proyecto.proyId] == true) {
+                                          rows.add(
+                                            TableRow(
+                                              children: [
+                                                TableCell(
+                                                  child: SizedBox.shrink(),
+                                                ),                                                
+                                                TableCell(
+                                                  child: SizedBox.shrink(),
+                                                ),
+                                                TableCell(
+                                                  child: FutureBuilder<List<EtapaPorProyectoViewModel>>(
+                                                    future: _etapasPorProyecto[proyecto.proyId],
+                                                    builder: (context, snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return SizedBox.shrink();
+                                                      } else if (snapshot.hasError) {
+                                                        return Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: Text(
+                                                            'Error al cargar las etapas',
+                                                            style: TextStyle(color: Colors.red),
+                                                          ),
+                                                        );
+                                                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                                        return Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: Text(
+                                                            'No hay etapas disponibles',
+                                                            style: TextStyle(color: Colors.white),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        return _buildEtapasColumn(snapshot.data!);
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }
 
-          return rows;
-        }).toList(),
-      ],
-    ),
-  ),
-),
+                                        return rows;
+                                      }).toList(),
+                                    ],
+                                  ),
+                                ),
+                        ),
                         SizedBox(height: 10),
                         Text(
                           'Mostrando ${startIndex + 1} al ${endIndex} de $totalRecords entradas',
