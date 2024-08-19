@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/screens/fletes/prueba.dart';
 import 'menu.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 
 class Inicio extends StatefulWidget {
   @override
@@ -66,10 +67,18 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
               );
             },
           ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
+        IconButton(
+  icon: Icon(Icons.person),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(), 
+      ),
+    );
+  },
+),
+
         ],
         bottom: TabBar(
   controller: _tabController,
