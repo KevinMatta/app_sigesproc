@@ -1425,10 +1425,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               backgroundColor: Color(0xFF171717), // Color de fondo
               foregroundColor: Color(0xFFFFF0C6), // Color del icono
               buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                    12.0), // Forma rectangular con bordes redondeados
-              ),
+              shape: CircleBorder(), 
               childrenButtonSize: Size(56.0, 56.0),
               spaceBetweenChildren:
                   10.0, // Espacio entre los botones secundarios
@@ -1438,9 +1435,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   child: Icon(Icons.arrow_back),
                   backgroundColor: Color(0xFFFFF0C6),
                   foregroundColor: Color(0xFF171717),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
+                  shape: CircleBorder(), 
                   labelBackgroundColor: Color(0xFFFFF0C6),
                   labelStyle: TextStyle(color: Color(0xFF171717)),
                   onTap: () {
@@ -1456,9 +1451,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   child: Icon(Icons.add),
                   backgroundColor: Color(0xFFFFF0C6),
                   foregroundColor: Color(0xFF171717),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
+                  shape: CircleBorder(), 
                   labelBackgroundColor: Color(0xFF171717),
                   labelStyle: TextStyle(color: Colors.white),
                   onTap: _validarCamposYMostrarInsumos,

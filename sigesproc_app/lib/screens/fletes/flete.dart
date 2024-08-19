@@ -53,7 +53,7 @@ class _FleteState extends State<Flete> {
       final totalRecords = _filteredFletes.length;
       final maxPages = (totalRecords / _rowsPerPage).ceil();
 
-      if(_currentPage >= maxPages){
+      if (_currentPage >= maxPages) {
         _currentPage = maxPages - 1;
       }
     });
@@ -88,91 +88,92 @@ class _FleteState extends State<Flete> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: PopupMenuButton<int>(
-            color: Colors.black,
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (int result) {
-              if (result == 0) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetalleFlete(flenId: flete.flenId!),
+              color: Colors.black,
+              icon: Icon(Icons.more_vert, color: Colors.white),
+              onSelected: (int result) {
+                if (result == 0) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetalleFlete(flenId: flete.flenId!),
+                    ),
+                  );
+                } else if (result == 1) {
+                  //  "Ver Verificación"
+                } else if (result == 2) {
+                  _modalEliminar(context, flete);
+                } else if (result == 3) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditarFlete(flenId: flete.flenId!),
+                    ),
+                  );
+                } else if (result == 4) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          VerificarFlete(flenId: flete.flenId!),
+                    ),
+                  );
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
+                if (flete.flenEstado == true) ...[
+                  const PopupMenuItem<int>(
+                    value: 0,
+                    child: Text(
+                      'Detalle',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                );
-              } else if (result == 1) {
-                //  "Ver Verificación"
-              } else if (result == 2) {
-                _modalEliminar(context, flete);
-              } else if (result == 3) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditarFlete(flenId: flete.flenId!),
+                  const PopupMenuItem<int>(
+                    value: 1,
+                    child: Text(
+                      'Ver Verificación',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                );
-              } else if (result == 4) {
-                 Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => VerificarFlete(flenId: flete.flenId!),
+                  const PopupMenuItem<int>(
+                    value: 2,
+                    child: Text(
+                      'Eliminar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                );
-              } 
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-              if (flete.flenEstado == true) ...[
-                const PopupMenuItem<int>(
-                  value: 0,
-                  child: Text(
-                    'Detalle',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                ] else ...[
+                  const PopupMenuItem<int>(
+                    value: 0,
+                    child: Text(
+                      'Detalle',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 1,
-                  child: Text(
-                    'Ver Verificación',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  const PopupMenuItem<int>(
+                    value: 3,
+                    child: Text(
+                      'Editar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 2,
-                  child: Text(
-                    'Eliminar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  const PopupMenuItem<int>(
+                    value: 4,
+                    child: Text(
+                      'Verificar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                ),
-              ] else ...[
-                const PopupMenuItem<int>(
-                  value: 0,
-                  child: Text(
-                    'Detalle',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  const PopupMenuItem<int>(
+                    value: 2,
+                    child: Text(
+                      'Eliminar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
                   ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 3,
-                  child: Text(
-                    'Editar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 4,
-                  child: Text(
-                    'Verificar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 2,
-                  child: Text(
-                    'Eliminar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
+                ],
               ],
-            ],
-          ),
+            ),
           ),
         ),
         TableCell(
@@ -193,7 +194,6 @@ class _FleteState extends State<Flete> {
             ),
           ),
         ),
-        
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -203,53 +203,54 @@ class _FleteState extends State<Flete> {
             ),
           ),
         ),
-        
       ],
     );
   }
 
   void _modalEliminar(BuildContext context, FleteEncabezadoViewModel flete) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Eliminar Flete', style: TextStyle(color: Colors.white)),
-        content: Text(
-          '¿Está seguro de querer eliminar el flete hacia ${flete.destino}?',
-          style: TextStyle(color: Colors.white),
-        ),
-         backgroundColor: Color(0xFF171717),
-        actions: [
-          TextButton(
-            child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () async {
-              try {
-                await FleteEncabezadoService.Eliminar(flete.flenId!);
-                setState(() {
-                  _filteredFletes.remove(flete);
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Flete eliminado con éxito')),
-                );
-              } catch (e) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al eliminar el registro')),
-                );
-              }
-            },
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Eliminar Flete', style: TextStyle(color: Colors.white)),
+          content: Text(
+            '¿Está seguro de querer eliminar el flete hacia ${flete.destino}?',
+            style: TextStyle(color: Colors.white),
           ),
-          TextButton(
-            child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+          backgroundColor: Color(0xFF171717),
+          actions: [
+            TextButton(
+              child:
+                  Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () async {
+                try {
+                  await FleteEncabezadoService.Eliminar(flete.flenId!);
+                  setState(() {
+                    _filteredFletes.remove(flete);
+                  });
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Flete eliminado con éxito')),
+                  );
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al eliminar el registro')),
+                  );
+                }
+              },
+            ),
+            TextButton(
+              child:
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -373,9 +374,10 @@ class _FleteState extends State<Flete> {
                         : _filteredFletes;
                     final int totalRecords = _filteredFletes.length;
                     final int startIndex = _currentPage * _rowsPerPage;
-                    final int endIndex = (startIndex + _rowsPerPage > totalRecords)
-                        ? totalRecords
-                        : startIndex + _rowsPerPage;
+                    final int endIndex =
+                        (startIndex + _rowsPerPage > totalRecords)
+                            ? totalRecords
+                            : startIndex + _rowsPerPage;
 
                     return Column(
                       children: [
@@ -434,7 +436,6 @@ class _FleteState extends State<Flete> {
                                         ),
                                       ),
                                     ),
-                                    
                                   ],
                                 ),
                                 ..._filteredFletes
@@ -444,7 +445,8 @@ class _FleteState extends State<Flete> {
                                     .map((entry) {
                                   final index = entry.key;
                                   final flete = entry.value;
-                                  return _buildFleteRow(flete, startIndex + index);
+                                  return _buildFleteRow(
+                                      flete, startIndex + index);
                                 }).toList(),
                               ],
                             ),
@@ -487,7 +489,8 @@ class _FleteState extends State<Flete> {
           );
         },
         backgroundColor: Color(0xFFFFF0C6),
-        child: Icon(Icons.add_circle_outline, color: Colors.black),
+        child: Icon(Icons.add, color: Colors.black),
+        shape: CircleBorder(), 
       ),
     );
   }

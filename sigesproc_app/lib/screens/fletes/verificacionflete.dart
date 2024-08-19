@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
 import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
+import 'package:intl/intl.dart';
 
 class VerificarFlete extends StatefulWidget {
   final int flenId;
@@ -15,13 +16,17 @@ class VerificarFlete extends StatefulWidget {
   _VerificarFleteState createState() => _VerificarFleteState();
 }
 
-class _VerificarFleteState extends State<VerificarFlete> {
+class _VerificarFleteState extends State<VerificarFlete>
+    with SingleTickerProviderStateMixin {
   DateTime? fechaHoraLlegada;
 
   List<TextEditingController> quantityControllers = [];
   List<FleteDetalleViewModel> insumosNoRecibidos = [];
   List<FleteDetalleViewModel> insumosVerificados = [];
+  List<FleteDetalleViewModel> equiposNoRecibidos = [];
+  List<FleteDetalleViewModel> equiposVerificados = [];
 
+  TabController? _tabController;
   int _selectedIndex = 2;
 
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
@@ -35,6 +40,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
     boatId: null,
     flenEstado: null,
     flenDestinoProyecto: null,
+    flenSalidaProyecto: null,
     usuaCreacion: null,
     flenFechaCreacion: null,
     usuaModificacion: null,
@@ -45,25 +51,193 @@ class _VerificarFleteState extends State<VerificarFlete> {
   @override
   void initState() {
     super.initState();
-    _cargarInsumos();
+    _tabController = TabController(length: 2, vsync: this);
+    _cargarDatos();
   }
 
-  void _onItemTapped(int index) {
+  Map<int, String> mapaEquipos = {};
+
+  Future<void> _cargarDatos() async {
+    try {
+      // Cargar los datos del flete
+      FleteEncabezadoViewModel? fleteCargado =
+          await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+
+      if (fleteCargado != null) {
+        setState(() {
+          flete = fleteCargado;
+        });
+
+        // Cargar los detalles de los insumos y equipos del flete
+        List<FleteDetalleViewModel> detalles =
+            await FleteDetalleService.Buscar(widget.flenId);
+
+        // Cargar equipos desde EquipoPorProveedorViewModel usando el boasId del flete
+        if (flete.boasId != null) {
+          List<EquipoPorProveedorViewModel> equiposList =
+              await FleteDetalleService.listarEquiposdeSeguridadPorBodega(flete.boasId!);
+
+          // Crear un mapa para asociar inppId con el nombre del equipo
+          for (var equipo in equiposList) {
+            mapaEquipos[equipo.eqppId!] = equipo.equsNombre!;
+          }
+        }
+
+        setState(() {
+          insumosNoRecibidos = detalles.where((detalle) => detalle.fldeTipodeCarga == true).toList();
+          equiposNoRecibidos = detalles.where((detalle) => detalle.fldeTipodeCarga == false).toList();
+        });
+      }
+    } catch (e) {
+      print('Error al cargar los insumos, equipos y el flete: $e');
+    }
+  }
+
+  void _moverARecibido(FleteDetalleViewModel detalle, bool esInsumo) {
     setState(() {
-      _selectedIndex = index;
+      if (esInsumo) {
+        insumosNoRecibidos.remove(detalle);
+        insumosVerificados.add(detalle);
+      } else {
+        equiposNoRecibidos.remove(detalle);
+        equiposVerificados.add(detalle);
+      }
     });
   }
 
-  Future<void> _cargarInsumos() async {
-    try {
-      List<FleteDetalleViewModel> insumos =
-          await FleteDetalleService.Buscar(widget.flenId);
-      setState(() {
-        insumosNoRecibidos = insumos;
-      });
-    } catch (e) {
-      print('Error al cargar los insumos: $e');
-    }
+  void _moverANoRecibido(FleteDetalleViewModel detalle, bool esInsumo) {
+    setState(() {
+      if (esInsumo) {
+        insumosVerificados.remove(detalle);
+        insumosNoRecibidos.add(detalle);
+      } else {
+        equiposVerificados.remove(detalle);
+        equiposNoRecibidos.add(detalle);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Sección de Fecha y Hora de Llegada
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Color(0xFF171717),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Fecha y Hora de Llegada:',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 18,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  _buildFechaHoraLlegadaInput(),
+                ],
+              ),
+            ),
+          ),
+          
+          // Tabs de Insumos y Equipos de Seguridad
+          Expanded(
+            child: Column(
+              children: [
+                TabBar(
+                  controller: _tabController,
+                  indicatorColor: Color(0xFFFFF0C6),
+                  tabs: [
+                    Tab(text: 'Insumos'),
+                    Tab(text: 'Equipos de Seguridad'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildItemsTab(insumosNoRecibidos, insumosVerificados, true),
+                      _buildItemsTab(equiposNoRecibidos, equiposVerificados, false),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomButtons(),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildFechaHoraLlegadaInput() {
+    return TextField(
+      readOnly: true,
+      onTap: _seleccionarFechaHora,
+      decoration: InputDecoration(
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+        border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.black,
+        labelStyle: TextStyle(color: Colors.white),
+      ),
+      style: TextStyle(color: Colors.white),
+      controller: TextEditingController(
+        text: fechaHoraLlegada != null
+            ? DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraLlegada!)
+            : '',
+      ),
+    );
   }
 
   Future<void> _seleccionarFechaHora() async {
@@ -122,293 +296,24 @@ class _VerificarFleteState extends State<VerificarFlete> {
     }
   }
 
-  void _moverInsumoARecibido(FleteDetalleViewModel insumo) {
-    setState(() {
-      insumosNoRecibidos.remove(insumo);
-      insumosVerificados.add(insumo);
-    });
-  }
-
-  void _moverInsumoANoRecibido(FleteDetalleViewModel insumo) {
-    setState(() {
-      insumosVerificados.remove(insumo);
-      insumosNoRecibidos.add(insumo);
-    });
-  }
-
-   // Future<void> verificarFlete() async {
-  //   FleteEncabezadoViewModel? fleteCargado =
-  //         await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
-  //   fleteCargado!.flenDestinoProyecto = true;
-  //   fleteCargado.flenFechaHoraLlegada = flete.flenFechaHoraLlegada;
-  //   fleteCargado.usuaModificacion = 3;
-
-  //   print('Flete data: ${fleteCargado.toJson()}');
-
-  //   // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
-  //   bool hayCantidadesInvalidas = false;
-  //   for (int i = 0; i < insumosVerificados.length; i++) {
-  //     int? stock = insumosVerificados[i].fldeCantidad;
-  //     int? cantidad = int.tryParse(quantityControllers[i].text);
-
-  //     if (cantidad == null || cantidad <= 0) {
-  //       print(
-  //           'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
-  //       quantityControllers[i].text = '1';
-  //       selectedCantidades[i] = 1;
-  //       hayCantidadesInvalidas = true;
-  //     } else if (cantidad > stock!) {
-  //       print(
-  //           'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
-  //       quantityControllers[i].text = stock.toString();
-  //       selectedCantidades[i] = stock;
-  //       hayCantidadesInvalidas = true;
-  //     } else {
-  //       selectedCantidades[i] = cantidad;
-  //     }
-  //   }
-
-  //   if (hayCantidadesInvalidas) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //           content: Text(
-  //               'Cantidades ajustadas. Por favor, revise las cantidades.')),
-  //     );
-  //     return;
-  //   }
-
-  //   if (selectedInsumos.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Debe seleccionar al menos un insumo')),
-  //     );
-  //     return;
-  //   }
-
-  //   final int? newId = await FleteEncabezadoService.insertarFlete(flete);
-  //   if (newId != null) {
-  //     print('New Flete ID: $newId');
-  //     for (int i = 0; i < selectedInsumos.length; i++) {
-  //       final detalle = FleteDetalleViewModel(
-  //         fldeCantidad: selectedCantidades[i],
-  //         flenId: newId,
-  //         inppId: selectedInsumos[i].inppId,
-  //         usuaCreacion: 3,
-  //       );
-  //       print('Detalle data: ${detalle.toJson()}');
-  //       await FleteDetalleService.insertarFleteDetalle(detalle);
-  //     }
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder: (context) => Flete(),
-  //       ),
-  //     );
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Flete enviado con éxito')),
-  //     );
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Error al enviar el flete')),
-  //     );
-  //   }
-  // }
-
-  
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-       title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
-            ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Verificar Flete',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Stack(
+  Widget _buildItemsTab(List<FleteDetalleViewModel> noRecibidos,
+      List<FleteDetalleViewModel> verificados, bool esInsumo) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF171717),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Fecha y Hora de Llegada:',
-                          style: TextStyle(
-                            color: Color(0xFFFFF0C6),
-                            fontSize: 18,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        _buildFechaHoraLlegadaInput(),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInsumosSection(
-                            'Insumos No Recibidos', _buildInsumosNoRecibidos()),
-                        SizedBox(height: 20),
-                        _buildInsumosSection(
-                            'Insumos Verificados', _buildInsumosVerificados()),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                      height:
-                          100), // Espacio para evitar que los botones tapen la tabla
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.black,
-              padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF171717),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Cancelar',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFFF0C6),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    // onPressed: verificarFlete,
-                    onPressed: () {
-                      // Acción para guardar
-                    },
-                    child: Text(
-                      'Guardar',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 15,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildSection(
+              'No Recibidos', _buildTable(noRecibidos, true, esInsumo)),
+          SizedBox(height: 20),
+          _buildSection(
+              'Verificados', _buildTable(verificados, false, esInsumo)),
         ],
       ),
-      drawer: MenuLateral(
-        selectedIndex: _selectedIndex,
-        onItemSelected: _onItemTapped,
-      ),
     );
   }
 
-  
-  Widget _buildFechaHoraLlegadaInput() {
-    return TextField(
-      readOnly: true,
-      onTap: _seleccionarFechaHora,
-      decoration: InputDecoration(
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.black,
-        labelStyle: TextStyle(color: Colors.white),
-      ),
-      style: TextStyle(color: Colors.white),
-      controller: TextEditingController(
-        text: fechaHoraLlegada != null
-            ? DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraLlegada!)
-            : '',
-      ),
-    );
-  }
-
-  Widget _buildInsumosSection(String title, Widget table) {
+  Widget _buildSection(String title, Widget table) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -426,7 +331,8 @@ class _VerificarFleteState extends State<VerificarFlete> {
     );
   }
 
-  Widget _buildInsumosNoRecibidos() {
+  Widget _buildTable(
+      List<FleteDetalleViewModel> detalles, bool esNoRecibido, bool esInsumo) {
     return Table(
       columnWidths: {
         0: FlexColumnWidth(1),
@@ -440,7 +346,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
             color: Color(0xFF171717),
           ),
           children: [
-            SizedBox(), // Celda para el checkbox
+            SizedBox(),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -473,66 +379,14 @@ class _VerificarFleteState extends State<VerificarFlete> {
             ),
           ],
         ),
-        ..._buildInsumosRows(insumosNoRecibidos, true),
+        ..._buildRows(detalles, esNoRecibido, esInsumo),
       ],
     );
   }
 
-  Widget _buildInsumosVerificados() {
-    return Table(
-      columnWidths: {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(3),
-        2: FlexColumnWidth(2),
-        3: FlexColumnWidth(2),
-      },
-      children: [
-        TableRow(
-          decoration: BoxDecoration(
-            color: Color(0xFF171717),
-          ),
-          children: [
-            SizedBox(), // Celda para el checkbox
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Descripción',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Unidad de Medida',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Cantidad',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        ..._buildInsumosRows(insumosVerificados, false),
-      ],
-    );
-  }
-
-  List<TableRow> _buildInsumosRows(
-      List<FleteDetalleViewModel> insumos, bool esNoRecibido) {
-    return insumos.map((insumo) {
+  List<TableRow> _buildRows(
+      List<FleteDetalleViewModel> detalles, bool esNoRecibido, bool esInsumo) {
+    return detalles.map((detalle) {
       return TableRow(
         decoration: BoxDecoration(
           color: Colors.black,
@@ -543,9 +397,9 @@ class _VerificarFleteState extends State<VerificarFlete> {
             onChanged: (bool? value) {
               setState(() {
                 if (value == true) {
-                  _moverInsumoARecibido(insumo);
+                  _moverARecibido(detalle, esInsumo);
                 } else {
-                  _moverInsumoANoRecibido(insumo);
+                  _moverANoRecibido(detalle, esInsumo);
                 }
               });
             },
@@ -553,14 +407,17 @@ class _VerificarFleteState extends State<VerificarFlete> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              insumo.insuDescripcion ?? '',
+              esInsumo
+                  ? detalle.insuDescripcion ?? ''
+                  : mapaEquipos[detalle.inppId] ??
+                      '', // Usar el mapa para obtener el nombre del equipo
               style: TextStyle(color: Colors.white),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              insumo.unmeNombre ?? '',
+              detalle.unmeNombre ?? '',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -568,7 +425,7 @@ class _VerificarFleteState extends State<VerificarFlete> {
             padding: const EdgeInsets.all(8.0),
             child: esNoRecibido
                 ? Text(
-                    insumo.fldeCantidad.toString(),
+                    detalle.fldeCantidad.toString(),
                     style: TextStyle(color: Colors.white),
                   )
                 : TextField(
@@ -576,30 +433,80 @@ class _VerificarFleteState extends State<VerificarFlete> {
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: insumo.fldeCantidad.toString(),
+                      hintText: detalle.fldeCantidad.toString(),
                       hintStyle: TextStyle(color: Colors.white),
                     ),
                     onChanged: (value) {
                       setState(() {
                         int cantidad =
-                            int.tryParse(value) ?? insumo.fldeCantidad!;
-                        if (cantidad > insumo.fldeCantidad!) {
-                          // Limitar la cantidad a la disponible
-                          cantidad = insumo.fldeCantidad!;
+                            int.tryParse(value) ?? detalle.fldeCantidad!;
+                        if (cantidad > detalle.fldeCantidad!) {
+                          cantidad = detalle.fldeCantidad!;
                         } else if (cantidad < 1) {
-                          // Evitar que la cantidad sea menor a 1
                           cantidad = 1;
                         }
-                        insumo.fldeCantidad = cantidad;
+                        detalle.fldeCantidad = cantidad;
                       });
                     },
                     controller: TextEditingController(
-                      text: insumo.fldeCantidad.toString(),
+                      text: detalle.fldeCantidad.toString(),
                     ),
                   ),
           ),
         ],
       );
     }).toList();
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      color: Colors.black,
+      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              // Acción para guardar
+            },
+            child: Text(
+              'Guardar',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 15,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
