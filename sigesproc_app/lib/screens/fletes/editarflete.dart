@@ -92,6 +92,7 @@ class _EditarFleteState extends State<EditarFlete>
   TextEditingController actividadControllerSalida = TextEditingController();
   TextEditingController actividadControllerLlegada = TextEditingController();
   TabController? _tabController;
+  FleteEncabezadoViewModel? fleteOriginal;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -225,29 +226,28 @@ class _EditarFleteState extends State<EditarFlete>
               await ProyectoService.obtenerProyecto(flete.proyId!);
           print('Proyecto seleccionado: $proyectoSeleccionado');
           if (proyectoSeleccionado != null) {
-            llegadaController.text = proyectoSeleccionado.proyNombre!;
+            setState(() {
+              llegadaController.text = proyectoSeleccionado.proyNombre!;
+            });
 
-            List<ActividadPorEtapaViewModel> actividades =
-                await ActividadPorEtapaService.obtenerActividadesPorProyecto(
-                    flete.proyId!);
-            print('Actividades cargadas: $actividades');
+            // Cargar actividades del proyecto
+            await _cargarActividadesPorProyecto(flete.proyId!, 'Llegada');
 
-            if (actividades.isNotEmpty && flete.boatId != null) {
-              ActividadPorEtapaViewModel etapaactividad = actividades
+            // Verificar si hay una actividad asociada
+            if (flete.boatId != null) {
+              ActividadPorEtapaViewModel etapaActividad = actividadesLlegada
                   .firstWhere((actividad) => actividad.acetId == flete.boatId!,
                       orElse: () => ActividadPorEtapaViewModel(
                           etapDescripcion: '', actiDescripcion: ''));
-              print('Etapa actividad seleccionada: $etapaactividad');
 
-              if (etapaactividad.etapDescripcion!.isNotEmpty) {
-                actividadController.text = etapaactividad.etapDescripcion! +
-                    ' - ' +
-                    etapaactividad.actiDescripcion!;
+              if (etapaActividad.etapDescripcion!.isNotEmpty) {
+                setState(() {
+                  actividadControllerLlegada.text =
+                      etapaActividad.etapDescripcion! +
+                          ' - ' +
+                          etapaActividad.actiDescripcion!;
+                });
               }
-
-              setState(() {
-                this.actividades = actividades;
-              });
             } else {
               print('No se encontraron actividades o boatId es nulo');
             }
@@ -257,9 +257,10 @@ class _EditarFleteState extends State<EditarFlete>
         } else {
           print('Es un proyecto: no');
           BodegaViewModel? llegada = await BodegaService.buscar(flete.boatId!);
-          print('Bodega de llegada cargada: $llegada');
           if (llegada != null) {
-            llegadaController.text = llegada.bodeDescripcion!;
+            setState(() {
+              llegadaController.text = llegada.bodeDescripcion!;
+            });
           } else {
             print('La bodega de llegada es nula');
           }
@@ -274,27 +275,25 @@ class _EditarFleteState extends State<EditarFlete>
           if (proyectoSeleccionado != null) {
             salidaController.text = proyectoSeleccionado.proyNombre!;
 
-            List<ActividadPorEtapaViewModel> actividades =
-                await ActividadPorEtapaService.obtenerActividadesPorProyecto(
-                    flete.proyId!);
-            print('Actividades de salida cargadas: $actividades');
+            // Cargar actividades del proyecto
+            await _cargarActividadesPorProyecto(flete.proyId!, 'Salida');
 
-            if (actividades.isNotEmpty && flete.boasId != null) {
-              ActividadPorEtapaViewModel etapaactividad = actividades
+            // Verificar si hay una actividad asociada
+            if (flete.boasId != null) {
+              ActividadPorEtapaViewModel etapaActividad = actividadesSalida
                   .firstWhere((actividad) => actividad.acetId == flete.boasId!,
                       orElse: () => ActividadPorEtapaViewModel(
                           etapDescripcion: '', actiDescripcion: ''));
-              print('Etapa actividad de salida seleccionada: $etapaactividad');
+              print('Etapa actividad de salida seleccionada: $etapaActividad');
 
-              if (etapaactividad.etapDescripcion!.isNotEmpty) {
-                actividadController.text = etapaactividad.etapDescripcion! +
-                    ' - ' +
-                    etapaactividad.actiDescripcion!;
+              if (etapaActividad.etapDescripcion!.isNotEmpty) {
+                setState(() {
+                  actividadControllerSalida.text =
+                      etapaActividad.etapDescripcion! +
+                          ' - ' +
+                          etapaActividad.actiDescripcion!;
+                });
               }
-
-              setState(() {
-                this.actividades = actividades;
-              });
             } else {
               print('No se encontraron actividades de salida o boasId es nulo');
             }
@@ -852,136 +851,135 @@ class _EditarFleteState extends State<EditarFlete>
     ]);
   }
 
- Widget _buildActividadAutocomplete(
-    TextEditingController controller, String tipo) {
-  FocusNode focusNode = FocusNode();
-  List<ActividadPorEtapaViewModel> actividades =
-      tipo == 'Salida' ? actividadesSalida : actividadesLlegada;
+  Widget _buildActividadAutocomplete(
+      TextEditingController controller, String tipo) {
+    FocusNode focusNode = FocusNode();
+    List<ActividadPorEtapaViewModel> actividades =
+        tipo == 'Salida' ? actividadesSalida : actividadesLlegada;
 
-  return Autocomplete<ActividadPorEtapaViewModel>(
-    optionsBuilder: (TextEditingValue textEditingValue) {
-      if (textEditingValue.text.isEmpty) {
-        return actividades.isNotEmpty ? actividades : [];
-      }
-      return actividades.where((ActividadPorEtapaViewModel option) {
-        return option.etapDescripcion!
-            .toLowerCase()
-            .contains(textEditingValue.text.toLowerCase());
-      });
-    },
-    displayStringForOption: (ActividadPorEtapaViewModel option) =>
-        option.etapDescripcion! + ' - ' + option.actiDescripcion!,
-    fieldViewBuilder: (BuildContext context,
-        TextEditingController textEditingController,
-        FocusNode fieldFocusNode,
-        VoidCallback onFieldSubmitted) {
-      focusNode = fieldFocusNode;
-      textEditingController.text = controller.text;
-      return TextField(
-        controller: textEditingController,
-        focusNode: fieldFocusNode,
-        decoration: InputDecoration(
-          labelText: 'Actividad - Etapa',
-          border: OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.black,
-          labelStyle: TextStyle(color: Colors.white),
-          errorText: _actividadError ? _actividadErrorMessage : null,
-          errorStyle: TextStyle(
-            color: Colors.red,
-            fontSize: 12,
-          ),
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (controller.text.isNotEmpty)
-                IconButton(
-                  icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
-                  onPressed: () {
-                    setState(() {
-                      controller.clear();
-                      if (tipo == 'Salida') {
-                        flete.boasId = null;
-                      } else {
-                        flete.boatId = null;
-                      }
-                    });
-                  },
-                ),
-              IconButton(
-                icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                onPressed: () {
-                  if (focusNode.hasFocus) {
-                    focusNode.unfocus();
-                  } else {
-                    focusNode.requestFocus();
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        style: TextStyle(color: Colors.white),
-      );
-    },
-    optionsViewBuilder: (BuildContext context,
-        AutocompleteOnSelected<ActividadPorEtapaViewModel> onSelected,
-        Iterable<ActividadPorEtapaViewModel> options) {
-      return Align(
-        alignment: Alignment.topLeft,
-        child: Material(
-          elevation: 4.0,
-          child: Container(
-            width: MediaQuery.of(context).size.width - 73, // Asegura que el ancho sea igual al del input
-            color: Colors.black,
-            child: options.isEmpty
-                ? ListTile(
-                    title: Text('No hay coincidencias',
-                        style: TextStyle(color: Colors.white)),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      final ActividadPorEtapaViewModel option =
-                          options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: ListTile(
-                          title: Text(
-                            option.etapDescripcion! +
-                                ' - ' +
-                                option.actiDescripcion!,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      );
+    return Autocomplete<ActividadPorEtapaViewModel>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return actividades.isNotEmpty ? actividades : [];
+        }
+        return actividades.where((ActividadPorEtapaViewModel option) {
+          return option.etapDescripcion!
+              .toLowerCase()
+              .contains(textEditingValue.text.toLowerCase());
+        });
+      },
+      displayStringForOption: (ActividadPorEtapaViewModel option) =>
+          option.etapDescripcion! + ' - ' + option.actiDescripcion!,
+      fieldViewBuilder: (BuildContext context,
+          TextEditingController textEditingController,
+          FocusNode fieldFocusNode,
+          VoidCallback onFieldSubmitted) {
+        focusNode = fieldFocusNode;
+        textEditingController.text = controller.text;
+        return TextField(
+          controller: textEditingController,
+          focusNode: fieldFocusNode,
+          decoration: InputDecoration(
+            labelText: 'Actividad - Etapa',
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.black,
+            labelStyle: TextStyle(color: Colors.white),
+            errorText: _actividadError ? _actividadErrorMessage : null,
+            errorStyle: TextStyle(
+              color: Colors.red,
+              fontSize: 12,
+            ),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (controller.text.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                    onPressed: () {
+                      setState(() {
+                        controller.clear();
+                        if (tipo == 'Salida') {
+                          flete.boasId = null;
+                        } else {
+                          flete.boatId = null;
+                        }
+                      });
                     },
                   ),
+                IconButton(
+                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                  onPressed: () {
+                    if (focusNode.hasFocus) {
+                      focusNode.unfocus();
+                    } else {
+                      focusNode.requestFocus();
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-    onSelected: (ActividadPorEtapaViewModel selection) {
-      setState(() {
-        controller.text = selection.etapDescripcion! +
-            ' - ' +
-            selection.actiDescripcion!;
-        if (tipo == 'Salida') {
-          flete.boasId = selection.acetId;
-        } else {
-          flete.boatId = selection.acetId;
-        }
-        _actividadError = false;
-        _actividadErrorMessage = '';
-      });
-    },
-  );
-}
-
+          style: TextStyle(color: Colors.white),
+        );
+      },
+      optionsViewBuilder: (BuildContext context,
+          AutocompleteOnSelected<ActividadPorEtapaViewModel> onSelected,
+          Iterable<ActividadPorEtapaViewModel> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: Container(
+              width: MediaQuery.of(context).size.width -
+                  73, // Asegura que el ancho sea igual al del input
+              color: Colors.black,
+              child: options.isEmpty
+                  ? ListTile(
+                      title: Text('No hay coincidencias',
+                          style: TextStyle(color: Colors.white)),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.all(8.0),
+                      itemCount: options.length,
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int index) {
+                        final ActividadPorEtapaViewModel option =
+                            options.elementAt(index);
+                        return GestureDetector(
+                          onTap: () {
+                            onSelected(option);
+                          },
+                          child: ListTile(
+                            title: Text(
+                              option.etapDescripcion! +
+                                  ' - ' +
+                                  option.actiDescripcion!,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        );
+      },
+      onSelected: (ActividadPorEtapaViewModel selection) {
+        setState(() {
+          controller.text =
+              selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
+          if (tipo == 'Salida') {
+            flete.boasId = selection.acetId;
+          } else {
+            flete.boatId = selection.acetId;
+          }
+          _actividadError = false;
+          _actividadErrorMessage = '';
+        });
+      },
+    );
+  }
 
   Widget _switch(String label, bool value, Function(bool) onChanged) {
     return Row(
@@ -1313,8 +1311,41 @@ class _EditarFleteState extends State<EditarFlete>
       bool hayCantidadesInvalidas = false;
       bool hayCantidadesInvalidase = false;
 
-      // Verificar insumos seleccionados
+      bool bodegaSalidaCambiada = false;
+
+      // Verificar si la bodega de salida ha cambiado
+      if (fleteOriginal != null && fleteOriginal!.boasId != flete.boasId) {
+        bodegaSalidaCambiada = true;
+      }
+
+      if (bodegaSalidaCambiada) {
+        // Eliminar todos los detalles existentes para este flete
+        final detallesExistentes =
+            await FleteDetalleService.listarDetallesdeFlete(flete.flenId!);
+
+        for (var detalle in detallesExistentes) {
+          print('Eliminando detalle con fldeId: ${detalle.fldeId}');
+          await FleteDetalleService.Eliminar(detalle.fldeId!);
+        }
+
+        // Vaciar las listas de seleccionados y controladores
+        selectedInsumos.clear();
+        selectedCantidades.clear();
+        quantityControllers.clear();
+
+        selectedEquipos.clear();
+        selectedCantidadesequipos.clear();
+        equipoQuantityControllers.clear();
+      }
+
+// Verificar insumos seleccionados
       for (int i = 0; i < selectedInsumos.length; i++) {
+        if (i >= quantityControllers.length) {
+          print(
+              "Error: La lista de controladores es más corta que la lista de insumos");
+          break;
+        }
+
         int? stock = selectedInsumos[i].bopiStock;
         int? cantidad = int.tryParse(quantityControllers[i].text);
 
@@ -1345,8 +1376,14 @@ class _EditarFleteState extends State<EditarFlete>
         }
       }
 
-      // Verificar equipos seleccionados
+// Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
+        if (i >= equipoQuantityControllers.length) {
+          print(
+              "Error: La lista de controladores de equipos es más corta que la lista de equipos");
+          break;
+        }
+
         int? stocke = selectedEquipos[i].bopiStock;
         int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
 
