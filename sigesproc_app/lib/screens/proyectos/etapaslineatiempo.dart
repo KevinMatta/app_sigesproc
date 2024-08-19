@@ -96,16 +96,41 @@ class LineaDeTiempo extends StatelessWidget {
             SizedBox(height: 20),
             Expanded(
               child: Stack(
-                children: [
+              children: [
+                  // Posicionar el círculo al inicio de la línea central
+                  Positioned(
+                    left: MediaQuery.of(context).size.width / 2 - 30,
+                    top: 0,
+                    child: Container(
+                      width: 25,
+                      height: 25,
+                      decoration: BoxDecoration(
+                        color: Color(0xFFFFF0C6),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  // Línea central
                   Positioned(
                     left: MediaQuery.of(context).size.width / 2 - 18,
-                    top: 0,
-                    bottom: 0,
+                    top: 25, // Debajo del círculo
+                    bottom: 25, // Encima de la flecha
                     child: Container(
                       width: 2,
                       color: Color(0xFFFFF0C6),
                     ),
                   ),
+                  // Posicionar la flecha al final de la línea central
+                  Positioned(
+                    left: MediaQuery.of(context).size.width / 2 - 32,
+                    bottom: 0,
+                    child: Icon(
+                      Icons.arrow_downward,
+                      color: Color(0xFFFFF0C6),
+                      size: 30,
+                    ),
+                  ),
+                // Lista de etapas
                   ListView.builder(
                     itemCount: etapas.length,
                     itemBuilder: (context, index) {
@@ -132,8 +157,8 @@ class LineaDeTiempo extends StatelessWidget {
                                       Icon(
                                         Icons.adjust,
                                         color: etapa.etprEstado == true
-                                            ? Colors.green
-                                            : Colors.red,
+                                            ? Colors.red
+                                            : Colors.green,
                                         size: 25,
                                       ),
                                     Text(
@@ -148,8 +173,8 @@ class LineaDeTiempo extends StatelessWidget {
                                       Icon(
                                         Icons.adjust,
                                         color: etapa.etprEstado == true
-                                            ? Colors.green
-                                            : Colors.red,
+                                            ? Colors.red
+                                            : Colors.green,
                                         size: 25,
                                       ),
                                   ],
@@ -201,29 +226,15 @@ class LineaDeTiempo extends StatelessWidget {
         overlayColor: Colors.transparent,
         children: [
           SpeedDialChild(
-            child: Icon(Icons.close),
+            child: Icon(Icons.arrow_back),
             backgroundColor: Color(0xFFFFF0C6),
             foregroundColor: Color(0xFF171717),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+            shape: CircleBorder(), 
+
             labelBackgroundColor: Color(0xFFFFF0C6),
             labelStyle: TextStyle(color: Color(0xFF171717)),
             onTap: () {
               Navigator.pop(context); // Acción de regresar
-            },
-          ),
-          SpeedDialChild(
-            child: Icon(Icons.arrow_back),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            labelBackgroundColor: Color(0xFFFFF0C6),
-            labelStyle: TextStyle(color: Color(0xFF171717)),
-            onTap: () {
-              // Acción sin definir
             },
           ),
         ],

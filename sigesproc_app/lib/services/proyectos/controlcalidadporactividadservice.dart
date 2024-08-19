@@ -158,4 +158,18 @@ class ControlDeCalidadesPorActividadesService {
 
 
 
+
+   // Método para listar todos los controles de calidad
+  static Future<List<ListarControlDeCalidadesPorActividadesViewModel>> listarControlCalidad() async {
+      final url = Uri.parse('${ApiService.apiUrl}/ControlDeCalidad/Listar');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => ListarControlDeCalidadesPorActividadesViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
 }

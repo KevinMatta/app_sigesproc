@@ -262,45 +262,45 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
                 'Estado: ${proyecto.proyEstado == true ? "En Ejecución" : "Finalizado"}',
                 style: TextStyle(color: Color(0xFFF4EAD5)),
               ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Progreso:',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: 0.5, // Simulación del progreso
-                              backgroundColor: Colors.grey,
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4EAD5)),
-                              minHeight: 20,
-                            ),
-                          ),
-                        ),
-                        Center(
-                          child: Text(
-                            '50%', // porcentaje
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // SizedBox(height: 10),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.start,
+              //   children: [
+              //     Text(
+              //       'Progreso:',
+              //       style: TextStyle(color: Colors.white),
+              //     ),
+              //     SizedBox(width: 10),
+              //     Expanded(
+              //       child: Stack(
+              //         children: [
+              //           Container(
+              //             height: 20,
+              //             decoration: BoxDecoration(
+              //               color: Colors.grey[300],
+              //               borderRadius: BorderRadius.circular(10),
+              //             ),
+              //             child: ClipRRect(
+              //               borderRadius: BorderRadius.circular(10),
+              //               child: LinearProgressIndicator(
+              //                 value: 0.5, // Simulación del progreso
+              //                 backgroundColor: Colors.grey,
+              //                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4EAD5)),
+              //                 minHeight: 20,
+              //               ),
+              //             ),
+              //           ),
+              //           Center(
+              //             child: Text(
+              //               '50%', // porcentaje
+              //               style: TextStyle(color: Colors.black),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
               SizedBox(height: 10),
               Container(
                 decoration: BoxDecoration(
@@ -509,7 +509,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
             ),
             Icon(
               etapa.etprEstado == true ? Icons.adjust : Icons.adjust, // Estado
-              color: etapa.etprEstado == true ? Colors.green : Colors.red,
+              color: etapa.etprEstado == true ? Colors.red : Colors.green,
               size: 15,
             ),
           ],

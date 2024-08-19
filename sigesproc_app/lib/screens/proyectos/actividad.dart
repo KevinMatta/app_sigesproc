@@ -213,7 +213,7 @@ Widget build(BuildContext context) {
                             ),
                             trailing: Icon(
                                   Icons.adjust,
-                              color: actividad.acetEstado == true ? Colors.green : Colors.red,
+                              color: actividad.acetEstado == true ? Colors.red : Colors.green,
                               size: 20,
                             ),
                           ),
@@ -259,29 +259,14 @@ Widget build(BuildContext context) {
       overlayColor: Colors.transparent,  // Color de la superposición cuando se abre el menú
       children: [
         SpeedDialChild(
-          child: Icon(Icons.close),
+          child: Icon(Icons.arrow_back),
           backgroundColor: Color(0xFFFFF0C6),
           foregroundColor: Color(0xFF171717),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
+          shape: CircleBorder(), 
           labelBackgroundColor: Color(0xFFFFF0C6),
           labelStyle: TextStyle(color: Color(0xFF171717)),
           onTap: () {
             Navigator.pop(context);  // Acción de regresar
-          },
-        ),
-        SpeedDialChild(
-          child: Icon(Icons.arrow_back),
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          labelBackgroundColor: Color(0xFFFFF0C6),
-          labelStyle: TextStyle(color: Color(0xFF171717)),
-          onTap: () {
-            // Acción sin definir
           },
         ),
       ],
