@@ -8,8 +8,10 @@ import '../menu.dart';
 
 class Actividad extends StatefulWidget {
   final List<ActividadesPorEtapaViewModel> actividades;
+  final String? etapaNombre;
 
-  const Actividad({Key? key, required this.actividades}) : super(key: key);
+
+  const Actividad({Key? key, required this.actividades, required this.etapaNombre }) : super(key: key);
 
   @override
   _ActividadState createState() => _ActividadState();
@@ -20,10 +22,12 @@ class _ActividadState extends State<Actividad> {
   List<ActividadesPorEtapaViewModel> _actividadesFiltradas = [];
   int _currentPage = 0;
   int _rowsPerPage = 10;
+  String? etapaName;
 
   @override
   void initState() {
     super.initState();
+    etapaName = widget.etapaNombre ?? "";
     _actividadesFiltradas = widget.actividades;
     _searchController.addListener(_actividadFiltrada);
   }
@@ -61,11 +65,11 @@ class _ActividadState extends State<Actividad> {
     });
   }
 
-  void _navigateToControlCalidadScreen(BuildContext context, int acetId, String? medida) {
+  void _navigateToControlCalidadScreen(BuildContext context, int acetId, String? medida, String? actividad) {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => ControlCalidadScreen(acetId: acetId, unidadMedida: medida ),
+      builder: (context) => ControlCalidadScreen(acetId: acetId, unidadMedida: medida, actividadNombre: actividad ),
     ),
   );
 }
@@ -99,14 +103,14 @@ Widget build(BuildContext context) {
         ],
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
+        preferredSize: Size.fromHeight(60.0),
         child: Column(
           children: [
             Text(
-              'Actividades',
+              'Etapa: $etapaName',
               style: TextStyle(
                 color: Color(0xFFFFF0C6),
-                fontSize: 18,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -114,7 +118,14 @@ Widget build(BuildContext context) {
             Container(
               height: 2.0,
               color: Color(0xFFFFF0C6),
-            ),
+            ),SizedBox(height: 5),
+              Text(
+                'Actividades:',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 16,
+                ),
+              ),
           ],
         ),
       ),
@@ -182,7 +193,7 @@ Widget build(BuildContext context) {
                     itemBuilder: (context, index) {
                       final actividad = _actividadesFiltradas[startIndex + index];
                       return GestureDetector(
-                        onTap: () => _navigateToControlCalidadScreen(context, actividad.acetId, actividad.unmeNombre), // Abre la pantalla de controlCalidad
+                        onTap: () => _navigateToControlCalidadScreen(context, actividad.acetId, actividad.unmeNombre, actividad.actiDescripcion), // Abre la pantalla de controlCalidad
                         child: Card(
                           color: Color(0xFF171717),
                           margin: EdgeInsets.symmetric(vertical: 5.0),

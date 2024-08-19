@@ -14,9 +14,11 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 class ControlCalidadScreen extends StatefulWidget {
   final int acetId;
   final String? unidadMedida;
+  final String? actividadNombre;
 
 
-  const ControlCalidadScreen({Key? key, required this.acetId, this.unidadMedida}) : super(key: key);
+
+  const ControlCalidadScreen({Key? key, required this.acetId, this.unidadMedida, this.actividadNombre}) : super(key: key);
 
   @override
   _ControlCalidadScreenState createState() => _ControlCalidadScreenState();
@@ -30,6 +32,7 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
   bool showFechaError = false;
   int? idScope = 0;
   String? unidadNombre;
+  String? actividad;
 
 
   List<PlatformFile> _uploadedImages = []; // Lista para almacenar las imágenes subidas
@@ -51,6 +54,7 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
     super.initState();
     // Asignar valor a unidadNombre en el initState
     unidadNombre = widget.unidadMedida ?? "";
+    actividad = widget.actividadNombre ?? "";
   }
 
   void _removeImage(int index) {
@@ -154,14 +158,14 @@ Widget build(BuildContext context) {
         ],
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
+        preferredSize: Size.fromHeight(60.0),
         child: Column(
           children: [
             Text(
-              'Control de Calidad',
+              'Actividad: $actividad',
               style: TextStyle(
                 color: Color(0xFFFFF0C6),
-                fontSize: 18,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -169,7 +173,14 @@ Widget build(BuildContext context) {
             Container(
               height: 2.0,
               color: Color(0xFFFFF0C6),
-            ),
+            ),SizedBox(height: 5),
+              Text(
+                'Control de Calidad:',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 16,
+                ),
+              ),
           ],
         ),
       ),

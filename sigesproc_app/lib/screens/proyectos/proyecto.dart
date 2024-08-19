@@ -480,7 +480,7 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
 
 Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
   return InkWell(
-    onTap: () => _navigateToActividades(context, etapa.etprId),
+    onTap: () => _navigateToActividades(context, etapa.etprId, etapa.etapDescripcion),
     child: Container(
       margin: EdgeInsets.symmetric(vertical: 4.0),
       decoration: BoxDecoration(
@@ -520,13 +520,13 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
 }
 
 
-  void _navigateToActividades(BuildContext context, int etprId) async {
+  void _navigateToActividades(BuildContext context, int etprId, String? etprDescripcion) async {
     try {
       List<ActividadesPorEtapaViewModel> actividades = await ActividadesPorEtapaService.listarActividadPorEtapa(etprId);
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => Actividad(key: Key(etprId.toString()), actividades: actividades),
+          builder: (context) => Actividad(key: Key(etprId.toString()), actividades: actividades, etapaNombre: etprDescripcion),
         ),
       );
     } catch (error) {
