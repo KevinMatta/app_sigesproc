@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/screens/fletes/flete.dart';
 import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
@@ -20,6 +22,8 @@ class VerificarFlete extends StatefulWidget {
 class _VerificarFleteState extends State<VerificarFlete>
     with SingleTickerProviderStateMixin {
   DateTime? fechaHoraLlegada;
+  TextEditingController _fechaHoraController = TextEditingController();
+
 
   List<FleteDetalleViewModel> insumosNoRecibidos = [];
   List<FleteDetalleViewModel> insumosVerificados = [];
@@ -33,6 +37,9 @@ class _VerificarFleteState extends State<VerificarFlete>
 
   bool _isLoading = true;
   bool _isKeyboardVisible = false;
+
+  bool _fechaLlegadaError = false;
+  String _fechaLlegadaErrorMessage = '';
 
   final Map<int, TextEditingController> _textControllers = {};
   Map<int, FocusNode> _focusNodes = {};
@@ -69,6 +76,13 @@ class _VerificarFleteState extends State<VerificarFlete>
       });
     });
   }
+
+  @override
+void dispose() {
+  _fechaHoraController.dispose();
+  super.dispose();
+}
+
 
   Future<void> _cargarDatosFlete() async {
     print('Cargando datos del flete...');
@@ -202,8 +216,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                             labelColor: Color(0xFFFFF0C6),
                           ),
                           Container(
-                            height: MediaQuery.of(context).size.height *
-                                0.6, // Limitar la altura para evitar problemas con el teclado
+                            height: MediaQuery.of(context).size.height * 0.6,
                             child: TabBarView(
                               controller: _tabController,
                               children: [
@@ -307,165 +320,173 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
-void _onCheckboxChanged(
-    bool? value, FleteDetalleViewModel item, bool isInsumo) {
-  print(
-      "Checkbox cambiado para el item: ${item.insuDescripcion ?? item.equsNombre}, nuevo valor: $value");
-
-  setState(() {
-    item.verificado = value;
-
-    if (value == true) {
-      print("Checkbox marcado, moviendo a la lista de verificados");
-
-      // Seleccionar la lista adecuada según si es Insumo o Equipo
-      List<FleteDetalleViewModel> verifiedList = isInsumo ? insumosVerificados : equiposVerificados;
-      List<FleteDetalleViewModel> notReceivedList = isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
-
-      // Buscar si ya existe en Verificados
-      var existingVerified = verifiedList.firstWhere(
-        (i) => isInsumo ? i.insuDescripcion == item.insuDescripcion : i.equsNombre == item.equsNombre,
-        orElse: () {
-          print("No se encontró un item verificado existente, creando uno nuevo");
-          return FleteDetalleViewModel(fldeId: -1);
-        },
-      );
-
-      if (existingVerified.fldeId != -1) {
-        // Sumar cantidades si ya existe en Verificados
-        print("Item encontrado en la lista de verificados, sumando cantidades");
-        print(
-            "Cantidad existente: ${existingVerified.cantidadRecibida}, Suma: ${item.fldeCantidad}");
-        existingVerified.cantidadRecibida =
-            (existingVerified.cantidadRecibida ?? 0) +
-                (item.fldeCantidad ?? 0);
-        print(
-            "Nueva cantidad en verificados: ${existingVerified.cantidadRecibida}");
-
-        // Actualizar el controlador del TextField
-        _textControllers[existingVerified.fldeId]!.text =
-            existingVerified.cantidadRecibida.toString();
-
-        // Eliminar de No Recibidos
-        print("Eliminando item de la lista de No Recibidos");
-        notReceivedList.remove(item);
-      } else {
-        // Mover a Verificados si no existe
-        print("Moviendo item a la lista de verificados");
-        notReceivedList.remove(item);
-        verifiedList.add(item);
-
-        // Inicializar el controlador del TextField si no existe
-        if (!_textControllers.containsKey(item.fldeId)) {
-          _textControllers[item.fldeId!] = TextEditingController(
-            text: item.cantidadRecibida?.toString() ??
-                item.fldeCantidad?.toString(),
-          );
-        }
-      }
-    } else {
-      print("Checkbox desmarcado, moviendo a la lista de no recibidos");
-
-      // Moviendo de Verificados a No Recibidos
-      List<FleteDetalleViewModel> verifiedList = isInsumo ? insumosVerificados : equiposVerificados;
-      List<FleteDetalleViewModel> notReceivedList = isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
-
-      var existingNotReceived = notReceivedList.firstWhere(
-        (i) => isInsumo ? i.insuDescripcion == item.insuDescripcion : i.equsNombre == item.equsNombre,
-        orElse: () {
-          print("No se encontró un item en no recibidos, creando uno nuevo");
-          return FleteDetalleViewModel(fldeId: -1);
-        },
-      );
-
-      if (existingNotReceived.fldeId != -1) {
-        // Sumar cantidades si ya existe en No Recibidos
-        print("Item encontrado en la lista de No Recibidos, sumando cantidades");
-        print(
-            "Cantidad existente: ${existingNotReceived.fldeCantidad}, Suma: ${item.cantidadRecibida}");
-        existingNotReceived.fldeCantidad =
-            (existingNotReceived.fldeCantidad ?? 0) +
-                (item.cantidadRecibida ?? 0);
-        print(
-            "Nueva cantidad en No Recibidos: ${existingNotReceived.fldeCantidad}");
-
-        verifiedList.remove(item);
-      } else {
-        // Mover a No Recibidos si no existe
-        print("Moviendo item a la lista de No Recibidos");
-        verifiedList.remove(item);
-        notReceivedList.add(item);
-      }
-    }
-
-  });
-}
-
-
-  void _onCantidadChanged(
-    String value, FleteDetalleViewModel item, bool isInsumo) {
-  print(
-      "Cantidad cambiada para el item: ${item.insuDescripcion ?? item.equsNombre}, nuevo valor: $value");
-
-  setState(() {
-    int cantidadIngresada = int.tryParse(value) ?? 0;
-    int cantidadOriginal = item.fldeCantidad!;
-    item.cantidadRecibida = cantidadIngresada;
-
+  void _onCheckboxChanged(
+      bool? value, FleteDetalleViewModel item, bool isInsumo) {
     print(
-        "Cantidad ingresada: $cantidadIngresada, Cantidad original: $cantidadOriginal");
+        "Checkbox cambiado para el item: ${item.insuDescripcion ?? item.equsNombre}, nuevo valor: $value");
 
-    List<FleteDetalleViewModel> noRecibidosList = isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
+    setState(() {
+      item.verificado = value;
 
-    if (cantidadIngresada < cantidadOriginal) {
-      int cantidadRestante = cantidadOriginal - cantidadIngresada;
-      print("Cantidad restante: $cantidadRestante");
+      List<FleteDetalleViewModel> verifiedList =
+          isInsumo ? insumosVerificados : equiposVerificados;
+      List<FleteDetalleViewModel> notReceivedList =
+          isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
 
-      FleteDetalleViewModel existente = noRecibidosList.firstWhere(
-        (e) => isInsumo ? e.insuDescripcion == item.insuDescripcion : e.equsNombre == item.equsNombre,
-        orElse: () {
-          print(
-              "No se encontró un item existente en No Recibidos, se creará uno nuevo");
-          return FleteDetalleViewModel(fldeId: -1);
-        },
-      );
+      if (value == true) {
+        print("Checkbox marcado, moviendo a la lista de verificados");
 
-      if (existente.fldeId != -1) {
-        // Actualizar cantidad si ya existe
-        print("Item existente encontrado en No Recibidos, actualizando cantidad");
-        existente.fldeCantidad = cantidadRestante;
-        print("Cantidad actualizada en No Recibidos: ${existente.fldeCantidad}");
-      } else {
-        // Crear nuevo registro en No Recibidos
-        print("Creando nuevo item en No Recibidos");
-        FleteDetalleViewModel restanteItem = FleteDetalleViewModel(
-          codigo: item.codigo,
-          fldeId: item.fldeId,
-          fldeCantidad: cantidadRestante,
-          fldeTipodeCarga: item.fldeTipodeCarga,
-          flenId: item.flenId,
-          insuDescripcion: item.insuDescripcion,
-          equsNombre: item.equsNombre,
-          unmeNomenclatura: item.unmeNomenclatura,
-          verificado: false,
-          insuId: item.insuId,
+        var existingVerified = verifiedList.firstWhere(
+          (i) => isInsumo
+              ? i.insuDescripcion == item.insuDescripcion
+              : i.equsNombre == item.equsNombre,
+          orElse: () {
+            print(
+                "No se encontró un item verificado existente, creando uno nuevo");
+            return FleteDetalleViewModel(fldeId: -1);
+          },
         );
 
-        noRecibidosList.add(restanteItem);
-        print("Nuevo item agregado a No Recibidos: $restanteItem");
+        if (existingVerified.fldeId != -1) {
+          print(
+              "Item encontrado en la lista de verificados, sumando cantidades");
+          existingVerified.cantidadRecibida =
+              (existingVerified.cantidadRecibida ?? 0) +
+                  (item.fldeCantidad ?? 0);
+          _textControllers[existingVerified.fldeId]!.text =
+              existingVerified.cantidadRecibida.toString();
+          notReceivedList.remove(item);
+        } else {
+          print("Moviendo item a la lista de verificados");
+          notReceivedList.remove(item);
+          verifiedList.add(item);
+
+          if (!_textControllers.containsKey(item.fldeId)) {
+            _textControllers[item.fldeId!] = TextEditingController(
+              text: item.cantidadRecibida?.toString() ??
+                  item.fldeCantidad?.toString(),
+            );
+          }
+        }
+
+        _enfocarYScroll(item.fldeId!);
+      } else {
+        print("Checkbox desmarcado, moviendo a la lista de no recibidos");
+
+        var existingNotReceived = notReceivedList.firstWhere(
+          (i) => isInsumo
+              ? i.insuDescripcion == item.insuDescripcion
+              : i.equsNombre == item.equsNombre,
+          orElse: () {
+            print("No se encontró un item en no recibidos, creando uno nuevo");
+            return FleteDetalleViewModel(fldeId: -1);
+          },
+        );
+
+        if (existingNotReceived.fldeId != -1) {
+          print(
+              "Item encontrado en la lista de No Recibidos, sumando cantidades");
+          existingNotReceived.fldeCantidad =
+              (existingNotReceived.fldeCantidad ?? 0) +
+                  (item.cantidadRecibida ?? 0);
+          verifiedList.remove(item);
+        } else {
+          print("Moviendo item a la lista de No Recibidos");
+          verifiedList.remove(item);
+          notReceivedList.add(item);
+        }
       }
-    } else {
-      // Si la cantidad verificada completa, eliminar de No Recibidos
-      print("Cantidad completa recibida, eliminando de No Recibidos");
-      noRecibidosList.removeWhere(
-          (e) => isInsumo ? e.insuDescripcion == item.insuDescripcion : e.equsNombre == item.equsNombre);
-    }
+    });
+  }
 
-    print("Lista actual de No Recibidos: $noRecibidosList");
-    print("Lista actual de Verificados: ${isInsumo ? insumosVerificados : equiposVerificados}");
-  });
-}
+  void _onCantidadChanged(
+      String value, FleteDetalleViewModel item, bool isInsumo) {
+    print(
+        "Cantidad cambiada para el item: ${item.insuDescripcion ?? item.equsNombre}, nuevo valor: $value");
 
+    setState(() {
+      int cantidadIngresada = int.tryParse(value) ?? 0;
+      int cantidadOriginal = item.fldeCantidad!;
+
+      if (cantidadIngresada > cantidadOriginal) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'La cantidad no puede ser mayor que la cantidad original: $cantidadOriginal')),
+        );
+        cantidadIngresada = cantidadOriginal;
+        _textControllers[item.fldeId]!.text = cantidadOriginal.toString();
+      }
+
+      item.cantidadRecibida = cantidadIngresada;
+
+      print(
+          "Cantidad ingresada: $cantidadIngresada, Cantidad original: $cantidadOriginal");
+
+      List<FleteDetalleViewModel> noRecibidosList =
+          isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
+
+      if (cantidadIngresada < cantidadOriginal) {
+        int cantidadRestante = cantidadOriginal - cantidadIngresada;
+        print("Cantidad restante: $cantidadRestante");
+
+        FleteDetalleViewModel existente = noRecibidosList.firstWhere(
+          (e) => isInsumo
+              ? e.insuDescripcion == item.insuDescripcion
+              : e.equsNombre == item.equsNombre,
+          orElse: () {
+            print(
+                "No se encontró un item existente en No Recibidos, se creará uno nuevo");
+            return FleteDetalleViewModel(fldeId: -1);
+          },
+        );
+
+        if (existente.fldeId != -1) {
+          print(
+              "Item existente encontrado en No Recibidos, actualizando cantidad");
+          existente.fldeCantidad = cantidadRestante;
+          print(
+              "Cantidad actualizada en No Recibidos: ${existente.fldeCantidad}");
+        } else {
+          print("Creando nuevo item en No Recibidos");
+          FleteDetalleViewModel restanteItem = FleteDetalleViewModel(
+            codigo: item.codigo,
+            fldeId: item.fldeId,
+            fldeCantidad: cantidadRestante,
+            fldeTipodeCarga: item.fldeTipodeCarga,
+            flenId: item.flenId,
+            insuDescripcion: item.insuDescripcion,
+            equsNombre: item.equsNombre,
+            unmeNomenclatura: item.unmeNomenclatura,
+            verificado: false,
+            insuId: item.insuId,
+          );
+
+          noRecibidosList.add(restanteItem);
+          print("Nuevo item agregado a No Recibidos: $restanteItem");
+        }
+      } else {
+        print("Cantidad completa recibida, eliminando de No Recibidos");
+        noRecibidosList.removeWhere((e) => isInsumo
+            ? e.insuDescripcion == item.insuDescripcion
+            : e.equsNombre == item.equsNombre);
+      }
+
+      print("Lista actual de No Recibidos: $noRecibidosList");
+      print(
+          "Lista actual de Verificados: ${isInsumo ? insumosVerificados : equiposVerificados}");
+    });
+  }
+
+  void _enfocarYScroll(int itemId) {
+    _focusNodes.forEach((key, focusNode) {
+      if (key != itemId) {
+        focusNode.unfocus();
+      }
+    });
+    _focusNodes[itemId]?.requestFocus();
+    _scrollToFocusedItem();
+  }
 
   Widget _buildTable(List<FleteDetalleViewModel> items, bool isInsumo) {
     List<DataRow> rows = items.isEmpty
@@ -545,10 +566,13 @@ void _onCheckboxChanged(
                     width: MediaQuery.of(context).size.width * 0.1,
                     child: item.verificado == true
                         ? TextField(
-                            focusNode: _focusNode,
+                            focusNode: _focusNodes[itemId],
                             controller: _textControllers[itemId],
                             style: TextStyle(color: Colors.white),
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ], // Solo permite números
                             decoration: InputDecoration(
                               enabledBorder: UnderlineInputBorder(
                                 borderSide:
@@ -563,13 +587,7 @@ void _onCheckboxChanged(
                               _onCantidadChanged(value, item, isInsumo);
                             },
                             onTap: () {
-                              _focusNodes.forEach((key, focusNode) {
-                                if (key != itemId) {
-                                  focusNode.unfocus();
-                                }
-                              });
-                              _focusNodes[itemId]!.requestFocus();
-                              _scrollToFocusedItem();
+                              _enfocarYScroll(itemId);
                             },
                           )
                         : Text(
@@ -621,17 +639,219 @@ void _onCheckboxChanged(
     );
   }
 
-  Future<void> _guardarCambios() async {
-    for (var item in insumosVerificados) {
-      // await FleteDetalleService.Actualizar(item);
-    }
-    for (var item in equiposVerificados) {
-      // await FleteDetalleService.Actualizar(item);
+  Future<void> _verificarFlete() async {
+    flete.usuaModificacion = 3;
+    flete.flenEstado = true;
+
+    bool hayNoVerificados = false;
+    bool hayErrores = false;
+    bool hayErrorFecha = false;
+
+    bool _validarCantidad(FleteDetalleViewModel item) {
+      if ((item.cantidadRecibida == null || item.cantidadRecibida == 0) &&
+          flete.flenFechaHoraLlegada != null &&
+          (insumosVerificados.isNotEmpty || equiposVerificados.isNotEmpty)) {
+        item.cantidadRecibida = item.fldeCantidad;
+        _textControllers[item.fldeId!]!.text = item.cantidadRecibida.toString();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cantidad ajustada, no puede ser vacía')),
+        );
+        hayErrores = true;
+        return false;
+      }
+      return true;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Datos guardados exitosamente')),
-    );
+    
+
+    
+    if (insumosVerificados.isEmpty && equiposVerificados.isEmpty) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Es necesario seleccionar insumos o equipos de seguridad.')),
+  );
+} else if (flete.flenFechaHoraLlegada == null) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('La fecha de llegada no puede ser vacía.')),
+  );
+  _fechaLlegadaError = true;
+  _fechaLlegadaErrorMessage = 'La fecha de llegada no puede estar vacía';
+  hayErrorFecha = true;
+} else if (insumosVerificados.isEmpty && equiposVerificados.isEmpty && flete.flenFechaHoraLlegada == null) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Complete el formulario.')),
+  );
+  _fechaLlegadaError = true;
+  _fechaLlegadaErrorMessage = 'La fecha de llegada no puede estar vacía';
+  hayErrorFecha = true;
+} 
+    // Validar Insumos Verificados
+    for (var item in insumosVerificados) {
+      print('insuverificado: $item');
+      if (!_validarCantidad(item)) return;
+    }
+
+    // Validar Insumos No Recibidos
+    for (var item in insumosNoRecibidos) {
+      print('insunoreci: $item');
+      if (!_validarCantidad(item)) return;
+    }
+
+    // Validar Equipos Verificados
+    for (var item in equiposVerificados) {
+      print('equiverfi: $item');
+      if (!_validarCantidad(item)) return;
+    }
+
+    // Validar Equipos No Recibidos
+    for (var detalle in equiposNoRecibidos) {
+      print('equinorecibi: $detalle');
+      if (!_validarCantidad(detalle)) return;
+    }
+
+    // Si hay errores, no continuar con el guardado
+    if (hayErrores) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se puede guardar, revise las cantidades.')),
+      );
+      return;
+    }
+
+    // Guardar Insumos Verificados
+    for (var item in insumosVerificados) {
+      print('insuverificado: $item');
+      item.fldeLlegada = true;
+      item.usuaModificacion = 3;
+      await FleteDetalleService.editarFleteDetalle(item);
+    }
+
+    // Guardar Insumos No Recibidos
+    for (var item in insumosNoRecibidos) {
+      print('insunoreci: $item');
+      if (item.cantidadRecibida! < item.fldeCantidad!) {
+        var detalleNuevo = FleteDetalleViewModel(
+          flenId: item.flenId,
+          inppId: item.inppId,
+          usuaCreacion: item.usuaCreacion,
+          fldeFechaCreacion: item.fldeFechaCreacion,
+          fldeCantidad: item.cantidadRecibida!,
+          fldeTipodeCarga: item.fldeTipodeCarga,
+          fldeLlegada: false,
+          usuaModificacion: 3,
+        );
+
+        try {
+          final resp =
+              await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+          if (resp['success'] &&
+              resp['data'] != null &&
+              resp['data']['codeStatus'] != null) {
+            var detalleInsertado = FleteDetalleViewModel(
+              fldeId: resp['data']['codeStatus'],
+              fldeCantidad: detalleNuevo.fldeCantidad,
+              flenId: detalleNuevo.flenId,
+              inppId: detalleNuevo.inppId,
+              usuaCreacion: detalleNuevo.usuaCreacion,
+              fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
+              usuaModificacion: 3,
+              fldeFechaModificacion: DateTime.now(),
+              fldeLlegada: false,
+              fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
+            );
+
+            await FleteDetalleService.editarFleteDetalle(detalleInsertado);
+            hayNoVerificados = true;
+          } else {
+            throw Exception(
+                'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          }
+        } catch (e) {
+          print('Error al insertar detalle: $e');
+        }
+      } else {
+        item.fldeLlegada = false;
+        item.usuaModificacion = 3;
+        hayNoVerificados = true;
+        await FleteDetalleService.editarFleteDetalle(item);
+      }
+    }
+
+    // Guardar Equipos Verificados
+    for (var item in equiposVerificados) {
+      print('equiverfi: $item');
+      item.fldeLlegada = true;
+      item.usuaModificacion = 3;
+      await FleteDetalleService.editarFleteDetalle(item);
+    }
+
+    // Guardar Equipos No Recibidos
+    for (var detalle in equiposNoRecibidos) {
+      print('equinorecibi: $detalle');
+      if (detalle.cantidadRecibida! < detalle.fldeCantidad!) {
+        var detalleNuevo = FleteDetalleViewModel(
+          flenId: detalle.flenId,
+          inppId: detalle.inppId,
+          usuaCreacion: detalle.usuaCreacion,
+          fldeFechaCreacion: detalle.fldeFechaCreacion,
+          fldeCantidad: detalle.cantidadRecibida!,
+          fldeTipodeCarga: detalle.fldeTipodeCarga,
+          fldeLlegada: false,
+          usuaModificacion: 3,
+        );
+
+        try {
+          final resp =
+              await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+          if (resp['success'] &&
+              resp['data'] != null &&
+              resp['data']['codeStatus'] != null) {
+            var detalleInsertado = FleteDetalleViewModel(
+              fldeId: resp['data']['codeStatus'],
+              fldeCantidad: detalleNuevo.fldeCantidad,
+              flenId: detalleNuevo.flenId,
+              inppId: detalleNuevo.inppId,
+              usuaCreacion: detalleNuevo.usuaCreacion,
+              fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
+              usuaModificacion: 3,
+              fldeFechaModificacion: DateTime.now(),
+              fldeLlegada: false,
+              fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
+            );
+
+            await FleteDetalleService.editarFleteDetalle(detalleInsertado);
+            hayNoVerificados = true;
+          } else {
+            throw Exception(
+                'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          }
+        } catch (e) {
+          print('Error al insertar detalle: $e');
+        }
+      } else {
+        detalle.fldeLlegada = false;
+        detalle.usuaModificacion = 3;
+        hayNoVerificados = true;
+        await FleteDetalleService.editarFleteDetalle(detalle);
+      }
+    }
+
+    print('Flete a enviar: $flete');
+    try {
+      await FleteEncabezadoService.editarFlete(flete);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Datos guardados exitosamente')),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Flete(),
+        ),
+      );
+    } catch (e) {
+      print('Error al guardar el flete: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar el flete')),
+      );
+    }
   }
 
   Widget _buildInsumosTab() {
@@ -658,8 +878,7 @@ void _onCheckboxChanged(
       Future.delayed(Duration(milliseconds: 300)).then((_) {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
-            _scrollController.position.pixels +
-                190, // Ajusta según sea necesario
+            _scrollController.position.pixels + 190,
             duration: Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
@@ -675,6 +894,26 @@ void _onCheckboxChanged(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () async {
+              await _verificarFlete();
+            },
+            child: Text(
+              'Guardar',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 15,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
@@ -695,57 +934,54 @@ void _onCheckboxChanged(
               ),
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () async {
-              await _guardarCambios();
-            },
-            child: Text(
-              'Guardar',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 15,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildFechaHoraLlegadaInput() {
-    return TextField(
-      readOnly: true,
-      onTap: _seleccionarFechaHora,
-      decoration: InputDecoration(
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.black,
-        labelStyle: TextStyle(color: Colors.white),
-      ),
-      style: TextStyle(color: Colors.white),
-      controller: TextEditingController(
-        text: fechaHoraLlegada != null
-            ? DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraLlegada!)
-            : '',
-      ),
-    );
-  }
+ Widget _buildFechaHoraLlegadaInput() {
+  return TextField(
+    readOnly: true,
+    onTap: _seleccionarFechaHora,
+    decoration: InputDecoration(
+      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+      border: OutlineInputBorder(),
+      filled: true,
+      fillColor: Colors.black,
+      labelStyle: TextStyle(color: Colors.white),
+    ),
+    style: TextStyle(color: Colors.white),
+    controller: _fechaHoraController, // Usa el controlador persistente aquí
+  );
+}
 
-  Future<void> _seleccionarFechaHora() async {
-    DateTime? fechaSeleccionada = await showDatePicker(
+
+ Future<void> _seleccionarFechaHora() async {
+  DateTime? fechaSeleccionada = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2101),
+    builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData.dark().copyWith(
+          colorScheme: ColorScheme.dark(
+            primary: Color(0xFFFFF0C6),
+            onPrimary: Colors.black,
+            surface: Colors.black,
+            onSurface: Colors.white,
+          ),
+          dialogBackgroundColor: Colors.black,
+        ),
+        child: child!,
+      );
+    },
+  );
+
+  if (fechaSeleccionada != null) {
+    TimeOfDay? horaSeleccionada = await showTimePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      initialTime: TimeOfDay.now(),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.dark().copyWith(
@@ -762,37 +998,22 @@ void _onCheckboxChanged(
       },
     );
 
-    if (fechaSeleccionada != null) {
-      TimeOfDay? horaSeleccionada = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-        builder: (BuildContext context, Widget? child) {
-          return Theme(
-            data: ThemeData.dark().copyWith(
-              colorScheme: ColorScheme.dark(
-                primary: Color(0xFFFFF0C6),
-                onPrimary: Colors.black,
-                surface: Colors.black,
-                onSurface: Colors.white,
-              ),
-              dialogBackgroundColor: Colors.black,
-            ),
-            child: child!,
-          );
-        },
-      );
+    if (horaSeleccionada != null) {
+      setState(() {
+        flete.flenFechaHoraLlegada = DateTime(
+          fechaSeleccionada.year,
+          fechaSeleccionada.month,
+          fechaSeleccionada.day,
+          horaSeleccionada.hour,
+          horaSeleccionada.minute,
+        );
 
-      if (horaSeleccionada != null) {
-        setState(() {
-          flete.flenFechaHoraLlegada = DateTime(
-            fechaSeleccionada.year,
-            fechaSeleccionada.month,
-            fechaSeleccionada.day,
-            horaSeleccionada.hour,
-            horaSeleccionada.minute,
-          );
-        });
-      }
+        // Actualiza el controlador con la fecha y hora seleccionadas
+        _fechaHoraController.text =
+            DateFormat('dd/MM/yyyy HH:mm').format(flete.flenFechaHoraLlegada!);
+      });
     }
   }
+}
+
 }

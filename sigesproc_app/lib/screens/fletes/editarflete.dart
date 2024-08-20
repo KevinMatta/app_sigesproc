@@ -1303,7 +1303,7 @@ class _EditarFleteState extends State<EditarFlete>
 
   Future<void> editarFlete() async {
     try {
-      flete.flenFechaHoraLlegada = DateTime(2024, 2, 2);
+      flete.flenFechaHoraLlegada = DateTime(2005, 1, 1);
       flete.usuaModificacion = 3;
       flete.flenSalidaProyecto = esProyectosalida;
       flete.flenDestinoProyecto = esProyecto;

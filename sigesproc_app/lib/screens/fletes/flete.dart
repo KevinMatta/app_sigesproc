@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import 'package:sigesproc_app/screens/fletes/verificarflete.dart';
+import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'detalleflete.dart';
@@ -21,6 +23,9 @@ class _FleteState extends State<Flete> {
   List<FleteEncabezadoViewModel> _allFletes = [];
   int _currentPage = 0;
   int _rowsPerPage = 10;
+  bool _isLoading = false;
+  bool _viendoVerificacion = false;
+  int? _flenIdSeleccionado;
 
   @override
   void initState() {
@@ -99,7 +104,10 @@ class _FleteState extends State<Flete> {
                     ),
                   );
                 } else if (result == 1) {
-                  //  "Ver Verificación"
+                  setState(() {
+                    _viendoVerificacion = true;
+                    _flenIdSeleccionado = flete.flenId;
+                  });
                 } else if (result == 2) {
                   _modalEliminar(context, flete);
                 } else if (result == 3) {
@@ -227,17 +235,20 @@ class _FleteState extends State<Flete> {
                   await FleteEncabezadoService.Eliminar(flete.flenId!);
                   setState(() {
                     _filteredFletes.remove(flete);
+                    _isLoading = true;
                   });
+
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Flete eliminado con éxito')),
                   );
+                  _isLoading = false;
                 } catch (e) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error al eliminar el registro')),
                   );
-                }
+                } finally {}
               },
             ),
             TextButton(
@@ -253,9 +264,8 @@ class _FleteState extends State<Flete> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget _buildListaFletes() {
+  return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(
@@ -350,7 +360,12 @@ class _FleteState extends State<Flete> {
               child: FutureBuilder<List<FleteEncabezadoViewModel>>(
                 future: _fletesFuture,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+                  if (_isLoading) {
+                    return Center(
+                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                    );
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return Center(
                       child: SpinKitCircle(color: Color(0xFFFFF0C6)),
                     );
@@ -490,8 +505,136 @@ class _FleteState extends State<Flete> {
         },
         backgroundColor: Color(0xFFFFF0C6),
         child: Icon(Icons.add, color: Colors.black),
-        shape: CircleBorder(), 
+        shape: CircleBorder(),
       ),
     );
-  }
+}
+
+Widget _buildVerificacionFlete() {
+  // Aquí cargarás y mostrarás los detalles del flete basado en _flenIdSeleccionado
+  return FutureBuilder<FleteDetalleViewModel>(
+    future: FleteDetalleService.Buscar(_flenIdSeleccionado!),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(
+          child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+        );
+      } else if (snapshot.hasError) {
+        return Center(
+          child: Text(
+            'Error al cargar los datos',
+            style: TextStyle(color: Colors.red),
+          ),
+        );
+      } else if (!snapshot.hasData) {
+        return Center(
+          child: Text(
+            'No se encontraron datos del flete',
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      } else {
+        final flete = snapshot.data!;
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Detalles del Flete ${flete.flenId}',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // Aquí puedes agregar más detalles y tablas con los datos verificados
+            ],
+          ),
+        );
+      }
+    },
+  );
+}
+
+
+  @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.black,
+      title: Row(
+        children: [
+          Image.asset(
+            'lib/assets/logo-sigesproc.png',
+            height: 50,
+          ),
+          SizedBox(width: 2),
+          Expanded(
+            child: Text(
+              'SIGESPROC',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 20,
+              ),
+              textAlign: TextAlign.start,
+            ),
+          ),
+        ],
+      ),
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(40.0),
+        child: Column(
+          children: [
+            Text(
+              _viendoVerificacion ? 'Verificación Flete' : 'Fletes',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 4.0),
+            Container(
+              height: 2.0,
+              color: Color(0xFFFFF0C6),
+            ),
+          ],
+        ),
+      ),
+      iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.notifications),
+          onPressed: () {},
+        ),
+        IconButton(
+          icon: Icon(Icons.person),
+          onPressed: () {},
+        ),
+      ],
+    ),
+    drawer: MenuLateral(
+      selectedIndex: _selectedIndex,
+      onItemSelected: _onItemTapped,
+    ),
+    body: _viendoVerificacion ? _buildVerificacionFlete() : _buildListaFletes(),
+    floatingActionButton: _viendoVerificacion
+        ? null // No mostrar el botón si está en la vista de verificación
+        : FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NuevoFlete(),
+                ),
+              );
+            },
+            backgroundColor: Color(0xFFFFF0C6),
+            child: Icon(Icons.add, color: Colors.black),
+            shape: CircleBorder(),
+          ),
+  );
+}
+
 }
