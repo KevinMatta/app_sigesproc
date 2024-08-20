@@ -3,7 +3,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
-import 'package:sigesproc_app/screens/fletes/verificacionflete.dart';
+import 'package:sigesproc_app/screens/fletes/verificarflete.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'detalleflete.dart';
