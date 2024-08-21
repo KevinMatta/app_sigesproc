@@ -827,10 +827,10 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             controller.text = selection.proyNombre!;
             if (tipo == 'Salida') {
-              flete.boasId = selection.proyId;
+              flete.proyIdSalida = selection.proyId;
               actividadControllerSalida.clear();
             } else {
-              flete.boatId = selection.proyId;
+              flete.proyIdLlegada = selection.proyId;
               actividadControllerLlegada.clear();
             }
           });

@@ -115,8 +115,8 @@ class FleteDetalleService {
     final url =
         Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarDetalles/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    // print('Response status buscar: ${response.statusCode}');
-    // print('Response body buscar: ${response.body}');
+    print('Response status detalle: ${response.statusCode}');
+    print('Response body detalle: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
