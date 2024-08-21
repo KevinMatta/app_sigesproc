@@ -582,10 +582,10 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           setState(() {
             controller.text = selection.proyNombre!;
             if (tipo == 'Salida') {
-              flete.boasId = selection.proyId;
+              flete.proyIdSalida = selection.proyId;
               actividadControllerSalida.clear();
             } else {
-              flete.boatId = selection.proyId;
+              flete.proyIdLlegada = selection.proyId;
               actividadControllerLlegada.clear();
             }
           });
@@ -925,6 +925,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       hayErrores = true;
     }
 
+    print('$esProyecto, ${actividadesLlegada.isNotEmpty}, ${flete.boatId}');
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
       _actividadError = true;
       _actividadErrorMessage = 'Debe seleccionar una actividad por etapa en Llegada';

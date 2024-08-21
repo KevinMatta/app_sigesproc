@@ -827,10 +827,10 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             controller.text = selection.proyNombre!;
             if (tipo == 'Salida') {
-              flete.boasId = selection.proyId;
+              flete.proyIdSalida = selection.proyId;
               actividadControllerSalida.clear();
             } else {
-              flete.boatId = selection.proyId;
+              flete.proyIdLlegada = selection.proyId;
               actividadControllerLlegada.clear();
             }
           });
@@ -1303,7 +1303,7 @@ class _EditarFleteState extends State<EditarFlete>
 
   Future<void> editarFlete() async {
     try {
-      flete.flenFechaHoraLlegada = DateTime(2024, 2, 2);
+      flete.flenFechaHoraLlegada = DateTime(2005, 1, 1);
       flete.usuaModificacion = 3;
       flete.flenSalidaProyecto = esProyectosalida;
       flete.flenDestinoProyecto = esProyecto;

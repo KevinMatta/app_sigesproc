@@ -15,6 +15,8 @@ class FleteEncabezadoViewModel {
   bool? flenEstado;
   bool? flenDestinoProyecto;
   bool? flenSalidaProyecto;
+  int? proyIdSalida;
+  int? proyIdLlegada;
   int? boasId;
   int? boatId;
   int? proyId;
@@ -45,6 +47,8 @@ class FleteEncabezadoViewModel {
     this.flenEstado,
     this.flenDestinoProyecto,
     this.flenSalidaProyecto,
+    this.proyIdSalida,
+    this.proyIdLlegada,
     this.boasId,
     this.boatId,
     this.proyId,

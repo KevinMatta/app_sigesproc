@@ -10,8 +10,8 @@ class FleteControlCalidadViewModel {
   final bool? flccEstado;
   final DateTime? flenFechaHoraSalida;
   final DateTime? flenFechaHoraEstablecidaDeLlegada;
-  final String? flenEstado;
-  final String? flenDestinoProyecto;
+  final bool? flenEstado;
+  final bool? flenDestinoProyecto;
 
   FleteControlCalidadViewModel({
     this.flccId,
