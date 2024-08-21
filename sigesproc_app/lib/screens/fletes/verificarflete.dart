@@ -127,7 +127,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                   detalle.cantidadRecibida! < detalle.fldeCantidad!))
           .toList();
 
-      _isLoading = false; // Datos cargados
+      _isLoading = false;
     });
   }
 
@@ -167,7 +167,6 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
-  // AppBar
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.black,
@@ -482,127 +481,105 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
-  void _onCheckboxChanged(bool? value, FleteDetalleViewModel item, bool isInsumo) {
-  print("Checkbox cambiado para el item: ${item.insuDescripcion ?? item.equsNombre}, nuevo valor: $value");
+  void _onCheckboxChanged(
+      bool? value, FleteDetalleViewModel item, bool isInsumo) {
+    setState(() {
+      item.verificado = value;
 
-  setState(() {
-    item.verificado = value;
-
-    List<FleteDetalleViewModel> verifiedList = isInsumo ? insumosVerificados : equiposVerificados;
-    List<FleteDetalleViewModel> notReceivedList = isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
-
-    if (value == true) {
-      print("Checkbox marcado, moviendo a la lista de verificados");
-
-      var existingVerified = verifiedList.firstWhere(
-        (i) => isInsumo
-            ? i.insuDescripcion == item.insuDescripcion
-            : i.equsNombre == item.equsNombre,
-        orElse: () {
-          print("No se encontró un item verificado existente, creando uno nuevo");
-          return FleteDetalleViewModel(fldeId: -1);
-        },
-      );
-
-      if (existingVerified.fldeId != -1) {
-        print("Item encontrado en la lista de verificados, sumando cantidades");
-        existingVerified.cantidadRecibida =
-            (existingVerified.cantidadRecibida ?? 0) +
-                (item.fldeCantidad ?? 0);
-        _textControllers[existingVerified.fldeId]!.text =
-            existingVerified.cantidadRecibida.toString();
-        notReceivedList.remove(item);
-      } else {
-        print("Moviendo item a la lista de verificados");
-        notReceivedList.remove(item);
-        verifiedList.add(item);
-
-        if (!_textControllers.containsKey(item.fldeId)) {
-          _textControllers[item.fldeId!] = TextEditingController(
-            text: item.cantidadRecibida?.toString() ??
-                item.fldeCantidad?.toString(),
-          );
-        }
-      }
-
-      _enfocarYScroll(item.fldeId!);
-    } else {
-      print("Checkbox desmarcado, moviendo a la lista de no recibidos");
-
-      var existingNotReceived = notReceivedList.firstWhere(
-        (i) => isInsumo
-            ? i.insuDescripcion == item.insuDescripcion
-            : i.equsNombre == item.equsNombre,
-        orElse: () {
-          print("No se encontró un item en no recibidos, creando uno nuevo");
-          return FleteDetalleViewModel(fldeId: -1);
-        },
-      );
-
-      if (existingNotReceived.fldeId != -1) {
-        print("Item encontrado en la lista de No Recibidos, sumando cantidades");
-        existingNotReceived.fldeCantidad =
-            (existingNotReceived.fldeCantidad ?? 0) +
-                (item.cantidadRecibida ?? 0);
-        verifiedList.remove(item);
-      } else {
-        print("Moviendo item a la lista de No Recibidos");
-        verifiedList.remove(item);
-        notReceivedList.add(item);
-      }
-    }
-  });
-}
-
-  void _onCantidadChanged(String value, FleteDetalleViewModel item, bool isInsumo) {
-  print("Cantidad cambiada para el item: ${item.insuDescripcion ?? item.equsNombre}, nuevo valor: $value");
-
-  setState(() {
-    int cantidadIngresada = int.tryParse(value) ?? 0;
-    print('Cantidad ingresada: $cantidadIngresada');
-    int cantidadOriginal = item.fldeCantidad!;
-
-    if (cantidadIngresada > cantidadOriginal) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('La cantidad no puede ser mayor que la cantidad original: $cantidadOriginal')),
-      );
-      cantidadIngresada = cantidadOriginal;
-      _textControllers[item.fldeId]!.text = cantidadOriginal.toString();
-    }
-
-    item.cantidadRecibida = cantidadIngresada;  // Aquí se debe asegurar que se está asignando correctamente
-    print("Después de cambiar la cantidad, item.cantidadRecibida: ${item.cantidadRecibida}");
-
-
-      print(
-          "Cantidad ingresada: $cantidadIngresada, Cantidad original: $cantidadOriginal");
-
-      List<FleteDetalleViewModel> noRecibidosList =
+      List<FleteDetalleViewModel> verifiedList =
+          isInsumo ? insumosVerificados : equiposVerificados;
+      List<FleteDetalleViewModel> notReceivedList =
           isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
 
-      if (cantidadIngresada < cantidadOriginal) {
-        int cantidadRestante = cantidadOriginal - cantidadIngresada;
-        print("Cantidad restante: $cantidadRestante");
-
-        FleteDetalleViewModel existente = noRecibidosList.firstWhere(
-          (e) => isInsumo
-              ? e.insuDescripcion == item.insuDescripcion
-              : e.equsNombre == item.equsNombre,
+      if (value == true) {
+        var verificacionexistente = verifiedList.firstWhere(
+          (i) => isInsumo
+              ? i.insuDescripcion == item.insuDescripcion
+              : i.equsNombre == item.equsNombre,
           orElse: () {
-            print(
-                "No se encontró un item existente en No Recibidos, se creará uno nuevo");
             return FleteDetalleViewModel(fldeId: -1);
           },
         );
 
-        if (existente.fldeId != -1) {
-          print(
-              "Item existente encontrado en No Recibidos, actualizando cantidad");
-          existente.fldeCantidad = cantidadRestante;
-          print(
-              "Cantidad actualizada en No Recibidos: ${existente.fldeCantidad}");
+        if (verificacionexistente.fldeId != -1) {
+          print('verificacion existente $verificacionexistente');
+          verificacionexistente.cantidadRecibida =
+              (verificacionexistente.cantidadRecibida ?? 0) +
+                  (item.fldeCantidad ?? 0);
+          _textControllers[verificacionexistente.fldeId]!.text =
+              verificacionexistente.cantidadRecibida.toString();
+          notReceivedList.remove(item);
         } else {
-          print("Creando nuevo item en No Recibidos");
+          notReceivedList.remove(item);
+          verifiedList.add(item);
+
+          if (!_textControllers.containsKey(item.fldeId)) {
+            _textControllers[item.fldeId!] = TextEditingController(
+              text: item.cantidadRecibida?.toString() ??
+                  item.fldeCantidad?.toString(),
+            );
+          }
+        }
+
+        _enfocarYScroll(item.fldeId!);
+      } else {
+        var existentenorecibido = notReceivedList.firstWhere(
+          (i) => isInsumo
+              ? i.insuDescripcion == item.insuDescripcion
+              : i.equsNombre == item.equsNombre,
+          orElse: () {
+            return FleteDetalleViewModel(fldeId: -1);
+          },
+        );
+
+        if (existentenorecibido.fldeId != -1) {
+          print('existente no recivido $existentenorecibido');
+          existentenorecibido.fldeCantidad =
+              (existentenorecibido.fldeCantidad ?? 0) +
+                  (item.cantidadRecibida ?? 0);
+          verifiedList.remove(item);
+        } else {
+          verifiedList.remove(item);
+          notReceivedList.add(item);
+        }
+      }
+    });
+  }
+
+  void _onCantidadChanged(
+      String value, FleteDetalleViewModel item, bool isInsumo) {
+    setState(() {
+      int cantidadIngresada = int.tryParse(value) ?? 0;
+      int cantidadOriginal = item.fldeCantidad!;
+
+      if (cantidadIngresada > cantidadOriginal) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'La cantidad no puede ser mayor que la cantidad original: $cantidadOriginal')),
+        );
+        cantidadIngresada = cantidadOriginal;
+        _textControllers[item.fldeId]!.text = cantidadOriginal.toString();
+      }
+      print('cantidad ingresda $cantidadIngresada');
+      item.cantidadRecibida = cantidadIngresada;
+
+      if (cantidadIngresada < cantidadOriginal) {
+        int cantidadRestante = cantidadOriginal - cantidadIngresada;
+
+        List<FleteDetalleViewModel> noRecibidosList =
+            isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
+
+        var existente = noRecibidosList.firstWhere(
+          (e) => isInsumo
+              ? e.insuDescripcion == item.insuDescripcion
+              : e.equsNombre == item.equsNombre,
+          orElse: () => FleteDetalleViewModel(fldeId: -1),
+        );
+
+        if (existente.fldeId != -1) {
+          existente.fldeCantidad = cantidadRestante;
+        } else {
           FleteDetalleViewModel restanteItem = FleteDetalleViewModel(
             codigo: item.codigo,
             fldeId: item.fldeId,
@@ -615,21 +592,21 @@ class _VerificarFleteState extends State<VerificarFlete>
             verificado: false,
             insuId: item.insuId,
           );
-
           noRecibidosList.add(restanteItem);
-          print("Nuevo item agregado a No Recibidos: $restanteItem");
         }
       } else {
-        print("Cantidad completa recibida, eliminando de No Recibidos");
-        noRecibidosList.removeWhere((e) => isInsumo
-            ? e.insuDescripcion == item.insuDescripcion
-            : e.equsNombre == item.equsNombre);
+        // Si la cantidad recibida es igual a la original, eliminar de no recibidos
+        _eliminarDeNoRecibidos(item, isInsumo);
       }
-
-      print("Lista actual de No Recibidos: $noRecibidosList");
-      print(
-          "Lista actual de Verificados: ${isInsumo ? insumosVerificados : equiposVerificados}");
     });
+  }
+
+  void _eliminarDeNoRecibidos(FleteDetalleViewModel item, bool isInsumo) {
+    List<FleteDetalleViewModel> noRecibidosList =
+        isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
+    noRecibidosList.removeWhere((e) => isInsumo
+        ? e.insuDescripcion == item.insuDescripcion
+        : e.equsNombre == item.equsNombre);
   }
 
   void _enfocarYScroll(int itemId) {
@@ -794,223 +771,204 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
  Future<void> _verificarFlete() async {
-  print("Iniciando verificación del flete...");
-  
-  flete.usuaModificacion = 3;
-  flete.flenEstado = true;
+    flete.usuaModificacion = 3;
+    flete.flenEstado = true;
 
-  bool hayNoVerificados = false;
-  bool hayErrores = false;
-  bool hayErrorFecha = false;
+    bool hayNoVerificados = false;
+    bool hayErrores = false;
+    bool hayErrorFecha = false;
 
-  bool _validarCantidad(FleteDetalleViewModel item) {
-    print("Validando cantidad para el item: ${item.insuDescripcion ?? item.equsNombre}");
-    print("Cantidad recibida: ${item.cantidadRecibida}, Cantidad original: ${item.fldeCantidad}");
+    bool _validarCantidad(FleteDetalleViewModel item) {
+        print('Cantidad recibida: ${item.cantidadRecibida}');
 
-    if ((item.cantidadRecibida == null || item.cantidadRecibida == 0) &&
-        flete.flenFechaHoraLlegada != null &&
-        (insumosVerificados.isNotEmpty || equiposVerificados.isNotEmpty)) {
-      item.cantidadRecibida = item.fldeCantidad;
-      _textControllers[item.fldeId!]!.text = item.cantidadRecibida.toString();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cantidad ajustada, no puede ser vacía')),
-      );
-      hayErrores = true;
-      return false;
-    }
-    return true;
-  }
+        if ((item.cantidadRecibida == null || item.cantidadRecibida == 0) &&
+            flete.flenFechaHoraLlegada != null &&
+            (insumosVerificados.isNotEmpty || equiposVerificados.isNotEmpty)) {
 
-  // Verificación de condiciones iniciales
-  if (insumosVerificados.isEmpty && equiposVerificados.isEmpty) {
-    print("Error: No hay insumos ni equipos verificados");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Es necesario seleccionar insumos o equipos de seguridad.')),
-    );
-    return;
-  }
-
-  if (flete.flenFechaHoraLlegada == null) {
-    print("Error: Fecha de llegada es nula");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('La fecha de llegada no puede ser vacía.')),
-    );
-    _fechaLlegadaError = true;
-    _fechaLlegadaErrorMessage = 'La fecha de llegada no puede estar vacía';
-    hayErrorFecha = true;
-    return;
-  }
-
-  // Validar Insumos Verificados
-  for (var item in insumosVerificados) {
-    print('Validando insumo verificado: ${item.insuDescripcion}');
-    if (!_validarCantidad(item)) return;
-  }
-
-  // Validar Insumos No Recibidos
-  for (var item in insumosNoRecibidos) {
-    print('Validando insumo no recibido: ${item.insuDescripcion}');
-    if (!_validarCantidad(item)) return;
-  }
-
-  // Validar Equipos Verificados
-  for (var item in equiposVerificados) {
-    print('Validando equipo verificado: ${item.equsNombre}');
-    if (!_validarCantidad(item)) return;
-  }
-
-  // Validar Equipos No Recibidos
-  for (var detalle in equiposNoRecibidos) {
-    print('Validando equipo no recibido: ${detalle.equsNombre}');
-    if (!_validarCantidad(detalle)) return;
-  }
-
-  // Si hay errores, no continuar con el guardado
-  if (hayErrores) {
-    print("Error: Hay errores en la validación de cantidades");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('No se puede guardar, revise las cantidades.')),
-    );
-    return;
-  }
-
-  // Guardar Insumos Verificados
-  for (var item in insumosVerificados) {
-    print('Guardando insumo verificado: ${item.insuDescripcion}');
-    item.fldeLlegada = true;
-    item.usuaModificacion = 3;
-    await FleteDetalleService.editarFleteDetalle(item);
-  }
-
-  // Guardar Insumos No Recibidos
-  for (var item in insumosNoRecibidos) {
-    print('Guardando insumo no recibido: ${item.insuDescripcion}');
-    if (item.cantidadRecibida! < item.fldeCantidad!) {
-      var detalleNuevo = FleteDetalleViewModel(
-        flenId: item.flenId,
-        inppId: item.inppId,
-        usuaCreacion: item.usuaCreacion,
-        fldeFechaCreacion: item.fldeFechaCreacion,
-        fldeCantidad: item.cantidadRecibida!,
-        fldeTipodeCarga: item.fldeTipodeCarga,
-        fldeLlegada: false,
-        usuaModificacion: 3,
-      );
-
-      try {
-        final resp = await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
-        if (resp['success'] && resp['data'] != null && resp['data']['codeStatus'] != null) {
-          var detalleInsertado = FleteDetalleViewModel(
-            fldeId: resp['data']['codeStatus'],
-            fldeCantidad: detalleNuevo.fldeCantidad,
-            flenId: detalleNuevo.flenId,
-            inppId: detalleNuevo.inppId,
-            usuaCreacion: detalleNuevo.usuaCreacion,
-            fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-            usuaModificacion: 3,
-            fldeFechaModificacion: DateTime.now(),
-            fldeLlegada: false,
-            fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
-          );
-
-          await FleteDetalleService.editarFleteDetalle(detalleInsertado);
-          hayNoVerificados = true;
-        } else {
-          throw Exception('Error al insertar detalle: Respuesta no exitosa o datos nulos');
+            item.cantidadRecibida = item.fldeCantidad;
+            _textControllers[item.fldeId!]!.text = item.cantidadRecibida.toString();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Cantidad ajustada, no puede ser vacía')),
+            );
+            hayErrores = true;
+            return false;
         }
-      } catch (e) {
-        print('Error al insertar detalle: $e');
-      }
-    } else {
-      item.fldeLlegada = false;
-      item.usuaModificacion = 3;
-      hayNoVerificados = true;
-      await FleteDetalleService.editarFleteDetalle(item);
+        return true;
     }
-  }
 
-  // Guardar Equipos Verificados
-  for (var item in equiposVerificados) {
-    print('Guardando equipo verificado: ${item.equsNombre}');
-    item.fldeLlegada = true;
-    item.usuaModificacion = 3;
-    await FleteDetalleService.editarFleteDetalle(item);
-  }
+    if (insumosVerificados.isEmpty && equiposVerificados.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Es necesario seleccionar insumos o equipos de seguridad.')),
+        );
+        return;
+    }
 
-  // Guardar Equipos No Recibidos
-  for (var detalle in equiposNoRecibidos) {
-    print('Guardando equipo no recibido: ${detalle.equsNombre}');
-    if (detalle.cantidadRecibida! < detalle.fldeCantidad!) {
-      var detalleNuevo = FleteDetalleViewModel(
-        flenId: detalle.flenId,
-        inppId: detalle.inppId,
-        usuaCreacion: detalle.usuaCreacion,
-        fldeFechaCreacion: detalle.fldeFechaCreacion,
-        fldeCantidad: detalle.cantidadRecibida!,
-        fldeTipodeCarga: detalle.fldeTipodeCarga,
-        fldeLlegada: false,
-        usuaModificacion: 3,
-      );
+    if (flete.flenFechaHoraLlegada == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('La fecha de llegada no puede ser vacía.')),
+        );
+        hayErrorFecha = true;
+        return;
+    }
 
-      try {
-        final resp = await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
-        if (resp['success'] && resp['data'] != null && resp['data']['codeStatus'] != null) {
-          var detalleInsertado = FleteDetalleViewModel(
-            fldeId: resp['data']['codeStatus'],
-            fldeCantidad: detalleNuevo.fldeCantidad,
-            flenId: detalleNuevo.flenId,
-            inppId: detalleNuevo.inppId,
-            usuaCreacion: detalleNuevo.usuaCreacion,
-            fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-            usuaModificacion: 3,
-            fldeFechaModificacion: DateTime.now(),
-            fldeLlegada: false,
-            fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
-          );
+    // Validar Insumos Verificados
+    for (var item in insumosVerificados) {
+        if (!_validarCantidad(item)) return;
+    }
 
-          await FleteDetalleService.editarFleteDetalle(detalleInsertado);
-          hayNoVerificados = true;
+    // Validar Insumos No Recibidos
+    for (var item in insumosNoRecibidos) {
+        if (!_validarCantidad(item)) return;
+    }
+
+    // Validar Equipos Verificados
+    for (var item in equiposVerificados) {
+        if (!_validarCantidad(item)) return;
+    }
+
+    // Validar Equipos No Recibidos
+    for (var item in equiposNoRecibidos) {
+        if (!_validarCantidad(item)) return;
+    }
+
+    if (hayErrores) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se puede guardar, revise las cantidades.')),
+        );
+        return;
+    }
+
+    // Guardar Insumos Verificados
+    for (var item in insumosVerificados) {
+        item.fldeLlegada = true;
+        item.usuaModificacion = 3;
+        print('Guardar insumo verificado: $item');
+        await FleteDetalleService.editarFleteDetalle(item);
+    }
+
+    // Guardar Insumos No Recibidos
+    for (var item in insumosNoRecibidos) {
+        if (item.cantidadRecibida! < item.fldeCantidad!) {
+            var detalleNuevo = FleteDetalleViewModel(
+              flenId: item.flenId,
+              inppId: item.inppId,
+              usuaCreacion: item.usuaCreacion,
+              fldeFechaCreacion: item.fldeFechaCreacion,
+              fldeCantidad: item.cantidadRecibida!,
+              fldeTipodeCarga: item.fldeTipodeCarga,
+              fldeLlegada: false,
+              usuaModificacion: 3,
+            );
+            print('Detalle nuevo en insumo no recibido: $detalleNuevo');
+
+            try {
+                final resp = await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+                if (resp['success'] && resp['data'] != null && resp['data']['codeStatus'] != null) {
+                    var detalleInsertado = FleteDetalleViewModel(
+                      fldeId: resp['data']['codeStatus'],
+                      fldeCantidad: detalleNuevo.fldeCantidad,
+                      flenId: detalleNuevo.flenId,
+                      inppId: detalleNuevo.inppId,
+                      usuaCreacion: detalleNuevo.usuaCreacion,
+                      fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
+                      usuaModificacion: 3,
+                      fldeFechaModificacion: DateTime.now(),
+                      fldeLlegada: false,
+                      fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
+                    );
+                    print('Detalle insertado: $detalleInsertado');
+
+                    await FleteDetalleService.editarFleteDetalle(detalleInsertado);
+                    hayNoVerificados = true;
+                } else {
+                    throw Exception('Error al insertar detalle: Respuesta no exitosa o datos nulos');
+                }
+            } catch (e) {
+                print('Error al insertar detalle: $e');
+            }
         } else {
-          throw Exception('Error al insertar detalle: Respuesta no exitosa o datos nulos');
+            item.fldeLlegada = false;
+            item.usuaModificacion = 3;
+            hayNoVerificados = true;
+            await FleteDetalleService.editarFleteDetalle(item);
         }
-      } catch (e) {
-        print('Error al insertar detalle: $e');
-      }
-    } else {
-      detalle.fldeLlegada = false;
-      detalle.usuaModificacion = 3;
-      hayNoVerificados = true;
-      await FleteDetalleService.editarFleteDetalle(detalle);
     }
-  }
 
-  if (hayNoVerificados) {
-    print("Hay insumos o equipos no verificados. Mostrando formulario de incidencia.");
-    setState(() {
-      _mostrarFormularioIncidencia = true;
-    });
-  } else {
+    // Guardar Equipos Verificados
+    for (var item in equiposVerificados) {
+        item.fldeLlegada = true;
+        item.usuaModificacion = 3;
+        print('Guardar equipo verificado: $item');
+        await FleteDetalleService.editarFleteDetalle(item);
+    }
+
+    // Guardar Equipos No Recibidos
+    for (var detalle in equiposNoRecibidos) {
+        if (detalle.cantidadRecibida! < detalle.fldeCantidad!) {
+            var detalleNuevo = FleteDetalleViewModel(
+              flenId: detalle.flenId,
+              inppId: detalle.inppId,
+              usuaCreacion: detalle.usuaCreacion,
+              fldeFechaCreacion: detalle.fldeFechaCreacion,
+              fldeCantidad: detalle.cantidadRecibida!,
+              fldeTipodeCarga: detalle.fldeTipodeCarga,
+              fldeLlegada: false,
+              usuaModificacion: 3,
+            );
+            print('Guardar equipo no recibido: $detalleNuevo');
+
+            try {
+                final resp = await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+                if (resp['success'] && resp['data'] != null && resp['data']['codeStatus'] != null) {
+                    var detalleInsertado = FleteDetalleViewModel(
+                      fldeId: resp['data']['codeStatus'],
+                      fldeCantidad: detalleNuevo.fldeCantidad,
+                      flenId: detalleNuevo.flenId,
+                      inppId: detalleNuevo.inppId,
+                      usuaCreacion: detalleNuevo.usuaCreacion,
+                      fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
+                      usuaModificacion: 3,
+                      fldeFechaModificacion: DateTime.now(),
+                      fldeLlegada: false,
+                      fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
+                    );
+                    print('Detalle insertado: $detalleInsertado');
+
+                    await FleteDetalleService.editarFleteDetalle(detalleInsertado);
+                    hayNoVerificados = true;
+                } else {
+                    throw Exception('Error al insertar detalle: Respuesta no exitosa o datos nulos');
+                }
+            } catch (e) {
+                print('Error al insertar detalle: $e');
+            }
+        } else {
+            detalle.fldeLlegada = false;
+            detalle.usuaModificacion = 3;
+            hayNoVerificados = true;
+            await FleteDetalleService.editarFleteDetalle(detalle);
+        }
+    }
+
+    print('Flete a enviar: $flete');
     try {
-      await FleteEncabezadoService.editarFlete(flete);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Datos guardados exitosamente')),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Flete(),
-        ),
-      );
+        await FleteEncabezadoService.editarFlete(flete);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Datos guardados exitosamente')),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Flete(),
+          ),
+        );
     } catch (e) {
-      print('Error al guardar el flete: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar el flete')),
-      );
+        print('Error al guardar el flete: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar el flete')),
+        );
     }
-  }
-  print("Verificación del flete completada.");
 }
-
   Future<void> _guardarIncidencia() async {
     if (_descripcionIncidenciaController.text.isEmpty) {
       setState(() {
