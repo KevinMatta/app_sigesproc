@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
 import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/fletes/fletecontrolcalidadservice.dart';
@@ -51,6 +52,7 @@ class _VerificarFleteState extends State<VerificarFlete>
   String _fechaHoraIncidenciaErrorMessage = '';
 
   bool _mostrarFormularioIncidencia = false;
+  Map<int, int> _cantidadesRecibidasTemp = {};
 
   final Map<int, TextEditingController> _textControllers = {};
   Map<int, FocusNode> _focusNodes = {};
@@ -111,22 +113,50 @@ class _VerificarFleteState extends State<VerificarFlete>
     List<FleteDetalleViewModel> detalles =
         await FleteDetalleService.Buscar(widget.flenId);
 
-    // Separar los insumos y equipos en listas diferentes
+    // Cargar la lista de equipos
+    List<EquipoPorProveedorViewModel> equiposLista =
+        await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
+            flete.boasId!);
+
+    // Filtrar y unir las listas de detalles y equipos
+    equiposNoRecibidos = equiposLista.where((equipo) {
+      var detalle = detalles.firstWhere(
+        (detalle) =>
+            detalle.fldeTipodeCarga == false && detalle.inppId == equipo.eqppId,
+        orElse: () => FleteDetalleViewModel(fldeId: -1),
+      );
+      return detalle.fldeId != -1 &&
+          (detalle.cantidadRecibida == null ||
+              detalle.cantidadRecibida! < detalle.fldeCantidad!);
+    }).map((equipo) {
+      var detalle = detalles.firstWhere((detalle) =>
+          detalle.fldeTipodeCarga == false && detalle.inppId == equipo.eqppId);
+      return FleteDetalleViewModel(
+        fldeId: detalle.fldeId,
+        flenId: detalle.flenId,
+        inppId: detalle.inppId,
+        fldeCantidad: detalle.fldeCantidad,
+        cantidadRecibida: detalle.cantidadRecibida,
+        equsNombre: equipo.equsNombre,
+        equsDescripcion: equipo.equsDescripcion,
+        verificado: detalle.verificado,
+        usuaCreacion: detalle.usuaCreacion,
+        fldeFechaCreacion: detalle.fldeFechaCreacion,
+        fldeTipodeCarga: detalle.fldeTipodeCarga,
+      );
+    }).toList();
+
+    // Filtrar los insumos no recibidos
+    insumosNoRecibidos = detalles
+        .where((detalle) =>
+            detalle.fldeTipodeCarga == true &&
+            (detalle.cantidadRecibida == null ||
+                detalle.cantidadRecibida! < detalle.fldeCantidad!))
+        .toList();
+
+    print('cargar insu no recib $insumosNoRecibidos');
+
     setState(() {
-      insumosNoRecibidos = detalles
-          .where((detalle) =>
-              detalle.fldeTipodeCarga == true &&
-              (detalle.cantidadRecibida == null ||
-                  detalle.cantidadRecibida! < detalle.fldeCantidad!))
-          .toList();
-
-      equiposNoRecibidos = detalles
-          .where((detalle) =>
-              detalle.fldeTipodeCarga == false &&
-              (detalle.cantidadRecibida == null ||
-                  detalle.cantidadRecibida! < detalle.fldeCantidad!))
-          .toList();
-
       _isLoading = false;
     });
   }
@@ -491,6 +521,8 @@ class _VerificarFleteState extends State<VerificarFlete>
       List<FleteDetalleViewModel> notReceivedList =
           isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
 
+      print('notreceive $notReceivedList');
+
       if (value == true) {
         var verificacionexistente = verifiedList.firstWhere(
           (i) => isInsumo
@@ -533,7 +565,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
 
         if (existentenorecibido.fldeId != -1) {
-          print('existente no recivido $existentenorecibido');
+          print('existente no recibido $existentenorecibido');
           existentenorecibido.fldeCantidad =
               (existentenorecibido.fldeCantidad ?? 0) +
                   (item.cantidadRecibida ?? 0);
@@ -549,27 +581,41 @@ class _VerificarFleteState extends State<VerificarFlete>
   void _onCantidadChanged(
       String value, FleteDetalleViewModel item, bool isInsumo) {
     setState(() {
+      print(value);
       int cantidadIngresada = int.tryParse(value) ?? 0;
       int cantidadOriginal = item.fldeCantidad!;
+      print('cantidad origi $cantidadOriginal');
 
       if (cantidadIngresada > cantidadOriginal) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'La cantidad no puede ser mayor que la cantidad original: $cantidadOriginal')),
+            content: Text(
+              'La cantidad no puede ser mayor que la cantidad original: $cantidadOriginal',
+            ),
+          ),
         );
         cantidadIngresada = cantidadOriginal;
         _textControllers[item.fldeId]!.text = cantidadOriginal.toString();
       }
-      print('cantidad ingresda $cantidadIngresada');
+
+      // Actualizar el mapa temporal con la cantidad ingresada
+      _cantidadesRecibidasTemp[item.fldeId!] = cantidadIngresada;
+      print('en onchange $cantidadIngresada');
+
+      // Actualizar el valor en el modelo
       item.cantidadRecibida = cantidadIngresada;
 
+      print(
+          'Cantidad ingresada: $cantidadIngresada para item ID: ${item.fldeId}');
+      print('Mapa temporal actualizado: $_cantidadesRecibidasTemp');
+
+      // Asegurarte de que no se pierden valores importantes
       if (cantidadIngresada < cantidadOriginal) {
         int cantidadRestante = cantidadOriginal - cantidadIngresada;
 
         List<FleteDetalleViewModel> noRecibidosList =
             isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
-
+        print('norecibidoslis antes de actualizar: $noRecibidosList');
         var existente = noRecibidosList.firstWhere(
           (e) => isInsumo
               ? e.insuDescripcion == item.insuDescripcion
@@ -583,6 +629,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           FleteDetalleViewModel restanteItem = FleteDetalleViewModel(
             codigo: item.codigo,
             fldeId: item.fldeId,
+            inppId: item.inppId,
             fldeCantidad: cantidadRestante,
             fldeTipodeCarga: item.fldeTipodeCarga,
             flenId: item.flenId,
@@ -595,15 +642,17 @@ class _VerificarFleteState extends State<VerificarFlete>
           noRecibidosList.add(restanteItem);
         }
       } else {
-        // Si la cantidad recibida es igual a la original, eliminar de no recibidos
         _eliminarDeNoRecibidos(item, isInsumo);
       }
     });
   }
 
+// Método para eliminar un elemento de la lista de no recibidos
   void _eliminarDeNoRecibidos(FleteDetalleViewModel item, bool isInsumo) {
     List<FleteDetalleViewModel> noRecibidosList =
         isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
+
+    print('elminar de no recib $noRecibidosList');
     noRecibidosList.removeWhere((e) => isInsumo
         ? e.insuDescripcion == item.insuDescripcion
         : e.equsNombre == item.equsNombre);
@@ -619,6 +668,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     _scrollToFocusedItem();
   }
 
+// Método para construir la tabla con los elementos
   Widget _buildTable(List<FleteDetalleViewModel> items, bool isInsumo) {
     List<DataRow> rows = items.isEmpty
         ? [
@@ -674,7 +724,8 @@ class _VerificarFleteState extends State<VerificarFlete>
                     child: Text(
                       isInsumo
                           ? item.insuDescripcion ?? ''
-                          : item.equsNombre ?? '',
+                          : item.equsNombre ??
+                              '', // Asegúrate de que estas propiedades coincidan con el modelo correcto
                       style: TextStyle(color: Colors.white),
                       overflow: TextOverflow.visible,
                     ),
@@ -686,7 +737,8 @@ class _VerificarFleteState extends State<VerificarFlete>
                     child: Text(
                       isInsumo
                           ? item.unmeNomenclatura ?? ''
-                          : item.equsDescripcion ?? '',
+                          : item.equsDescripcion ??
+                              '', // Asegúrate de que estas propiedades coincidan con el modelo correcto
                       style: TextStyle(color: Colors.white),
                       overflow: TextOverflow.visible,
                     ),
@@ -715,6 +767,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                               ),
                             ),
                             onChanged: (value) {
+                              print('al cambiar $value, $item, $isInsumo');
                               _onCantidadChanged(value, item, isInsumo);
                             },
                             onTap: () {
@@ -770,205 +823,232 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
- Future<void> _verificarFlete() async {
+  Future<void> _verificarFlete() async {
     flete.usuaModificacion = 3;
     flete.flenEstado = true;
 
     bool hayNoVerificados = false;
     bool hayErrores = false;
-    bool hayErrorFecha = false;
 
-    bool _validarCantidad(FleteDetalleViewModel item) {
-        print('Cantidad recibida: ${item.cantidadRecibida}');
+    // Actualizar las cantidades recibidas desde los controladores de texto
+    void _actualizarCantidadesVerificadas(List<FleteDetalleViewModel> items) {
+      for (var item in items) {
+        int cantidadIngresada =
+            int.tryParse(_textControllers[item.fldeId!]!.text) ?? 0;
+        item.cantidadRecibida = cantidadIngresada;
 
-        if ((item.cantidadRecibida == null || item.cantidadRecibida == 0) &&
-            flete.flenFechaHoraLlegada != null &&
-            (insumosVerificados.isNotEmpty || equiposVerificados.isNotEmpty)) {
-
-            item.cantidadRecibida = item.fldeCantidad;
-            _textControllers[item.fldeId!]!.text = item.cantidadRecibida.toString();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Cantidad ajustada, no puede ser vacía')),
-            );
-            hayErrores = true;
-            return false;
+        if (cantidadIngresada <= 0) {
+          hayErrores = true;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('La cantidad no puede ser vacía o cero.')),
+          );
         }
-        return true;
+
+        print(
+            'Cantidad actualizada para item ID: ${item.fldeId} es ${item.cantidadRecibida}');
+      }
     }
 
     if (insumosVerificados.isEmpty && equiposVerificados.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Es necesario seleccionar insumos o equipos de seguridad.')),
-        );
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Es necesario seleccionar insumos o equipos de seguridad.')),
+      );
+      return;
     }
 
     if (flete.flenFechaHoraLlegada == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('La fecha de llegada no puede ser vacía.')),
-        );
-        hayErrorFecha = true;
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('La fecha de llegada no puede ser vacía.')),
+      );
+      return;
     }
 
-    // Validar Insumos Verificados
-    for (var item in insumosVerificados) {
-        if (!_validarCantidad(item)) return;
-    }
-
-    // Validar Insumos No Recibidos
-    for (var item in insumosNoRecibidos) {
-        if (!_validarCantidad(item)) return;
-    }
-
-    // Validar Equipos Verificados
-    for (var item in equiposVerificados) {
-        if (!_validarCantidad(item)) return;
-    }
-
-    // Validar Equipos No Recibidos
-    for (var item in equiposNoRecibidos) {
-        if (!_validarCantidad(item)) return;
-    }
+    // Actualizar las cantidades en insumos y equipos verificados antes de guardar
+    _actualizarCantidadesVerificadas(insumosVerificados);
+    _actualizarCantidadesVerificadas(equiposVerificados);
 
     if (hayErrores) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No se puede guardar, revise las cantidades.')),
-        );
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se puede guardar, revise las cantidades.')),
+      );
+      return;
     }
+
+    // Cargar la lista de equipos desde el servicio
+    List<EquipoPorProveedorViewModel> equiposLista =
+        await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
+            flete.boasId!);
+
+    // Asignar el eqppId a los detalles de equipos verificados
+    List<FleteDetalleViewModel> equiposVerificadosConIds =
+        equiposVerificados.map((detalle) {
+      var equipo = equiposLista.firstWhere(
+        (eq) => eq.eqppId == detalle.inppId,
+        orElse: () => EquipoPorProveedorViewModel(),
+      );
+
+      // Asigna el eqppId correcto al inppId del detalle
+      detalle.inppId = equipo.eqppId;
+      print(
+          'Equipo asignado: ${equipo.eqppId} a detalle ID: ${detalle.fldeId}');
+
+      return detalle;
+    }).toList();
 
     // Guardar Insumos Verificados
     for (var item in insumosVerificados) {
-        item.fldeLlegada = true;
-        item.usuaModificacion = 3;
-        print('Guardar insumo verificado: $item');
-        await FleteDetalleService.editarFleteDetalle(item);
+      item.fldeLlegada = true;
+      item.usuaModificacion = 3;
+      print('Guardar insumo verificado: $item');
+      await FleteDetalleService.editarFleteDetalle(item);
     }
 
+    print('Insumos no recibidos: $insumosNoRecibidos');
     // Guardar Insumos No Recibidos
     for (var item in insumosNoRecibidos) {
-        if (item.cantidadRecibida! < item.fldeCantidad!) {
-            var detalleNuevo = FleteDetalleViewModel(
-              flenId: item.flenId,
-              inppId: item.inppId,
-              usuaCreacion: item.usuaCreacion,
-              fldeFechaCreacion: item.fldeFechaCreacion,
-              fldeCantidad: item.cantidadRecibida!,
-              fldeTipodeCarga: item.fldeTipodeCarga,
-              fldeLlegada: false,
+      print('Procesando insumo no recibido: $item');
+      print(item.cantidadRecibida);
+      if (item.cantidadRecibida == null) {
+        var detalleNuevo = FleteDetalleViewModel(
+          flenId: item.flenId,
+          inppId: item.inppId,
+          usuaCreacion: item.usuaCreacion,
+          fldeFechaCreacion: item.fldeFechaCreacion,
+          fldeCantidad: item.fldeCantidad,
+          fldeTipodeCarga: item.fldeTipodeCarga,
+          fldeLlegada: false,
+          usuaModificacion: 3,
+        );
+        print('Detalle nuevo en insumo no recibido: $detalleNuevo');
+
+        try {
+          final resp =
+              await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+          print('respuesta insumos norecibidos $resp');
+          if (resp['success'] &&
+              resp['data'] != null &&
+              resp['data']['codeStatus'] != null) {
+            var detalleInsertado = FleteDetalleViewModel(
+              fldeId: resp['data']['codeStatus'],
+              fldeCantidad: detalleNuevo.fldeCantidad,
+              flenId: detalleNuevo.flenId,
+              inppId: detalleNuevo.inppId,
+              usuaCreacion: detalleNuevo.usuaCreacion,
+              fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
               usuaModificacion: 3,
+              fldeFechaModificacion: DateTime.now(),
+              fldeLlegada: false,
+              fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
             );
-            print('Detalle nuevo en insumo no recibido: $detalleNuevo');
+            print('Detalle insertado: $detalleInsertado');
 
-            try {
-                final resp = await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
-                if (resp['success'] && resp['data'] != null && resp['data']['codeStatus'] != null) {
-                    var detalleInsertado = FleteDetalleViewModel(
-                      fldeId: resp['data']['codeStatus'],
-                      fldeCantidad: detalleNuevo.fldeCantidad,
-                      flenId: detalleNuevo.flenId,
-                      inppId: detalleNuevo.inppId,
-                      usuaCreacion: detalleNuevo.usuaCreacion,
-                      fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-                      usuaModificacion: 3,
-                      fldeFechaModificacion: DateTime.now(),
-                      fldeLlegada: false,
-                      fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
-                    );
-                    print('Detalle insertado: $detalleInsertado');
-
-                    await FleteDetalleService.editarFleteDetalle(detalleInsertado);
-                    hayNoVerificados = true;
-                } else {
-                    throw Exception('Error al insertar detalle: Respuesta no exitosa o datos nulos');
-                }
-            } catch (e) {
-                print('Error al insertar detalle: $e');
-            }
-        } else {
-            item.fldeLlegada = false;
-            item.usuaModificacion = 3;
+            await FleteDetalleService.editarFleteDetalle(detalleInsertado);
             hayNoVerificados = true;
-            await FleteDetalleService.editarFleteDetalle(item);
+          } else {
+            throw Exception(
+                'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          }
+        } catch (e) {
+          print('Error al insertar detalle: $e');
         }
+      } else {
+        print('Insumo ya recibido o sin diferencia: $item');
+        item.fldeLlegada = false;
+        item.usuaModificacion = 3;
+        hayNoVerificados = true;
+        await FleteDetalleService.editarFleteDetalle(item);
+      }
     }
 
+    print('Equipos verificados con IDs asignados: $equiposVerificadosConIds');
+
     // Guardar Equipos Verificados
-    for (var item in equiposVerificados) {
-        item.fldeLlegada = true;
-        item.usuaModificacion = 3;
-        print('Guardar equipo verificado: $item');
-        await FleteDetalleService.editarFleteDetalle(item);
+    for (var item in equiposVerificadosConIds) {
+      print('Procesando equipo verificado: $item');
+      item.fldeLlegada = true;
+      item.usuaModificacion = 3;
+      print('Guardar equipo verificado: $item');
+      await FleteDetalleService.editarFleteDetalle(item);
     }
 
     // Guardar Equipos No Recibidos
     for (var detalle in equiposNoRecibidos) {
-        if (detalle.cantidadRecibida! < detalle.fldeCantidad!) {
-            var detalleNuevo = FleteDetalleViewModel(
-              flenId: detalle.flenId,
-              inppId: detalle.inppId,
-              usuaCreacion: detalle.usuaCreacion,
-              fldeFechaCreacion: detalle.fldeFechaCreacion,
-              fldeCantidad: detalle.cantidadRecibida!,
-              fldeTipodeCarga: detalle.fldeTipodeCarga,
-              fldeLlegada: false,
+      print('Procesando equipo no recibido: $detalle');
+      if (detalle.cantidadRecibida == null) {
+        var detalleNuevo = FleteDetalleViewModel(
+          flenId: detalle.flenId,
+          inppId: detalle
+              .inppId, // Aseguramos que el eqppId esté asignado aquí también
+          usuaCreacion: detalle.usuaCreacion,
+          fldeFechaCreacion: detalle.fldeFechaCreacion,
+          fldeCantidad: detalle.fldeCantidad,
+          fldeTipodeCarga: detalle.fldeTipodeCarga,
+          fldeLlegada: false,
+          usuaModificacion: 3,
+        );
+        print('Guardar equipo no recibido: $detalleNuevo');
+
+        try {
+          final resp =
+              await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+          print('resp equipo no rec $resp');
+          if (resp['success'] &&
+              resp['data'] != null &&
+              resp['data']['codeStatus'] != null) {
+            var detalleInsertado = FleteDetalleViewModel(
+              fldeId: resp['data']['codeStatus'],
+              fldeCantidad: detalleNuevo.fldeCantidad,
+              flenId: detalleNuevo.flenId,
+              inppId: detalleNuevo.inppId,
+              usuaCreacion: detalleNuevo.usuaCreacion,
+              fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
               usuaModificacion: 3,
+              fldeFechaModificacion: DateTime.now(),
+              fldeLlegada: false,
+              fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
             );
-            print('Guardar equipo no recibido: $detalleNuevo');
+            print('Detalle insertado: $detalleInsertado');
 
-            try {
-                final resp = await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
-                if (resp['success'] && resp['data'] != null && resp['data']['codeStatus'] != null) {
-                    var detalleInsertado = FleteDetalleViewModel(
-                      fldeId: resp['data']['codeStatus'],
-                      fldeCantidad: detalleNuevo.fldeCantidad,
-                      flenId: detalleNuevo.flenId,
-                      inppId: detalleNuevo.inppId,
-                      usuaCreacion: detalleNuevo.usuaCreacion,
-                      fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-                      usuaModificacion: 3,
-                      fldeFechaModificacion: DateTime.now(),
-                      fldeLlegada: false,
-                      fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
-                    );
-                    print('Detalle insertado: $detalleInsertado');
-
-                    await FleteDetalleService.editarFleteDetalle(detalleInsertado);
-                    hayNoVerificados = true;
-                } else {
-                    throw Exception('Error al insertar detalle: Respuesta no exitosa o datos nulos');
-                }
-            } catch (e) {
-                print('Error al insertar detalle: $e');
-            }
-        } else {
-            detalle.fldeLlegada = false;
-            detalle.usuaModificacion = 3;
+            await FleteDetalleService.editarFleteDetalle(detalleInsertado);
             hayNoVerificados = true;
-            await FleteDetalleService.editarFleteDetalle(detalle);
+          } else {
+            throw Exception(
+                'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          }
+        } catch (e) {
+          print('Error al insertar detalle: $e');
         }
+      } else {
+        print('Equipo ya recibido o sin diferencia: $detalle');
+        detalle.fldeLlegada = false;
+        detalle.usuaModificacion = 3;
+        hayNoVerificados = true;
+        await FleteDetalleService.editarFleteDetalle(detalle);
+      }
     }
 
     print('Flete a enviar: $flete');
     try {
-        await FleteEncabezadoService.editarFlete(flete);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Datos guardados exitosamente')),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Flete(),
-          ),
-        );
+      await FleteEncabezadoService.editarFlete(flete);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Datos guardados exitosamente')),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Flete(),
+        ),
+      );
     } catch (e) {
-        print('Error al guardar el flete: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar el flete')),
-        );
+      print('Error al guardar el flete: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar el flete')),
+      );
     }
-}
+  }
+
   Future<void> _guardarIncidencia() async {
     if (_descripcionIncidenciaController.text.isEmpty) {
       setState(() {
@@ -1012,12 +1092,13 @@ class _VerificarFleteState extends State<VerificarFlete>
           _fechaHoraIncidenciaController.clear();
         });
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Flete(),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => Flete(),
+        //   ),
+        // );
+        _mostrarFormularioIncidencia = true;
       }
     } catch (e) {
       print('Error al guardar la incidencia: $e');
