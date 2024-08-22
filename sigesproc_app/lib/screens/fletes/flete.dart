@@ -411,9 +411,9 @@ Widget _buildTablaInsumos(List<FleteDetalleViewModel> detalles) {
   print('detalles $detalles');
   return Table(
     columnWidths: {
-      0: FlexColumnWidth(3),
-      1: FlexColumnWidth(2),
-      2: FlexColumnWidth(1),
+      0: FlexColumnWidth(2),
+      1: FlexColumnWidth(2.5),
+      2: FlexColumnWidth(1.5),
     },
     border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
     children: [
@@ -430,9 +430,9 @@ Widget _buildTablaInsumos(List<FleteDetalleViewModel> detalles) {
 Widget _buildTablaEquipos(List<FleteDetalleViewModel> detalles) {
   return Table(
     columnWidths: {
-      0: FlexColumnWidth(3),
-      1: FlexColumnWidth(2),
-      2: FlexColumnWidth(1),
+      0: FlexColumnWidth(2),
+      1: FlexColumnWidth(2.5),
+      2: FlexColumnWidth(1.5),
     },
     border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
     children: [
@@ -687,19 +687,6 @@ Widget _buildListaFletes() {
         ],
       ),
     ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NuevoFlete(),
-          ),
-        );
-      },
-      backgroundColor: Color(0xFFFFF0C6),
-      child: Icon(Icons.add, color: Colors.black),
-      shape: CircleBorder(),
-    ),
   );
 }
 
@@ -826,6 +813,8 @@ Widget _buildVerificacionFlete() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(

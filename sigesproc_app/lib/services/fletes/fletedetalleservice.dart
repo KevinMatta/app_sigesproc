@@ -79,7 +79,7 @@ class FleteDetalleService {
     body: body,
   );
 
-  print('Response body: ${response.body}');
+  print(' body insertar fletedet2: ${response.body}');
 
   if (response.statusCode != 200) {
     throw Exception('Error al insertar el detalle del flete');

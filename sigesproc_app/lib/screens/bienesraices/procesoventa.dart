@@ -4,6 +4,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
+import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -567,11 +568,16 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       InkWell(
                         onTap: () {
                           Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UbicacionBienRaiz(btrpId: venta.btrpId, btrpTerrenoOBienRaizId: venta.btrpTerrenoOBienRaizId ? 1 : 0, btrpBienoterrenoId: venta.btrpBienoterrenoId!),
-                  ),
-                );
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UbicacionBienRaiz(
+                                  btrpId: venta.btrpId,
+                                  btrpTerrenoOBienRaizId:
+                                      venta.btrpTerrenoOBienRaizId ? 1 : 0,
+                                  btrpBienoterrenoId:
+                                      venta.btrpBienoterrenoId!),
+                            ),
+                          );
                         },
                         child: Text(
                           'Ver ubicación',
@@ -642,9 +648,23 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                if (venta.btrpIdentificador == true) {
-                                  _modalVender(context, venta);
-                                }
+                                 if (venta.btrpIdentificador == true) {
+                                //   _modalVender(context, venta);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VentaBienRaiz(
+                                        btrpId: venta.btrpId,
+                                        btrpTerrenoOBienRaizId:
+                                            venta.btrpTerrenoOBienRaizId
+                                                ? 1
+                                                : 0,
+                                        btrpBienoterrenoId:
+                                            venta.btrpBienoterrenoId!),
+                                  ),
+                                );
+                                 }
+                                
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
