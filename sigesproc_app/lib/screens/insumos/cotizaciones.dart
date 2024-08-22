@@ -178,7 +178,7 @@ class _CotizacionState extends State<Cotizacion> {
           ],
         ),
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Alineación a la izquierda
+          crossAxisAlignment: CrossAxisAlignment.end, 
           children: [
             Text(
               'Impuesto: ${articulo.impuesto}',
@@ -197,6 +197,8 @@ class _CotizacionState extends State<Cotizacion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.black,
        title: Row(

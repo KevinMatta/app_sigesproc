@@ -4,15 +4,11 @@ import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import '../apiservice.dart';
 
 class FleteControlCalidadService {
- 
   static Future<List<FleteControlCalidadViewModel>> buscarIncidencias(
       int flenId) async {
     final url = Uri.parse(
         '${ApiService.apiUrl}/FleteControlCalidad/BuscarIncidencias/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-
-    print('Response status buscar cont: ${response.statusCode}');
-    print('Response body buscar cont: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -24,26 +20,38 @@ class FleteControlCalidadService {
     }
   }
 
-  static Future<bool> insertarIncidencia(FleteControlCalidadViewModel modelo) async {
+  static Future<int?> insertarIncidencia(
+      FleteControlCalidadViewModel modelo) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteControlCalidad/Insertar');
+    final body = jsonEncode(modelo.toJson());
+    final headers = {
+      'Content-Type': 'application/json',
+      'XApiKey': ApiService.apiKey,
+    };
+
+    print('Body insertar incidencia: $body');
+
     final response = await http.post(
       url,
-      headers: ApiService.getHttpHeaders(),
-      body: json.encode(modelo.toJson()),
+      headers: headers,
+      body: body,
     );
 
-    print('Response status insertar incidencia: ${response.statusCode}');
-    print('Response body insertar incidencia: ${response.body}');
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return true;
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      return responseBody['data']['codeStatus'];
     } else {
-      throw Exception('Error al insertar la incidencia');
+      return null;
     }
   }
 
-  static Future<bool> actualizarIncidencia(FleteControlCalidadViewModel modelo) async {
-    final url = Uri.parse('${ApiService.apiUrl}/FleteControlCalidad/Actualizar');
+  static Future<bool> actualizarIncidencia(
+      FleteControlCalidadViewModel modelo) async {
+    final url =
+        Uri.parse('${ApiService.apiUrl}/FleteControlCalidad/Actualizar');
     final response = await http.put(
       url,
       headers: ApiService.getHttpHeaders(),
@@ -60,9 +68,11 @@ class FleteControlCalidadService {
     }
   }
 
-static Future<bool> eliminarIncidencia(int id) async {
-    final url = Uri.parse('${ApiService.apiUrl}/FleteControlCalidad/Eliminar?id=$id');
-    final response = await http.delete(url, headers: ApiService.getHttpHeaders());
+  static Future<bool> eliminarIncidencia(int id) async {
+    final url =
+        Uri.parse('${ApiService.apiUrl}/FleteControlCalidad/Eliminar?id=$id');
+    final response =
+        await http.delete(url, headers: ApiService.getHttpHeaders());
 
     print('Response status eliminar incidencia: ${response.statusCode}');
     print('Response body eliminar incidencia: ${response.body}');
@@ -74,5 +84,3 @@ static Future<bool> eliminarIncidencia(int id) async {
     }
   }
 }
-
-

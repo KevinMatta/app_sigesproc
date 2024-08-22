@@ -166,6 +166,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) {
         return Scaffold(
+          resizeToAvoidBottomInset: false,
           backgroundColor: Colors.black,
           appBar: _buildAppBar(),
           body: _isLoading
@@ -174,8 +175,10 @@ class _VerificarFleteState extends State<VerificarFlete>
                   controller: _scrollController,
                   child: Column(
                     children: [
-                      _buildFechaHoraLlegadaCard(),
-                      _buildTabSection(),
+                      if (!_mostrarFormularioIncidencia) ...[
+                        _buildFechaHoraLlegadaCard(),
+                        _buildTabSection(),
+                      ],
                       if (_mostrarFormularioIncidencia)
                         _buildNuevaIncidenciaCard(),
                     ],
@@ -319,14 +322,14 @@ class _VerificarFleteState extends State<VerificarFlete>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Nueva Incidencia Flete',
+              'Agregar Incidencia',
               style: TextStyle(
                 color: Color(0xFFFFF0C6),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
             TextField(
               controller: _descripcionIncidenciaController,
               decoration: InputDecoration(
@@ -366,8 +369,6 @@ class _VerificarFleteState extends State<VerificarFlete>
               ),
               style: TextStyle(color: Colors.white),
             ),
-            SizedBox(height: 20),
-            _buildIncidenciaFormButtons(),
           ],
         ),
       ),
@@ -922,6 +923,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           usuaModificacion: 3,
         );
         print('Detalle nuevo en insumo no recibido: $detalleNuevo');
+        hayNoVerificados = true;
 
         try {
           final resp =
@@ -989,6 +991,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           usuaModificacion: 3,
         );
         print('Guardar equipo no recibido: $detalleNuevo');
+        hayNoVerificados = true;
 
         try {
           final resp =
@@ -1035,12 +1038,20 @@ class _VerificarFleteState extends State<VerificarFlete>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Datos guardados exitosamente')),
       );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Flete(),
-        ),
-      );
+
+      if (hayNoVerificados) {
+        setState(() {
+          print('hay no verificados');
+          _mostrarFormularioIncidencia = true;
+        });
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Flete(),
+          ),
+        );
+      }
     } catch (e) {
       print('Error al guardar el flete: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1068,19 +1079,23 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
 
     try {
+      DateTime fechaHoraIncidencia = DateFormat('dd/MM/yyyy HH:mm')
+          .parse(_fechaHoraIncidenciaController.text);
+
       final incidencia = FleteControlCalidadViewModel(
         flenId: flete.flenId!,
         flccDescripcionIncidencia: _descripcionIncidenciaController.text,
-        flccFechaHoraIncidencia: DateFormat('dd/MM/yyyy HH:mm')
-            .parse(_fechaHoraIncidenciaController.text),
+        flccFechaHoraIncidencia: fechaHoraIncidencia,
         usuaCreacion: 3,
-        usuaModificacion: 3,
+        usuaModificacion: 3, // Si es necesario agregar usuaModificacion
       );
 
-      bool resultado =
+      print('Incidencia a insertar: $incidencia');
+
+      int? resultado =
           await FleteControlCalidadService.insertarIncidencia(incidencia);
 
-      if (resultado) {
+      if (resultado != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Incidencia guardada exitosamente')),
         );
@@ -1092,13 +1107,14 @@ class _VerificarFleteState extends State<VerificarFlete>
           _fechaHoraIncidenciaController.clear();
         });
 
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => Flete(),
-        //   ),
-        // );
-        _mostrarFormularioIncidencia = true;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Flete(),
+          ),
+        );
+      } else {
+        throw Exception('Error al guardar la incidencia');
       }
     } catch (e) {
       print('Error al guardar la incidencia: $e');
@@ -1148,104 +1164,99 @@ class _VerificarFleteState extends State<VerificarFlete>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          if (_mostrarFormularioIncidencia) ...[
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                await _guardarIncidencia();
+              },
+              child: Text(
+                'Guardar',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 15,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
-            onPressed: () async {
-              await _verificarFlete();
-            },
-            child: Text(
-              'Guardar',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 15,
-                decoration: TextDecoration.underline,
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF171717),
+                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                setState(() {
+                  _mostrarFormularioIncidencia = false;
+                  _descripcionIncidenciaController.clear();
+                  _fechaHoraIncidenciaController.clear();
+                });
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          ] else ...[
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                await _verificarFlete();
+              },
+              child: Text(
+                'Guardar',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 15,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Cancelar',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                decoration: TextDecoration.underline,
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF171717),
+                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
   // Botón Guardar y Cancelar del formulario de incidencia
-  Widget _buildIncidenciaFormButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFFFF0C6),
-            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onPressed: () async {
-            await _guardarIncidencia();
-          },
-          child: Text(
-            'Guardar Incidencia',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF171717),
-            padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onPressed: () {
-            setState(() {
-              _mostrarFormularioIncidencia = false;
-              _descripcionIncidenciaController.clear();
-              _fechaHoraIncidenciaController.clear();
-            });
-          },
-          child: Text(
-            'Cancelar',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildFechaHoraLlegadaInput() {
     return TextField(
       readOnly: true,
