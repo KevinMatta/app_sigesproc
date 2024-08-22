@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "816993708998",
+    "project_id": "sigesproc-7mageneracion",
+    "storage_bucket": "sigesproc-7mageneracion.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:816993708998:android:7e4b079cfcaeb2b415a0c7",
+        "android_client_info": {
+          "package_name": "com.sigesproc.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOiZCVZgs7nw1PHRUFhEMm995sK4nlsD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
