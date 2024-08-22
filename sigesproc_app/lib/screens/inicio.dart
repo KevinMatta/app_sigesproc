@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 
 class Inicio extends StatefulWidget {
   @override
@@ -10,11 +12,24 @@ class Inicio extends StatefulWidget {
 class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   TabController? _tabController;
+  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications = await NotificationServices.BuscarNotificacion(5);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
 
   void _onItemTapped(int index) {
@@ -38,9 +53,9 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
+              height: 50,
             ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            SizedBox(width: 2),
             Expanded(
               child: Text(
                 'SIGESPROC',
@@ -48,7 +63,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   color: Color(0xFFFFF0C6),
                   fontSize: 20,
                 ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
+                textAlign: TextAlign.start,
               ),
             ),
           ],
@@ -56,38 +71,68 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications),
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             onPressed: () {
-             
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(), // Navegar a la nueva pantalla de notificaciones
+                ),
+              );
             },
           ),
-        IconButton(
-  icon: Icon(Icons.person),
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfileScreen(), 
-      ),
-    );
-  },
-),
-
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
         ],
         bottom: TabBar(
-  controller: _tabController,
-  labelPadding: EdgeInsets.symmetric(horizontal: 5.0), // Aumentar espacio entre pestañas
-  tabs: [
-    Tab(text: 'Cotizaciones'),
-    Tab(text: 'Fletes'),
-    Tab(text: 'Proyectos'),
-    Tab(text: 'Bienes'),
-  ],
-  labelColor: Color(0xFFFFF0C6),
-  unselectedLabelColor: Colors.white,
-  indicatorColor: Color(0xFFFFF0C6),
-),
-
+          controller: _tabController,
+          labelPadding: EdgeInsets.symmetric(horizontal: 5.0),
+          tabs: [
+            Tab(text: 'Cotizaciones'),
+            Tab(text: 'Fletes'),
+            Tab(text: 'Proyectos'),
+            Tab(text: 'Bienes'),
+          ],
+          labelColor: Color(0xFFFFF0C6),
+          unselectedLabelColor: Colors.white,
+          indicatorColor: Color(0xFFFFF0C6),
+        ),
       ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,

@@ -19,8 +19,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditingEmail = false;
   bool _machclave = false;
   bool _confirmarclave = false;
-  bool _passwordSubmitted = false; // Para rastrear si se presionó el botón "Guardar"
-  bool _emailSubmitted = false; // Para rastrear si se presionó el botón "Guardar" del correo
+  bool _passwordSubmitted = false; 
+  bool _emailSubmitted = false;
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _currentPasswordController = TextEditingController();
@@ -53,47 +53,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+ 
   void _showOverlayMessage(String message, bool success) {
-    OverlayEntry overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: 50,
-        right: 10,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.8,  // Aumenta el ancho
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),  // Ajusta el padding
-            constraints: BoxConstraints(
-              maxHeight: 50,  // Establece una altura máxima
-            ),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: success ? Colors.green : Colors.red, width: 2),
-            ),
-            child: Row(
-              children: [
-                Icon(success ? Icons.check_circle : Icons.error, color: success ? Colors.green : Colors.red),
-                SizedBox(width: 8),
-                Flexible(  // Para evitar el desbordamiento de texto
-                  child: Text(
-                    message,
-                    style: TextStyle(color: Colors.white),
-                    overflow: TextOverflow.ellipsis,  // Muestra puntos suspensivos si el texto es demasiado largo
-                  ),
-                ),
-              ],
-            ),
-          ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.white),
         ),
+        backgroundColor: success ? Colors.green : Colors.red,
+        duration: Duration(seconds: 3),
       ),
     );
-
-    Overlay.of(context)?.insert(overlayEntry);
-
-    Future.delayed(Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
   }
 
   void _showChangePasswordModal() {
@@ -163,36 +134,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     setState(() {
-                      _passwordSubmitted = true; // Indicar que se presionó el botón "Guardar"
+                      _passwordSubmitted = true; 
                     });
 
                     if (_currentPasswordController.text.isEmpty ||
                         _newPasswordController.text.isEmpty ||
                         _confirmPasswordController.text.isEmpty ||
                         _machclave) {
-                      // No hacer nada si hay errores
+                      
                       return;
                     }
 
-                    // Llama al servicio de restablecimiento de contraseña
+                    
                     int? result = await UsuarioService.Restablecerflutter(
-                      userId, // Usa el ID del usuario
+                      userId, 
                       _currentPasswordController.text,
                       _newPasswordController.text,
                     );
 
-                    // Verifica el resultado
+                    
                     if (result != null && result == 1) {
-                      _showOverlayMessage('Actualizacion exiosa', true);
+                      _showOverlayMessage('Actualizacion exitosa', true);
                       Navigator.of(context).pop();
                     } else {
                       _showOverlayMessage('contraseña actual invalida', false);
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFFF0C6), // Color de fondo del botón Guardar
-                    textStyle: TextStyle(fontSize: 14), // Tamaño de texto más pequeño
-                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    backgroundColor: Color(0xFFFFF0C6), 
+                    textStyle: TextStyle(fontSize: 14), 
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                   ),
                   child: Text('Guardar', style: TextStyle(color: Colors.black)),
                 ),
@@ -207,9 +178,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black, // Color de fondo del botón Cancelar
+                    backgroundColor: Colors.black, 
                     textStyle: TextStyle(fontSize: 14),
-                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                   ),
                   child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
                 ),
@@ -223,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _confirmEmailChange() {
     setState(() {
-      _emailSubmitted = true; // Indicar que se presionó el botón "Guardar"
+      _emailSubmitted = true; 
     });
 
     if (_emailController.text.isEmpty) {
@@ -244,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 int? result = await UsuarioService.Restablecercorreo(userId, _emailController.text);
 
                 if (result != null && result == 1) {
-                  _showOverlayMessage('Actualizacion exiosa', true);
+                  _showOverlayMessage('Actualizacion exitosa', true);
                   setState(() {
                     _correo = _emailController.text;
                     _isEditingEmail = false;
@@ -256,9 +227,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFFF0C6), // Color de fondo del botón Confirmar
-                textStyle: TextStyle(fontSize: 14), // Tamaño de texto más pequeño
-                padding: EdgeInsets.symmetric(horizontal: 30),
+                backgroundColor: Color(0xFFFFF0C6), 
+                textStyle: TextStyle(fontSize: 14), 
+                padding: EdgeInsets.symmetric(horizontal: 20),
               ),
               child: Text('Confirmar', style: TextStyle(color: Colors.black)),
             ),
@@ -271,9 +242,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black, // Color de fondo del botón Cancelar
+                backgroundColor: Colors.black, 
                 textStyle: TextStyle(fontSize: 14),
-                padding: EdgeInsets.symmetric(horizontal: 30),
+                padding: EdgeInsets.symmetric(horizontal: 20),
               ),
               child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
             ),
@@ -296,14 +267,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         appBar: AppBar(
           title: Text('Perfil', style: TextStyle(color: Color(0xFFFFF0C6))),
           backgroundColor: Colors.black,
-          iconTheme: IconThemeData(color: Color(0xFFFFF0C6)), // Color de la flecha de regreso
+          iconTheme: IconThemeData(color: Color(0xFFFFF0C6)), 
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 20), // Espacio superior
+              SizedBox(height: 20), 
               ClipOval(
                 child: Image(
                   image: _profileImage,
@@ -313,7 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               SizedBox(height: 10),
-              // Nombre de usuario y cargo
+        
               Text(
                 _usuaUsuario,
                 style: TextStyle(
