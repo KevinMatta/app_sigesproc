@@ -213,7 +213,7 @@ Widget build(BuildContext context) {
                             ),
                             trailing: Icon(
                                   Icons.adjust,
-                              color: actividad.acetEstado == true ? Colors.red : Colors.green,
+                              color: actividad.acetEstado == true ? Colors.red : actividad.acetEstado == false ? Colors.red : Colors.yellow,
                               size: 20,
                             ),
                           ),
