@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Verifica el resultado
                     if (result != null && result == 1) {
-                      _showOverlayMessage('Actualizacion exiosa', true);
+                      _showOverlayMessage('Actualizacion exitosa', true);
                       Navigator.of(context).pop();
                     } else {
                       _showOverlayMessage('contraseña actual invalida', false);
@@ -244,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 int? result = await UsuarioService.Restablecercorreo(userId, _emailController.text);
 
                 if (result != null && result == 1) {
-                  _showOverlayMessage('Actualizacion exiosa', true);
+                  _showOverlayMessage('Actualizacion exitosa', true);
                   setState(() {
                     _correo = _emailController.text;
                     _isEditingEmail = false;
