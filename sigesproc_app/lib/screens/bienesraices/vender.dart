@@ -12,6 +12,7 @@ import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:intl/intl.dart'; // Asegúrate de importar intl para el formateo de fechas
 
 class Vender extends StatefulWidget {
   final int btrpId;
@@ -36,6 +37,8 @@ class _VenderState extends State<Vender> {
   TextEditingController clienteController = TextEditingController();
   TextEditingController fechaSalidaController = TextEditingController();
   TextEditingController fechaHoraEstablecidaController = TextEditingController();
+  TextEditingController valorController = TextEditingController();
+  TextEditingController fechaController = TextEditingController();
 
   late ProcesoVentaViewModel venta;
 
@@ -43,6 +46,8 @@ class _VenderState extends State<Vender> {
   String _fechaSalidaErrorMessage = '';
   bool _fechaHoraEstablecidaError = false;
   String _fechaHoraEstablecidaErrorMessage = '';
+  bool _valorFueEditado = false;
+  bool _fechaFueEditada = false;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   DateTime? establishedDate;
@@ -121,7 +126,7 @@ class _VenderState extends State<Vender> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    'Telefono:',
+                    'Teléfono:',
                     style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
                   ),
                   SizedBox(height: 20),
@@ -140,8 +145,7 @@ class _VenderState extends State<Vender> {
                     style: TextStyle(color: Colors.white),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter
-                          .digitsOnly, // Permitir solo dígitos
+                      FilteringTextInputFormatter.digitsOnly,
                     ],
                     onChanged: (text) {
                       setState(() {
@@ -157,8 +161,7 @@ class _VenderState extends State<Vender> {
                       hintStyle: TextStyle(color: Colors.white54),
                       filled: true,
                       fillColor: Colors.white24,
-                      suffixIcon:
-                          Icon(Icons.calendar_today, color: Colors.white54),
+                      suffixIcon: Icon(Icons.calendar_today, color: Colors.white54),
                       errorText: _fechaFueEditada &&
                               _isFechaInvalida(fechaController.text)
                           ? 'Ingrese una fecha válida'
@@ -193,62 +196,56 @@ class _VenderState extends State<Vender> {
                       });
                     },
                   ),
-                  
                 ],
-
-                backgroundColor: Color(0xFF171717),
-              actions: [
-                TextButton(
-                  child: Text('Guardar',
-                      style: TextStyle(color: Color(0xFFFFF0C6))),
-                  onPressed: () async {
-                    setState(() {
-                      _valorFueEditado = true;
-                      _fechaFueEditada = true;
-                    });
-
-                    if (_isValorInvalido(valorController.text) ||
-                        _isFechaInvalida(fechaController.text)) {
-                      return; // Mostrar errores si hay
-                    }
-
-                    try {
-                      venta.btrpPrecioVentaFinal =
-                          double.parse(valorController.text);
-                      venta.btrpFechaVendida =
-                          DateFormat('dd/MM/yyyy').parse(fechaController.text);
-
-                      await ProcesoVentaService.venderProcesoVenta(venta);
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Propiedad vendida con éxito')),
-                      );
-                      setState(() {
-                        _selectedVenta = null;
-                        _reiniciarProcesosVentaFiltros();
-                      });
-                    } catch (e) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error al vender la propiedad')),
-                      );
-                    }
-                  },
-                ),
-                TextButton(
-                  child: Text('Cancelar',
-                      style: TextStyle(color: Color(0xFFFFF0C6))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _valorFueEditado = false;
-                    _fechaFueEditada = false;
-                  },
-                ),
-              ],
-
-
               ),
             ),
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () async {
+              setState(() {
+                _valorFueEditado = true;
+                _fechaFueEditada = true;
+              });
+
+              if (_isValorInvalido(valorController.text) ||
+                  _isFechaInvalida(fechaController.text)) {
+                return; // Mostrar errores si hay
+              }
+
+              try {
+                venta.btrpPrecioVentaFinal =
+                    double.parse(valorController.text);
+                venta.btrpFechaVendida =
+                    DateFormat('dd/MM/yyyy').parse(fechaController.text);
+
+                await ProcesoVentaService.venderProcesoVenta(venta);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Propiedad vendida con éxito')),
+                );
+                setState(() {
+                  // Realiza cualquier acción adicional necesaria
+                });
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al vender la propiedad')),
+                );
+              }
+            },
+            child: Text('Guardar'),
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                _valorFueEditado = false;
+                _fechaFueEditada = false;
+              });
+            },
+            child: Text('Cancelar'),
           ),
         ],
       ),
@@ -273,95 +270,19 @@ class _VenderState extends State<Vender> {
     );
   }
 
-  Widget _fechaSalida() {
-    return TextField(
-      controller: fechaSalidaController,
-      readOnly: true,
-      onTap: () async {
-        await _FechaSeleccionada(isSalida: true);
-      },
-      decoration: InputDecoration(
-        labelText: 'Salida',
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.black,
-        labelStyle: TextStyle(color: Colors.white),
-        errorText: _fechaSalidaError ? _fechaSalidaErrorMessage : null,
-        errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-        ),
-      ),
-      style: TextStyle(color: Colors.white),
-    );
+  bool _isValorInvalido(String valor) {
+    if (valor.isEmpty) return true;
+    final parsedValue = double.tryParse(valor);
+    return parsedValue == null || parsedValue <= 0;
   }
 
-  Widget _fechaHoraEstablecida() {
-    return TextField(
-      controller: fechaHoraEstablecidaController,
-      readOnly: true,
-      onTap: () async {
-        await _FechaSeleccionada(isSalida: false);
-        if (_fechaHoraEstablecidaError) {
-          setState(() {
-            _fechaHoraEstablecidaError = false;
-            _fechaHoraEstablecidaErrorMessage = '';
-          });
-        }
-      },
-      focusNode: FocusNode(),
-      decoration: InputDecoration(
-        labelText: 'Establecida de Llegada',
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.black,
-        labelStyle: TextStyle(color: Colors.white),
-        errorText: _fechaHoraEstablecidaError
-            ? _fechaHoraEstablecidaErrorMessage
-            : null,
-        errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-        ),
-      ),
-      style: TextStyle(color: Colors.white),
-    );
-  }
-
-  Future<void> _FechaSeleccionada({required bool isSalida}) async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: darkTheme,
-          child: child!,
-        );
-      },
-    );
-
-    if (pickedDate != null) {
-      if (isSalida) {
-        setState(() {
-          selectedDate = pickedDate;
-          fechaSalidaController.text =
-              "${selectedDate!.toLocal().toString().split(' ')[0]}";
-        });
-      } else {
-        setState(() {
-          establishedDate = pickedDate;
-          fechaHoraEstablecidaController.text =
-              "${establishedDate!.toLocal().toString().split(' ')[0]}";
-        });
-      }
+  bool _isFechaInvalida(String fecha) {
+    if (fecha.isEmpty) return true;
+    try {
+      DateFormat('dd/MM/yyyy').parse(fecha);
+      return false;
+    } catch (e) {
+      return true;
     }
   }
 }
