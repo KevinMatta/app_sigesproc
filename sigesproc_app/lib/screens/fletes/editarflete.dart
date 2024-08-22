@@ -1846,6 +1846,20 @@ class _EditarFleteState extends State<EditarFlete>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+           ElevatedButton(
+            onPressed: editarFlete,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            child: Text(
+              'Guardar',
+              style: TextStyle(color: Colors.black, fontSize: 15),
+            ),
+          ),
           ElevatedButton(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
@@ -1860,20 +1874,7 @@ class _EditarFleteState extends State<EditarFlete>
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
-          ElevatedButton(
-            onPressed: editarFlete,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            child: Text(
-              'Guardar',
-              style: TextStyle(color: Colors.black, fontSize: 15),
-            ),
-          ),
+         
         ],
       ),
     );
