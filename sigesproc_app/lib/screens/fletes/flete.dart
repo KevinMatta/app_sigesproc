@@ -687,19 +687,6 @@ Widget _buildListaFletes() {
         ],
       ),
     ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NuevoFlete(),
-          ),
-        );
-      },
-      backgroundColor: Color(0xFFFFF0C6),
-      child: Icon(Icons.add, color: Colors.black),
-      shape: CircleBorder(),
-    ),
   );
 }
 
