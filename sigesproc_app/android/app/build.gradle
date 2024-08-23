@@ -1,7 +1,6 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -44,6 +43,28 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.debug
+        }
+    }
+
+    // Bloque para modificar google-services.json usando una plantilla
+    applicationVariants.all { variant ->
+        def buildTypeName = variant.buildType.name
+        def flavorName = variant.productFlavors.collect { it.name }.join('')
+        def variantName = flavorName + buildTypeName.capitalize()
+
+        variant.outputs.all {
+            def outputDir = output.outputDirectory.get()
+            def googleServicesTemplate = file("src/${variantName}/google-services-template.json")
+            def googleServicesFile = file("${outputDir}/google-services.json")
+
+            if (googleServicesTemplate.exists()) {
+                def apiKey = System.getenv('GOOGLE_API_KEY')
+
+                def googleServicesContent = googleServicesTemplate.text
+                googleServicesContent = googleServicesContent.replace('${GOOGLE_API_KEY}', apiKey)
+
+                googleServicesFile.text = googleServicesContent
+            }
         }
     }
 }
