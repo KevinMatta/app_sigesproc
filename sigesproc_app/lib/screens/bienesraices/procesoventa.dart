@@ -9,7 +9,7 @@ import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:sigesproc_app/screens/bienesraices/vender.dart';
+import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 
 class ProcesoVenta extends StatefulWidget {
   @override
