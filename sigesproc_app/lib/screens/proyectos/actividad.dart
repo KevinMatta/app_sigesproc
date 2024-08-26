@@ -204,7 +204,7 @@ Widget build(BuildContext context) {
                               overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
-                              'Precio: L.${actividad.acetPrecioManoObraFinal?.toStringAsFixed(2)}',
+                              'Precio mano de obra: L.${actividad.acetPrecioManoObraFinal?.toStringAsFixed(2)}',
                               style: TextStyle(color: Colors.white54),
                             ),
                             leading: Icon(

@@ -44,7 +44,23 @@ class EtapaPorProyectoViewModel {
 
     DateTime? parseDate(String? dateStr) {
       if (dateStr == null || dateStr.isEmpty) return null;
-      return dateFormat.parse(dateStr);
+      
+      try {
+    // Intentar primero con el formato "MM/dd/yyyy HH:mm:ss"
+    final dateFormat1 = DateFormat("MM/dd/yyyy HH:mm:ss");
+    return dateFormat1.parse(dateStr);
+  } catch (e) {
+    // Si falla, intentar con el formato "yyyy-MM-ddTHH:mm:ss.SS"
+    try {
+      final dateFormat2 = DateFormat("yyyy-MM-ddTHH:mm:ss.SS");
+      return dateFormat2.parse(dateStr);
+    } catch (e) {
+      // Si falla, lanzar la excepción
+      print("Formato de fecha no reconocido: $dateStr");
+      return null;
+        }
+      }
+    
     }
 
     return EtapaPorProyectoViewModel(
