@@ -9,7 +9,7 @@ import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:sigesproc_app/screens/bienesraices/vender.dart';
+import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 
 class ProcesoVenta extends StatefulWidget {
   @override
@@ -335,7 +335,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     return FutureBuilder<List<String>>(
       future: ProcesoVentaService.Buscar(
               procesoventa.btrpId,
-              procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
+              procesoventa.btrpTerrenoOBienRaizId! ? 1 : 0,
               procesoventa.btrpBienoterrenoId!)
           .then((value) => value.map((e) => e.imprImagen!).toList()),
       builder: (context, snapshot) {
@@ -362,19 +362,26 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                         IconButton(
                             icon: Icon(Icons.sell, color: Colors.white),
                             onPressed: () {
-                            Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => vender(),
-                            ),
-                            );
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Venta(
+                                        btrpId: procesoventa.btrpId,
+                                        btrpTerrenoOBienRaizId:
+                                            procesoventa.btrpTerrenoOBienRaizId!
+                                                ? 1
+                                                : 0,
+                                        btrpBienoterrenoId:
+                                            procesoventa.btrpBienoterrenoId!),
+                                  ),
+                                );
                             }
                             ),
                       IconButton(
                         icon: Icon(Icons.info_outline, color: Colors.white),
                         onPressed: () => _verDetalles(
                             procesoventa.btrpId,
-                            procesoventa.btrpTerrenoOBienRaizId,
+                            procesoventa.btrpTerrenoOBienRaizId!,
                             procesoventa.btrpBienoterrenoId),
                       ),
                       Icon(
@@ -453,19 +460,26 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                             IconButton(
                                 icon: Icon(Icons.sell, color: Colors.white),
                                 onPressed: () {
-                            Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => vender(),
-                            ),
-                            );
+                             Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Venta(
+                                        btrpId: procesoventa.btrpId,
+                                        btrpTerrenoOBienRaizId:
+                                            procesoventa.btrpTerrenoOBienRaizId!
+                                                ? 1
+                                                : 0,
+                                        btrpBienoterrenoId:
+                                            procesoventa.btrpBienoterrenoId!),
+                                  ),
+                                );
                             }
                             ),
                           IconButton(
                             icon: Icon(Icons.info_outline, color: Colors.white),
                             onPressed: () => _verDetalles(
                                 procesoventa.btrpId,
-                                procesoventa.btrpTerrenoOBienRaizId,
+                                procesoventa.btrpTerrenoOBienRaizId!,
                                 procesoventa.btrpBienoterrenoId),
                           ),
                           Icon(
@@ -588,7 +602,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                               builder: (context) => UbicacionBienRaiz(
                                   btrpId: venta.btrpId,
                                   btrpTerrenoOBienRaizId:
-                                      venta.btrpTerrenoOBienRaizId ? 1 : 0,
+                                      venta.btrpTerrenoOBienRaizId! ? 1 : 0,
                                   btrpBienoterrenoId:
                                       venta.btrpBienoterrenoId!),
                             ),
@@ -668,10 +682,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => VentaBienRaiz(
+                                    builder: (context) => Venta(
                                         btrpId: venta.btrpId,
                                         btrpTerrenoOBienRaizId:
-                                            venta.btrpTerrenoOBienRaizId
+                                            venta.btrpTerrenoOBienRaizId!
                                                 ? 1
                                                 : 0,
                                         btrpBienoterrenoId:

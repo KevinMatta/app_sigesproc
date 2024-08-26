@@ -30,9 +30,9 @@ class ClienteService {
     }
   }
 
-  static Future<int?> insertarFlete(ClienteViewModel flete) async {
-    final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Insertar');
-    final body = jsonEncode(flete.toJson());
+  static Future<int?> insertarCliente(ClienteViewModel cliente) async {
+    final url = Uri.parse('${ApiService.apiUrl}/Cliente/Insertar');
+    final body = jsonEncode(cliente.toJson());
     final headers = {
       'Content-Type': 'application/json',
       'XApiKey': ApiService.apiKey,
