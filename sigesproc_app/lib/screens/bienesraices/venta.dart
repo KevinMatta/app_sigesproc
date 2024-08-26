@@ -6,12 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/models/generales/ciudadviewmodel.dart';
 import 'package:sigesproc_app/models/generales/clienteviewmodel.dart';
+import 'package:sigesproc_app/models/generales/estadocivilviewmodel.dart';
 import 'package:sigesproc_app/models/generales/estadoviewmodel.dart';
 import 'package:sigesproc_app/models/generales/paisviewmodel.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:sigesproc_app/services/generales/ciudadservice.dart';
 import 'package:sigesproc_app/services/generales/clienteservice.dart';
+import 'package:sigesproc_app/services/generales/estadocivilservice.dart';
 import 'package:sigesproc_app/services/generales/estadoservice.dart';
 import 'package:sigesproc_app/services/generales/paisservice.dart';
 
@@ -54,10 +56,13 @@ class _VentaState extends State<Venta> {
   List<ClienteViewModel> clientes = [];
   List<PaisViewModel> paises = [];
   List<EstadoViewModel> estados = [];
-List<CiudadViewModel> ciudades = [];
+  List<CiudadViewModel> ciudades = [];
+  List<EstadoCivilViewModel> estadosciviles = [];
 
-int? paisSeleccionadoId;
-int? estadoSeleccionadoId;
+  int? paisSeleccionadoId;
+  int? estadoSeleccionadoId;
+  CiudadViewModel? ciudadSeleccionada;
+  EstadoCivilViewModel? estadoCivilSeleccionado;
 
   late StreamSubscription<bool> keyboardSubscription;
   bool _isKeyboardVisible = false;
@@ -65,6 +70,7 @@ int? estadoSeleccionadoId;
   bool _mostrarFormularioCliente = false;
   String sexo = 'Femenino';
   String tipoCliente = 'Bien Raiz';
+  bool _mostrarErrores = false;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -81,6 +87,7 @@ int? estadoSeleccionadoId;
     super.initState();
     _cargarClientes();
     _cargarPaises();
+    _cargarEstadosCiviles();
     var keyboardVisibilityController = KeyboardVisibilityController();
     _isKeyboardVisible = keyboardVisibilityController.isVisible;
     keyboardSubscription =
@@ -97,7 +104,6 @@ int? estadoSeleccionadoId;
     super.dispose();
   }
 
- 
   Future<void> _cargarClientes() async {
     try {
       List<ClienteViewModel> listaClientes =
@@ -109,7 +115,6 @@ int? estadoSeleccionadoId;
       print('Error al cargar los clientes: $e');
     }
   }
-
 
   Future<void> _cargarDatosCliente(int clienteId) async {
     try {
@@ -126,10 +131,9 @@ int? estadoSeleccionadoId;
     }
   }
 
-   Future<void> _cargarPaises() async {
+  Future<void> _cargarPaises() async {
     try {
-      List<PaisViewModel> listaPaises =
-          await PaisService.listarPaises();
+      List<PaisViewModel> listaPaises = await PaisService.listarPaises();
       setState(() {
         paises = listaPaises;
       });
@@ -137,32 +141,48 @@ int? estadoSeleccionadoId;
       print('Error al cargar los paises: $e');
     }
   }
-  Future<void> _cargarEstadosPorPais(int paisId) async {
-  try {
-    List<EstadoViewModel> listaEstados = await EstadoService.listarEstadosPorPais(paisId);
-    setState(() {
-      estados = listaEstados;
-      estadoController.clear(); // Limpiar el estado y la ciudad al cambiar de país
-      ciudadController.clear();
-      ciudades.clear();
-      estadoSeleccionadoId = null;
-    });
-  } catch (e) {
-    print('Error al cargar los estados: $e');
-  }
-}
-Future<void> _cargarCiudadesPorEstado(int estadoId) async {
-  try {
-    List<CiudadViewModel> listaCiudades = await CiudadService.listarCiudadesPorEstado(estadoId);
-    setState(() {
-      ciudades = listaCiudades;
-      ciudadController.clear();
-    });
-  } catch (e) {
-    print('Error al cargar las ciudades: $e');
-  }
-}
 
+  Future<void> _cargarEstadosPorPais(int paisId) async {
+    try {
+      List<EstadoViewModel> listaEstados =
+          await EstadoService.listarEstadosPorPais(paisId);
+      setState(() {
+        estados = listaEstados;
+        estadoController
+            .clear(); // Limpiar el estado y la ciudad al cambiar de país
+        ciudadController.clear();
+        ciudades.clear();
+        estadoSeleccionadoId = null;
+      });
+    } catch (e) {
+      print('Error al cargar los estados: $e');
+    }
+  }
+
+  Future<void> _cargarCiudadesPorEstado(int estadoId) async {
+    try {
+      List<CiudadViewModel> listaCiudades =
+          await CiudadService.listarCiudadesPorEstado(estadoId);
+      setState(() {
+        ciudades = listaCiudades;
+        ciudadController.clear();
+      });
+    } catch (e) {
+      print('Error al cargar las ciudades: $e');
+    }
+  }
+
+  Future<void> _cargarEstadosCiviles() async {
+    try {
+      List<EstadoCivilViewModel> listaEstadosCiviles =
+          await EstadoCivilService.listarEstadosCiviles();
+      setState(() {
+        estadosciviles = listaEstadosCiviles;
+      });
+    } catch (e) {
+      print('Error al cargar los estados civiles: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,147 +255,104 @@ Future<void> _cargarCiudadesPorEstado(int estadoId) async {
     );
   }
 
- Widget _clienteVista() {
-  return SingleChildScrollView(
-    child: Column(
-      children: [
-        SizedBox(height: 10),
-        Card(
-          color: Color(0xFF171717),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _campoDeTextoCliente('DNI', dniController, 'Ingrese el DNI', isNumeric: true),
-                SizedBox(height: 10),
-                _campoDeTextoCliente('Nombre', nombreclientecontroller, 'Ingrese el nombre'),
-                SizedBox(height: 10),
-                _campoDeTextoCliente('Apellido', apellidoController, 'Ingrese el apellido'),
-                SizedBox(height: 10),
-                _campoDeTextoCliente('Correo Electrónico', correoController, 'Ingrese el correo', isEmail: true),
-                SizedBox(height: 10),
-                _campoDeTextoCliente('Teléfono', telefonoController, 'Ingrese el teléfono', isNumeric: true),
-                SizedBox(height: 10),
-                _buildDateField('Fecha de Nacimiento', fechaNacimientoController),
-                SizedBox(height: 10),
-                _buildRadioGroup('Sexo', ['Masculino', 'Femenino'], (value) {
-                  setState(() {
-                    sexo = value;
-                  });
-                }),
-                SizedBox(height: 10),
-                _buildRadioGroup('Tipo de Cliente', ['Bien Raiz', 'Proyecto', 'Ambos'], (value) {
-                  setState(() {
-                    tipoCliente = value;
-                  });
-                }),
-                SizedBox(height: 10),
-                _campoDeTextoCliente('Dirección Exacta', direccionController, 'Ingrese la dirección'),
-                SizedBox(height: 10),
-                _buildAutocompleteField('País', paisController),
-                SizedBox(height: 10),
-                _buildAutocompleteField('Estado', estadoController),
-                SizedBox(height: 10),
-                _buildAutocompleteField('Ciudad', ciudadController),
-                SizedBox(height: 10),
-                _buildAutocompleteField('Estado Civil', TextEditingController()),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildAutocompleteField(String label, TextEditingController controller) {
-  FocusNode focusNode = FocusNode();
-
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) {
-      return Autocomplete<String>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          // Aquí deberías definir las opciones disponibles para el autocomplete
-          // En un caso real, podrías obtener estas opciones de una API o una lista local
-          List<String> opciones = ['Opción 1', 'Opción 2', 'Opción 3'];
-
-          if (textEditingValue.text.isEmpty) {
-            return opciones;
-          }
-
-          return opciones.where((String option) {
-            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-          }).toList();
-        },
-        displayStringForOption: (String option) => option,
-        fieldViewBuilder: (BuildContext context,
-            TextEditingController textEditingController,
-            FocusNode fieldFocusNode,
-            VoidCallback onFieldSubmitted) {
-          focusNode = fieldFocusNode;
-          textEditingController.text = controller.text;
-          return TextField(
-            controller: textEditingController,
-            focusNode: focusNode,
-            decoration: InputDecoration(
-              labelText: label,
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-            ),
-            style: TextStyle(color: Colors.white),
-            maxLines: 1,
-          );
-        },
-        optionsViewBuilder: (BuildContext context,
-            AutocompleteOnSelected<String> onSelected,
-            Iterable<String> options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: Container(
-                width: constraints.maxWidth,
-                color: Colors.black,
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    final String option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(option, style: TextStyle(color: Colors.white)),
-                      ),
-                    );
-                  },
-                ),
+  Widget _clienteVista() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(height: 10),
+          Card(
+            color: Color(0xFF171717),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _campoDeTextoCliente('DNI', dniController, 'Ingrese el DNI',
+                      isNumeric: true,
+                      showError: _mostrarErrores && dniController.text.isEmpty,
+                      errorMessage: 'El DNI es obligatorio'),
+                  SizedBox(height: 10),
+                  _campoDeTextoCliente(
+                      'Nombre', nombreclientecontroller, 'Ingrese el nombre',
+                      showError: _mostrarErrores &&
+                          !RegExp(r'^[a-zA-Z\s]+$')
+                              .hasMatch(nombreclientecontroller.text),
+                      errorMessage: 'Ingrese un nombre válido'),
+                  SizedBox(height: 10),
+                  _campoDeTextoCliente(
+                      'Apellido', apellidoController, 'Ingrese el apellido',
+                      showError: _mostrarErrores &&
+                          !RegExp(r'^[a-zA-Z\s]+$')
+                              .hasMatch(apellidoController.text),
+                      errorMessage: 'Ingrese un apellido válido'),
+                  SizedBox(height: 10),
+                  _campoDeTextoCliente('Correo Electrónico', correoController,
+                      'Ingrese el correo',
+                      isEmail: true,
+                      showError: _mostrarErrores &&
+                          !RegExp(r'^[^@]+@[^@]+\.[^@]+$')
+                              .hasMatch(correoController.text),
+                      errorMessage: 'Ingrese un correo electrónico válido'),
+                  SizedBox(height: 10),
+                  _campoDeTextoCliente(
+                      'Teléfono', telefonoController, 'Ingrese el teléfono',
+                      isNumeric: true,
+                      showError:
+                          _mostrarErrores && telefonoController.text.length < 7,
+                      errorMessage: 'Ingrese un teléfono válido'),
+                  SizedBox(height: 10),
+                  _buildDateField(
+                      'Fecha de Nacimiento', fechaNacimientoController,
+                      showError: _mostrarErrores &&
+                          !_esFechaValida(fechaNacimientoController.text),
+                      errorMessage: 'Ingrese una fecha válida'),
+                  SizedBox(height: 10),
+                  _buildRadioGroup('Sexo', ['Femenino', 'Masculino'], (value) {
+                    setState(() {
+                      sexo = value;
+                    });
+                  }),
+                  SizedBox(height: 10),
+                  _buildRadioGroup(
+                      'Tipo de Cliente', ['Bien Raiz', 'Proyecto', 'Ambos'],
+                      (value) {
+                    setState(() {
+                      tipoCliente = value;
+                    });
+                  }),
+                  SizedBox(height: 10),
+                  _campoDeTextoCliente('Dirección Exacta', direccionController,
+                      'Ingrese la dirección',
+                      showError:
+                          _mostrarErrores && direccionController.text.isEmpty,
+                      errorMessage: 'La dirección es obligatoria'),
+                  SizedBox(height: 10),
+                  _paisAutocomplete(paisController),
+                  SizedBox(height: 10),
+                  _estadoAutocomplete(estadoController),
+                  SizedBox(height: 10),
+                  _ciudadAutocomplete(ciudadController),
+                  SizedBox(height: 10),
+                  _estadoCivilAutocomplete(estadocivilController),
+                ],
               ),
             ),
-          );
-        },
-        onSelected: (String selection) {
-          setState(() {
-            controller.text = selection;
-          });
-        },
-      );
-    },
-  );
-}
-
-
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _campoDeTextoCliente(
       String label, TextEditingController controller, String hint,
-      {bool isNumeric = false, bool isEmail = false}) {
+      {bool isNumeric = false,
+      bool isEmail = false,
+      bool enabled = true,
+      bool showError = false,
+      String? errorMessage}) {
     return TextField(
       controller: controller,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -384,15 +361,17 @@ Widget _buildAutocompleteField(String label, TextEditingController controller) {
         filled: true,
         fillColor: Colors.black,
         border: OutlineInputBorder(),
+        errorText: showError ? errorMessage : null,
       ),
       style: TextStyle(color: Colors.white),
       keyboardType: isNumeric
           ? TextInputType.number
-          : isEmail
-              ? TextInputType.emailAddress
-              : TextInputType.text,
-      inputFormatters:
-          isNumeric ? [FilteringTextInputFormatter.digitsOnly] : null,
+          : (isEmail ? TextInputType.emailAddress : TextInputType.text),
+      inputFormatters: isNumeric
+          ? [FilteringTextInputFormatter.digitsOnly]
+          : (isEmail
+              ? []
+              : [FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]+$'))]),
     );
   }
 
@@ -424,319 +403,463 @@ Widget _buildAutocompleteField(String label, TextEditingController controller) {
     );
   }
 
- 
-Widget _buildPaisAutocomplete(TextEditingController controller) {
-  FocusNode focusNode = FocusNode();
+  Widget _paisAutocomplete(TextEditingController controller) {
+    FocusNode focusNode = FocusNode();
 
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) {
-      return Autocomplete<PaisViewModel>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          if (textEditingValue.text.isEmpty) {
-            return paises;
-          }
-          return paises.where((PaisViewModel option) {
-            return option.paisNombre!.toLowerCase().contains(textEditingValue.text.toLowerCase());
-          }).toList();
-        },
-        displayStringForOption: (PaisViewModel option) => option.paisNombre!,
-        fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
-            FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
-          focusNode = fieldFocusNode;
-          textEditingController.text = controller.text;
-          return TextField(
-            controller: textEditingController,
-            focusNode: focusNode,
-            decoration: InputDecoration(
-              labelText: 'País',
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (textEditingController.text.isNotEmpty)
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<PaisViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return paises;
+            }
+            return paises.where((PaisViewModel option) {
+              return option.paisNombre!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            }).toList();
+          },
+          displayStringForOption: (PaisViewModel option) => option.paisNombre!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode fieldFocusNode,
+              VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: fieldFocusNode,
+              decoration: InputDecoration(
+                labelText: 'País',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: _mostrarErrores && paisSeleccionadoId == null
+                    ? 'Seleccione un país válido'
+                    : null,
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (textEditingController.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            textEditingController.clear();
+                            controller.clear();
+                            paisSeleccionadoId = null;
+                            estadoController.clear();
+                            ciudadController.clear();
+                            estados.clear();
+                            ciudades.clear();
+                          });
+                        },
+                      ),
                     IconButton(
-                      icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
                       onPressed: () {
-                        setState(() {
-                          textEditingController.clear();
-                          controller.clear();
-                          paisSeleccionadoId = null;
-                          estados.clear();
-                          ciudades.clear();
-                          estadoController.clear();
-                          ciudadController.clear();
-                        });
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
                       },
                     ),
-                  IconButton(
-                    icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                    onPressed: () {
-                      if (focusNode.hasFocus) {
-                        focusNode.unfocus();
-                      } else {
-                        focusNode.requestFocus();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            style: TextStyle(color: Colors.white),
-            maxLines: 1,
-          );
-        },
-        optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<PaisViewModel> onSelected,
-            Iterable<PaisViewModel> options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: Container(
-                width: constraints.maxWidth,
-                color: Colors.black,
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    final PaisViewModel option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(option.paisNombre!, style: TextStyle(color: Colors.white)),
-                      ),
-                    );
-                  },
+                  ],
                 ),
               ),
-            ),
-          );
-        },
-        onSelected: (PaisViewModel selection) {
-          setState(() {
-            controller.text = selection.paisNombre!;
-            paisSeleccionadoId = selection.paisId;
-            _cargarEstadosPorPais(paisSeleccionadoId!);
-          });
-        },
-      );
-    },
-  );
-}
+              style: TextStyle(color: Colors.white),
+              maxLines: 1,
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<PaisViewModel> onSelected,
+              Iterable<PaisViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth,
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      final PaisViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.paisNombre!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (PaisViewModel selection) {
+            setState(() {
+              controller.text = selection.paisNombre!;
+              paisSeleccionadoId = selection.paisId;
+              _cargarEstadosPorPais(paisSeleccionadoId!);
+            });
+          },
+        );
+      },
+    );
+  }
 
-Widget _buildEstadoAutocomplete(TextEditingController controller) {
-  FocusNode focusNode = FocusNode();
+  Widget _estadoAutocomplete(TextEditingController controller) {
+    FocusNode focusNode = FocusNode();
 
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) {
-      return Autocomplete<EstadoViewModel>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          if (paisSeleccionadoId == null) {
-            return []; // No hay estados si no se ha seleccionado un país
-          }
-
-          if (textEditingValue.text.isEmpty) {
-            return estados;
-          }
-
-          return estados.where((EstadoViewModel option) {
-            return option.estaNombre!.toLowerCase().contains(textEditingValue.text.toLowerCase());
-          }).toList();
-        },
-        displayStringForOption: (EstadoViewModel option) => option.estaNombre!,
-        fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
-            FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
-          focusNode = fieldFocusNode;
-          textEditingController.text = controller.text;
-          return TextField(
-            controller: textEditingController,
-            focusNode: fieldFocusNode,
-            decoration: InputDecoration(
-              labelText: 'Estado',
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-              errorText: paisSeleccionadoId == null
-                  ? 'Seleccione un país primero'
-                  : null,
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (textEditingController.text.isNotEmpty)
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<EstadoViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (paisSeleccionadoId == null) {
+              return [];
+            }
+            if (textEditingValue.text.isEmpty) {
+              return estados;
+            }
+            return estados.where((EstadoViewModel option) {
+              return option.estaNombre!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            }).toList();
+          },
+          displayStringForOption: (EstadoViewModel option) =>
+              option.estaNombre!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode fieldFocusNode,
+              VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: fieldFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Estado',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: _mostrarErrores &&
+                        (paisSeleccionadoId == null ||
+                            estadoSeleccionadoId == null)
+                    ? 'Seleccione un estado válido'
+                    : null,
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (textEditingController.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            textEditingController.clear();
+                            controller.clear();
+                            estadoSeleccionadoId = null;
+                            ciudades.clear();
+                            ciudadController.clear();
+                          });
+                        },
+                      ),
                     IconButton(
-                      icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
                       onPressed: () {
-                        setState(() {
-                          textEditingController.clear();
-                          controller.clear();
-                          estadoSeleccionadoId = null;
-                          ciudades.clear();
-                          ciudadController.clear();
-                        });
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
                       },
                     ),
-                  IconButton(
-                    icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                    onPressed: () {
-                      if (focusNode.hasFocus) {
-                        focusNode.unfocus();
-                      } else {
-                        focusNode.requestFocus();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            style: TextStyle(color: Colors.white),
-            maxLines: 1,
-          );
-        },
-        optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<EstadoViewModel> onSelected,
-            Iterable<EstadoViewModel> options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: Container(
-                width: constraints.maxWidth,
-                color: Colors.black,
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    final EstadoViewModel option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(option.estaNombre!, style: TextStyle(color: Colors.white)),
-                      ),
-                    );
-                  },
+                  ],
                 ),
               ),
-            ),
-          );
-        },
-        onSelected: (EstadoViewModel selection) {
-          setState(() {
-            controller.text = selection.estaNombre!;
-            estadoSeleccionadoId = selection.estaId;
-            _cargarCiudadesPorEstado(estadoSeleccionadoId!);
-          });
-        },
-      );
-    },
-  );
-}
+              style: TextStyle(color: Colors.white),
+              maxLines: 1,
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<EstadoViewModel> onSelected,
+              Iterable<EstadoViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth,
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      final EstadoViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.estaNombre!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (EstadoViewModel selection) {
+            setState(() {
+              controller.text = selection.estaNombre!;
+              estadoSeleccionadoId = selection.estaId;
+              _cargarCiudadesPorEstado(estadoSeleccionadoId!);
+            });
+          },
+        );
+      },
+    );
+  }
 
+  Widget _ciudadAutocomplete(TextEditingController controller) {
+    FocusNode focusNode = FocusNode();
 
-Widget _buildCiudadAutocomplete(TextEditingController controller) {
-  FocusNode focusNode = FocusNode();
-
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) {
-      return Autocomplete<CiudadViewModel>(
-        optionsBuilder: (TextEditingValue textEditingValue) {
-          if (textEditingValue.text.isEmpty) {
-            return ciudades;
-          }
-          return ciudades.where((CiudadViewModel option) {
-            return option.ciudDescripcion!.toLowerCase().contains(textEditingValue.text.toLowerCase());
-          }).toList();
-        },
-        displayStringForOption: (CiudadViewModel option) => option.ciudDescripcion!,
-        fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
-            FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
-          focusNode = fieldFocusNode;
-          textEditingController.text = controller.text;
-          return TextField(
-            controller: textEditingController,
-            focusNode: fieldFocusNode,
-            decoration: InputDecoration(
-              labelText: 'Ciudad',
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (textEditingController.text.isNotEmpty)
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<CiudadViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (estadoSeleccionadoId == null) {
+              return [];
+            }
+            if (textEditingValue.text.isEmpty) {
+              return ciudades;
+            }
+            return ciudades.where((CiudadViewModel option) {
+              return option.ciudDescripcion!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            }).toList();
+          },
+          displayStringForOption: (CiudadViewModel option) =>
+              option.ciudDescripcion!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode fieldFocusNode,
+              VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: fieldFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Ciudad',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: _mostrarErrores &&
+                        (estadoSeleccionadoId == null ||
+                            ciudadSeleccionada == null)
+                    ? 'Seleccione una ciudad válida'
+                    : null,
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (textEditingController.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            textEditingController.clear();
+                            controller.clear();
+                            ciudadSeleccionada = null;
+                          });
+                        },
+                      ),
                     IconButton(
-                      icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
                       onPressed: () {
-                        setState(() {
-                          textEditingController.clear();
-                          controller.clear();
-                        });
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
                       },
                     ),
-                  IconButton(
-                    icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                    onPressed: () {
-                      if (focusNode.hasFocus) {
-                        focusNode.unfocus();
-                      } else {
-                        focusNode.requestFocus();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            style: TextStyle(color: Colors.white),
-            maxLines: 1,
-          );
-        },
-        optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<CiudadViewModel> onSelected,
-            Iterable<CiudadViewModel> options) {
-          return Align(
-            alignment: Alignment.topLeft,
-            child: Material(
-              elevation: 4.0,
-              child: Container(
-                width: constraints.maxWidth,
-                color: Colors.black,
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  itemCount: options.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    final CiudadViewModel option = options.elementAt(index);
-                    return GestureDetector(
-                      onTap: () {
-                        onSelected(option);
-                      },
-                      child: ListTile(
-                        title: Text(option.ciudDescripcion!, style: TextStyle(color: Colors.white)),
-                      ),
-                    );
-                  },
+                  ],
                 ),
               ),
-            ),
-          );
-        },
-        onSelected: (CiudadViewModel selection) {
-          setState(() {
-            controller.text = selection.ciudDescripcion!;
-          });
-        },
-      );
-    },
-  );
-}
+              style: TextStyle(color: Colors.white),
+              maxLines: 1,
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<CiudadViewModel> onSelected,
+              Iterable<CiudadViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth,
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      final CiudadViewModel option = options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.ciudDescripcion!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (CiudadViewModel selection) {
+            setState(() {
+              controller.text = selection.ciudDescripcion!;
+              ciudadSeleccionada = selection;
+            });
+          },
+        );
+      },
+    );
+  }
 
+  Widget _estadoCivilAutocomplete(TextEditingController controller) {
+    FocusNode focusNode = FocusNode();
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Autocomplete<EstadoCivilViewModel>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return estadosciviles;
+            }
+            return estadosciviles.where((EstadoCivilViewModel option) {
+              return option.civiDescripcion!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            }).toList();
+          },
+          displayStringForOption: (EstadoCivilViewModel option) =>
+              option.civiDescripcion!,
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode fieldFocusNode,
+              VoidCallback onFieldSubmitted) {
+            focusNode = fieldFocusNode;
+            textEditingController.text = controller.text;
+            return TextField(
+              controller: textEditingController,
+              focusNode: fieldFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Estado Civil',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorText: _mostrarErrores && estadoCivilSeleccionado == null
+                    ? 'Seleccione un estado civil válido'
+                    : null,
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (textEditingController.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                        onPressed: () {
+                          setState(() {
+                            textEditingController.clear();
+                            controller.clear();
+                            estadoCivilSeleccionado = null;
+                          });
+                        },
+                      ),
+                    IconButton(
+                      icon:
+                          Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                      onPressed: () {
+                        if (focusNode.hasFocus) {
+                          focusNode.unfocus();
+                        } else {
+                          focusNode.requestFocus();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              style: TextStyle(color: Colors.white),
+              maxLines: 1,
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<EstadoCivilViewModel> onSelected,
+              Iterable<EstadoCivilViewModel> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: constraints.maxWidth,
+                  color: Colors.black,
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    itemCount: options.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      final EstadoCivilViewModel option =
+                          options.elementAt(index);
+                      return GestureDetector(
+                        onTap: () {
+                          onSelected(option);
+                        },
+                        child: ListTile(
+                          title: Text(option.civiDescripcion!,
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          onSelected: (EstadoCivilViewModel selection) {
+            setState(() {
+              controller.text = selection.civiDescripcion!;
+              estadoCivilSeleccionado = selection;
+            });
+          },
+        );
+      },
+    );
+  }
 
   Widget _ventaVista() {
     return SingleChildScrollView(
@@ -882,17 +1005,16 @@ Widget _buildCiudadAutocomplete(TextEditingController controller) {
           ),
         ),
         SizedBox(width: 10),
-       IconButton(
-  color: Colors.black,
-  icon: Icon(Icons.person_add, color: Color(0xFFFFF0C6)),
-  onPressed: () {
-    setState(() {  
-      _mostrarFormularioCliente = true;
-    });
-    print(_mostrarFormularioCliente);
-  },
-),
-
+        IconButton(
+          color: Colors.black,
+          icon: Icon(Icons.person_add, color: Color(0xFFFFF0C6)),
+          onPressed: () {
+            setState(() {
+              _mostrarFormularioCliente = true;
+            });
+            print(_mostrarFormularioCliente);
+          },
+        ),
       ],
     );
   }
@@ -924,16 +1046,17 @@ Widget _buildCiudadAutocomplete(TextEditingController controller) {
     );
   }
 
-  Widget _buildDateField(String label, TextEditingController controller) {
+  Widget _buildDateField(String label, TextEditingController controller,
+      {bool showError = false, String? errorMessage}) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white),
+        border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.black,
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-        border: OutlineInputBorder(),
+        labelStyle: TextStyle(color: Colors.white),
+        errorText: showError ? errorMessage : null,
       ),
       style: TextStyle(color: Colors.white),
       readOnly: true,
@@ -941,19 +1064,26 @@ Widget _buildCiudadAutocomplete(TextEditingController controller) {
         DateTime? pickedDate = await showDatePicker(
           context: context,
           initialDate: DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2101),
+          firstDate: DateTime(1900),
+          lastDate: DateTime.now(),
           builder: (BuildContext context, Widget? child) {
             return Theme(
-              data: darkTheme,
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.dark(
+                  primary: Color(0xFFFFF0C6),
+                  onPrimary: Colors.black,
+                  surface: Colors.black,
+                  onSurface: Colors.white,
+                ),
+              ),
               child: child!,
             );
           },
         );
+
         if (pickedDate != null) {
-          controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
           setState(() {
-            _fechaFueEditada = true;
+            controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
           });
         }
       },
@@ -969,58 +1099,126 @@ Widget _buildCiudadAutocomplete(TextEditingController controller) {
         children: [
           ElevatedButton(
             onPressed: () async {
-              if (_isFormValid()) {
-                try {
-                  // Busca el cliente en la lista de clientes según el nombre en el controlador
-                  ClienteViewModel? clienteSeleccionado = clientes.firstWhere(
-                    (cliente) => cliente.cliente == clienteController.text,
-                    orElse: () =>
-                        ClienteViewModel(), // Devuelve un objeto vacío o usa otra lógica si prefieres
-                  );
+              if (_mostrarFormularioCliente) {
+                setState(() {
+                  _mostrarErrores = true;
+                });
 
-                  // Verifica que el cliente seleccionado sea válido
-                  if (clienteSeleccionado.clieId != null) {
-                    // Crea el modelo de venta con los datos necesarios
-                    final venta = ProcesoVentaViewModel(
-                      btrpId: widget.btrpId,
-                      btrpPrecioVentaFinal: double.parse(precioController.text),
-                      btrpFechaVendida:
-                          DateFormat('dd/MM/yyyy').parse(fechaController.text),
-                      clieId: clienteSeleccionado.clieId
-                          .toString(), // Asigna el ID del cliente seleccionado
+                if (_isClienteFormValid()) {
+                  try {
+                    // Crear el modelo del cliente con los datos del formulario
+                    final nuevoCliente = ClienteViewModel(
+                      clieDNI: dniController.text,
+                      clieNombre: nombreclientecontroller.text,
+                      clieApellido: apellidoController.text,
+                      clieCorreoElectronico: correoController.text,
+                      clieTelefono: telefonoController.text,
+                      clieFechaNacimiento: DateFormat('dd/MM/yyyy')
+                          .parse(fechaNacimientoController.text),
+                      clieSexo: sexo == 'Masculino' ? 'M' : 'F',
+                      clieTipo: tipoCliente == 'Bien Raiz'
+                          ? 'B'
+                          : (tipoCliente == 'Proyecto' ? 'P' : 'A'),
+                      clieDireccionExacta: direccionController.text,
+                      ciudId: ciudadSeleccionada?.ciudId,
+                      civiId: estadoCivilSeleccionado?.civiId,
+                      clieUsuaCreacion: '3',
+                    );
+                    print(nuevoCliente);
+
+                    // Insertar el cliente en la base de datos o servicio
+                    await ClienteService.insertarCliente(nuevoCliente);
+
+                    // Actualizar la lista de clientes después de insertar el nuevo cliente
+                    clientes = await ClienteService.listarClientes();
+
+                    // Buscar el cliente recién insertado en la lista de clientes
+                    ClienteViewModel? clienteInsertado = clientes.firstWhere(
+                      (cliente) => cliente.clieDNI == dniController.text,
+                      orElse: () => ClienteViewModel(),
                     );
 
-                    await ProcesoVentaService.venderProcesoVenta(venta);
+                    if (clienteInsertado.clieId != null) {
+                      // Actualizar los controladores en la vista de venta de bien raíz
+                      setState(() {
+                        clienteController.text =
+                            "${clienteInsertado.clieDNI} - ${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
+                        nombreController.text =
+                            "${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
+                        telefonoController.text =
+                            clienteInsertado.clieTelefono!;
+                        _mostrarFormularioCliente =
+                            false; // Volver a la vista de venta
+                      });
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProcesoVenta(),
-                      ),
-                    );
-
+                      // Mostrar mensaje de éxito
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Cliente insertado con éxito')),
+                      );
+                    }
+                  } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Propiedad vendida con éxito')),
-                    );
-                  } else {
-                    // Maneja el caso donde no se encontró un cliente
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Cliente no encontrado.')),
+                      SnackBar(
+                          content: Text('Error al insertar el cliente: $e')),
                     );
                   }
-                } catch (e) {
-                  // Maneja los errores que puedan ocurrir
+                } else {
+                  // Manejar la validación fallida del formulario
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al vender la propiedad: $e')),
+                    SnackBar(
+                        content: Text(
+                            'Por favor, complete todos los campos correctamente.')),
                   );
                 }
               } else {
-                // Maneja la validación fallida del formulario
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(
-                          'Por favor, complete todos los campos correctamente.')),
-                );
+                // Lógica para guardar una venta
+                if (_isFormValid()) {
+                  try {
+                    ClienteViewModel? clienteSeleccionado = clientes.firstWhere(
+                      (cliente) => cliente.cliente == clienteController.text,
+                      orElse: () => ClienteViewModel(),
+                    );
+
+                    if (clienteSeleccionado.clieId != null) {
+                      final venta = ProcesoVentaViewModel(
+                        btrpId: widget.btrpId,
+                        btrpPrecioVentaFinal:
+                            double.parse(precioController.text),
+                        btrpFechaVendida: DateFormat('dd/MM/yyyy')
+                            .parse(fechaController.text),
+                        clieId: clienteSeleccionado.clieId.toString(),
+                      );
+
+                      await ProcesoVentaService.venderProcesoVenta(venta);
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProcesoVenta(),
+                        ),
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Propiedad vendida con éxito')),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Cliente no encontrado.')),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Error al vender la propiedad: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Por favor, complete todos los campos correctamente.')),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
@@ -1063,5 +1261,42 @@ Widget _buildCiudadAutocomplete(TextEditingController controller) {
         precioController.text.isNotEmpty &&
         fechaController.text.isNotEmpty &&
         RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(precioController.text);
+  }
+
+  bool _isClienteFormValid() {
+    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    final dniValid =
+        dniController.text.isNotEmpty && dniController.text.length >= 8;
+    final nombreValid = nombreclientecontroller.text.isNotEmpty &&
+        RegExp(r'^[a-zA-Z\s]+$').hasMatch(nombreclientecontroller.text);
+    final apellidoValid = apellidoController.text.isNotEmpty &&
+        RegExp(r'^[a-zA-Z\s]+$').hasMatch(apellidoController.text);
+    final emailValid = emailRegExp.hasMatch(correoController.text);
+    final telefonoValid = telefonoController.text.isNotEmpty &&
+        telefonoController.text.length >= 8;
+    final fechaNacimientoValid = fechaNacimientoController.text.isNotEmpty &&
+        _esFechaValida(fechaNacimientoController.text);
+    final direccionValid = direccionController.text.isNotEmpty;
+    final ciudadValid = ciudadSeleccionada != null;
+    final estadoCivilValid = estadoCivilSeleccionado != null;
+
+    return dniValid &&
+        nombreValid &&
+        apellidoValid &&
+        emailValid &&
+        telefonoValid &&
+        fechaNacimientoValid &&
+        direccionValid &&
+        ciudadValid &&
+        estadoCivilValid;
+  }
+
+  bool _esFechaValida(String fecha) {
+    try {
+      DateFormat('dd/MM/yyyy').parseStrict(fecha);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
