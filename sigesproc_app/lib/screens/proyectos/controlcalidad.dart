@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/proyectos/controlcalidadporactividadviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/imagenporcontrolcalidadviewmodel.dart';
@@ -34,7 +35,7 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
   String? unidadNombre;
   String? actividad;
   num? tCantidadTrabajada = 0;
-  int? tTrabajar = 0;
+  double? tTrabajar = 0;
   bool isCalculating = false;
 
 
@@ -87,7 +88,7 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
         }
       }
       tCantidadTrabajada = totalCantidadTrabajada;
-      tTrabajar = totalTrabajar;
+      tTrabajar = totalTrabajar?.toDouble();
       setState(() {
       isCalculating = false; // Finaliza el cálculo
       });
@@ -142,31 +143,31 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
                 final respuestaInsercion = await ControlDeCalidadesPorActividadesService.insertarImagenPorControlCalidad(imagenPorControlCalidad);
 
                 if (!respuestaInsercion.success!) {
-                  throw Exception('Error al insertar la imagen por control de calidad en la base de datos');
+                  throw Exception('Error al insertar la imagen por control de calidad en la base de datos.');
                 }
 
               } else {
-                throw Exception('Error al obtener la URL de la imagen subida');
+                throw Exception('Error al obtener la URL de la imagen subida.');
               }
             } else {
-              throw Exception('Error al subir la imagen al servidor');
+              throw Exception('Error al subir la imagen al servidor.');
             }
         } catch (e) {
-          print('Error al procesar la imagen: $e');
+          print('Error al procesar la imagen: $e.');
           // Lanzar una excepción específica si falla la inserción en la tabla de imágenes
-          throw Exception("Error al subir o insertar la imagen: ${imagen.name} debido a: $e");
+          throw Exception("Error al subir o insertar la imagen: ${imagen.name} debido a: $e.");
         }
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Guardado con éxito"),
+        content: Text("Insertado con Éxito."),
         backgroundColor: Colors.green,
       ));
       Navigator.of(context).pop();
       } else {
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Guardado con éxito"),
+        content: Text("Insertado con Éxito"),
         backgroundColor: Colors.green,
       ));
       Navigator.of(context).pop();
@@ -174,19 +175,19 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
       }
     } else {
           obtenerTotalCantidadTrabajada();
-          int? n =idScope!.abs();
+          double? n = idScope!.abs().toDouble();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("La cantidad del control de calidad se excede por: $n"),
+          content: Text("La cantidad del control de calidad se excede por: $n."),
           backgroundColor: Colors.red,
         ));
       // throw Exception("Error al guardar el control de calidad.");
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Error: $e"),
+      content: Text("Error: $e."),
       backgroundColor: Colors.red,
     ));
-    print("Error al guardar el control de calidad o subir imágenes: $e");
+    print("Error al guardar el control de calidad o subir imágenes: $e.");
   }
 }
 
@@ -318,7 +319,10 @@ Widget build(BuildContext context) {
                               ),
                             ),
                             
-                            keyboardType: TextInputType.number,
+                            keyboardType: TextInputType.numberWithOptions(decimal: true), // Permitir decimales
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')), // Limita a dos decimales
+                            ],
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 obtenerTotalCantidadTrabajada();
