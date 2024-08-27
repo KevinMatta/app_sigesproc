@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:sigesproc_app/auth/login.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/screens/insumos/cotizaciones.dart';
+import 'package:sigesproc_app/screens/viaticos/viaticos.dart';
 import 'inicio.dart';
 import 'proyectos/proyecto.dart';
 import 'fletes/flete.dart';
+
 
 class MenuLateral extends StatelessWidget {
   final int selectedIndex;
