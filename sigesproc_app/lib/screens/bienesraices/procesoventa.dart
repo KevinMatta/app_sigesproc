@@ -21,7 +21,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   Future<List<ProcesoVentaViewModel>>? _procesosventaFuture;
   TextEditingController _searchController = TextEditingController();
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
-  List<ProcesoVentaViewModel>? _selectedVenta;
+  List<ProcesoVentaViewModel>? _selectedVenta; 
   bool _valorFueEditado = false;
   bool _fechaFueEditada = false;
 

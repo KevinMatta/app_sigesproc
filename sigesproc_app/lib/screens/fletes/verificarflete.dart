@@ -105,7 +105,6 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Future<void> _cargarDatosFlete() async {
-    print('Cargando datos del flete...');
     // Cargar el encabezado del flete
     flete = (await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId))!;
 
@@ -153,8 +152,6 @@ class _VerificarFleteState extends State<VerificarFlete>
             (detalle.cantidadRecibida == null ||
                 detalle.cantidadRecibida! < detalle.fldeCantidad!))
         .toList();
-
-    print('cargar insu no recib $insumosNoRecibidos');
 
     setState(() {
       _isLoading = false;
@@ -522,8 +519,6 @@ class _VerificarFleteState extends State<VerificarFlete>
       List<FleteDetalleViewModel> notReceivedList =
           isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
 
-      print('notreceive $notReceivedList');
-
       if (value == true) {
         var verificacionexistente = verifiedList.firstWhere(
           (i) => isInsumo
@@ -535,7 +530,6 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
 
         if (verificacionexistente.fldeId != -1) {
-          print('verificacion existente $verificacionexistente');
           verificacionexistente.cantidadRecibida =
               (verificacionexistente.cantidadRecibida ?? 0) +
                   (item.fldeCantidad ?? 0);
@@ -566,7 +560,6 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
 
         if (existentenorecibido.fldeId != -1) {
-          print('existente no recibido $existentenorecibido');
           existentenorecibido.fldeCantidad =
               (existentenorecibido.fldeCantidad ?? 0) +
                   (item.cantidadRecibida ?? 0);
@@ -914,6 +907,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       if (item.cantidadRecibida == null) {
         var detalleNuevo = FleteDetalleViewModel(
           flenId: item.flenId,
+          fldeId: item.fldeId,
           inppId: item.inppId,
           usuaCreacion: item.usuaCreacion,
           fldeFechaCreacion: item.fldeFechaCreacion,
@@ -981,8 +975,8 @@ class _VerificarFleteState extends State<VerificarFlete>
       if (detalle.cantidadRecibida == null) {
         var detalleNuevo = FleteDetalleViewModel(
           flenId: detalle.flenId,
-          inppId: detalle
-              .inppId, // Aseguramos que el eqppId esté asignado aquí también
+          fldeId: detalle.fldeId,
+          inppId: detalle.inppId, 
           usuaCreacion: detalle.usuaCreacion,
           fldeFechaCreacion: detalle.fldeFechaCreacion,
           fldeCantidad: detalle.fldeCantidad,
