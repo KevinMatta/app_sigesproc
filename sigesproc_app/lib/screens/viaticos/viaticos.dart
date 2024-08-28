@@ -229,7 +229,7 @@ class _ViaticoState extends State<Viatico> {
 
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Viático eliminado con éxito')),
+                    SnackBar(content: Text('Eliminado con éxito')),
                   );
                   _isLoading = false;
                 } catch (e) {
@@ -322,7 +322,7 @@ class _ViaticoState extends State<Viatico> {
                         controller: _searchController,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Buscar.....',
+                          hintText: 'Buscar...',
                           hintStyle: TextStyle(color: Colors.white54),
                           border: InputBorder.none,
                           icon: Icon(Icons.search, color: Colors.white54),

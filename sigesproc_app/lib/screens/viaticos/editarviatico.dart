@@ -116,9 +116,9 @@ class _EditarViaticoState extends State<EditarViatico> {
 
   void _guardarViatico() async {
     setState(() {
-      _empleadoError = _selectedEmpleado == null ? 'El empleado es requerido' : null;
-      _proyectoError = _selectedProyecto == null ? 'El proyecto es requerido' : null;
-      _montoError = _montoController.text.isEmpty ? 'El monto es requerido' : null;
+      _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
+      _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
+      _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
     });
 
     if (_empleadoError != null || _proyectoError != null || _montoError != null) {
@@ -148,7 +148,7 @@ class _EditarViaticoState extends State<EditarViatico> {
       await ViaticosEncService.actualizarViatico(viaticoActualizado);
       print('Viático actualizado con éxito.');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Viático actualizado con éxito')),
+        SnackBar(content: Text('Actualizado con éxito')),
       );
       Navigator.pop(context);
     } catch (e) {

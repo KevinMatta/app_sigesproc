@@ -66,9 +66,9 @@ class _NuevoViaticoState extends State<NuevoViatico> {
 
     setState(() {
       _isSaving = true; // Activar el estado de guardado
-      _empleadoError = _selectedEmpleado == null ? 'El empleado es requerido' : null;
-      _proyectoError = _selectedProyecto == null ? 'El proyecto es requerido' : null;
-      _montoError = _montoController.text.isEmpty ? 'El monto es requerido' : null;
+      _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
+      _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
+      _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
     });
 
     if (_empleadoError != null || _proyectoError != null || _montoError != null) {
@@ -90,7 +90,7 @@ class _NuevoViaticoState extends State<NuevoViatico> {
     try {
       await ViaticosEncService.insertarViatico(nuevoViatico);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Viático guardado con éxito')),
+        SnackBar(content: Text('Insertado con Éxito.')),
       );
       Navigator.pop(context, true); // Devolver true para indicar que se ha guardado correctamente
     } catch (e) {
