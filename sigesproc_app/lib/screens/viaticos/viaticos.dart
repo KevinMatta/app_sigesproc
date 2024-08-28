@@ -105,7 +105,7 @@ class _ViaticoState extends State<Viatico> {
               icon: Icon(Icons.more_vert, color: Colors.white),
               onSelected: (int result) {
                 if (result == 0) {
-                  // Descomentar y ajustar cuando tengas los archivos necesarios
+                  // Navegar para editar el viático
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -115,63 +115,55 @@ class _ViaticoState extends State<Viatico> {
                 } else if (result == 1) {
                   _modalEliminar(context, viatico);
                 } else if (result == 2) {
-                  // Descomentar y ajustar cuando tengas los archivos necesarios
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => EditarViatico(viaticoId: viatico.vienId!),
-                  //   ),
-                  // );
+                  // Aquí puedes agregar la lógica para agregar facturas
                 } else if (result == 3) {
-                  // Descomentar y ajustar cuando tengas los archivos necesarios
                   _modalFinalizar(context, viatico);
-                } else if( result == 4){
-                  // Descomentar y ajustar cuando tengas los archivos necesarios
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => VerificarViatico(viaticoId: viatico.vienId!),
-                  //   ),
-                  // );
+                } else if (result == 4) {
+                  // Aquí puedes agregar la lógica para ver detalles
                 }
               },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-                const PopupMenuItem<int>(
-                  value: 0,
-                  child: Text(
-                    'Editar Viáticos',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 1,
-                  child: Text(
-                    'Eliminar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 2,
-                  child: Text(
-                    'Agregar Facturas',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 3,
-                  child: Text(
-                    'Finalizar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-                const PopupMenuItem<int>(
-                  value: 4,
-                  child: Text(
-                    'Detalle',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ),
-              ],
+              itemBuilder: (BuildContext context) {
+                List<PopupMenuEntry<int>> menuItems = [];
+                if (viatico.vienEstadoFacturas == true) {
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 0,
+                    child: Text(
+                      'Editar Viáticos',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 1,
+                    child: Text(
+                      'Eliminar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 2,
+                    child: Text(
+                      'Agregar Facturas',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 3,
+                    child: Text(
+                      'Finalizar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                } else {
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 4,
+                    child: Text(
+                      'Detalle',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                }
+                return menuItems;
+              },
             ),
           ),
         ),
@@ -219,8 +211,7 @@ class _ViaticoState extends State<Viatico> {
           backgroundColor: Color(0xFF171717),
           actions: [
             TextButton(
-              child:
-                  Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
               onPressed: () async {
                 try {
                   await ViaticosEncService.eliminarViatico(viatico.vienId!);
@@ -243,8 +234,7 @@ class _ViaticoState extends State<Viatico> {
               },
             ),
             TextButton(
-              child:
-                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -256,56 +246,54 @@ class _ViaticoState extends State<Viatico> {
   }
 
   void _modalFinalizar(BuildContext context, ViaticoEncViewModel viatico) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Finalizar Viático', style: TextStyle(color: Colors.white)),
-        content: Text(
-          '¿Está seguro de querer finalizar el viático en el proyecto ${viatico.proyecto}?',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Color(0xFF171717),
-        actions: [
-          TextButton(
-            child: Text('Aceptar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () async {
-              try {
-                // Llamar al servicio para finalizar el viático
-                await ViaticosEncService.finalizarViatico(viatico.vienId!);
-
-                // Cerrar el modal
-                Navigator.of(context).pop();
-
-                // Mostrar mensaje de éxito
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Viático finalizado con éxito')),
-                );
-
-                // Recargar la lista de viáticos
-                _cargarViaticos();
-              } catch (e) {
-                // Manejo de errores
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al finalizar el registro')),
-                );
-              }
-            },
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Finalizar Viático', style: TextStyle(color: Colors.white)),
+          content: Text(
+            '¿Está seguro de querer finalizar el viático en el proyecto ${viatico.proyecto}?',
+            style: TextStyle(color: Colors.white),
           ),
-          TextButton(
-            child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+          backgroundColor: Color(0xFF171717),
+          actions: [
+            TextButton(
+              child: Text('Aceptar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () async {
+                try {
+                  // Llamar al servicio para finalizar el viático
+                  await ViaticosEncService.finalizarViatico(viatico.vienId!);
 
+                  // Cerrar el modal
+                  Navigator.of(context).pop();
 
+                  // Mostrar mensaje de éxito
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Viático finalizado con éxito')),
+                  );
+
+                  // Recargar la lista de viáticos
+                  _cargarViaticos();
+                } catch (e) {
+                  // Manejo de errores
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al finalizar el registro')),
+                  );
+                }
+              },
+            ),
+            TextButton(
+              child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildListaViaticos() {
     return Scaffold(
