@@ -1,7 +1,9 @@
 plugins {
     id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    // END: FlutterFire Configuration
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -35,7 +37,7 @@ android {
 
     defaultConfig {
         applicationId = "com.sigesproc.app"
-        minSdk = flutter.minSdkVersion
+        minSdk 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
@@ -44,6 +46,27 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.debug
+        }
+    }
+
+    applicationVariants.all { variant ->
+        def buildTypeName = variant.buildType.name
+        def flavorName = variant.productFlavors.collect { it.name }.join('')
+        def variantName = flavorName + buildTypeName.capitalize()
+
+        variant.outputs.all { output ->
+            def outputDir = output.outputFile.parent
+            def googleServicesTemplate = file("src/${variantName}/google-services-template.json")
+            def googleServicesFile = file("${outputDir}/google-services.json")
+
+            if (googleServicesTemplate.exists()) {
+                def apiKey = System.getenv('GOOGLE_API_KEY')
+
+                def googleServicesContent = googleServicesTemplate.text
+                googleServicesContent = googleServicesContent.replace('${GOOGLE_API_KEY}', apiKey)
+
+                googleServicesFile.text = googleServicesContent
+            }
         }
     }
 }
