@@ -153,6 +153,13 @@ class _ViaticoState extends State<Viatico> {
                       style: TextStyle(color: Color(0xFFFFF0C6)),
                     ),
                   ));
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 4,
+                    child: Text(
+                      'Detalle',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
                 } else {
                   menuItems.add(const PopupMenuItem<int>(
                     value: 4,
