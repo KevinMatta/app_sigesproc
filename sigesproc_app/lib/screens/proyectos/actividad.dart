@@ -27,6 +27,8 @@ class _ActividadState extends State<Actividad> {
   Map<int, bool> _expandedActividades = {}; // Controla qué actividades están expandidas
   ScrollController _scrollController = ScrollController();
   double _savedScrollPosition = 0.0; // Guardar la posición del scroll
+  int _savedCurrentPage = 0; // Variable para almacenar la página actual
+
 
   @override
   void initState() {
@@ -69,30 +71,37 @@ class _ActividadState extends State<Actividad> {
     });
   }
 
-  void _toggleExpand(int acetId) {
-    // Guardar la posición actual del scroll
-    _savedScrollPosition = _scrollController.position.pixels;
+    void _toggleExpand(int acetId) {
+      // Guardar la posición actual del scroll
+      _savedScrollPosition = _scrollController.position.pixels;
+      _savedCurrentPage = _currentPage;
 
-    setState(() {
-      // Verifica si acetId ya tiene una entrada en el mapa
-      if (_expandedActividades[acetId] == null) {
-        // Si no existe, inicializa con false (no expandido)
-        _expandedActividades[acetId] = false;
-      }
+      setState(() {
+        // Cerrar todas las demás actividades expandidas
+        _expandedActividades.updateAll((key, value) => false);
 
-      // Invierte el valor booleano
-      _expandedActividades[acetId] = !_expandedActividades[acetId]!;
-    });
+        // Verifica si acetId ya tiene una entrada en el mapa
+        if (_expandedActividades[acetId] == null) {
+          // Si no existe, inicializa con false (no expandido)
+          _expandedActividades[acetId] = false;
+        }
 
-    // Restaurar la posición del scroll después del cambio de estado
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(
-        _savedScrollPosition,
-        duration: Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      );
-    });
+        // Invierte el valor booleano solo de la fila actual
+        _expandedActividades[acetId] = !_expandedActividades[acetId]!;
+      });
+
+      // Restaurar la posición del scroll después del cambio de estado
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _savedScrollPosition,
+          duration: Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        );
+      });
+
+      _currentPage = _savedCurrentPage;
   }
+
 
   void _navigateToControlCalidadScreen(BuildContext context, int acetId, String? medida, String? actividad) {
     Navigator.push(
@@ -108,8 +117,10 @@ class _ActividadState extends State<Actividad> {
   if (cocaAprobado == 1) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Ya ha sido aprobado."),
-        backgroundColor: Colors.green,
+        content: Text("Ya ha sido aprobado.",
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),)),
+                        backgroundColor: Colors.yellow,
       ),
     );
     return;
