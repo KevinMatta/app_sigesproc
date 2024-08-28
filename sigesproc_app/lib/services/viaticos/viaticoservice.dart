@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
+import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import '../apiservice.dart';
 
@@ -87,6 +89,31 @@ class ViaticosEncService {
 
     if (response.statusCode != 200) {
       throw Exception('Error al actualizar el viático');
+    }
+  }
+
+  //'''''''''''' Extras
+  static Future<EmpleadoViewModel> buscarEmpleadoPorDNI(String dni) async {
+    final url = Uri.parse('${ApiService.apiUrl}/Empleado/BuscarPorDNI/$dni');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return EmpleadoViewModel.fromJson(data);
+    } else {
+      throw Exception('Error al buscar el empleado por DNI');
+    }
+  }
+
+  static Future<ProyectoViewModel> buscarProyectoPorNombre(String nombre) async {
+    final url = Uri.parse('${ApiService.apiUrl}/Proyecto/BuscarPorNombre?proy_Nombre=$nombre');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return ProyectoViewModel.fromJson(data);
+    } else {
+      throw Exception('Error al buscar el proyecto por nombre');
     }
   }
 }

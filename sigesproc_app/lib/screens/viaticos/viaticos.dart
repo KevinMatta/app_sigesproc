@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
+import 'package:sigesproc_app/screens/viaticos/nuevoviatico.dart';
 // import 'package:sigesproc_app/services/viaticos/viaticosencservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
@@ -12,7 +13,7 @@ class Viatico extends StatefulWidget {
 }
 
 class _ViaticoState extends State<Viatico> {
-  int _selectedIndex = 2;
+  int _selectedIndex = 5;
   Future<List<ViaticoEncViewModel>>? _viaticosFuture;
   TextEditingController _searchController = TextEditingController();
   List<ViaticoEncViewModel> _filteredViaticos = [];
@@ -474,12 +475,12 @@ class _ViaticoState extends State<Viatico> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Descomentar y ajustar cuando tengas los archivos necesarios
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => NuevoViatico(),
-          //   ),
-          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NuevoViatico(),
+            ),
+          );
         },
         backgroundColor: Color(0xFFFFF0C6),
         child: Icon(Icons.add, color: Colors.black),
