@@ -71,36 +71,41 @@ class _ActividadState extends State<Actividad> {
     });
   }
 
-    void _toggleExpand(int acetId) {
-      // Guardar la posición actual del scroll
-      _savedScrollPosition = _scrollController.position.pixels;
-      _savedCurrentPage = _currentPage;
+      void _toggleExpand(int acetId) {
+    // Guardar la posición actual del scroll
+    _savedScrollPosition = _scrollController.position.pixels;
+    _savedCurrentPage = _currentPage;
 
-      setState(() {
+    setState(() {
+      // Verifica si acetId ya tiene una entrada en el mapa
+      if (_expandedActividades[acetId] == null) {
+        // Si no existe, inicializa con false (no expandido)
+        _expandedActividades[acetId] = false;
+      }
+
+      // Si la fila está expandida, ciérrala
+      if (_expandedActividades[acetId] == true) {
+        _expandedActividades[acetId] = false;
+      } else {
         // Cerrar todas las demás actividades expandidas
         _expandedActividades.updateAll((key, value) => false);
+        // Expande la fila actual
+        _expandedActividades[acetId] = true;
+      }
+    });
 
-        // Verifica si acetId ya tiene una entrada en el mapa
-        if (_expandedActividades[acetId] == null) {
-          // Si no existe, inicializa con false (no expandido)
-          _expandedActividades[acetId] = false;
-        }
+    // Restaurar la posición del scroll después del cambio de estado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _savedScrollPosition,
+        duration: Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+      );
+    });
 
-        // Invierte el valor booleano solo de la fila actual
-        _expandedActividades[acetId] = !_expandedActividades[acetId]!;
-      });
-
-      // Restaurar la posición del scroll después del cambio de estado
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _savedScrollPosition,
-          duration: Duration(milliseconds: 100),
-          curve: Curves.easeOut,
-        );
-      });
-
-      _currentPage = _savedCurrentPage;
+    _currentPage = _savedCurrentPage;
   }
+
 
 
   void _navigateToControlCalidadScreen(BuildContext context, int acetId, String? medida, String? actividad) {
@@ -183,7 +188,7 @@ class _ActividadState extends State<Actividad> {
                       } catch (e) {
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(
-                            content: Text("Error al aprobar."),
+                            content: Text("No se pudo aprobar."),
                             backgroundColor: Colors.red,
                           ),
                         );

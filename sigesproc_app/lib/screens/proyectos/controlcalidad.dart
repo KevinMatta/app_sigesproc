@@ -247,7 +247,7 @@ Widget build(BuildContext context) {
               color: Color(0xFFFFF0C6),
             ),SizedBox(height: 5),
               Text(
-                'Control de Calidad:',
+                'Nuevo Control de Calidad:',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 16,
