@@ -3,7 +3,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import 'package:sigesproc_app/screens/viaticos/nuevoviatico.dart';
-// import 'package:sigesproc_app/services/viaticos/viaticosencservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
 
@@ -21,6 +20,7 @@ class _ViaticoState extends State<Viatico> {
   int _currentPage = 0;
   int _rowsPerPage = 10;
   bool _isLoading = false;
+  int _usuarioEsAdm = 1; // Variable para almacenar si el usuario es admin
 
   @override
   void initState() {
@@ -30,6 +30,8 @@ class _ViaticoState extends State<Viatico> {
       setState(() {
         _allViaticos = viaticos;
         _filteredViaticos = viaticos;
+        // Aquí asumimos que el rol de admin es el mismo para todos los viáticos, puedes ajustar según sea necesario
+        _usuarioEsAdm = viaticos.isNotEmpty && viaticos.first.usuarioEsAdm == 1 ? 1 : 0;
       });
     });
 
@@ -175,8 +177,8 @@ class _ViaticoState extends State<Viatico> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Icon(
-              viatico.vienSaberProyeto == true ? Icons.adjust : Icons.adjust,
-              color: viatico.vienSaberProyeto == true ? Colors.red : Colors.green,
+              viatico.vienSaberProyeto == 1 ? Icons.adjust : Icons.adjust,
+              color: viatico.vienSaberProyeto == 1 ? Colors.red : Colors.green,
             ),
           ),
         ),
@@ -472,20 +474,22 @@ class _ViaticoState extends State<Viatico> {
         onItemSelected: _onItemTapped,
       ),
       body: _buildListaViaticos(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Descomentar y ajustar cuando tengas los archivos necesarios
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NuevoViatico(),
-            ),
-          );
-        },
-        backgroundColor: Color(0xFFFFF0C6),
-        child: Icon(Icons.add, color: Colors.black),
-        shape: CircleBorder(),
-      ),
+      floatingActionButton: _usuarioEsAdm == 1
+          ? FloatingActionButton(
+              onPressed: () {
+                // Descomentar y ajustar cuando tengas los archivos necesarios
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NuevoViatico(),
+                  ),
+                );
+              },
+              backgroundColor: Color(0xFFFFF0C6),
+              child: Icon(Icons.add, color: Colors.black),
+              shape: CircleBorder(),
+            )
+          : null, // Si no es admin, no mostrar el botón flotante
     );
   }
 }

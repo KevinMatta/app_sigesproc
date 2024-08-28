@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
-// import 'package:sigesproc_app/services/viaticos/viaticosencservice.dart';
 import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
@@ -25,6 +24,11 @@ class _NuevoViaticoState extends State<NuevoViatico> {
 
   List<EmpleadoViewModel> _empleados = [];
   List<ProyectoViewModel> _proyectos = [];
+
+  // Variables para mostrar mensajes de error
+  String? _empleadoError;
+  String? _proyectoError;
+  String? _montoError;
 
   @override
   void initState() {
@@ -56,10 +60,13 @@ class _NuevoViaticoState extends State<NuevoViatico> {
   }
 
   void _guardarViatico() async {
-    if (_selectedEmpleado == null || _selectedProyecto == null || _montoController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, complete todos los campos.')),
-      );
+    setState(() {
+      _empleadoError = _selectedEmpleado == null ? 'El empleado es requerido' : null;
+      _proyectoError = _selectedProyecto == null ? 'El proyecto es requerido' : null;
+      _montoError = _montoController.text.isEmpty ? 'El monto es requerido' : null;
+    });
+
+    if (_empleadoError != null || _proyectoError != null || _montoError != null) {
       return;
     }
 
@@ -169,10 +176,34 @@ class _NuevoViaticoState extends State<NuevoViatico> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildDropdownEmpleado(),
+                    if (_empleadoError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _empleadoError!,
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
                     SizedBox(height: 20),
                     _buildDropdownProyecto(),
+                    if (_proyectoError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _proyectoError!,
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
                     SizedBox(height: 20),
                     _buildMontoTextField(),
+                    if (_montoError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _montoError!,
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
                   ],
                 ),
               ),

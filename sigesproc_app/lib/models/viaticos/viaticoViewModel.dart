@@ -59,7 +59,7 @@ class ViaticoEncViewModel {
       vienFechaModificacion: json['vien_FechaModificacion'] != null
           ? DateTime.parse(json['vien_FechaModificacion'])
           : null,
-      usuarioEsAdm: json['usuarioEsAdm'],
+      usuarioEsAdm: json['usuarioEsAdm'] ?? 0,
       vienTotalReconocido: json['vien_TotalReconocido']?.toDouble(),
     );
   }
