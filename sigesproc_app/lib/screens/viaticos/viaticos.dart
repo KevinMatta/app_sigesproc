@@ -94,6 +94,17 @@ class _ViaticoState extends State<Viatico> {
     });
   }
 
+  Future<void> _navigateAndRefresh(BuildContext context, Widget page) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+
+    if (result == true) {
+      _cargarViaticos(); // Refrescar la lista si se retornó `true`
+    }
+  }
+
   TableRow _buildViaticoRow(ViaticoEncViewModel viatico, int index) {
     return TableRow(
       children: [
@@ -105,13 +116,7 @@ class _ViaticoState extends State<Viatico> {
               icon: Icon(Icons.more_vert, color: Colors.white),
               onSelected: (int result) {
                 if (result == 0) {
-                  // Navegar para editar el viático
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditarViatico(viaticoId: viatico.vienId!),
-                    ),
-                  );
+                  _navigateAndRefresh(context, EditarViatico(viaticoId: viatico.vienId!));
                 } else if (result == 1) {
                   _modalEliminar(context, viatico);
                 } else if (result == 2) {
@@ -478,12 +483,7 @@ class _ViaticoState extends State<Viatico> {
       floatingActionButton: _usuarioEsAdm == 0
           ? FloatingActionButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NuevoViatico(),
-                  ),
-                );
+                _navigateAndRefresh(context, NuevoViatico());
               },
               backgroundColor: Color(0xFFFFF0C6),
               child: Icon(Icons.add, color: Colors.black),
@@ -564,12 +564,7 @@ class _ViaticoState extends State<Viatico> {
               right: 20,
               child: FloatingActionButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NuevoViatico(),
-                    ),
-                  );
+                  _navigateAndRefresh(context, NuevoViatico());
                 },
                 backgroundColor: Color(0xFFFFF0C6),
                 child: Icon(Icons.add, color: Colors.black),
