@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
@@ -9,16 +10,18 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
 
-class NuevoViatico extends StatefulWidget {
+class EditarViatico extends StatefulWidget {
+  final int viaticoId; // Recibe el ID del viático a editar
+
+  EditarViatico({required this.viaticoId});
+
   @override
-  _NuevoViaticoState createState() => _NuevoViaticoState();
+  _EditarViaticoState createState() => _EditarViaticoState();
 }
 
-class _NuevoViaticoState extends State<NuevoViatico> {
+class _EditarViaticoState extends State<EditarViatico> {
   int _selectedIndex = 5;
-  DateTime _fechaEmision = DateTime.now();
-  int _usuarioCreacion = 3; // ID del usuario que crea el viático
-  TextEditingController _montoController = TextEditingController();
+  final TextEditingController _montoController = TextEditingController();
 
   EmpleadoViewModel? _selectedEmpleado;
   ProyectoViewModel? _selectedProyecto;
@@ -26,17 +29,38 @@ class _NuevoViaticoState extends State<NuevoViatico> {
   List<EmpleadoViewModel> _empleados = [];
   List<ProyectoViewModel> _proyectos = [];
 
-  // Variables para mostrar mensajes de error
   String? _empleadoError;
   String? _proyectoError;
   String? _montoError;
-  bool _isSaving = false; // Bandera para prevenir duplicación
+
+  ViaticoEncViewModel? _viatico; // Aquí almacenaremos el viático a editar
+  bool _isLoading = false; // Variable para controlar el estado de carga
 
   @override
   void initState() {
     super.initState();
-    _cargarEmpleados();
-    _cargarProyectos();
+    _cargarDatosIniciales();
+  }
+
+  Future<void> _cargarDatosIniciales() async {
+    setState(() {
+      _isLoading = true; // Mostrar spinner
+    });
+
+    try {
+      await _cargarEmpleados();
+      await _cargarProyectos();
+      await _cargarViatico();
+    } catch (e) {
+      print('Error al cargar los datos iniciales: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar los datos iniciales: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Ocultar spinner
+      });
+    }
   }
 
   Future<void> _cargarEmpleados() async {
@@ -61,47 +85,77 @@ class _NuevoViaticoState extends State<NuevoViatico> {
     }
   }
 
-  void _guardarViatico() async {
-    if (_isSaving) return; // Prevenir múltiples llamadas
+  Future<void> _cargarViatico() async {
+    try {
+      ViaticoEncViewModel viatico = await ViaticosEncService.buscarViatico(widget.viaticoId);
+      setState(() {
+        _viatico = viatico;
+        _montoController.text = viatico.vienMontoEstimado?.toString() ?? '';
 
+        // Buscar el empleado asociado al viático
+        EmpleadoViewModel? tempEmpleado = _empleados.firstWhere(
+          (e) => e.emplId == viatico.emplId,
+          orElse: () => EmpleadoViewModel(emplId: -1, emplDNI: 'No encontrado', empleado: 'Empleado no encontrado')
+        );
+        _selectedEmpleado = tempEmpleado.emplId != -1 ? tempEmpleado : null;
+
+        // Buscar el proyecto asociado al viático
+        ProyectoViewModel? tempProyecto = _proyectos.firstWhere(
+          (p) => p.proyId == viatico.proyId,
+          orElse: () => ProyectoViewModel(proyId: -1, proyNombre: 'No encontrado')
+        );
+        _selectedProyecto = tempProyecto.proyId != -1 ? tempProyecto : null;
+      });
+    } catch (e) {
+      print('Error al cargar el viático: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar el viático: $e')),
+      );
+    }
+  }
+
+  void _guardarViatico() async {
     setState(() {
-      _isSaving = true; // Activar el estado de guardado
       _empleadoError = _selectedEmpleado == null ? 'El empleado es requerido' : null;
       _proyectoError = _selectedProyecto == null ? 'El proyecto es requerido' : null;
       _montoError = _montoController.text.isEmpty ? 'El monto es requerido' : null;
     });
 
     if (_empleadoError != null || _proyectoError != null || _montoError != null) {
-      setState(() {
-        _isSaving = false; // Desactivar el estado de guardado si hay errores
-      });
+      print('Formulario no válido:');
+      if (_empleadoError != null) print(_empleadoError);
+      if (_proyectoError != null) print(_proyectoError);
+      if (_montoError != null) print(_montoError);
       return;
     }
 
-    ViaticoEncViewModel nuevoViatico = ViaticoEncViewModel(
+    ViaticoEncViewModel viaticoActualizado = ViaticoEncViewModel(
+      vienId: _viatico?.vienId,
       emplId: _selectedEmpleado!.emplId,
       proyId: _selectedProyecto!.proyId,
       vienMontoEstimado: double.parse(_montoController.text),
-      vienFechaEmicion: DateTime.now(),
-      usuaCreacion: _usuarioCreacion,
-      vienFechaCreacion: DateTime.now(),
+      vienFechaEmicion: _viatico?.vienFechaEmicion ?? DateTime.now(),
+      usuaCreacion: _viatico?.usuaCreacion ?? 3,
+      vienFechaCreacion: _viatico?.vienFechaCreacion ?? DateTime.now(),
+      vienFechaModificacion: DateTime.now(),
     );
 
+    // Imprimir los datos que se van a enviar
+    print('Datos del viático actualizados:');
+    print(viaticoActualizado.toJson());
+
     try {
-      await ViaticosEncService.insertarViatico(nuevoViatico);
+      await ViaticosEncService.actualizarViatico(viaticoActualizado);
+      print('Viático actualizado con éxito.');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Viático guardado con éxito')),
+        SnackBar(content: Text('Viático actualizado con éxito')),
       );
-      Navigator.pop(context, true); // Devolver true para indicar que se ha guardado correctamente
+      Navigator.pop(context);
     } catch (e) {
-      print('Error al guardar el viático: $e');
+      print('Error al actualizar el viático: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar el viático: $e')),
+        SnackBar(content: Text('Error al actualizar el viático: $e')),
       );
-    } finally {
-      setState(() {
-        _isSaving = false; // Desactivar el estado de guardado
-      });
     }
   }
 
@@ -121,9 +175,9 @@ class _NuevoViaticoState extends State<NuevoViatico> {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
+              height: 50,
             ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            SizedBox(width: 2),
             Expanded(
               child: Text(
                 'SIGESPROC',
@@ -131,7 +185,7 @@ class _NuevoViaticoState extends State<NuevoViatico> {
                   color: Color(0xFFFFF0C6),
                   fontSize: 20,
                 ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
+                textAlign: TextAlign.start,
               ),
             ),
           ],
@@ -141,7 +195,7 @@ class _NuevoViaticoState extends State<NuevoViatico> {
           child: Column(
             children: [
               Text(
-                'Nuevo Viático',
+                'Editar Viático',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 18,
@@ -172,67 +226,81 @@ class _NuevoViaticoState extends State<NuevoViatico> {
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
       ),
-      body: Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              color: Color(0xFF171717),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDropdownEmpleado(),
-                    if (_empleadoError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          _empleadoError!,
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
+      body: _isLoading
+          ? Center(
+              child: SpinKitCircle(color: Color(0xFFFFF0C6)), // Spinner de carga
+            )
+          : Container(
+              color: Colors.black,
+              padding: const EdgeInsets.all(16.0),
+              child: _viatico == null
+                  ? Center(
+                      child: Text(
+                        'Error al cargar el viático',
+                        style: TextStyle(color: Colors.red),
                       ),
-                    SizedBox(height: 20),
-                    _buildDropdownProyecto(),
-                    if (_proyectoError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          _proyectoError!,
-                          style: TextStyle(color: Colors.red, fontSize: 12),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Card(
+                          color: Color(0xFF171717),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildDropdownEmpleado(),
+                                if (_empleadoError != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5.0),
+                                    child: Text(
+                                      _empleadoError!,
+                                      style: TextStyle(
+                                          color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+                                SizedBox(height: 20),
+                                _buildDropdownProyecto(),
+                                if (_proyectoError != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5.0),
+                                    child: Text(
+                                      _proyectoError!,
+                                      style: TextStyle(
+                                          color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+                                SizedBox(height: 20),
+                                _buildMontoTextField(),
+                                if (_montoError != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5.0),
+                                    child: Text(
+                                      _montoError!,
+                                      style: TextStyle(
+                                          color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    SizedBox(height: 20),
-                    _buildMontoTextField(),
-                    if (_montoError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          _montoError!,
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+                      ],
+                    ),
             ),
-          ],
-        ),
-      ),
       floatingActionButton: SpeedDial(
-        icon: Icons.arrow_downward, // Icono inicial
-        activeIcon: Icons.close, // Icono cuando se despliega
-        backgroundColor: Color(0xFF171717), // Color de fondo
-        foregroundColor: Color(0xFFFFF0C6), // Color del icono
-        buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
+        icon: Icons.arrow_downward,
+        activeIcon: Icons.close,
+        backgroundColor: Color(0xFF171717),
+        foregroundColor: Color(0xFFFFF0C6),
+        buttonSize: Size(56.0, 56.0),
         shape: CircleBorder(),
         childrenButtonSize: Size(56.0, 56.0),
-        spaceBetweenChildren: 10.0, // Espacio entre los botones secundarios
+        spaceBetweenChildren: 10.0,
         overlayColor: Colors.transparent,
         children: [
           SpeedDialChild(

@@ -1,8 +1,8 @@
-
 class ViaticoEncViewModel {
   int? codigo;
   String? empleado;
   String? proyecto;
+  bool? vienEstadoFacturas;
 
   int? vienId;
   bool? vienSaberProyeto;
@@ -35,13 +35,14 @@ class ViaticoEncViewModel {
     this.vienFechaModificacion,
     this.usuarioEsAdm,
     this.vienTotalReconocido,
+    this.vienEstadoFacturas,
   });
 
   factory ViaticoEncViewModel.fromJson(Map<String, dynamic> json) {
     return ViaticoEncViewModel(
       codigo: json['codigo'],
       empleado: json['Empleado'],
-      proyecto: json['Proyecto'],
+      proyecto: json['proyecto'],
       vienId: json['vien_Id'],
       vienSaberProyeto: json['vien_SaberProyeto'],
       vienMontoEstimado: json['vien_MontoEstimado']?.toDouble(),
@@ -50,7 +51,7 @@ class ViaticoEncViewModel {
           ? DateTime.parse(json['vien_FechaEmicion'])
           : null,
       emplId: json['empl_Id'],
-      proyId: json['Proy_Id'],
+      proyId: json['proy_Id'],
       usuaCreacion: json['usua_Creacion'],
       vienFechaCreacion: json['vien_FechaCreacion'] != null
           ? DateTime.parse(json['vien_FechaCreacion'])
@@ -59,41 +60,30 @@ class ViaticoEncViewModel {
       vienFechaModificacion: json['vien_FechaModificacion'] != null
           ? DateTime.parse(json['vien_FechaModificacion'])
           : null,
-      usuarioEsAdm: json['usuarioEsAdm'] ?? 0,
+      usuarioEsAdm: json['usuarioEsAdm'] ?? false,
+      vienEstadoFacturas: json['vien_EstadoFacturas'] ?? false,
       vienTotalReconocido: json['vien_TotalReconocido']?.toDouble(),
     );
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {
-      'codigo': codigo,
-      'Empleado': empleado,
-      'Proyecto': proyecto,
-      'vien_Id': vienId,
-      'vien_SaberProyeto': vienSaberProyeto,
       'vien_MontoEstimado': vienMontoEstimado,
-      'vien_TotalGastado': vienTotalGastado,
       'vien_FechaEmicion': vienFechaEmicion?.toIso8601String(),
       'empl_Id': emplId,
       'Proy_Id': proyId,
       'usua_Creacion': usuaCreacion,
       'vien_FechaCreacion': vienFechaCreacion?.toIso8601String(),
-      'usua_Modificacion': usuaModificacion,
-      'vien_FechaModificacion': vienFechaModificacion?.toIso8601String(),
-      'usuarioEsAdm': usuarioEsAdm,
-      'vien_TotalReconocido': vienTotalReconocido,
+      // Incluyendo 'vienId' si no es nulo
+      if (vienId != null) 'vien_Id': vienId,
+      // Agregando otros campos opcionales si no son nulos
+      if (vienEstadoFacturas != null) 'vien_EstadoFacturas': vienEstadoFacturas,
+      if (codigo != null) 'codigo': codigo,
+      if (vienTotalGastado != null) 'vien_TotalGastado': vienTotalGastado,
+      if (vienSaberProyeto != null) 'vien_SaberProyeto': vienSaberProyeto,
+      if (vienTotalReconocido != null)
+        'vien_TotalReconocido': vienTotalReconocido,
     };
-
     return data;
-  }
-
-  @override
-  String toString() {
-    return 'ViaticoEncViewModel(codigo: $codigo, empleado: $empleado, proyecto: $proyecto, '
-        'vienId: $vienId, vienSaberProyeto: $vienSaberProyeto, vienMontoEstimado: $vienMontoEstimado, '
-        'vienTotalGastado: $vienTotalGastado, vienFechaEmicion: $vienFechaEmicion, emplId: $emplId, '
-        'proyId: $proyId, usuaCreacion: $usuaCreacion, vienFechaCreacion: $vienFechaCreacion, '
-        'usuaModificacion: $usuaModificacion, vienFechaModificacion: $vienFechaModificacion, '
-        'usuarioEsAdm: $usuarioEsAdm, vienTotalReconocido: $vienTotalReconocido)';
   }
 }

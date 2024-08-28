@@ -60,7 +60,7 @@ class ViaticosEncService {
     }
   }
 
-  static Future<void> insertarViatico(ViaticoEncViewModel viatico) async {
+static Future<void> insertarViatico(ViaticoEncViewModel viatico) async {
     final url = Uri.parse('${ApiService.apiUrl}/ViaticosEnc/Insertar');
     final response = await http.post(
       url,
@@ -72,7 +72,7 @@ class ViaticosEncService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Error al insertar el viático');
+      throw Exception('Error al insertar el viático: ${response.body}');
     }
   }
 
@@ -93,6 +93,11 @@ class ViaticosEncService {
   }
 
   //'''''''''''' Extras
+
+
+
+
+  // Método para buscar un empleado por DNI
   static Future<EmpleadoViewModel> buscarEmpleadoPorDNI(String dni) async {
     final url = Uri.parse('${ApiService.apiUrl}/Empleado/BuscarPorDNI/$dni');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
@@ -105,6 +110,20 @@ class ViaticosEncService {
     }
   }
 
+  // Método para listar todos los empleados
+  static Future<List<EmpleadoViewModel>> listarEmpleados() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Empleado/Listar');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => EmpleadoViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al listar los empleados');
+    }
+  }
+
+  // Método para buscar un proyecto por nombre
   static Future<ProyectoViewModel> buscarProyectoPorNombre(String nombre) async {
     final url = Uri.parse('${ApiService.apiUrl}/Proyecto/BuscarPorNombre?proy_Nombre=$nombre');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
@@ -114,6 +133,19 @@ class ViaticosEncService {
       return ProyectoViewModel.fromJson(data);
     } else {
       throw Exception('Error al buscar el proyecto por nombre');
+    }
+  }
+
+  // Método para listar todos los proyectos
+  static Future<List<ProyectoViewModel>> listarProyectos() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Proyecto/Listar');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => ProyectoViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al listar los proyectos');
     }
   }
 }
