@@ -35,8 +35,12 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
   String? unidadNombre;
   String? actividad;
   num? tCantidadTrabajada = 0;
-  double? tTrabajar = 0;
+  num? tTrabajar = 0;
   bool isCalculating = false;
+
+  bool descripcionVacia = false;
+  bool cantidadVacia = false;
+  bool fechaVacia = false;
 
 
   List<PlatformFile> _uploadedImages = []; // Lista para almacenar las imágenes subidas
@@ -72,35 +76,48 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
 
 
   num totalCantidadTrabajada = 0;
-  int? totalTrabajar = 0;
+  num? totalTrabajar = 0;
 
-  Future<void> obtenerTotalCantidadTrabajada() async {
-    try {
-      // Llama al servicio para listar los controles de calidad
-      final List<ListarControlDeCalidadesPorActividadesViewModel> controles = await ControlDeCalidadesPorActividadesService.listarControlCalidad();
+Future<void> obtenerTotalCantidadTrabajada() async {
+  try {
+    // Llama al servicio para listar los controles de calidad
+    final List<ListarControlDeCalidadesPorActividadesViewModel> controles = await ControlDeCalidadesPorActividadesService.listarControlCalidad();
 
-      // Filtra los controles de calidad que coincidan con acetId y suma cocaCantidadtrabajada
-      totalCantidadTrabajada = 0; // Reinicia la variable antes de sumar
-      for (var control in controles) {
-        if (control.acetId == widget.acetId) {
-          totalCantidadTrabajada += control.cocaCantidadtrabajada ?? 0;
-          totalTrabajar = control.acetCantidad;
+    // Filtra los controles de calidad que coincidan con acetId y suma cocaCantidadtrabajada
+    totalCantidadTrabajada = 0; // Reinicia la variable antes de sumar
+    for (var control in controles) {
+      if (control.acetId == widget.acetId) {
+        totalCantidadTrabajada += (control.cocaCantidadtrabajada ?? 0.0);
+
+        // Aquí forzamos la conversión de int a double si es necesario
+        try {
+          if (control.acetCantidad != null) {
+            if (control.acetCantidad is int) {
+              totalTrabajar = (control.acetCantidad as int).toDouble();
+            } else if (control.acetCantidad is double) {
+              totalTrabajar = control.acetCantidad;
+            } else {
+              throw Exception("Tipo inesperado para acetCantidad: ${control.acetCantidad.runtimeType}. Valor: ${control.acetCantidad}");
+            }
+          }
+        } catch (e) {
+          throw Exception("Error al convertir acetCantidad: ${control.acetCantidad.runtimeType} a double. Valor: ${control.acetCantidad}");
         }
       }
-      tCantidadTrabajada = totalCantidadTrabajada;
-      tTrabajar = totalTrabajar?.toDouble();
-      setState(() {
-      isCalculating = false; // Finaliza el cálculo
-      });
-
-      // setState(() {
-      //   // Actualiza el estado para reflejar el total en la interfaz si es necesario
-      //   print("Total de cantidad trabajada: $totalCantidadTrabajada");
-      // });
-    } catch (e) {
-      // print("Error al obtener el total de cantidad trabajada: $e");
     }
+    tCantidadTrabajada = totalCantidadTrabajada;
+    tTrabajar = totalTrabajar;
+    setState(() {
+      isCalculating = false; // Finaliza el cálculo
+    });
+  } catch (e, stackTrace) {
+    print("Error al obtener el total de cantidad trabajada: $e");
+    print("Stack trace: $stackTrace");
   }
+}
+
+
+
 
 
 
@@ -270,9 +287,20 @@ Widget build(BuildContext context) {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 10),
-                    Text(
-                      'Ingresar la descripción:',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+
+                    // Label con asterisco condicional para Descripción
+                    Row(
+                      children: [
+                        Text(
+                          'Ingresar la descripción',
+                          style: TextStyle(color: Color(0xFFFFF0C6)),
+                        ),
+                        if (descripcionVacia)
+                          Text(
+                            ' *',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 5),
                     TextFormField(
@@ -289,72 +317,91 @@ Widget build(BuildContext context) {
                         ),
                       ),
                       validator: (value) {
+                        setState(() {}); // Para actualizar el estado y mostrar/ocultar el asterisco
                         if (value == null || value.isEmpty) {
-                          return 'La descripción es requerida';
+                          descripcionVacia = true;
+                          return 'El campo es requerido.';
                         }
+                        descripcionVacia = false;
                         return null;
                       },
                     ),
+
                     SizedBox(height: 10),
-                    Text(
-                      'Ingresar la cantidad de $unidadNombre:',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+
+                    // Label con asterisco condicional para Cantidad
+                    Row(
+                      children: [
+                        Text(
+                          'Ingresar la cantidad de $unidadNombre',
+                          style: TextStyle(color: Color(0xFFFFF0C6)),
+                        ),
+                        if (cantidadVacia)
+                          Text(
+                            ' *',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 5),
                     Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Caja de texto
-                          TextFormField(
-                            controller: cantidadController,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: 'Cantidad',
-                              hintStyle: TextStyle(color: Colors.white54),
-                              filled: true,
-                              fillColor: Color(0xFF222222),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide.none,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Caja de texto
+                        TextFormField(
+                          controller: cantidadController,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Cantidad',
+                            hintStyle: TextStyle(color: Colors.white54),
+                            filled: true,
+                            fillColor: Color(0xFF222222),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')), // Limita a dos decimales
+                          ],
+                          validator: (value) {
+                            setState(() {}); // Para actualizar el estado y mostrar/ocultar el asterisco
+                            if (value == null || value.isEmpty) {
+                              cantidadVacia = true;
+                              obtenerTotalCantidadTrabajada();
+                              return 'El campo es requerido.';
+                            }
+                            cantidadVacia = false;
+                            return null;
+                          },
+                        ),
+
+                        SizedBox(height: 5),
+
+                        // Texto siempre visible
+                        // Mostrar un indicador de carga o el texto calculado
+                        isCalculating
+                            ? SizedBox(
+                                width: 15.0, // Ancho deseado
+                                height: 15.0, // Alto deseado
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFFFFF0C6), // Indicador de carga mientras se calcula
+                                  strokeWidth: 3.0, // Grosor del indicador
+                                ),
+                              )
+                            : Text(
+                                'Cantidad total de $unidadNombre: $tTrabajar , $unidadNombre trabajados: $tCantidadTrabajada.',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                            
-                            keyboardType: TextInputType.numberWithOptions(decimal: true), // Permitir decimales
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')), // Limita a dos decimales
-                            ],
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                obtenerTotalCantidadTrabajada();
-                                return 'La cantidad es requerida';
-                              }
-                              return null;
-                            },
-                          ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: 15),
 
-                          SizedBox(height: 5),
-
-                          // Texto siempre visible
-                          // Mostrar un indicador de carga o el texto calculado
-                      isCalculating
-                        ? SizedBox(
-                            width: 15.0, // Ancho deseado
-                            height: 15.0, // Alto deseado
-                            child: CircularProgressIndicator(
-                              color: Color(0xFFFFF0C6), // Indicador de carga mientras se calcula
-                              strokeWidth: 3.0, // Grosor del indicador
-                            ),
-                          )
-                        : Text(
-                            'Cantidad total de $unidadNombre: $tTrabajar , $unidadNombre trabajados: $tCantidadTrabajada.',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    SizedBox(height: 10),
                     ListTile(
                       title: Text(
                         selectedDate == null
@@ -395,10 +442,11 @@ Widget build(BuildContext context) {
                       Padding(
                         padding: const EdgeInsets.only(top: 5.0),
                         child: Text(
-                          'La fecha es requerida',
+                          'El campo es requerido.',
                           style: TextStyle(color: Colors.red, fontSize: 12),
                         ),
                       ),
+                    
                     SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -12,12 +12,12 @@ class ListarControlDeCalidadesPorActividadesViewModel {
   double? cocaCantidadtrabajada;
   String? cocaResultado;
   String? actiDescripcion;
-  int? acetCantidad;
+  double? acetCantidad;
   String? usuaCreacionNombre;
   String? usuaModificacionNombre;
+  double? cocaAprobado;
 
   ListarControlDeCalidadesPorActividadesViewModel({
-
     this.codigo,
     this.cocaId,
     required this.cocaDescripcion,
@@ -34,43 +34,35 @@ class ListarControlDeCalidadesPorActividadesViewModel {
     this.acetCantidad,
     this.usuaCreacionNombre,
     this.usuaModificacionNombre,
+    this.cocaAprobado,
   });
 
   factory ListarControlDeCalidadesPorActividadesViewModel.fromJson(Map<String, dynamic> json) {
-  return ListarControlDeCalidadesPorActividadesViewModel(
+    return ListarControlDeCalidadesPorActividadesViewModel(
+      codigo: json['codigo'],
+      cocaId: json['coca_Id'],
+      cocaDescripcion: json['coca_Descripcion'] ?? '',
+      cocaFecha: _parseDateTime(json['coca_Fecha']),
+      usuaCreacion: json['usua_Creacion'],
+      cocaFechaCreacion: _parseDateTime(json['coca_FechaCreacion']),
+      usuaModificacion: json['usua_Modificacion'],
+      cocaFechaModificacion: json['coca_FechaModificacion'] != null 
+          ? _parseDateTime(json['coca_FechaModificacion']) 
+          : null,
+      cocaEstado: json['coca_Estado'] == 1 ? true : (json['coca_Estado'] == 0 ? false : null),
+      acetId: json['acet_Id'],
+      cocaCantidadtrabajada: _parseDouble(json['coca_CantidadTrabajada']),
+      cocaResultado: json['coca_Resultado'] ?? '',
+      actiDescripcion: json['acti_Descripcion'] ?? '',
+      acetCantidad: _parseDouble(json['acet_Cantidad']),
+      usuaCreacionNombre: json['usuaCreacion'] ?? '',
+      usuaModificacionNombre: json['usuaModificacion'] ?? '',
+      cocaAprobado: _parseDouble(json['coca_Aprobado']),
+    );
+  }
 
-    codigo: json['codigo'],
-    cocaId: json['coca_Id'],
-    cocaDescripcion: json['coca_Descripcion'] ?? '',
-    cocaFecha: DateTime.parse(json['coca_Fecha']),
-    usuaCreacion: json['usua_Creacion'],
-    cocaFechaCreacion: DateTime.parse(json['coca_FechaCreacion']),
-    usuaModificacion: json['usua_Modificacion'],
-    cocaFechaModificacion: json['coca_FechaModificacion'] != null 
-        ? DateTime.parse(json['coca_FechaModificacion']) 
-        : null,
-    
-    // Manejo de cocaEstado para convertir 1/0/null a true/false
-    cocaEstado: json['coca_Estado'] == 1 ? true : (json['coca_Estado'] == 0 ? false : null),
-    
-    acetId: json['acet_Id'],
-    cocaCantidadtrabajada: json['coca_CantidadTrabajada'] != null 
-        ? json['coca_CantidadTrabajada'].toDouble() 
-        : null,
-    
-    // Manejo de posibles nulls para Strings
-    cocaResultado: json['coca_Resultado'] ?? '',
-    actiDescripcion: json['acti_Descripcion'] ?? '',
-    acetCantidad: json['acet_Cantidad'],
-    usuaCreacionNombre: json['usuaCreacion'] ?? '',
-    usuaModificacionNombre: json['usuaModificacion'] ?? '',
-  );
-}
-
-
-  Map<String, dynamic> toJson() {
+Map<String, dynamic> toJson() {
   return {
-
     'codigo': codigo,
     'coca_Id': cocaId,
     'coca_Descripcion': (cocaDescripcion != null && cocaDescripcion!.isNotEmpty) ? cocaDescripcion : null,
@@ -79,23 +71,48 @@ class ListarControlDeCalidadesPorActividadesViewModel {
     'coca_FechaCreacion': cocaFechaCreacion?.toIso8601String(), // Usa el operador null-aware ?. para manejar posibles null
     'usua_Modificacion': usuaModificacion,
     'coca_FechaModificacion': cocaFechaModificacion?.toIso8601String(), // Usa el operador null-aware ?. para manejar posibles null
-    
-    // Conversión de true/false a 1/0
     'coca_Estado': cocaEstado == true ? 1 : (cocaEstado == false ? 0 : null),
-    
     'acet_Id': acetId,
     'coca_CantidadTrabajada': cocaCantidadtrabajada,
-    
-    // Manejo de posibles nulls para Strings
     'coca_Resultado': (cocaResultado != null && cocaResultado!.isNotEmpty) ? cocaResultado : null,
     'acti_Descripcion': (actiDescripcion != null && actiDescripcion!.isNotEmpty) ? actiDescripcion : null,
     'acet_Cantidad': acetCantidad,
     'usuaCreacion': (usuaCreacionNombre != null && usuaCreacionNombre!.isNotEmpty) ? usuaCreacionNombre : null,
     'usuaModificacion': (usuaModificacionNombre != null && usuaModificacionNombre!.isNotEmpty) ? usuaModificacionNombre : null,
+    'coca_Aprobado': cocaAprobado,
   };
 }
 
+  // Helper methods for parsing
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        print("Error parsing DateTime: $e, value: $value");
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value is int) {
+      return value.toDouble();
+    } else if (value is double) {
+      return value;
+    } else if (value != null) {
+      try {
+        return double.parse(value.toString());
+      } catch (e) {
+        print("Error parsing double: $e, value: $value");
+        return null;
+      }
+    }
+    return null;
+  }
 }
+
 
 
 class ControlDeCalidadesPorActividadesViewModel {

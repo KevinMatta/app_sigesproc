@@ -22,6 +22,7 @@ class ProyectoViewModel {
   String? ciudDescripcion;
   String? clieNombreCompleto;
   String? esprDescripcion;
+  String? proyProgreso;
 
   ProyectoViewModel({
     required this.proyId,
@@ -47,6 +48,7 @@ class ProyectoViewModel {
     this.ciudDescripcion,
     this.clieNombreCompleto,
     this.esprDescripcion,
+    this.proyProgreso,
   });
 
   factory ProyectoViewModel.fromJson(Map<String, dynamic> json) {
@@ -82,6 +84,8 @@ class ProyectoViewModel {
       ciudDescripcion: json['ciud_Descripcion'],
       clieNombreCompleto: json['clie_NombreCompleto'],
       esprDescripcion: json['espr_Descripcion'],
+      proyProgreso: json['proy_Progreso'],
+
     );
   }
 
@@ -110,6 +114,8 @@ class ProyectoViewModel {
       'ciud_Descripcion': ciudDescripcion,
       'clie_NombreCompleto': clieNombreCompleto,
       'espr_Descripcion': esprDescripcion,
+      'proy_Progreso': proyProgreso,
+
     };
   }
 }
