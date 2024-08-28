@@ -53,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
- 
+  // Aquí es donde realizamos el cambio
   void _showOverlayMessage(String message, bool success) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -87,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       labelText: 'Contraseña actual',
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       errorText: _passwordSubmitted && _currentPasswordController.text.isEmpty
-                          ? 'El campo es requerido'
+                          ? 'El campo es requerido.'
                           : null,
                     ),
                   ),
@@ -99,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       labelText: 'Nueva contraseña',
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       errorText: _passwordSubmitted && _newPasswordController.text.isEmpty
-                          ? 'El campo es requerido'
+                          ? 'El campo es requerido.'
                           : null,
                     ),
                     onChanged: (value) {
@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       errorText: _passwordSubmitted && (_confirmPasswordController.text.isEmpty || _machclave)
                           ? _confirmPasswordController.text.isEmpty
-                              ? 'El campo es requerido'
+                              ? 'El campo es requerido.'
                               : 'Las contraseñas deben coincidir'
                           : null,
                     ),
@@ -154,10 +154,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     
                     if (result != null && result == 1) {
-                      _showOverlayMessage('Actualizacion exitosa', true);
+                      _showOverlayMessage('Actualizado con Éxito.', true);
                       Navigator.of(context).pop();
                     } else {
-                      _showOverlayMessage('contraseña actual invalida', false);
+                      _showOverlayMessage('Contraseña actual invalida.', false);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -198,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     if (_emailController.text.isEmpty) {
-      _showOverlayMessage('El campo de correo es requerido', false);
+      _showOverlayMessage('El campo es requerido.', false);
       return;
     }
 
@@ -207,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFF171717),
-          title: Text('Confirmar', style: TextStyle(color: Colors.white)),
+          title: Text('Confirmación', style: TextStyle(color: Colors.white)),
           content: Text('¿Estás seguro de que quieres cambiar tu correo electrónico?', style: TextStyle(color: Colors.white)),
           actions: [
             ElevatedButton(
@@ -215,13 +215,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 int? result = await UsuarioService.Restablecercorreo(userId, _emailController.text);
 
                 if (result != null && result == 1) {
-                  _showOverlayMessage('Actualizacion exitosa', true);
+                  _showOverlayMessage('Actualizado con Éxito.', true);
                   setState(() {
                     _correo = _emailController.text;
                     _isEditingEmail = false;
                   });
                 } else {
-                  _showOverlayMessage('Actualizacion Fallida', false);
+                  _showOverlayMessage('Actualizacion Fallida.', false);
                 }
 
                 Navigator.of(context).pop();
@@ -231,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 textStyle: TextStyle(fontSize: 14), 
                 padding: EdgeInsets.symmetric(horizontal: 20),
               ),
-              child: Text('Confirmar', style: TextStyle(color: Colors.black)),
+              child: Text('Aceptar', style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -345,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: _isEditingEmail ? 2.0 : 1.0,
                         ),
                       ),
-                      errorText: _emailSubmitted && _emailController.text.isEmpty ? 'El campo es requerido' : null,
+                      errorText: _emailSubmitted && _emailController.text.isEmpty ? 'El campo es requerido.' : null,
                     ),
                     onSubmitted: (value) {
                       _confirmEmailChange();

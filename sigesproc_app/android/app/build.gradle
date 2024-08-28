@@ -1,5 +1,8 @@
 plugins {
     id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    // END: FlutterFire Configuration
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -34,7 +37,7 @@ android {
 
     defaultConfig {
         applicationId = "com.sigesproc.app"
-        minSdk = flutter.minSdkVersion
+        minSdk 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
@@ -46,14 +49,13 @@ android {
         }
     }
 
-    // Bloque para modificar google-services.json usando una plantilla
     applicationVariants.all { variant ->
         def buildTypeName = variant.buildType.name
         def flavorName = variant.productFlavors.collect { it.name }.join('')
         def variantName = flavorName + buildTypeName.capitalize()
 
-        variant.outputs.all {
-            def outputDir = output.outputDirectory.get()
+        variant.outputs.all { output ->
+            def outputDir = output.outputFile.parent
             def googleServicesTemplate = file("src/${variantName}/google-services-template.json")
             def googleServicesFile = file("${outputDir}/google-services.json")
 

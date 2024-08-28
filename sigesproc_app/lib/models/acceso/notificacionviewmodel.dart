@@ -12,6 +12,7 @@ class NotificationViewModel {
   String? descripcion;
   String? fecha;
   String? leida;
+  String? token;
 
   NotificationViewModel({
     this.notiId,
@@ -27,6 +28,7 @@ class NotificationViewModel {
     this.descripcion,
     this.fecha,
     this.leida,
+    this.token,
   });
 
   factory NotificationViewModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,11 @@ class NotificationViewModel {
       descripcion: json['descripcion'],
       fecha: json['fecha'],
       leida: json['leida'],
+    token: json['tokn_JsonToken'],
+
     );
   }
+
+
+  
 }
