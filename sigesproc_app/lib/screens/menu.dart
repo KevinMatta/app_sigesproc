@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:sigesproc_app/auth/login.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/screens/insumos/cotizaciones.dart';
-import 'package:sigesproc_app/screens/viaticos/viaticos.dart';
+import 'package:sigesproc_app/screens/viaticos/viaticos.dart'; // Importa la pantalla de viáticos
 import 'inicio.dart';
 import 'proyectos/proyecto.dart';
 import 'fletes/flete.dart';
-
 
 class MenuLateral extends StatelessWidget {
   final int selectedIndex;
@@ -76,7 +75,7 @@ class MenuLateral extends StatelessWidget {
         break;
       case 5:
         icon = Icons.attach_money;
-        text = 'Viáticos';
+        text = 'Viáticos'; // Texto para Viáticos
         break;
       default:
         icon = Icons.error;
@@ -155,6 +154,12 @@ class MenuLateral extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => ProcesoVenta()),
+        );
+        break;
+      case 5:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Viatico()), // Redirección a Viáticos
         );
         break;
       default:
