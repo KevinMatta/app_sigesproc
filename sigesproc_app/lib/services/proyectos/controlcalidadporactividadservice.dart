@@ -172,4 +172,34 @@ class ControlDeCalidadesPorActividadesService {
     }
   }
 
+
+    static Future<List<ListarControlDeCalidadesPorActividadesViewModel>> listarControlCalidadPorActividad(int acetId) async {
+    final url = Uri.parse('${ApiService.apiUrl}/ControlDeCalidad/Listar');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => ListarControlDeCalidadesPorActividadesViewModel.fromJson(json))
+          .where((item) => item.acetId == acetId)
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+
+  // Método para aprobar un control de calidad
+  static Future<void> aprobarControlDeCalidad(int cocaId) async {
+    final url = Uri.parse('${ApiService.apiUrl}/ControlDeCalidad/Aprobar?id=$cocaId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      print('Control de calidad aprobado correctamente.');
+    } else {
+      throw Exception('Error al aprobar el control de calidad: ${response.statusCode}');
+    }
+  }
+
+
 }

@@ -139,7 +139,7 @@ void _proyectoFiltrado() {
       : '${myString.substring(0, cutoff)}...';
 }
 
-void _showProjectDetails(ProyectoViewModel proyecto) {
+void _showProjectDetails(ProyectoViewModel proyecto) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -262,120 +262,47 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
                 'Estado: ${proyecto.proyEstado == true ? "En Ejecución" : "Finalizado"}',
                 style: TextStyle(color: Color(0xFFF4EAD5)),
               ),
-              // SizedBox(height: 10),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.start,
-              //   children: [
-              //     Text(
-              //       'Progreso:',
-              //       style: TextStyle(color: Colors.white),
-              //     ),
-              //     SizedBox(width: 10),
-              //     Expanded(
-              //       child: Stack(
-              //         children: [
-              //           Container(
-              //             height: 20,
-              //             decoration: BoxDecoration(
-              //               color: Colors.grey[300],
-              //               borderRadius: BorderRadius.circular(10),
-              //             ),
-              //             child: ClipRRect(
-              //               borderRadius: BorderRadius.circular(10),
-              //               child: LinearProgressIndicator(
-              //                 value: 0.5, // Simulación del progreso
-              //                 backgroundColor: Colors.grey,
-              //                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4EAD5)),
-              //                 minHeight: 20,
-              //               ),
-              //             ),
-              //           ),
-              //           Center(
-              //             child: Text(
-              //               '50%', // porcentaje
-              //               style: TextStyle(color: Colors.black),
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  color: Color.fromARGB(128, 38, 38, 38),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                padding: EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 5,
-                      height: 40,
-                      color: Colors.green,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Notificación',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Progreso:',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              // Conversión del progreso desde String a double y luego reducido a 2 decimales
+                              value: (double.tryParse(proyecto.proyProgreso ?? '0')?.clamp(0.0, 100.0) ?? 0.0) / 100,
+                              backgroundColor: Colors.grey,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4EAD5)),
+                              minHeight: 20,
                             ),
                           ),
-                          Text(
-                            'Ha iniciado el Proyecto',
-                            style: TextStyle(color: Colors.white),
+                        ),
+                        Center(
+                          child: Text(
+                            '${double.tryParse(proyecto.proyProgreso ?? '0')?.toStringAsFixed(2) ?? "0.00"}%', // Redondeado a 2 decimales
+                            style: TextStyle(color: Colors.black),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    Icon(Icons.notifications_none_outlined, color: Color(0xFFFFF0C6), size: 20),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  color: Color.fromARGB(128, 38, 38, 38),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                padding: EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 5,
-                      height: 40,
-                      color: Colors.red,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Alerta',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'No están los materiales en la obra',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.notifications_none_outlined, color: Color(0xFFFFF0C6), size: 20),
-                  ],
-                ),
-              ),
-
+              SizedBox(height: 10),              
             ],
           ),
         ),
@@ -385,7 +312,79 @@ void _showProjectDetails(ProyectoViewModel proyecto) {
 }
 
 
-
+// Container(
+              //   decoration: BoxDecoration(
+              //     color: Color.fromARGB(128, 38, 38, 38),
+              //     borderRadius: BorderRadius.circular(5),
+              //   ),
+              //   padding: EdgeInsets.all(8.0),
+              //   child: Row(
+              //     children: [
+              //       Container(
+              //         width: 5,
+              //         height: 40,
+              //         color: Colors.green,
+              //       ),
+              //       SizedBox(width: 10),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               'Notificación',
+              //               style: TextStyle(
+              //                 color: Colors.white,
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //             Text(
+              //               'Ha iniciado el Proyecto',
+              //               style: TextStyle(color: Colors.white),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //       Icon(Icons.notifications_none_outlined, color: Color(0xFFFFF0C6), size: 20),
+              //     ],
+              //   ),
+              // ),
+              // SizedBox(height: 10),
+              // Container(
+              //   decoration: BoxDecoration(
+              //     color: Color.fromARGB(128, 38, 38, 38),
+              //     borderRadius: BorderRadius.circular(5),
+              //   ),
+              //   padding: EdgeInsets.all(8.0),
+              //   child: Row(
+              //     children: [
+              //       Container(
+              //         width: 5,
+              //         height: 40,
+              //         color: Colors.red,
+              //       ),
+              //       SizedBox(width: 10),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               'Alerta',
+              //               style: TextStyle(
+              //                 color: Colors.white,
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //             Text(
+              //               'No están los materiales en la obra',
+              //               style: TextStyle(color: Colors.white),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //       Icon(Icons.notifications_none_outlined, color: Color(0xFFFFF0C6), size: 20),
+              //     ],
+              //   ),
+              // ),
 
 
   String _formatDate(DateTime? date) {
