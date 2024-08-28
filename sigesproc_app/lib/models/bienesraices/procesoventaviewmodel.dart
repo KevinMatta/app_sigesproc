@@ -1,5 +1,5 @@
 class ProcesoVentaViewModel {
-  String codigo;
+  String? codigo;
   int btrpId;
   int? imprId;
   String? imprImagen;
@@ -7,6 +7,7 @@ class ProcesoVentaViewModel {
   String? agenNombreCompleto;
   String? agenTelefono;
   String? agenDNI;
+  String? clieId;
   String? descripcion;
   String? area;
   bool? btrpIdentificador;
@@ -14,7 +15,7 @@ class ProcesoVentaViewModel {
   num? btrpPrecioVentaFinal;
   DateTime? btrpFechaPuestaVenta;
   DateTime? btrpFechaVendida;
-  bool btrpTerrenoOBienRaizId;
+  bool? btrpTerrenoOBienRaizId;
   int? btrpBienoterrenoId;
   int? agenId;
   int? usuaCreacion;
@@ -26,7 +27,7 @@ class ProcesoVentaViewModel {
   bool? btrpEstado;
 
   ProcesoVentaViewModel({
-    required this.codigo,
+    this.codigo,
     required this.btrpId,
     this.imprId,
     this.imprImagen,
@@ -34,6 +35,7 @@ class ProcesoVentaViewModel {
     this.agenNombreCompleto,
     this.agenTelefono,
     this.agenDNI,
+    this.clieId,
     this.descripcion,
     this.area,
     this.btrpIdentificador,
@@ -41,7 +43,7 @@ class ProcesoVentaViewModel {
     this.btrpPrecioVentaFinal,
     this.btrpFechaPuestaVenta,
     this.btrpFechaVendida,
-    required this.btrpTerrenoOBienRaizId,
+    this.btrpTerrenoOBienRaizId,
     this.btrpBienoterrenoId,
     this.agenId,
     this.usuaCreacion,
@@ -63,6 +65,7 @@ class ProcesoVentaViewModel {
       agenNombreCompleto: json['agen_NombreCompleto'],
       agenTelefono: json['agen_Telefono'],
       agenDNI: json['agen_DNI'],
+      clieId: json['clie_Id'],
       descripcion: json['descripcion'],
       area: json['area'],
       btrpIdentificador: json['btrp_Identificador'],
@@ -93,6 +96,7 @@ class ProcesoVentaViewModel {
       'agen_NombreCompleto': agenNombreCompleto,
       'agen_Telefono': agenTelefono,
       'agen_DNI': agenDNI,
+      'clie_Id': clieId,
       'descripcion': descripcion,
       'area': area,
       'btrp_Identificador': btrpIdentificador,
