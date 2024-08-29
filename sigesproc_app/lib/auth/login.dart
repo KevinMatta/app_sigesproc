@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:intl/intl.dart';
+
 import 'package:sigesproc_app/auth/reestablecer.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/inicio.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
-// import '../services/loginservice.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import '../services/loginservice.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -218,57 +221,66 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> _login() async {
-    // String usuario = usuariooController.text;
-    // String contra = contraController.text;
+    String usuario = usuariooController.text;
+    String contra = contraController.text;
 
-    // //Inicializar la session
-    // final SharedPreferences pref = await SharedPreferences.getInstance();
+    //Inicializar la session
+    final SharedPreferences pref = await SharedPreferences.getInstance();
 
-    // if (usuario.isEmpty && contra.isEmpty) {
-    //   setState(() {
-    //     usuariovacio = true;
-    //     contravacia = true;
-    //   });
-    //   return;
-    // }
+    if (usuario.isEmpty && contra.isEmpty) {
+      setState(() {
+        usuariovacio = true;
+        contravacia = true;
+      });
+      return;
+    }
 
-    // if (usuario.isEmpty) {
-    //   setState(() {
-    //     usuariovacio = true;
-    //     contravacia = false;
-    //   });
-    //   return;
-    // }
+    if (usuario.isEmpty) {
+      setState(() {
+        usuariovacio = true;
+        contravacia = false;
+      });
+      return;
+    }
 
-    // if (contra.isEmpty) {
-    //   setState(() {
-    //     contravacia = true;
-    //     usuariovacio = false;
-    //   });
-    //   return;
-    // }
+    if (contra.isEmpty) {
+      setState(() {
+        contravacia = true;
+        usuariovacio = false;
+      });
+      return;
+    }
 
-    // final LoginService loginService = LoginService();
-    // final response = await loginService.login(usuario, contra);
+  try {
+      final UsuarioViewModel? response = await LoginService.login(usuario, contra);
 
-    // if (response != null) {
-    //   await pref.setString('person', response['perso_Nombre']);
-    //   await pref.setString('IDRegistro', response['regi_Id'].toString());
-    //   await pref.setString('EsAdmin', response['usua_EsAdmin'].toString());
+      if (response != null) {
+        await pref.setString('person', response.nombreEmpleado ?? '');
+        await pref.setString('IDRegistro', response.usuaId?.toString() ?? '');
+        await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Inicio(),
-      ),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Inicio(),
+          ),
+        );
+      } else {
+        setState(() {
+          usuariooController.clear();
+          contraController.clear();
+          incorrectos = true;
+        });
+      }      
+        } catch (e) {
+    // Muestra el mensaje de error al usuario
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Usuario o Contraseña son Incorrectos."),
+               backgroundColor: Colors.red,),
     );
-    // } else {
-    //   setState(() {
-    //     usuariooController.clear();
-    //     contraController.clear();
-    //     incorrectos = true;
-    //   });
-    // }
+  }
+
+
   }
 
   Widget contratextb() {
