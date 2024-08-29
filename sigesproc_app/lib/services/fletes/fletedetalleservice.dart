@@ -65,7 +65,32 @@ class FleteDetalleService {
     }
   }
 
-  static Future<void> editarFleteDetalle(FleteDetalleViewModel detalle) async {
+  static Future<Map<String, dynamic>> insertarFleteDetalle2(FleteDetalleViewModel detalle) async {
+  final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Insertar');
+  final body = jsonEncode(detalle.toJson());
+  final headers = {
+    'Content-Type': 'application/json',
+    'XApiKey': ApiService.apiKey,
+  };
+
+  final response = await http.post(
+    url,
+    headers: headers,
+    body: body,
+  );
+
+  print(' body insertar fletedet2: ${response.body}');
+
+  if (response.statusCode != 200) {
+    throw Exception('Error al insertar el detalle del flete');
+  }
+
+  // Decodificar el body y devolverlo como Map
+  return jsonDecode(response.body) as Map<String, dynamic>;
+}
+
+  static Future<void> editarFleteDetalle(
+      FleteDetalleViewModel detalle) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Actualizar');
     final body = jsonEncode(detalle.toJson());
     final headers = {
@@ -79,6 +104,8 @@ class FleteDetalleService {
       body: body,
     );
 
+    print('Response body editar detalle: ${response.body}');
+
     if (response.statusCode != 200) {
       throw Exception('Error al editar el detalle del flete');
     }
@@ -88,8 +115,8 @@ class FleteDetalleService {
     final url =
         Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarDetalles/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    // print('Response status buscar: ${response.statusCode}');
-    // print('Response body buscar: ${response.body}');
+    print('Response status detalle: ${response.statusCode}');
+    print('Response body detalle: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);

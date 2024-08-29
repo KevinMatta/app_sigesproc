@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/proyectos/controlcalidadporactividadviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/imagenporcontrolcalidadviewmodel.dart';
@@ -33,6 +34,13 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
   int? idScope = 0;
   String? unidadNombre;
   String? actividad;
+  num? tCantidadTrabajada = 0;
+  num? tTrabajar = 0;
+  bool isCalculating = false;
+
+  bool descripcionVacia = false;
+  bool cantidadVacia = false;
+  bool fechaVacia = false;
 
 
   List<PlatformFile> _uploadedImages = []; // Lista para almacenar las imágenes subidas
@@ -49,12 +57,15 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
     }
   }
 
-    @override
+
+  @override
   void initState() {
     super.initState();
     // Asignar valor a unidadNombre en el initState
     unidadNombre = widget.unidadMedida ?? "";
     actividad = widget.actividadNombre ?? "";
+    isCalculating = true;
+    obtenerTotalCantidadTrabajada();
   }
 
   void _removeImage(int index) {
@@ -62,6 +73,53 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
       _uploadedImages.removeAt(index);
     });
   }
+
+
+  num totalCantidadTrabajada = 0;
+  num? totalTrabajar = 0;
+
+Future<void> obtenerTotalCantidadTrabajada() async {
+  try {
+    // Llama al servicio para listar los controles de calidad
+    final List<ListarControlDeCalidadesPorActividadesViewModel> controles = await ControlDeCalidadesPorActividadesService.listarControlCalidad();
+
+    // Filtra los controles de calidad que coincidan con acetId y suma cocaCantidadtrabajada
+    totalCantidadTrabajada = 0; // Reinicia la variable antes de sumar
+    for (var control in controles) {
+      if (control.acetId == widget.acetId) {
+        totalCantidadTrabajada += (control.cocaCantidadtrabajada ?? 0.0);
+
+        // Aquí forzamos la conversión de int a double si es necesario
+        try {
+          if (control.acetCantidad != null) {
+            if (control.acetCantidad is int) {
+              totalTrabajar = (control.acetCantidad as int).toDouble();
+            } else if (control.acetCantidad is double) {
+              totalTrabajar = control.acetCantidad;
+            } else {
+              throw Exception("Tipo inesperado para acetCantidad: ${control.acetCantidad.runtimeType}. Valor: ${control.acetCantidad}");
+            }
+          }
+        } catch (e) {
+          throw Exception("Error al convertir acetCantidad: ${control.acetCantidad.runtimeType} a double. Valor: ${control.acetCantidad}");
+        }
+      }
+    }
+    tCantidadTrabajada = totalCantidadTrabajada;
+    tTrabajar = totalTrabajar;
+    setState(() {
+      isCalculating = false; // Finaliza el cálculo
+    });
+  } catch (e, stackTrace) {
+    print("Error al obtener el total de cantidad trabajada: $e");
+    print("Stack trace: $stackTrace");
+  }
+}
+
+
+
+
+
 
   Future<void> procesarControlCalidadYSubirImagenes(
   ControlDeCalidadesPorActividadesViewModel controlDeCalidadesViewModel,
@@ -75,6 +133,9 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
     int? idScope = respuesta.data['codeStatus'];
 
     if (respuesta.success == true && idScope != null) {
+
+      if(uploadedImages.length > 0)
+      {
       // Subir las imágenes una por una
       for (var imagen in uploadedImages) {
         print('Subiendo imagen: ${imagen.name}');
@@ -99,40 +160,51 @@ class _ControlCalidadScreenState extends State<ControlCalidadScreen> {
                 final respuestaInsercion = await ControlDeCalidadesPorActividadesService.insertarImagenPorControlCalidad(imagenPorControlCalidad);
 
                 if (!respuestaInsercion.success!) {
-                  throw Exception('Error al insertar la imagen por control de calidad en la base de datos');
+                  throw Exception('Error al insertar la imagen por control de calidad en la base de datos.');
                 }
 
               } else {
-                throw Exception('Error al obtener la URL de la imagen subida');
+                throw Exception('Error al obtener la URL de la imagen subida.');
               }
             } else {
-              throw Exception('Error al subir la imagen al servidor');
+              throw Exception('Error al subir la imagen al servidor.');
             }
         } catch (e) {
-          print('Error al procesar la imagen: $e');
+          print('Error al procesar la imagen: $e.');
           // Lanzar una excepción específica si falla la inserción en la tabla de imágenes
-          throw Exception("Error al subir o insertar la imagen: ${imagen.name} debido a: $e");
+          throw Exception("Error al subir o insertar la imagen: ${imagen.name} debido a: $e.");
         }
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Guardado con éxito"),
+        content: Text("Insertado con Éxito."),
         backgroundColor: Colors.green,
       ));
       Navigator.of(context).pop();
+      } else {
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Insertado con Éxito"),
+        backgroundColor: Colors.green,
+      ));
+      Navigator.of(context).pop();
+
+      }
     } else {
+          obtenerTotalCantidadTrabajada();
+          double? n = idScope!.abs().toDouble();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("La cantidad del control de calidad de excede por $idScope"),
+          content: Text("La cantidad del control de calidad se excede por: $n."),
           backgroundColor: Colors.red,
         ));
-      throw Exception("Error al guardar el control de calidad.");
+      // throw Exception("Error al guardar el control de calidad.");
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Error: $e"),
+      content: Text("Error: $e."),
       backgroundColor: Colors.red,
     ));
-    print("Error al guardar el control de calidad o subir imágenes: $e");
+    print("Error al guardar el control de calidad o subir imágenes: $e.");
   }
 }
 
@@ -175,7 +247,7 @@ Widget build(BuildContext context) {
               color: Color(0xFFFFF0C6),
             ),SizedBox(height: 5),
               Text(
-                'Control de Calidad:',
+                'Nuevo Control de Calidad:',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 16,
@@ -215,9 +287,20 @@ Widget build(BuildContext context) {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 10),
-                    Text(
-                      'Ingresar la descripción:',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+
+                    // Label con asterisco condicional para Descripción
+                    Row(
+                      children: [
+                        Text(
+                          'Ingresar la descripción',
+                          style: TextStyle(color: Color(0xFFFFF0C6)),
+                        ),
+                        if (descripcionVacia)
+                          Text(
+                            ' *',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 5),
                     TextFormField(
@@ -234,40 +317,91 @@ Widget build(BuildContext context) {
                         ),
                       ),
                       validator: (value) {
+                        setState(() {}); // Para actualizar el estado y mostrar/ocultar el asterisco
                         if (value == null || value.isEmpty) {
-                          return 'La descripción es requerida';
+                          descripcionVacia = true;
+                          return 'El campo es requerido.';
                         }
+                        descripcionVacia = false;
                         return null;
                       },
                     ),
+
                     SizedBox(height: 10),
-                    Text(
-                      'Ingresar la cantidad de $unidadNombre:',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+
+                    // Label con asterisco condicional para Cantidad
+                    Row(
+                      children: [
+                        Text(
+                          'Ingresar la cantidad de $unidadNombre',
+                          style: TextStyle(color: Color(0xFFFFF0C6)),
+                        ),
+                        if (cantidadVacia)
+                          Text(
+                            ' *',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 5),
-                    TextFormField(
-                      controller: cantidadController,
-                      style: TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Cantidad',
-                        hintStyle: TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: Color(0xFF222222),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide.none,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Caja de texto
+                        TextFormField(
+                          controller: cantidadController,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Cantidad',
+                            hintStyle: TextStyle(color: Colors.white54),
+                            filled: true,
+                            fillColor: Color(0xFF222222),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')), // Limita a dos decimales
+                          ],
+                          validator: (value) {
+                            setState(() {}); // Para actualizar el estado y mostrar/ocultar el asterisco
+                            if (value == null || value.isEmpty) {
+                              cantidadVacia = true;
+                              obtenerTotalCantidadTrabajada();
+                              return 'El campo es requerido.';
+                            }
+                            cantidadVacia = false;
+                            return null;
+                          },
                         ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La cantidad es requerida';
-                        }
-                        return null;
-                      },
+
+                        SizedBox(height: 5),
+
+                        // Texto siempre visible
+                        // Mostrar un indicador de carga o el texto calculado
+                        isCalculating
+                            ? SizedBox(
+                                width: 15.0, // Ancho deseado
+                                height: 15.0, // Alto deseado
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFFFFF0C6), // Indicador de carga mientras se calcula
+                                  strokeWidth: 3.0, // Grosor del indicador
+                                ),
+                              )
+                            : Text(
+                                'Cantidad total de $unidadNombre: $tTrabajar , $unidadNombre trabajados: $tCantidadTrabajada.',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                      ],
                     ),
-                    SizedBox(height: 10),
+                    
+                    SizedBox(height: 15),
+
                     ListTile(
                       title: Text(
                         selectedDate == null
@@ -308,10 +442,11 @@ Widget build(BuildContext context) {
                       Padding(
                         padding: const EdgeInsets.only(top: 5.0),
                         child: Text(
-                          'La fecha es requerida',
+                          'El campo es requerido.',
                           style: TextStyle(color: Colors.red, fontSize: 12),
                         ),
                       ),
+                    
                     SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -319,14 +454,14 @@ Widget build(BuildContext context) {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFFFF0C6),
-                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           onPressed: _selectImages,
                           child: Text(
-                            'Subir Imagen',
+                            'Subir Imágenes',
                             style: TextStyle(color: Colors.black),
                           ),
                         ),
@@ -385,7 +520,7 @@ Widget build(BuildContext context) {
                               ),
                             ],
                           );
-                        }).toList(),
+                       }).toList(),
                       ),
                     SizedBox(height: 20),
                   ],
@@ -394,89 +529,75 @@ Widget build(BuildContext context) {
             ),
           ),
           SizedBox(height: 20),
+
+          // Botones de Guardar y Cancelar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+                           ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFFF0C6),
+                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    if (selectedDate == null) {
+                      setState(() {
+                        showFechaError = true;
+                      });
+                      return;
+                    }
+
+                    final controlDeCalidadesViewModel = ControlDeCalidadesPorActividadesViewModel(
+                      cocaDescripcion: descripcionController.text,
+                      cocaFecha: selectedDate!,
+                      usuaCreacion: 3,  // Usuario predeterminado
+                      cocaCantidadtrabajada: double.tryParse(cantidadController.text) ?? 0.0,
+                      acetId: widget.acetId,
+                    );
+
+                    try {
+                      await procesarControlCalidadYSubirImagenes(controlDeCalidadesViewModel, _uploadedImages);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Error: $e"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: Text(
+                  'Guardar',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              SizedBox(width: 20),              
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF222222),
+                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ), 
+            ],
+          ),
+          SizedBox(height: 20),
         ],
       ),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,  // Ubicación del SpeedDial en la parte inferior derecha
-    floatingActionButton: SpeedDial(
-      icon: Icons.arrow_downward,  // Icono inicial cuando está cerrado
-      activeIcon: Icons.close,  // Icono cuando está abierto
-      backgroundColor: Color(0xFF171717),  // Color de fondo del botón principal
-      foregroundColor: Color(0xFFFFF0C6),  // Color del icono principal
-      buttonSize: Size(56.0, 56.0),  // Tamaño del botón principal
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),  // Bordes redondeados para el botón principal
-      ),
-      childrenButtonSize: Size(56.0, 56.0),  // Tamaño de los botones secundarios
-      spaceBetweenChildren: 10.0,  // Espacio entre los botones secundarios
-      overlayColor: Colors.transparent,  // Color de la superposición cuando se abre el menú
-      children: [       
-        SpeedDialChild(
-          child: Icon(Icons.close),
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          labelBackgroundColor: Color(0xFFFFF0C6),
-          labelStyle: TextStyle(color: Color(0xFF171717)),
-          onTap: () {
-            Navigator.pop(context);
-          },
-        ),
-        SpeedDialChild(
-          child: Icon(Icons.arrow_back),  // Botón sin acción definida aún
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          labelBackgroundColor: Color(0xFFFFF0C6),
-          labelStyle: TextStyle(color: Color(0xFF171717)),
-          onTap: () {
-            // Acción sin definir
-          },
-        ),
-         SpeedDialChild(
-          child: Icon(Icons.add),
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          labelBackgroundColor: Color(0xFFFFF0C6),
-          labelStyle: TextStyle(color: Color(0xFF171717)),
-          onTap: () async {
-            if (_formKey.currentState!.validate()) {
-              if (selectedDate == null) {
-                setState(() {
-                  showFechaError = true;
-                });
-                return;
-              }
-
-              final controlDeCalidadesViewModel = ControlDeCalidadesPorActividadesViewModel(
-                cocaDescripcion: descripcionController.text,
-                cocaFecha: selectedDate!,
-                usuaCreacion: 3,  // Usuario predeterminado
-                cocaCantidadtrabajada: double.tryParse(cantidadController.text) ?? 0.0,
-                acetId: widget.acetId,
-              );
-
-              try {
-                await procesarControlCalidadYSubirImagenes(controlDeCalidadesViewModel, _uploadedImages);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Error: $e"),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }
-          },
-        ),
-      ],
     ),
   );
 }

@@ -16,6 +16,7 @@ class EquipoPorProveedorViewModel {
   int? bopiStock;
   String? usuaCreacionNombre;
   String? usuaModificacionNombre;
+  num? cantidadRecibida;
 
   EquipoPorProveedorViewModel({
     this.eqppId,
@@ -35,6 +36,7 @@ class EquipoPorProveedorViewModel {
     this.bopiStock,
     this.usuaCreacionNombre,
     this.usuaModificacionNombre,
+    this.cantidadRecibida,
   });
 
   factory EquipoPorProveedorViewModel.fromJson(Map<String, dynamic> json) {
@@ -83,5 +85,10 @@ class EquipoPorProveedorViewModel {
       'usuaCreacion': usuaCreacionNombre,
       'usuaModificacion': usuaModificacionNombre,
     };
+  }
+
+  @override
+  String toString() {
+    return 'equipoporprov(id: $eqppId, equs $equsId, usuacrea $usuaCreacion, nombre: $equsNombre, desc: $equsDescripcion, bodeid: $bodeId, equsdescripcion $equsDescripcion, bodedes: $bodeDescripcion, fechachreacion $equsFechaCreacion';
   }
 }

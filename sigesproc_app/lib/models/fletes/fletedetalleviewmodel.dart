@@ -2,6 +2,7 @@ class FleteDetalleViewModel {
   int? codigo;
   int? fldeId;
   int? fldeCantidad;
+  int? cantidadRecibida;
   bool? fldeTipodeCarga;
   int? flenId;
   int? usuaCreacion;
@@ -14,6 +15,8 @@ class FleteDetalleViewModel {
   int? inppId;
   String? provDescripcion;
   String? insuDescripcion;
+  String? equsNombre;
+  String? equsDescripcion;
   String? usuaCreacionNombre;
   String? usuaModificacionNombre;
   int? insuId;
@@ -30,6 +33,7 @@ class FleteDetalleViewModel {
     this.codigo,
     this.fldeId,
     this.fldeCantidad,
+    this.cantidadRecibida,
     this.fldeTipodeCarga,
     this.flenId,
     this.usuaCreacion,
@@ -42,6 +46,8 @@ class FleteDetalleViewModel {
     this.inppId,
     this.provDescripcion,
     this.insuDescripcion,
+    this.equsNombre,
+    this.equsDescripcion,
     this.usuaCreacionNombre,
     this.usuaModificacionNombre,
     this.insuId,
@@ -72,6 +78,8 @@ class FleteDetalleViewModel {
       inppId: json['inpp_Id'],
       provDescripcion: json['prov_Descripcion'],
       insuDescripcion: json['insu_Descripcion'],
+      equsNombre: json['equs_Nombre'],
+      equsDescripcion: json['equs_Descripcion'],
       usuaCreacionNombre: json['usuaCreacion'],
       usuaModificacionNombre: json['usuaModificacion'],
       insuId: json['insu_Id'],
@@ -132,6 +140,12 @@ class FleteDetalleViewModel {
     if (insuDescripcion != null) {
       data['insu_Descripcion'] = insuDescripcion;
     }
+    if (equsNombre != null) {
+      data['equs_Nombre'] = equsNombre;
+    }
+    if (equsDescripcion != null) {
+      data['equs_Descripcion'] = equsDescripcion;
+    }
     if (usuaCreacionNombre != null) {
       data['usuaCreacion'] = usuaCreacionNombre;
     }
@@ -170,6 +184,6 @@ class FleteDetalleViewModel {
 
    @override
   String toString() {
-    return 'FleteDetalleViewModel(flenId: $flenId, fldeId $fldeId cantidad: $fldeCantidad, insudescripcion: $insuDescripcion, fldeLlegada: $fldeLlegada, fldeTipodeCarga: $fldeTipodeCarga';
+    return 'FleteDetalleViewModel(flenId: $flenId, fldeId $fldeId, inpp $inppId, cantidad: $fldeCantidad, insudescripcion: $insuDescripcion, equsnombre: $equsNombre, equsdescripcion $equsDescripcion, fldeLlegada: $fldeLlegada, fldeTipodeCarga: $fldeTipodeCarga, usuacreacion $usuaCreacion, fechachreacion $fldeFechaCreacion';
   }
 }

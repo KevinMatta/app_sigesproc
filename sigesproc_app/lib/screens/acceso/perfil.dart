@@ -53,7 +53,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Aquí es donde realizamos el cambio
   void _showOverlayMessage(String message, bool success) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -33,15 +33,16 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     
     context.read<NotificationsBloc>().requestPermision();
     
-    // Posponer la impresión del token por un breve momento para asegurarnos de que esté disponible.
     Future.delayed(Duration(seconds: 1), () {
       print('Token después de solicitar permisos: ' + prefs.token);
+      
     });
+
   }
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId); // Utiliza userId
+      final notifications = await NotificationServices.BuscarNotificacion(userId); 
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -130,7 +131,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   builder: (context) => NotificacionesScreen(),
                 ),
               );
-              _loadNotifications();  // Recarga las notificaciones cuando regresas
+              _loadNotifications();  
             },
           ),
           IconButton(

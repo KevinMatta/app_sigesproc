@@ -4,10 +4,12 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
+import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 
 class ProcesoVenta extends StatefulWidget {
   @override
@@ -19,7 +21,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   Future<List<ProcesoVentaViewModel>>? _procesosventaFuture;
   TextEditingController _searchController = TextEditingController();
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
-  List<ProcesoVentaViewModel>? _selectedVenta;
+  List<ProcesoVentaViewModel>? _selectedVenta; 
   bool _valorFueEditado = false;
   bool _fechaFueEditada = false;
 
@@ -188,152 +190,152 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     }
   }
 
-  void _modalVender(BuildContext context, ProcesoVentaViewModel venta) {
-    TextEditingController valorController = TextEditingController();
-    TextEditingController fechaController = TextEditingController();
+  // void _modalVender(BuildContext context, ProcesoVentaViewModel venta) {
+  //   TextEditingController valorController = TextEditingController();
+  //   TextEditingController fechaController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Propiedad en venta',
-                  style: TextStyle(color: Colors.white)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: valorController,
-                    decoration: InputDecoration(
-                      hintText: 'Valor de venta',
-                      hintStyle: TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.white24,
-                      errorText: _valorFueEditado &&
-                              _isValorInvalido(valorController.text)
-                          ? 'Ingrese un valor válido'
-                          : null,
-                    ),
-                    style: TextStyle(color: Colors.white),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter
-                          .digitsOnly, // Permitir solo dígitos
-                    ],
-                    onChanged: (text) {
-                      setState(() {
-                        _valorFueEditado = true;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: fechaController,
-                    decoration: InputDecoration(
-                      hintText: 'Fecha de venta',
-                      hintStyle: TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.white24,
-                      suffixIcon:
-                          Icon(Icons.calendar_today, color: Colors.white54),
-                      errorText: _fechaFueEditada &&
-                              _isFechaInvalida(fechaController.text)
-                          ? 'Ingrese una fecha válida'
-                          : null,
-                    ),
-                    style: TextStyle(color: Colors.white),
-                    keyboardType: TextInputType.datetime,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                        builder: (BuildContext context, Widget? child) {
-                          return Theme(
-                            data: darkTheme,
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (pickedDate != null) {
-                        fechaController.text =
-                            DateFormat('dd/MM/yyyy').format(pickedDate);
-                        setState(() {
-                          _fechaFueEditada = true;
-                        });
-                      }
-                    },
-                    onChanged: (text) {
-                      setState(() {
-                        _fechaFueEditada = true;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              backgroundColor: Color(0xFF171717),
-              actions: [
-                TextButton(
-                  child: Text('Guardar',
-                      style: TextStyle(color: Color(0xFFFFF0C6))),
-                  onPressed: () async {
-                    setState(() {
-                      _valorFueEditado = true;
-                      _fechaFueEditada = true;
-                    });
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return StatefulBuilder(
+  //         builder: (context, setState) {
+  //           return AlertDialog(
+  //             title: Text('Propiedad en venta',
+  //                 style: TextStyle(color: Colors.white)),
+  //             content: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 TextField(
+  //                   controller: valorController,
+  //                   decoration: InputDecoration(
+  //                     hintText: 'Valor de venta',
+  //                     hintStyle: TextStyle(color: Colors.white54),
+  //                     filled: true,
+  //                     fillColor: Colors.white24,
+  //                     errorText: _valorFueEditado &&
+  //                             _isValorInvalido(valorController.text)
+  //                         ? 'Ingrese un valor válido'
+  //                         : null,
+  //                   ),
+  //                   style: TextStyle(color: Colors.white),
+  //                   keyboardType: TextInputType.number,
+  //                   inputFormatters: [
+  //                     FilteringTextInputFormatter
+  //                         .digitsOnly, // Permitir solo dígitos
+  //                   ],
+  //                   onChanged: (text) {
+  //                     setState(() {
+  //                       _valorFueEditado = true;
+  //                     });
+  //                   },
+  //                 ),
+  //                 SizedBox(height: 10),
+  //                 TextField(
+  //                   controller: fechaController,
+  //                   decoration: InputDecoration(
+  //                     hintText: 'Fecha de venta',
+  //                     hintStyle: TextStyle(color: Colors.white54),
+  //                     filled: true,
+  //                     fillColor: Colors.white24,
+  //                     suffixIcon:
+  //                         Icon(Icons.calendar_today, color: Colors.white54),
+  //                     errorText: _fechaFueEditada &&
+  //                             _isFechaInvalida(fechaController.text)
+  //                         ? 'Ingrese una fecha válida'
+  //                         : null,
+  //                   ),
+  //                   style: TextStyle(color: Colors.white),
+  //                   keyboardType: TextInputType.datetime,
+  //                   onTap: () async {
+  //                     DateTime? pickedDate = await showDatePicker(
+  //                       context: context,
+  //                       initialDate: DateTime.now(),
+  //                       firstDate: DateTime(2000),
+  //                       lastDate: DateTime(2101),
+  //                       builder: (BuildContext context, Widget? child) {
+  //                         return Theme(
+  //                           data: darkTheme,
+  //                           child: child!,
+  //                         );
+  //                       },
+  //                     );
+  //                     if (pickedDate != null) {
+  //                       fechaController.text =
+  //                           DateFormat('dd/MM/yyyy').format(pickedDate);
+  //                       setState(() {
+  //                         _fechaFueEditada = true;
+  //                       });
+  //                     }
+  //                   },
+  //                   onChanged: (text) {
+  //                     setState(() {
+  //                       _fechaFueEditada = true;
+  //                     });
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //             backgroundColor: Color(0xFF171717),
+  //             actions: [
+  //               TextButton(
+  //                 child: Text('Guardar',
+  //                     style: TextStyle(color: Color(0xFFFFF0C6))),
+  //                 onPressed: () async {
+  //                   setState(() {
+  //                     _valorFueEditado = true;
+  //                     _fechaFueEditada = true;
+  //                   });
 
-                    if (_isValorInvalido(valorController.text) ||
-                        _isFechaInvalida(fechaController.text)) {
-                      return; // Mostrar errores si hay
-                    }
+  //                   if (_isValorInvalido(valorController.text) ||
+  //                       _isFechaInvalida(fechaController.text)) {
+  //                     return; // Mostrar errores si hay
+  //                   }
 
-                    try {
-                      venta.btrpPrecioVentaFinal =
-                          double.parse(valorController.text);
-                      venta.btrpFechaVendida =
-                          DateFormat('dd/MM/yyyy').parse(fechaController.text);
+  //                   try {
+  //                     venta.btrpPrecioVentaFinal =
+  //                         double.parse(valorController.text);
+  //                     venta.btrpFechaVendida =
+  //                         DateFormat('dd/MM/yyyy').parse(fechaController.text);
 
-                      await ProcesoVentaService.venderProcesoVenta(venta);
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Propiedad vendida con éxito')),
-                      );
-                      setState(() {
-                        _selectedVenta = null;
-                        _reiniciarProcesosVentaFiltros();
-                      });
-                    } catch (e) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error al vender la propiedad')),
-                      );
-                    }
-                  },
-                ),
-                TextButton(
-                  child: Text('Cancelar',
-                      style: TextStyle(color: Color(0xFFFFF0C6))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _valorFueEditado = false;
-                    _fechaFueEditada = false;
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+  //                     await ProcesoVentaService.venderProcesoVenta(venta);
+  //                     Navigator.of(context).pop();
+  //                     ScaffoldMessenger.of(context).showSnackBar(
+  //                       SnackBar(content: Text('Propiedad vendida con éxito')),
+  //                     );
+  //                     setState(() {
+  //                       _selectedVenta = null;
+  //                       _reiniciarProcesosVentaFiltros();
+  //                     });
+  //                   } catch (e) {
+  //                     Navigator.of(context).pop();
+  //                     ScaffoldMessenger.of(context).showSnackBar(
+  //                       SnackBar(content: Text('Error al vender la propiedad')),
+  //                     );
+  //                   }
+  //                 },
+  //               ),
+  //               TextButton(
+  //                 child: Text('Cancelar',
+  //                     style: TextStyle(color: Color(0xFFFFF0C6))),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                   _valorFueEditado = false;
+  //                   _fechaFueEditada = false;
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
     return FutureBuilder<List<String>>(
       future: ProcesoVentaService.Buscar(
               procesoventa.btrpId,
-              procesoventa.btrpTerrenoOBienRaizId ? 1 : 0,
+              procesoventa.btrpTerrenoOBienRaizId! ? 1 : 0,
               procesoventa.btrpBienoterrenoId!)
           .then((value) => value.map((e) => e.imprImagen!).toList()),
       builder: (context, snapshot) {
@@ -359,13 +361,27 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       if (procesoventa.btrpIdentificador == true)
                         IconButton(
                             icon: Icon(Icons.sell, color: Colors.white),
-                            onPressed: () =>
-                                _modalVender(context, procesoventa)),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Venta(
+                                        btrpId: procesoventa.btrpId,
+                                        btrpTerrenoOBienRaizId:
+                                            procesoventa.btrpTerrenoOBienRaizId!
+                                                ? 1
+                                                : 0,
+                                        btrpBienoterrenoId:
+                                            procesoventa.btrpBienoterrenoId!),
+                                  ),
+                                );
+                            }
+                            ),
                       IconButton(
                         icon: Icon(Icons.info_outline, color: Colors.white),
                         onPressed: () => _verDetalles(
                             procesoventa.btrpId,
-                            procesoventa.btrpTerrenoOBienRaizId,
+                            procesoventa.btrpTerrenoOBienRaizId!,
                             procesoventa.btrpBienoterrenoId),
                       ),
                       Icon(
@@ -443,13 +459,27 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           if (procesoventa.btrpIdentificador == true)
                             IconButton(
                                 icon: Icon(Icons.sell, color: Colors.white),
-                                onPressed: () =>
-                                    _modalVender(context, procesoventa)),
+                                onPressed: () {
+                             Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Venta(
+                                        btrpId: procesoventa.btrpId,
+                                        btrpTerrenoOBienRaizId:
+                                            procesoventa.btrpTerrenoOBienRaizId!
+                                                ? 1
+                                                : 0,
+                                        btrpBienoterrenoId:
+                                            procesoventa.btrpBienoterrenoId!),
+                                  ),
+                                );
+                            }
+                            ),
                           IconButton(
                             icon: Icon(Icons.info_outline, color: Colors.white),
                             onPressed: () => _verDetalles(
                                 procesoventa.btrpId,
-                                procesoventa.btrpTerrenoOBienRaizId,
+                                procesoventa.btrpTerrenoOBienRaizId!,
                                 procesoventa.btrpBienoterrenoId),
                           ),
                           Icon(
@@ -567,11 +597,16 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       InkWell(
                         onTap: () {
                           Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UbicacionBienRaiz(btrpId: venta.btrpId, btrpTerrenoOBienRaizId: venta.btrpTerrenoOBienRaizId ? 1 : 0, btrpBienoterrenoId: venta.btrpBienoterrenoId!),
-                  ),
-                );
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UbicacionBienRaiz(
+                                  btrpId: venta.btrpId,
+                                  btrpTerrenoOBienRaizId:
+                                      venta.btrpTerrenoOBienRaizId! ? 1 : 0,
+                                  btrpBienoterrenoId:
+                                      venta.btrpBienoterrenoId!),
+                            ),
+                          );
                         },
                         child: Text(
                           'Ver ubicación',
@@ -642,9 +677,23 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                if (venta.btrpIdentificador == true) {
-                                  _modalVender(context, venta);
-                                }
+                                 if (venta.btrpIdentificador == true) {
+                                //   _modalVender(context, venta);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Venta(
+                                        btrpId: venta.btrpId,
+                                        btrpTerrenoOBienRaizId:
+                                            venta.btrpTerrenoOBienRaizId!
+                                                ? 1
+                                                : 0,
+                                        btrpBienoterrenoId:
+                                            venta.btrpBienoterrenoId!),
+                                  ),
+                                );
+                                 }
+                                
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(

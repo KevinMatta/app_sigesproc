@@ -582,10 +582,10 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           setState(() {
             controller.text = selection.proyNombre!;
             if (tipo == 'Salida') {
-              flete.boasId = selection.proyId;
+              flete.proyIdSalida = selection.proyId;
               actividadControllerSalida.clear();
             } else {
-              flete.boatId = selection.proyId;
+              flete.proyIdLlegada = selection.proyId;
               actividadControllerLlegada.clear();
             }
           });
@@ -925,6 +925,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       hayErrores = true;
     }
 
+    print('$esProyecto, ${actividadesLlegada.isNotEmpty}, ${flete.boatId}');
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
       _actividadError = true;
       _actividadErrorMessage = 'Debe seleccionar una actividad por etapa en Llegada';
@@ -962,6 +963,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(
@@ -1471,6 +1474,20 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+           ElevatedButton(
+            onPressed: guardarFlete,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            child: Text(
+              'Guardar',
+              style: TextStyle(color: Colors.black, fontSize: 15),
+            ),
+          ),
           ElevatedButton(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
@@ -1485,20 +1502,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
-          ElevatedButton(
-            onPressed: guardarFlete,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            child: Text(
-              'Guardar',
-              style: TextStyle(color: Colors.black, fontSize: 15),
-            ),
-          ),
+         
         ],
       ),
     );

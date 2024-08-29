@@ -35,7 +35,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void _onInitializeNotifications(InitializeNotificationsEvent event, Emitter<NotificationsState> emit) {
-    // Aquí puedes inicializar las notificaciones, pedir permisos y obtener el token
     requestPermision();
   }
   void requestPermision() async {
@@ -95,4 +94,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       body: body,
     );
   }
+
+
+  
 }

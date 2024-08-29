@@ -10,8 +10,8 @@ class FleteControlCalidadViewModel {
   final bool? flccEstado;
   final DateTime? flenFechaHoraSalida;
   final DateTime? flenFechaHoraEstablecidaDeLlegada;
-  final String? flenEstado;
-  final String? flenDestinoProyecto;
+  final bool? flenEstado;
+  final bool? flenDestinoProyecto;
 
   FleteControlCalidadViewModel({
     this.flccId,
@@ -47,21 +47,54 @@ class FleteControlCalidadViewModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'flcc_Id': flccId,
-      'flcc_DescripcionIncidencia': flccDescripcionIncidencia,
-      'flcc_FechaHoraIncidencia': flccFechaHoraIncidencia?.toIso8601String(),
-      'flen_Id': flenId,
-      'usua_Creacion': usuaCreacion,
-      'flcc_FechaCreacion': flccFechaCreacion?.toIso8601String(),
-      'usua_Modificacion': usuaModificacion,
-      'flcc_FechaModificacion': flccFechaModificacion?.toIso8601String(),
-      'flcc_Estado': flccEstado,
-      'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
-      'flen_FechaHoraEstablecidaDeLlegada': flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
-      'flen_Estado': flenEstado,
-      'flen_DestinoProyecto': flenDestinoProyecto,
-    };
+Map<String, dynamic> toJson() {
+  final Map<String, dynamic> data = {};
+
+  if (flccDescripcionIncidencia != null) {
+    data['flcc_DescripcionIncidencia'] = flccDescripcionIncidencia;
+  }
+  if (flccFechaHoraIncidencia != null) {
+    data['flcc_FechaHoraIncidencia'] = flccFechaHoraIncidencia?.toIso8601String();
+  }
+  if (flenId != null) {
+    data['flen_Id'] = flenId;
+  }
+  if (usuaCreacion != null) {
+    data['usua_Creacion'] = usuaCreacion;
+  }
+  if (flccFechaCreacion != null) {
+    data['flcc_FechaCreacion'] = flccFechaCreacion?.toIso8601String();
+  }
+  if (usuaModificacion != null) {
+    data['usua_Modificacion'] = usuaModificacion;
+  }
+  if (flccFechaModificacion != null) {
+    data['flcc_FechaModificacion'] = flccFechaModificacion?.toIso8601String();
+  }
+  if (flccEstado != null) {
+    data['flcc_Estado'] = flccEstado;
+  }
+  if (flenFechaHoraSalida != null) {
+    data['flen_FechaHoraSalida'] = flenFechaHoraSalida?.toIso8601String();
+  }
+  if (flenFechaHoraEstablecidaDeLlegada != null) {
+    data['flen_FechaHoraEstablecidaDeLlegada'] = flenFechaHoraEstablecidaDeLlegada?.toIso8601String();
+  }
+  if (flenEstado != null) {
+    data['flen_Estado'] = flenEstado;
+  }
+  if (flenDestinoProyecto != null) {
+    data['flen_DestinoProyecto'] = flenDestinoProyecto;
+  }
+  if (flccId != null) {
+    data['flcc_Id'] = flccId;
+  }
+
+  return data;
+}
+
+    @override
+  String toString() {
+    return 'contolcalidadViewModel(flccid: $flccId, descripcioninci $flccDescripcionIncidencia, fechahorainci $flccFechaHoraIncidencia, flenid: $flenId, usuacreac: $usuaCreacion, usuamod: $usuaModificacion';
   }
 }

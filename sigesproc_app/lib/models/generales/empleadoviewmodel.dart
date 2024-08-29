@@ -22,7 +22,7 @@ class EmpleadoViewModel {
   final String? banco;
   final String? frecuencia;
   final String? usuaCreacionNombre;
-  final String? usuaModificacionNombre;
+  final String? usuaModificacionNombre; 
   final String? cargo;
   final String? estadoCivil;
   final String? ciudad;

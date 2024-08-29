@@ -826,10 +826,10 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             controller.text = selection.proyNombre!;
             if (tipo == 'Salida') {
-              flete.boasId = selection.proyId;
+              flete.proyIdSalida = selection.proyId;
               actividadControllerSalida.clear();
             } else {
-              flete.boatId = selection.proyId;
+              flete.proyIdLlegada = selection.proyId;
               actividadControllerLlegada.clear();
             }
           });
@@ -1210,6 +1210,8 @@ class _EditarFleteState extends State<EditarFlete>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(
@@ -1302,7 +1304,7 @@ class _EditarFleteState extends State<EditarFlete>
 
   Future<void> editarFlete() async {
     try {
-      flete.flenFechaHoraLlegada = DateTime(2024, 2, 2);
+      flete.flenFechaHoraLlegada = DateTime(2005, 1, 1);
       flete.usuaModificacion = 3;
       flete.flenSalidaProyecto = esProyectosalida;
       flete.flenDestinoProyecto = esProyecto;
@@ -1843,6 +1845,20 @@ class _EditarFleteState extends State<EditarFlete>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+           ElevatedButton(
+            onPressed: editarFlete,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            child: Text(
+              'Guardar',
+              style: TextStyle(color: Colors.black, fontSize: 15),
+            ),
+          ),
           ElevatedButton(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
@@ -1857,20 +1873,7 @@ class _EditarFleteState extends State<EditarFlete>
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
-          ElevatedButton(
-            onPressed: editarFlete,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            child: Text(
-              'Guardar',
-              style: TextStyle(color: Colors.black, fontSize: 15),
-            ),
-          ),
+         
         ],
       ),
     );

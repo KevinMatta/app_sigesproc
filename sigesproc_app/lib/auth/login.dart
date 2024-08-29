@@ -27,13 +27,13 @@ class _LoginState extends State<Login> {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.4),
+        color: Color.fromARGB(255, 224, 223, 223),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 10,
-            offset: Offset(0, 8),
+            offset: Offset(0, 3),
           ),
         ],
       ),
