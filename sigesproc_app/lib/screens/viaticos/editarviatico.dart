@@ -14,6 +14,7 @@ class EditarViatico extends StatefulWidget {
   final int viaticoId; // Recibe el ID del viático a editar
 
   EditarViatico({required this.viaticoId});
+  
 
   @override
   _EditarViaticoState createState() => _EditarViaticoState();
@@ -293,7 +294,7 @@ class _EditarViaticoState extends State<EditarViatico> {
                     ),
             ),
       floatingActionButton: SpeedDial(
-        icon: Icons.arrow_downward,
+        icon: Icons.more_vert,
         activeIcon: Icons.close,
         backgroundColor: Color(0xFF171717),
         foregroundColor: Color(0xFFFFF0C6),
