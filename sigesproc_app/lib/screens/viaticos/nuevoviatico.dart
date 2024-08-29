@@ -225,7 +225,7 @@ class _NuevoViaticoState extends State<NuevoViatico> {
         ),
       ),
       floatingActionButton: SpeedDial(
-        icon: Icons.arrow_downward, // Icono inicial
+        icon: Icons.more_vert, // Icono inicial
         activeIcon: Icons.close, // Icono cuando se despliega
         backgroundColor: Color(0xFF171717), // Color de fondo
         foregroundColor: Color(0xFFFFF0C6), // Color del icono
