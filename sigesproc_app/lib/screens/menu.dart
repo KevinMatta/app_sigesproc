@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/auth/login.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/screens/insumos/cotizaciones.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'inicio.dart';
 import 'proyectos/proyecto.dart';
 import 'fletes/flete.dart';
@@ -114,15 +116,22 @@ class MenuLateral extends StatelessWidget {
           color: Color(0xFFFFF0C6),
         ),
       ),
-      onTap: () {
+      onTap: () async {
+        var prefs = PreferenciasUsuario();
+        String token = prefs.token;
+
+        await NotificationServices.eliminarTokenUsuario(39, token);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Login()),
         );
+        
       },
     );
   }
-
+   
+  
   void _navigateToScreen(BuildContext context, int index) {
     switch (index) {
       case 0:

@@ -22,22 +22,26 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+
+    // Insertar el token si es necesario después de que el usuario llega a la pantalla de inicio
+    _insertarToken();
+
     // Aquí agregamos el evento de inicialización de las notificaciones
     context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId));
 
     _loadNotifications();
   }
-  
-  Future<void> _initializePreferencesAndRequestToken() async {
-    var prefs = PreferenciasUsuario();
-    
-    context.read<NotificationsBloc>().requestPermision();
-    
-    Future.delayed(Duration(seconds: 1), () {
-      print('Token después de solicitar permisos: ' + prefs.token);
-      
-    });
 
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(39, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
   }
 
   Future<void> _loadNotifications() async {
@@ -67,7 +71,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     var prefs = PreferenciasUsuario();
     print('Token:' + prefs.token);
-    
+
     context.read<NotificationsBloc>().requestPermision();
     print('Token después de solicitar permisos: ' + prefs.token);
 

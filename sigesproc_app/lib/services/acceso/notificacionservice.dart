@@ -182,22 +182,19 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
     throw Exception('Error al enviar la notificación');
   }
 }
- static Future<void> eliminarToken(int userId, String token) async {
-    final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/EliminarTokenUsuario/$userId');
+ static Future<void> eliminarTokenUsuario(int userId, String token) async {
+    final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/EliminarToken?id=$userId&token=$token');
 
-    final response = await http.post(
+    final response = await http.delete(
       url,
       headers: ApiService.getHttpHeaders(),
-      body: jsonEncode({
-        'token': token,
-      }),
     );
 
     if (response.statusCode == 200) {
-      print('Token eliminado del servidor con éxito');
+      print('Token eliminado en el servidor con éxito');
     } else {
-      print('Error al eliminar el token del servidor: ${response.statusCode}');
-      throw Exception('Error al eliminar el token del servidor');
+      print('Error al eliminar el token en el servidor: ${response.statusCode}');
+      throw Exception('Error al eliminar el token en el servidor');
     }
   }
 

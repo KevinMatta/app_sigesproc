@@ -69,7 +69,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       final prefs = PreferenciasUsuario();
       prefs.token = token;
       print('FCM Token: $token');
-      await NotificationServices.insertarToken(userId, token);
     
     } 
     else {
