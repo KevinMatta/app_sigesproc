@@ -10,7 +10,7 @@ class ViaticoDetViewModel {
   DateTime? videFechaCreacion;
   int? usuaModificacion;
   DateTime? videFechaModificacion;
-  double? videMontoReconocido; // NotMapped
+  double? videMontoReconocido;
 
   ViaticoDetViewModel({
     this.codigo,
@@ -48,24 +48,22 @@ class ViaticoDetViewModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {
-      'codigo': codigo,
-      'vide_Id': videId,
-      'vide_Descripcion': videDescripcion,
-      'vide_ImagenFactura': videImagenFactura,
-      'vide_MontoGastado': videMontoGastado,
-      'vien_Id': vienId,
-      'cavi_Id': caviId,
-      'usua_Creacion': usuaCreacion,
-      'vide_FechaCreacion': videFechaCreacion?.toIso8601String(),
-      'usua_Modificacion': usuaModificacion,
-      'vide_FechaModificacion': videFechaModificacion?.toIso8601String(),
-      'vide_MontoReconocido': videMontoReconocido,
-    };
+Map<String, dynamic> toJson() {
+  final Map<String, dynamic> data = {
+    'vide_Descripcion': videDescripcion ?? '',
+    'vide_ImagenFactura': videImagenFactura ?? '',
+    'vide_MontoGastado': videMontoGastado ?? '',
+    'vien_Id': vienId ?? 0,
+    'cavi_Id': caviId ?? 0,
+    'usua_Creacion': usuaCreacion ?? 0,
+    'vide_FechaCreacion': videFechaCreacion?.toIso8601String(),
+    'vide_MontoReconocido': videMontoReconocido ?? 0.0,
+  };
 
-    return data;
-  }
+  print('Datos para enviar: $data');
+  return data;
+}
+
 
   @override
   String toString() {

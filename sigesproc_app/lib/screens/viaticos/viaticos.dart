@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
+import 'package:sigesproc_app/screens/viaticos/agregarfactura.dart';
 import 'package:sigesproc_app/screens/viaticos/editarviatico.dart';
 import 'package:sigesproc_app/screens/viaticos/nuevoviatico.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
@@ -120,11 +121,11 @@ class _ViaticoState extends State<Viatico> {
                 } else if (result == 1) {
                   _modalEliminar(context, viatico);
                 } else if (result == 2) {
-                  // Aquí puedes agregar la lógica para agregar facturas
+                _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
                 } else if (result == 3) {
                   _modalFinalizar(context, viatico);
                 } else if (result == 4) {
-                  // Aquí puedes agregar la lógica para ver detalles
+                  
                 }
               },
               itemBuilder: (BuildContext context) {

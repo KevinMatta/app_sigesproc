@@ -57,7 +57,7 @@ class NotificationServices {
   // }
 
 
-  // Método para enviar una notificación utilizando la API de Rnder en Node.js
+  // Método para enviar una notificación utilizando la api de Rnder
    static Future<void> EnviarNotificacion(String token, String title, String body) async {
     final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
 
@@ -137,7 +137,6 @@ static Future<List<String>> ListarTokenAdministradores() async {
     if (response.statusCode == 200) {
       List<dynamic> jsonResponse = json.decode(response.body);
       
-      // Extraemos y dividimos los tokens por comas
       List<String> tokens = [];
       for (var item in jsonResponse) {
         if (item['tokn_JsonToken'] != null) {
@@ -183,7 +182,21 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
     throw Exception('Error al enviar la notificación');
   }
 }
+ static Future<void> eliminarTokenUsuario(int userId, String token) async {
+    final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/EliminarToken?id=$userId&token=$token');
 
+    final response = await http.delete(
+      url,
+      headers: ApiService.getHttpHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      print('Token eliminado en el servidor con éxito');
+    } else {
+      print('Error al eliminar el token en el servidor: ${response.statusCode}');
+      throw Exception('Error al eliminar el token en el servidor');
+    }
+  }
 
 }
 

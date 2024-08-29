@@ -105,9 +105,12 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           actions: [
             ElevatedButton(
               onPressed: () async {
-                final success = await _eliminarNotificacion(napuId);
+                // final success = await _eliminarNotificacion(napuId);
            
-                Navigator.of(context).pop(); 
+                // Navigator.of(context).pop(); 
+
+                  Navigator.of(context).pop(); 
+                _eliminarNotificacion(napuId); 
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6), 
