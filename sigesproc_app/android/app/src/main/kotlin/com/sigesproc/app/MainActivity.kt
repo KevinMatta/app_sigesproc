@@ -1,4 +1,4 @@
-package com.example.sigesproc_app
+package com.sigesproc.app
 
 import io.flutter.embedding.android.FlutterActivity
 

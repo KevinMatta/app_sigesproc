@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
@@ -13,17 +16,32 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   TabController? _tabController;
   int _unreadCount = 0;
+  final int userId = 5;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    // Aquí agregamos el evento de inicialización de las notificaciones
+    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId));
+
     _loadNotifications();
+  }
+  
+  Future<void> _initializePreferencesAndRequestToken() async {
+    var prefs = PreferenciasUsuario();
+    
+    context.read<NotificationsBloc>().requestPermision();
+    
+    // Posponer la impresión del token por un breve momento para asegurarnos de que esté disponible.
+    Future.delayed(Duration(seconds: 1), () {
+      print('Token después de solicitar permisos: ' + prefs.token);
+    });
   }
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(5);
+      final notifications = await NotificationServices.BuscarNotificacion(userId); // Utiliza userId
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -46,6 +64,12 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    var prefs = PreferenciasUsuario();
+    print('Token:' + prefs.token);
+    
+    context.read<NotificationsBloc>().requestPermision();
+    print('Token después de solicitar permisos: ' + prefs.token);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -99,13 +123,14 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   ),
               ],
             ),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => NotificacionesScreen(), // Navegar a la nueva pantalla de notificaciones
+                  builder: (context) => NotificacionesScreen(),
                 ),
               );
+              _loadNotifications();  // Recarga las notificaciones cuando regresas
             },
           ),
           IconButton(
@@ -151,6 +176,9 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   }
 
   Widget _buildCotizacionesTab() {
+    var prefs = PreferenciasUsuario();
+    String token = prefs.token;
+
     return Container(
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
@@ -211,6 +239,19 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                       Text(
                         'Top 5 de proveedores',
                         style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'FCM Token:',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          token.isNotEmpty ? token : 'Token no disponible',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),

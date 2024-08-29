@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:intl/intl.dart';
 import 'package:sigesproc_app/auth/reestablecer.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/inicio.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 // import '../services/loginservice.dart';
 
 class Login extends StatefulWidget {
@@ -39,6 +42,8 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+   
+    context.read<NotificationsBloc>().requestPermision();
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
