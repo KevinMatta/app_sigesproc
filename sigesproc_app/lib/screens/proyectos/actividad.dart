@@ -29,7 +29,6 @@ class _ActividadState extends State<Actividad> {
   double _savedScrollPosition = 0.0; // Guardar la posición del scroll
   int _savedCurrentPage = 0; // Variable para almacenar la página actual
 
-
   @override
   void initState() {
     super.initState();
@@ -71,7 +70,7 @@ class _ActividadState extends State<Actividad> {
     });
   }
 
-      void _toggleExpand(int acetId) {
+  void _toggleExpand(int acetId) {
     // Guardar la posición actual del scroll
     _savedScrollPosition = _scrollController.position.pixels;
     _savedCurrentPage = _currentPage;
@@ -106,8 +105,6 @@ class _ActividadState extends State<Actividad> {
     _currentPage = _savedCurrentPage;
   }
 
-
-
   void _navigateToControlCalidadScreen(BuildContext context, int acetId, String? medida, String? actividad) {
     Navigator.push(
       context,
@@ -117,15 +114,36 @@ class _ActividadState extends State<Actividad> {
     );
   }
 
- void _mostrarDialogoAprobar(BuildContext context, int cocaId, double? cocaAprobado, int? acet_Id) {
+Future<void> _refreshControls(int acetId) async {
+  // Hacemos una solicitud a la API para obtener los controles de calidad actualizados
+  List<ListarControlDeCalidadesPorActividadesViewModel> updatedControls = await ControlDeCalidadesPorActividadesService.listarControlCalidadPorActividad(acetId);
+  
+  setState(() {
+    // Actualiza directamente el estado del widget con la lista actualizada
+    _expandedActividades[acetId] = true; // Asegura que siga expandido
+    _actividadesFiltradas = widget.actividades; // Reasigna para mantener la referencia
+    _actividadesFiltradas = _actividadesFiltradas.map((actividad) {
+      if (actividad.acetId == acetId) {
+        actividad.controlesCalidad = updatedControls; // O manejalo dentro del widget
+      }
+      return actividad;
+    }).toList();
+  });
+}
+
+
+ void _mostrarDialogoAprobar(BuildContext context, int cocaId, double? cocaAprobado, int acetId) {
   // Si ya está aprobado, no mostrar el diálogo
   if (cocaAprobado == 1) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Ya ha sido aprobado.",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 0, 0, 0),)),
-                        backgroundColor: Colors.yellow,
+        content: Text(
+          "Ya ha sido aprobado.",
+          style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+        backgroundColor: Colors.yellow,
       ),
     );
     return;
@@ -179,12 +197,18 @@ class _ActividadState extends State<Actividad> {
                             backgroundColor: Colors.green,
                           ),
                         );
-                        // Recargar la lista de controles de calidad aquí
-                        // setState(() {
-                        //   // _isLoading = true; // Iniciar la carga de nuevo
-                        //   int id = acet_Id!;
-                        //   _toggleExpand(id); // Recargar los datos
-                        // });
+
+                        // Forzar la expansión nuevamente para que se actualice la UI
+                        setState(() {
+                          _expandedActividades[acetId] = false;
+                        });
+
+                        await Future.delayed(Duration(milliseconds: 100));
+
+                        setState(() {
+                          _expandedActividades[acetId] = true;
+                        });
+
                       } catch (e) {
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(
@@ -224,7 +248,6 @@ class _ActividadState extends State<Actividad> {
     },
   );
 }
-
 
 
   @override
@@ -427,7 +450,7 @@ class _ActividadState extends State<Actividad> {
                                               size: 20,
                                             ),
                                             onTap: () {
-                                              _mostrarDialogoAprobar(context, controlCalidad.cocaId!, controlCalidad.cocaAprobado, controlCalidad.acetId);
+                                              _mostrarDialogoAprobar(context, controlCalidad.cocaId!, controlCalidad.cocaAprobado, controlCalidad.acetId!);
                                             },
                                           );
                                       }).toList(),
