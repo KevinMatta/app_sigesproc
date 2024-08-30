@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:sigesproc_app/models/acceso/pantallaviewmodel.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'apiservice.dart';
 
@@ -34,6 +35,20 @@ class LoginService {
         throw Exception('Error inesperado: $e');
       }
     }
+
+
+      // Método para listar todas las pantallas por rol
+    static Future<List<PantallaViewModel>> listarPantallasPorRol() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Pantalla/ListarPorRol');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => PantallaViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
 
 
 
