@@ -534,7 +534,7 @@ Widget _buildListaFletes() {
                       controller: _searchController,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Buscar.....',
+                        hintText: 'Buscar...',
                         hintStyle: TextStyle(color: Colors.white54),
                         border: InputBorder.none,
                         icon: Icon(Icons.search, color: Colors.white54),
