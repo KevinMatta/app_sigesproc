@@ -1043,13 +1043,11 @@ class _EditarFleteState extends State<EditarFlete>
       _actividadErrorMessage = '';
 
       bool hayErrores = false;
-      String mensajeErrorGeneral =
-          'Por favor completa todos los datos requeridos.';
 
       // Validar Fecha y Hora de Salida
       if (flete.flenFechaHoraSalida == null) {
         _fechaSalidaError = true;
-        _fechaSalidaErrorMessage = 'La fecha de salida no puede estar vacía';
+        _fechaSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
 
@@ -1057,7 +1055,7 @@ class _EditarFleteState extends State<EditarFlete>
       if (flete.flenFechaHoraEstablecidaDeLlegada == null) {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
-            'La fecha de llegada no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       } else if (flete.flenFechaHoraSalida != null &&
           flete.flenFechaHoraSalida!
@@ -1079,19 +1077,19 @@ class _EditarFleteState extends State<EditarFlete>
       // Validar Empleados
       if (flete.emtrId == null) {
         _isEmpleadoError = true;
-        _empleadoErrorMessage = 'El encargado no puede estar vacío';
+        _empleadoErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emssId == null) {
         _isSupervisorSalidaError = true;
         _supervisorSalidaErrorMessage =
-            'El supervisor de salida no puede estar vacío';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emslId == null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
-            'El supervisor de llegada no puede estar vacío';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emtrId == flete.emssId && flete.emtrId != null) {
@@ -1126,25 +1124,25 @@ class _EditarFleteState extends State<EditarFlete>
       if (flete.boasId == null && esProyectosalida == false) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
-            'La ubicación de salida no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == null && esProyectosalida) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
-            'La ubicación de salida no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
-            'La ubicación de llegada no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto == false) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
-            'La ubicación de llegada no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == flete.boatId &&
@@ -1168,14 +1166,14 @@ class _EditarFleteState extends State<EditarFlete>
           flete.boasId == null) {
         _actividadError = true;
         _actividadErrorMessage =
-            'Debe seleccionar una actividad por etapa en Salida';
+            'El campo es requerido.';
         hayErrores = true;
       }
 
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
         _actividadErrorMessage =
-            'Debe seleccionar una actividad por etapa en Llegada';
+            'El campo es requerido.';
         hayErrores = true;
       }
 
@@ -1196,9 +1194,6 @@ class _EditarFleteState extends State<EditarFlete>
 
       // Mostrar errores si los hay
       if (hayErrores) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensajeErrorGeneral)),
-        );
         return;
       }
 

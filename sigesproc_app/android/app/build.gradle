@@ -37,7 +37,7 @@ android {
 
     defaultConfig {
         applicationId = "com.sigesproc.app"
-        minSdk 21
+        minSdk 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName

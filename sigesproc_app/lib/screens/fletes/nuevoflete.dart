@@ -799,13 +799,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       _actividadErrorMessage = '';
 
       bool hayErrores = false;
-      String mensajeErrorGeneral =
-          'Por favor completa todos los datos requeridos.';
 
       // Validar Fecha y Hora de Salida
       if (flete.flenFechaHoraSalida == null) {
         _fechaSalidaError = true;
-        _fechaSalidaErrorMessage = 'La fecha de salida no puede estar vacía';
+        _fechaSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
 
@@ -813,7 +811,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       if (flete.flenFechaHoraEstablecidaDeLlegada == null) {
         _fechaHoraEstablecidaError = true;
         _fechaHoraEstablecidaErrorMessage =
-            'La fecha de llegada no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       } else if (flete.flenFechaHoraSalida != null &&
           flete.flenFechaHoraSalida!
@@ -835,19 +833,19 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       // Validar Empleados
       if (flete.emtrId == null) {
         _isEmpleadoError = true;
-        _empleadoErrorMessage = 'El encargado no puede estar vacío';
+        _empleadoErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emssId == null) {
         _isSupervisorSalidaError = true;
         _supervisorSalidaErrorMessage =
-            'El supervisor de salida no puede estar vacío';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emslId == null) {
         _isSupervisorLlegadaError = true;
         _supervisorLlegadaErrorMessage =
-            'El supervisor de llegada no puede estar vacío';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emtrId == flete.emssId && flete.emtrId != null) {
@@ -882,25 +880,25 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       if (flete.boasId == null && esProyectosalida == false) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
-            'La ubicación de salida no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == null && esProyectosalida) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage =
-            'La ubicación de salida no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
-            'La ubicación de llegada no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto == false) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage =
-            'La ubicación de llegada no puede estar vacía';
+            'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == flete.boatId &&
@@ -921,14 +919,14 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       // Validar Actividad por Etapa
       if (esProyectosalida && actividadesSalida.isNotEmpty && flete.boasId == null) {
       _actividadError = true;
-      _actividadErrorMessage = 'Debe seleccionar una actividad por etapa en Salida';
+      _actividadErrorMessage = 'El campo es requerido.';
       hayErrores = true;
     }
 
     print('$esProyecto, ${actividadesLlegada.isNotEmpty}, ${flete.boatId}');
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
       _actividadError = true;
-      _actividadErrorMessage = 'Debe seleccionar una actividad por etapa en Llegada';
+      _actividadErrorMessage = 'El campo es requerido.';
       hayErrores = true;
     }
 
@@ -949,9 +947,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
       // Mostrar errores si los hay
       if (hayErrores) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensajeErrorGeneral)),
-        );
         return;
       }
 
