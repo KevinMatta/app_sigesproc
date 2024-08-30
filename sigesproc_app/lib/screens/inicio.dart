@@ -23,10 +23,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
 
-    // Insertar el token si es necesario después de que el usuario llega a la pantalla de inicio
     _insertarToken();
 
-    // Aquí agregamos el evento de inicialización de las notificaciones
     context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId));
 
     _loadNotifications();

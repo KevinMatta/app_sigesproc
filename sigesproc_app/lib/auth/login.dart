@@ -162,7 +162,7 @@ class _LoginState extends State<Login> {
                               ),
                             ),
                             Positioned(
-                              top: -90, // Ajuste para centrar el logo
+                              top: -90, 
                               child: Container(
                                 width: MediaQuery.of(context).size.width * 0.8,
                                 child: ClipRRect(

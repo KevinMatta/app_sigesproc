@@ -9,12 +9,15 @@ class NotificationServices {
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonResponse = json.decode(response.body);  // Cambiado a List<dynamic>
+      List<dynamic> jsonResponse = json.decode(response.body); 
       
       return jsonResponse.map((item) => NotificationViewModel.fromJson(item)).toList();
+            print('esto es la respuesta de las notis $jsonResponse');
+
     } else {
       throw Exception('Error al cargar las notificaciones');
     }
+    
   }
 
     static Future<void> LeerNotificacion(int napuId) async {
