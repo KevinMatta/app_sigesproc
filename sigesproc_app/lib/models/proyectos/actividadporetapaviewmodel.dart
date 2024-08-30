@@ -1,3 +1,5 @@
+import 'package:sigesproc_app/models/proyectos/controlcalidadporactividadviewmodel.dart';
+
 class ActividadesPorEtapaViewModel {
   int acetId;
   String? acetObservacion;
@@ -16,6 +18,7 @@ class ActividadesPorEtapaViewModel {
   int? usuaModificacion;
   DateTime? acetFechaModificacion;
   bool? acetEstado;
+  List<ListarControlDeCalidadesPorActividadesViewModel>? controlesCalidad;
 
   // NotMapped fields
   String? esprDescripcion;

@@ -348,467 +348,447 @@ class _FleteState extends State<Flete> {
   }
 
   Widget _buildDetallesFlete(List<FleteDetalleViewModel> detalles) {
-  // Filtrar detalles por tipo de carga y si llegaron o no
-  for (var detalle in detalles) {
-  print('Detalle ID: ${detalle.fldeId}, Tipo de Carga: ${detalle.fldeTipodeCarga}, Llegada: ${detalle.fldeLlegada}');
-}
+    // Filtrar detalles por tipo de carga y si llegaron o no
+    final insumosLlegaron = detalles
+        .where((d) => d.fldeTipodeCarga == true && d.fldeLlegada == true)
+        .toList();
+    final insumosNoLlegaron = detalles
+        .where((d) => d.fldeTipodeCarga == true && d.fldeLlegada == false)
+        .toList();
+    final equiposLlegaron = detalles
+        .where((d) => d.fldeTipodeCarga == false && d.fldeLlegada == true)
+        .toList();
+    final equiposNoLlegaron = detalles
+        .where((d) => d.fldeTipodeCarga == false && d.fldeLlegada == false)
+        .toList();
 
-final insumosLlegaron = detalles
-    .where((d) => d.fldeTipodeCarga == true && d.fldeLlegada == true)
-    .toList();
-final insumosNoLlegaron = detalles
-    .where((d) => d.fldeTipodeCarga == true && d.fldeLlegada == false)
-    .toList();
-final equiposLlegaron = detalles
-    .where((d) => d.fldeTipodeCarga == false && d.fldeLlegada == true)
-    .toList();
-final equiposNoLlegaron = detalles
-    .where((d) => d.fldeTipodeCarga == false && d.fldeLlegada == false)
-    .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (insumosLlegaron.isNotEmpty) 
+          _buildExpandableSection('Insumos Llegaron', _buildTablaInsumos(insumosLlegaron)),
+        if (insumosNoLlegaron.isNotEmpty) 
+          _buildExpandableSection('Insumos No Llegaron', _buildTablaInsumos(insumosNoLlegaron)),
+        if (equiposLlegaron.isNotEmpty) 
+          _buildExpandableSection('Equipos Llegaron', _buildTablaEquipos(equiposLlegaron)),
+        if (equiposNoLlegaron.isNotEmpty) 
+          _buildExpandableSection('Equipos No Llegaron', _buildTablaEquipos(equiposNoLlegaron)),
+      ],
+    );
+  }
 
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (insumosLlegaron.isNotEmpty) ...[
-        _buildSectionTitle('Insumos Llegaron'),
-        _buildTablaInsumos(insumosLlegaron),
-        SizedBox(height: 20),
-      ],
-      if (insumosNoLlegaron.isNotEmpty) ...[
-        _buildSectionTitle('Insumos No Llegaron'),
-        _buildTablaInsumos(insumosNoLlegaron),
-        SizedBox(height: 20),
-      ],
-      if (equiposLlegaron.isNotEmpty) ...[
-        _buildSectionTitle('Equipos Llegaron'),
-        _buildTablaEquipos(equiposLlegaron),
-        SizedBox(height: 20),
-      ],
-      if (equiposNoLlegaron.isNotEmpty) ...[
-        _buildSectionTitle('Equipos No Llegaron'),
-        _buildTablaEquipos(equiposNoLlegaron),
-      ],
-    ],
-  );
-}
-
-Widget _buildSectionTitle(String title) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10.0),
-    child: Text(
-      title,
-      style: TextStyle(
-        color: Color(0xFFFFF0C6),
-        fontWeight: FontWeight.bold,
-        fontSize: 18,
+  Widget _buildExpandableSection(String title, Widget content) {
+    return ExpansionTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Color(0xFFFFF0C6),
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
       ),
-    ),
-  );
-}
+      children: [content],
+    );
+  }
 
-Widget _buildTablaInsumos(List<FleteDetalleViewModel> detalles) {
-  print('detalles $detalles');
-  return Table(
-    columnWidths: {
-      0: FlexColumnWidth(2),
-      1: FlexColumnWidth(2.5),
-      2: FlexColumnWidth(1.5),
-    },
-    border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
-    children: [
-      _buildTableHeader(['Descripción', 'Unidad de Medida', 'Cantidad']),
-      ...detalles.map((detalle) => _buildTableRow([
-            detalle.insuDescripcion ?? 'N/A',
-            detalle.unmeNomenclatura ?? 'N/A',
-            detalle.fldeCantidad.toString(),
-          ])).toList(),
-    ],
-  );
-}
+  Widget _buildTablaInsumos(List<FleteDetalleViewModel> detalles) {
+    return Table(
+      columnWidths: {
+        0: FlexColumnWidth(2),
+        1: FlexColumnWidth(2.5),
+        2: FlexColumnWidth(1.5),
+      },
+      border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
+      children: [
+        _buildTableHeader(['Descripción', 'Unidad de Medida', 'Cantidad']),
+        ...detalles.map((detalle) => _buildTableRow([
+              detalle.insuDescripcion ?? 'N/A',
+              detalle.unmeNomenclatura ?? 'N/A',
+              detalle.fldeCantidad.toString(),
+            ])).toList(),
+      ],
+    );
+  }
 
-Widget _buildTablaEquipos(List<FleteDetalleViewModel> detalles) {
-  return Table(
-    columnWidths: {
-      0: FlexColumnWidth(2),
-      1: FlexColumnWidth(2.5),
-      2: FlexColumnWidth(1.5),
-    },
-    border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
-    children: [
-      _buildTableHeader(['Equipo', 'Descripción', 'Cantidad']),
-      ...detalles.map((detalle) => _buildTableRow([
-            detalle.equsNombre ?? 'N/A',
-            detalle.equsDescripcion ?? 'N/A',
-            detalle.fldeCantidad.toString(),
-          ])).toList(),
-    ],
-  );
-}
+  Widget _buildTablaEquipos(List<FleteDetalleViewModel> detalles) {
+    return Table(
+      columnWidths: {
+        0: FlexColumnWidth(2),
+        1: FlexColumnWidth(2.5),
+        2: FlexColumnWidth(1.5),
+      },
+      border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
+      children: [
+        _buildTableHeader(['Equipo', 'Descripción', 'Cantidad']),
+        ...detalles.map((detalle) => _buildTableRow([
+              detalle.equsNombre ?? 'N/A',
+              detalle.equsDescripcion ?? 'N/A',
+              detalle.fldeCantidad.toString(),
+            ])).toList(),
+      ],
+    );
+  }
 
-Widget _buildIncidenciasFlete(List<FleteControlCalidadViewModel> incidencias) {
-  return incidencias.isNotEmpty
-      ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle('Incidencias'),
-            Table(
-              columnWidths: {
-                0: FlexColumnWidth(4),
-                1: FlexColumnWidth(2),
-              },
-              border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
-              children: [
-                _buildTableHeader(
-                    ['Descripción de la Incidencia', 'Fecha y Hora']),
-                ...incidencias.map((incidencia) => _buildTableRow([
-                      incidencia.flccDescripcionIncidencia ?? 'N/A',
-                      DateFormat('dd/MM/yy, hh:mm a')
-                          .format(incidencia.flccFechaHoraIncidencia!),
-                    ])).toList(),
-              ],
+  Widget _buildIncidenciasFlete(List<FleteControlCalidadViewModel> incidencias) {
+    return incidencias.isNotEmpty
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildExpandableSection(
+                'Incidencias',
+                Table(
+                  columnWidths: {
+                    0: FlexColumnWidth(4),
+                    1: FlexColumnWidth(2),
+                  },
+                  border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
+                  children: [
+                    _buildTableHeader(
+                        ['Descripción de la Incidencia', 'Fecha y Hora']),
+                    ...incidencias.map((incidencia) => _buildTableRow([
+                          incidencia.flccDescripcionIncidencia ?? 'N/A',
+                          DateFormat('dd/MM/yy, hh:mm a')
+                              .format(incidencia.flccFechaHoraIncidencia!),
+                        ])).toList(),
+                  ],
+                ),
+              ),
+            ],
+          )
+        : SizedBox.shrink();
+  }
+
+  TableRow _buildTableHeader(List<String> headers) {
+    return TableRow(
+      decoration: BoxDecoration(
+        color: Color(0xFF171717),
+      ),
+      children: headers.map((header) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            header,
+            style: TextStyle(
+              color: Color(0xFFFFF0C6),
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        )
-      : SizedBox.shrink();
-}
-
-TableRow _buildTableHeader(List<String> headers) {
-  return TableRow(
-    decoration: BoxDecoration(
-      color: Color(0xFF171717),
-    ),
-    children: headers.map((header) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          header,
-          style: TextStyle(
-            color: Color(0xFFFFF0C6),
-            fontWeight: FontWeight.bold,
           ),
-        ),
-      );
-    }).toList(),
-  );
-}
+        );
+      }).toList(),
+    );
+  }
 
-TableRow _buildTableRow(List<String> cells) {
-  return TableRow(
-    decoration: BoxDecoration(
-      color: Colors.black,
-    ),
-    children: cells.map((cell) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          cell,
-          style: TextStyle(
-            color: Color(0xFFFFF0C6),
+  TableRow _buildTableRow(List<String> cells) {
+    return TableRow(
+      decoration: BoxDecoration(
+        color: Colors.black,
+      ),
+      children: cells.map((cell) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            cell,
+            style: TextStyle(
+              color: Color(0xFFFFF0C6),
+            ),
           ),
-        ),
-      );
-    }).toList(),
-  );
-}
+        );
+      }).toList(),
+    );
+  }
 
-
-
-Widget _buildListaFletes() {
-  return Scaffold(
-    backgroundColor: Colors.black, // Establece el fondo negro para la pantalla
-    body: Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: [
-          SizedBox(height: 10),
-          Card(
-            color: Color(0xFF171717),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      style: TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Buscar.....',
-                        hintStyle: TextStyle(color: Colors.white54),
-                        border: InputBorder.none,
-                        icon: Icon(Icons.search, color: Colors.white54),
+  Widget _buildListaFletes() {
+    return Scaffold(
+      backgroundColor: Colors.black, // Establece el fondo negro para la pantalla
+      body: Container(
+        color: Colors.black,
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            SizedBox(height: 10),
+            Card(
+              color: Color(0xFF171717),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar...',
+                          hintStyle: TextStyle(color: Colors.white54),
+                          border: InputBorder.none,
+                          icon: Icon(Icons.search, color: Colors.white54),
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.filter_list, color: Colors.white54),
-                    onPressed: () {},
-                  ),
-                ],
+                    IconButton(
+                      icon: Icon(Icons.filter_list, color: Colors.white54),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: FutureBuilder<List<FleteEncabezadoViewModel>>(
-              future: _fletesFuture,
-              builder: (context, snapshot) {
-                if (_isLoading) {
+            SizedBox(height: 10),
+            Expanded(
+              child: FutureBuilder<List<FleteEncabezadoViewModel>>(
+                future: _fletesFuture,
+                builder: (context, snapshot) {
+                  if (_isLoading) {
+                    return Center(
+                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                    );
+                  } else if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error al cargar los datos',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No hay datos disponibles',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  } else {
+                    _filteredFletes = _searchController.text.isEmpty
+                        ? snapshot.data!
+                        : _filteredFletes;
+                    final int totalRecords = _filteredFletes.length;
+                    final int startIndex = _currentPage * _rowsPerPage;
+                    final int endIndex =
+                        (startIndex + _rowsPerPage > totalRecords)
+                            ? totalRecords
+                            : startIndex + _rowsPerPage;
+
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Table(
+                              columnWidths: {
+                                0: FlexColumnWidth(2),
+                                1: FlexColumnWidth(1),
+                                2: FlexColumnWidth(3),
+                                3: FlexColumnWidth(2),
+                              },
+                              children: [
+                                TableRow(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF171717),
+                                  ),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Acciones',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'No.',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Salida',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Estado',
+                                        style: TextStyle(
+                                          color: Color(0xFFFFF0C6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                ..._filteredFletes
+                                    .sublist(startIndex, endIndex)
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  final index = entry.key;
+                                  final flete = entry.value;
+                                  return _buildFleteRow(
+                                      flete, startIndex + index);
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Mostrando ${startIndex + 1} al ${endIndex} de $totalRecords entradas',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: _previousPage,
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.arrow_forward),
+                              onPressed: _nextPage,
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerificacionFlete() {
+    return Container(
+      color: Colors.black, // Establece el color de fondo negro para la pantalla de verificación del flete
+      child: FutureBuilder<List<FleteDetalleViewModel>>(
+        future: FleteDetalleService.Buscar(_flenIdSeleccionado!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error al cargar los datos',
+                style: TextStyle(color: Colors.red),
+              ),
+            );
+          } else if (!snapshot.hasData) {
+            return Center(
+              child: Text(
+                'No se encontraron datos del flete',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          } else {
+            final detalles = snapshot.data!;
+
+            return FutureBuilder<List<FleteControlCalidadViewModel>>(
+              future: _incidenciasFuture,
+              builder: (context, snapshotIncidencias) {
+                if (snapshotIncidencias.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: SpinKitCircle(color: Color(0xFFFFF0C6)),
                   );
-                } else if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-                  );
-                } else if (snapshot.hasError) {
+                } else if (snapshotIncidencias.hasError) {
                   return Center(
                     child: Text(
-                      'Error al cargar los datos',
+                      'Error al cargar las incidencias',
                       style: TextStyle(color: Colors.red),
                     ),
                   );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                } else if (!snapshotIncidencias.hasData) {
                   return Center(
                     child: Text(
-                      'No hay datos disponibles',
+                      'No se encontraron incidencias',
                       style: TextStyle(color: Colors.white),
                     ),
                   );
                 } else {
-                  _filteredFletes = _searchController.text.isEmpty
-                      ? snapshot.data!
-                      : _filteredFletes;
-                  final int totalRecords = _filteredFletes.length;
-                  final int startIndex = _currentPage * _rowsPerPage;
-                  final int endIndex =
-                      (startIndex + _rowsPerPage > totalRecords)
-                          ? totalRecords
-                          : startIndex + _rowsPerPage;
+                  final incidencias = snapshotIncidencias.data!;
 
-                  return Column(
+                  return Stack(
                     children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Table(
-                            columnWidths: {
-                              0: FlexColumnWidth(2),
-                              1: FlexColumnWidth(1),
-                              2: FlexColumnWidth(3),
-                              3: FlexColumnWidth(2),
-                            },
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: ListView(
+                          padding: EdgeInsets.only(bottom: 70.0), // Espacio en la parte inferior para el botón
+                          children: [
+                            _buildEncabezadoFlete(
+                              _allFletes.firstWhere((flete) => flete.flenId == _flenIdSeleccionado),
+                            ),
+                            _buildDetallesFlete(detalles),
+                            _buildIncidenciasFlete(incidencias),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          color: Colors.black, // Fondo negro para el área del botón
+                          padding: const EdgeInsets.all(10.0),
+                          child: Row(
                             children: [
-                              TableRow(
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF171717),
+                              Spacer(),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 10.0, right: 10.0),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF171717),
+                                    padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _viendoVerificacion = false;
+                                    });
+                                  },
+                                  child: Text(
+                                    'Regresar',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
                                 ),
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Acciones',
-                                      style: TextStyle(
-                                        color: Color(0xFFFFF0C6),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'No.',
-                                      style: TextStyle(
-                                        color: Color(0xFFFFF0C6),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Salida',
-                                      style: TextStyle(
-                                        color: Color(0xFFFFF0C6),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Estado',
-                                      style: TextStyle(
-                                        color: Color(0xFFFFF0C6),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
-                              ..._filteredFletes
-                                  .sublist(startIndex, endIndex)
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                final index = entry.key;
-                                final flete = entry.value;
-                                return _buildFleteRow(
-                                    flete, startIndex + index);
-                              }).toList(),
                             ],
                           ),
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Mostrando ${startIndex + 1} al ${endIndex} de $totalRecords entradas',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.arrow_back),
-                            onPressed: _previousPage,
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.arrow_forward),
-                            onPressed: _nextPage,
-                          ),
-                        ],
                       ),
                     ],
                   );
                 }
               },
-            ),
-          ),
-        ],
+            );
+          }
+        },
       ),
-    ),
-  );
-}
-
-
-Widget _buildVerificacionFlete() {
-  return Container(
-    color: Colors.black, // Establece el color de fondo negro para la pantalla de verificación del flete
-    child: FutureBuilder<List<FleteDetalleViewModel>>(
-      future: FleteDetalleService.Buscar(_flenIdSeleccionado!),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-          );
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error al cargar los datos',
-              style: TextStyle(color: Colors.red),
-            ),
-          );
-        } else if (!snapshot.hasData) {
-          return Center(
-            child: Text(
-              'No se encontraron datos del flete',
-              style: TextStyle(color: Colors.white),
-            ),
-          );
-        } else {
-          final detalles = snapshot.data!;
-
-          return FutureBuilder<List<FleteControlCalidadViewModel>>(
-            future: _incidenciasFuture,
-            builder: (context, snapshotIncidencias) {
-              if (snapshotIncidencias.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: SpinKitCircle(color: Color(0xFFFFF0C6)),
-                );
-              } else if (snapshotIncidencias.hasError) {
-                return Center(
-                  child: Text(
-                    'Error al cargar las incidencias',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                );
-              } else if (!snapshotIncidencias.hasData) {
-                return Center(
-                  child: Text(
-                    'No se encontraron incidencias',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              } else {
-                final incidencias = snapshotIncidencias.data!;
-
-                return Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: ListView(
-                        padding: EdgeInsets.only(bottom: 70.0), // Espacio en la parte inferior para el botón
-                        children: [
-                          _buildEncabezadoFlete(
-                            _allFletes.firstWhere((flete) => flete.flenId == _flenIdSeleccionado),
-                          ),
-                          _buildDetallesFlete(detalles),
-                          _buildIncidenciasFlete(incidencias),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        color: Colors.black, // Fondo negro para el área del botón
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          children: [
-                            Spacer(),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  bottom: 10.0, right: 10.0),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF171717),
-                                  padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _viendoVerificacion = false;
-                                  });
-                                },
-                                child: Text(
-                                  'Regresar',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-            },
-          );
-        }
-      },
-    ),
-  );
-}
-
-
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

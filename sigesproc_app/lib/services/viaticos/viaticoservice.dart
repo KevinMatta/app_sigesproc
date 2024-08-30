@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
+import 'package:sigesproc_app/models/viaticos/detalleviaticoViewModel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import '../apiservice.dart';
 
@@ -30,17 +31,24 @@ class ViaticosEncService {
     }
   }
 
-  static Future<ViaticoEncViewModel> buscarViaticoDetalle(int id) async {
-    final url = Uri.parse('${ApiService.apiUrl}/ViaticosEnc/BuscarEncDet/$id');
-    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
+  final url = Uri.parse('${ApiService.apiUrl}/ViaticosEnc/BuscarEncDet/$id');
+  final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return ViaticoEncViewModel.fromJson(data);
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+
+    if (data is List && data.isNotEmpty) {
+      // Si data es una lista, y está no está vacía, toma el primer elemento
+      return Detalleviaticoviewmodel.fromJson(data[0]);
     } else {
-      throw Exception('Error al buscar el detalle del viático');
+      throw Exception('No se encontraron datos en la respuesta');
     }
+  } else {
+    throw Exception('Error al buscar el detalle del viático');
   }
+}
+
 
   static Future<void> eliminarViatico(int id) async {
     final url = Uri.parse('${ApiService.apiUrl}/ViaticosEnc/Eliminar/$id');

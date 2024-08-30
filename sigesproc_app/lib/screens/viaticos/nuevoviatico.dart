@@ -260,55 +260,59 @@ class _NuevoViaticoState extends State<NuevoViatico> {
     );
   }
 
-  Widget _buildDropdownEmpleado() {
-    return TypeAheadFormField<EmpleadoViewModel>(
-      textFieldConfiguration: TextFieldConfiguration(
-        controller: TextEditingController(
-            text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
-        style: TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: 'Identidad Empleado',
-          labelStyle: TextStyle(color: Colors.white),
-          filled: true,
-          fillColor: Colors.black,
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-        ),
+Widget _buildDropdownEmpleado() {
+  return TypeAheadFormField<EmpleadoViewModel>(
+    textFieldConfiguration: TextFieldConfiguration(
+      controller: TextEditingController(
+          text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: 'Identidad Empleado',
+        labelStyle: TextStyle(color: Colors.white),
+        filled: true,
+        fillColor: Colors.black,
+        border: OutlineInputBorder(),
+        suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
       ),
-      suggestionsCallback: (pattern) async {
-        return _empleados
-            .where((empleado) => empleado.emplDNI!.contains(pattern))
-            .toList();
-      },
-      itemBuilder: (context, EmpleadoViewModel suggestion) {
-        return ListTile(
-          title: Text(
-            suggestion.emplDNI ?? '',
-            style: TextStyle(color: Colors.white),
-          ),
-          subtitle: Text(
-            suggestion.empleado ?? '',
-            style: TextStyle(color: Colors.white70),
-          ),
-        );
-      },
-      onSuggestionSelected: (EmpleadoViewModel suggestion) {
-        setState(() {
-          _selectedEmpleado = suggestion;
-        });
-      },
-      noItemsFoundBuilder: (context) => Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          'No se encontraron empleados',
+    ),
+    suggestionsCallback: (pattern) async {
+      final lowerPattern = pattern.toLowerCase();
+      return _empleados.where((empleado) {
+        final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
+        final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
+        return dniMatch || nameMatch;
+      }).toList();
+    },
+    itemBuilder: (context, EmpleadoViewModel suggestion) {
+      return ListTile(
+        title: Text(
+          suggestion.emplDNI ?? '',
           style: TextStyle(color: Colors.white),
         ),
+        subtitle: Text(
+          suggestion.empleado ?? '',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    },
+    onSuggestionSelected: (EmpleadoViewModel suggestion) {
+      setState(() {
+        _selectedEmpleado = suggestion;
+      });
+    },
+    noItemsFoundBuilder: (context) => Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        'No se encontraron empleados',
+        style: TextStyle(color: Colors.white),
       ),
-      suggestionsBoxDecoration: SuggestionsBoxDecoration(
-        color: Colors.black,
-      ),
-    );
-  }
+    ),
+    suggestionsBoxDecoration: SuggestionsBoxDecoration(
+      color: Colors.black,
+    ),
+  );
+}
+
 
   Widget _buildDropdownProyecto() {
     return TypeAheadFormField<ProyectoViewModel>(

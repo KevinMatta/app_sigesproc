@@ -71,6 +71,7 @@ class _VentaState extends State<Venta> {
   String sexo = 'Femenino';
   String tipoCliente = 'Bien Raiz';
   bool _mostrarErrores = false;
+  bool _mostrarErroresventa = false;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -270,21 +271,21 @@ class _VentaState extends State<Venta> {
                   _campoDeTextoCliente('DNI', dniController, 'Ingrese el DNI',
                       isNumeric: true,
                       showError: _mostrarErrores && dniController.text.isEmpty,
-                      errorMessage: 'El DNI es obligatorio'),
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Nombre', nombreclientecontroller, 'Ingrese el nombre',
                       showError: _mostrarErrores &&
                           !RegExp(r'^[a-zA-Z\s]+$')
                               .hasMatch(nombreclientecontroller.text),
-                      errorMessage: 'Ingrese un nombre válido'),
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Apellido', apellidoController, 'Ingrese el apellido',
                       showError: _mostrarErrores &&
                           !RegExp(r'^[a-zA-Z\s]+$')
                               .hasMatch(apellidoController.text),
-                      errorMessage: 'Ingrese un apellido válido'),
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente('Correo Electrónico', correoController,
                       'Ingrese el correo',
@@ -292,20 +293,20 @@ class _VentaState extends State<Venta> {
                       showError: _mostrarErrores &&
                           !RegExp(r'^[^@]+@[^@]+\.[^@]+$')
                               .hasMatch(correoController.text),
-                      errorMessage: 'Ingrese un correo electrónico válido'),
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
-                      'Teléfono', telefonoController, 'Ingrese el teléfono',
+                      'Teléfono', telefonoclienteController, 'Ingrese el teléfono',
                       isNumeric: true,
                       showError:
-                          _mostrarErrores && telefonoController.text.length < 7,
-                      errorMessage: 'Ingrese un teléfono válido'),
+                          _mostrarErrores && telefonoclienteController.text.length < 7,
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _buildDateField(
                       'Fecha de Nacimiento', fechaNacimientoController,
                       showError: _mostrarErrores &&
                           !_esFechaValida(fechaNacimientoController.text),
-                      errorMessage: 'Ingrese una fecha válida'),
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _buildRadioGroup('Sexo', ['Femenino', 'Masculino'], (value) {
                     setState(() {
@@ -325,7 +326,7 @@ class _VentaState extends State<Venta> {
                       'Ingrese la dirección',
                       showError:
                           _mostrarErrores && direccionController.text.isEmpty,
-                      errorMessage: 'La dirección es obligatoria'),
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _paisAutocomplete(paisController),
                   SizedBox(height: 10),
@@ -436,7 +437,7 @@ class _VentaState extends State<Venta> {
                 fillColor: Colors.black,
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: _mostrarErrores && paisSeleccionadoId == null
-                    ? 'Seleccione un país válido'
+                    ? 'El campo es requerido.'
                     : null,
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -556,7 +557,7 @@ class _VentaState extends State<Venta> {
                 errorText: _mostrarErrores &&
                         (paisSeleccionadoId == null ||
                             estadoSeleccionadoId == null)
-                    ? 'Seleccione un estado válido'
+                    ? 'El campo es requerido.'
                     : null,
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -674,7 +675,7 @@ class _VentaState extends State<Venta> {
                 errorText: _mostrarErrores &&
                         (estadoSeleccionadoId == null ||
                             ciudadSeleccionada == null)
-                    ? 'Seleccione una ciudad válida'
+                    ? 'El campo es requerido.'
                     : null,
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -784,7 +785,7 @@ class _VentaState extends State<Venta> {
                 fillColor: Colors.black,
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: _mostrarErrores && estadoCivilSeleccionado == null
-                    ? 'Seleccione un estado civil válido'
+                    ? 'El campo es requerido.'
                     : null,
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -873,18 +874,25 @@ class _VentaState extends State<Venta> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDNIAutocomplete(clienteController),
+                  _buildDNIAutocomplete(clienteController,
+                  showError: _mostrarErroresventa && clienteController.text.isEmpty,
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _campodeTexto('Nombre Completo', nombreController, '',
-                      enabled: false),
+                      enabled: false,
+                      showError: _mostrarErroresventa && nombreController.text.isEmpty,
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _campodeTexto('Teléfono', telefonoController, '',
-                      enabled: false),
+                      enabled: false,showError: _mostrarErroresventa && telefonoController.text.isEmpty,
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _campodeTexto('Precio Final', precioController, '0.00',
-                      isNumeric: true),
+                      isNumeric: true,showError: _mostrarErroresventa && precioController.text.isEmpty,
+                      errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
-                  _buildDateField('Fecha de Venta Final', fechaController),
+                  _buildDateField('Fecha de Venta Final', fechaController,showError: _mostrarErroresventa && fechaController.text.isEmpty,
+                      errorMessage: 'El campo es requerido.'),
                 ],
               ),
             ),
@@ -894,7 +902,7 @@ class _VentaState extends State<Venta> {
     );
   }
 
-  Widget _buildDNIAutocomplete(TextEditingController controller) {
+  Widget _buildDNIAutocomplete(TextEditingController controller,{bool showError = false,String? errorMessage}) {
     FocusNode focusNode = FocusNode();
 
     return Row(
@@ -930,6 +938,7 @@ class _VentaState extends State<Venta> {
                       border: OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.black,
+                      errorText: showError ? errorMessage : null,
                       labelStyle: TextStyle(color: Colors.white),
                       suffixIcon: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1007,7 +1016,8 @@ class _VentaState extends State<Venta> {
         SizedBox(width: 10),
         IconButton(
           color: Colors.black,
-          icon: Icon(Icons.person_add, color: Color(0xFFFFF0C6)),
+          iconSize: 30,
+          icon: Icon(Icons.person_add_rounded, color: Color(0xFFFFF0C6)),
           onPressed: () {
             setState(() {
               _mostrarFormularioCliente = true;
@@ -1019,32 +1029,41 @@ class _VentaState extends State<Venta> {
     );
   }
 
-  Widget _campodeTexto(
-      String label, TextEditingController controller, String hint,
-      {bool isNumeric = false, bool enabled = true}) {
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        labelStyle: TextStyle(color: Colors.white),
-        hintStyle: TextStyle(color: Colors.white),
-        filled: true,
-        fillColor: Colors.black,
-        border: OutlineInputBorder(),
-      ),
-      style: TextStyle(color: Colors.white),
-      keyboardType: isNumeric
-          ? TextInputType.numberWithOptions(decimal: true)
-          : TextInputType.text,
-      inputFormatters: isNumeric
-          ? [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-            ]
-          : null,
-    );
-  }
+ Widget _campodeTexto(
+    String label, 
+    TextEditingController controller, 
+    String hint,
+    {bool isNumeric = false, 
+    bool enabled = true,
+    bool showError = false,
+    String? errorMessage}) {
+
+  bool shouldShowError = showError && enabled;
+
+  return TextField(
+    controller: controller,
+    enabled: enabled,
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: TextStyle(color: Colors.white),
+      hintStyle: TextStyle(color: Colors.white),
+      filled: true,
+      fillColor: Colors.black,
+      border: OutlineInputBorder(),
+      errorText: shouldShowError ? errorMessage : null,
+    ),
+    style: TextStyle(color: Colors.white),
+    keyboardType: isNumeric
+        ? TextInputType.numberWithOptions(decimal: true)
+        : TextInputType.text,
+    inputFormatters: isNumeric
+        ? [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+          ]
+        : null,
+  );
+}
 
   Widget _buildDateField(String label, TextEditingController controller,
       {bool showError = false, String? errorMessage}) {
@@ -1112,7 +1131,7 @@ class _VentaState extends State<Venta> {
                       clieNombre: nombreclientecontroller.text,
                       clieApellido: apellidoController.text,
                       clieCorreoElectronico: correoController.text,
-                      clieTelefono: telefonoController.text,
+                      clieTelefono: telefonoclienteController.text,
                       clieFechaNacimiento: DateFormat('dd/MM/yyyy')
                           .parse(fechaNacimientoController.text),
                       clieSexo: sexo == 'Masculino' ? 'M' : 'F',
@@ -1163,15 +1182,12 @@ class _VentaState extends State<Venta> {
                     );
                   }
                 } else {
-                  // Manejar la validación fallida del formulario
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Por favor, complete todos los campos correctamente.')),
-                  );
                 }
               } else {
-                // Lógica para guardar una venta
+                setState(() {
+                  _mostrarErroresventa = true;
+                });
+
                 if (_isFormValid()) {
                   try {
                     ClienteViewModel? clienteSeleccionado = clientes.firstWhere(
@@ -1213,11 +1229,7 @@ class _VentaState extends State<Venta> {
                     );
                   }
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Por favor, complete todos los campos correctamente.')),
-                  );
+                 
                 }
               }
             },
@@ -1235,7 +1247,15 @@ class _VentaState extends State<Venta> {
           ),
           ElevatedButton(
             onPressed: () {
+              if (_mostrarFormularioCliente) {
+                setState(() {
+                  _mostrarFormularioCliente =
+                            false;
+                });
+              } else{
               Navigator.of(context).pop();
+              }
+
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
@@ -1272,8 +1292,8 @@ class _VentaState extends State<Venta> {
     final apellidoValid = apellidoController.text.isNotEmpty &&
         RegExp(r'^[a-zA-Z\s]+$').hasMatch(apellidoController.text);
     final emailValid = emailRegExp.hasMatch(correoController.text);
-    final telefonoValid = telefonoController.text.isNotEmpty &&
-        telefonoController.text.length >= 8;
+    final telefonoValid = telefonoclienteController.text.isNotEmpty &&
+        telefonoclienteController.text.length >= 8;
     final fechaNacimientoValid = fechaNacimientoController.text.isNotEmpty &&
         _esFechaValida(fechaNacimientoController.text);
     final direccionValid = direccionController.text.isNotEmpty;
