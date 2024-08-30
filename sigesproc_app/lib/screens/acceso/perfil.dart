@@ -40,11 +40,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _usuaUsuario = usuario.usuaUsuario ?? "";
         _empleado = usuario.nombreEmpleado ?? "";
-        _correo = usuario.correo ?? "";
-        _telfono = usuario.telfono ?? "";
-        _cargo = usuario.cargo ?? "";
-        _profileImage = usuario.imagen != null && usuario.imagen!.isNotEmpty
-            ? NetworkImage(usuario.imagen!)
+        _correo = usuario.correoEmpleado ?? "";
+        _telfono = usuario.telefonoEmpleado ?? "";
+        _cargo = usuario.cargoDescripcion ?? "";
+        _profileImage = usuario.imagenEmpleado != null && usuario.imagenEmpleado!.isNotEmpty
+            ? NetworkImage(usuario.imagenEmpleado!)
             : AssetImage('lib/assets/perfil.jpeg');
         _emailController.text = _correo;
       });
