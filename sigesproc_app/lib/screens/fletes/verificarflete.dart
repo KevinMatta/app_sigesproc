@@ -57,6 +57,8 @@ class _VerificarFleteState extends State<VerificarFlete>
   final Map<int, TextEditingController> _textControllers = {};
   Map<int, FocusNode> _focusNodes = {};
 
+  bool _mostrarErrores = false;
+
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
     flenFechaHoraSalida: null,
@@ -273,7 +275,8 @@ class _VerificarFleteState extends State<VerificarFlete>
               ),
             ),
             SizedBox(height: 10),
-            _buildFechaHoraLlegadaInput(),
+            _buildFechaHoraLlegadaInput(showError: _mostrarErrores && _fechaHoraController.text.isEmpty,
+                      errorMessage: 'El campo es requerido.'),
           ],
         ),
       ),
@@ -841,20 +844,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
   }
 
-
-    if (insumosVerificados.isEmpty && equiposVerificados.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Es necesario seleccionar insumos o equipos de seguridad.')),
-      );
-      return;
-    }
-
     if (flete.flenFechaHoraLlegada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('La fecha de llegada no puede ser vacía.')),
-      );
       return;
     }
 
@@ -1156,6 +1146,7 @@ for (var detalle in equiposNoRecibidos) {
                 ),
               ),
               onPressed: () async {
+                
                 await _guardarIncidencia();
               },
               child: Text(
@@ -1201,6 +1192,9 @@ for (var detalle in equiposNoRecibidos) {
                 ),
               ),
               onPressed: () async {
+                setState(() {
+                  _mostrarErrores = true;
+                });
                 await _verificarFlete();
               },
               child: Text(
@@ -1239,13 +1233,15 @@ for (var detalle in equiposNoRecibidos) {
   }
 
   // Botón Guardar y Cancelar del formulario de incidencia
-  Widget _buildFechaHoraLlegadaInput() {
+  Widget _buildFechaHoraLlegadaInput({bool showError = false,
+    String? errorMessage}) {
     return TextField(
       readOnly: true,
       onTap: _seleccionarFechaHora,
       decoration: InputDecoration(
         suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
         border: OutlineInputBorder(),
+        errorText: showError ? errorMessage : null,
         filled: true,
         fillColor: Colors.black,
         labelStyle: TextStyle(color: Colors.white),
