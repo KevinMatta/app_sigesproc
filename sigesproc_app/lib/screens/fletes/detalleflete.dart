@@ -6,6 +6,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/consts.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
@@ -13,6 +14,7 @@ import 'package:sigesproc_app/models/insumos/bodegaviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
+import 'package:sigesproc_app/services/fletes/fletehubservice.dart';
 import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 
@@ -38,10 +40,29 @@ class _DetalleFleteState extends State<DetalleFlete> {
   StreamSubscription<LocationData>? locationSubscription;
   BitmapDescriptor? carritoIcono;
   bool isExpanded = false;
+  int? emplId;
+  bool esFletero = false;
 
   @override
   void initState() {
     super.initState();
+    _loadEmplId(); // Cargar el emplId desde las preferencias compartidas
+    FleteHubService().onReceiveUbicacion((emplId, lat, lng) {
+      setState(() {
+        // Actualiza la ubicación del fletero en el mapa
+        LatLng nuevaUbicacion = LatLng(lat, lng);
+        if (emplId != this.emplId) {
+          if (ubicacionactual != null) {
+            // Generar polyline desde la última ubicación actualizada
+            polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
+            _actualizarPolyline(
+                ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+          }
+          ubicacionactual = nuevaUbicacion;
+        }
+      });
+    });
+
     _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
     _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
     _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
@@ -57,6 +78,15 @@ class _DetalleFleteState extends State<DetalleFlete> {
   void dispose() {
     locationSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadEmplId() async {
+    final pref = await SharedPreferences.getInstance();
+    setState(() {
+      emplId = int.tryParse(pref.getString('emplId') ?? '');
+      // emplId = 88;
+      print(emplId);
+    });
   }
 
   Future<BitmapDescriptor> createBitmapDescriptorFromIcon(
@@ -86,20 +116,21 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<dynamic> _fetchBodegaOrigen(int flenId) async {
-  try {
-    FleteEncabezadoViewModel? flete = await FleteEncabezadoService.obtenerFleteDetalle(flenId);
-    if (flete != null) {
-      if (flete.flenSalidaProyecto!) {
-        return await ProyectoService.obtenerProyecto(flete.boasId!);
-      } else {
-        return await BodegaService.buscar(flete.boasId!);
+    try {
+      FleteEncabezadoViewModel? flete =
+          await FleteEncabezadoService.obtenerFleteDetalle(flenId);
+      if (flete != null) {
+        if (flete.flenSalidaProyecto!) {
+          return await ProyectoService.obtenerProyecto(flete.boasId!);
+        } else {
+          return await BodegaService.buscar(flete.boasId!);
+        }
       }
+    } catch (e) {
+      print('Error fetching bodega origen: $e');
     }
-  } catch (e) {
-    print('Error fetching bodega origen: $e');
+    return null;
   }
-  return null;
-}
 
   Future<dynamic> _fetchDestino(int flenId) async {
     try {
@@ -118,54 +149,115 @@ class _DetalleFleteState extends State<DetalleFlete> {
     return null;
   }
 
- Future<void> iniciarMapa() async {
-  bool ubicacionObtenida = await ubicacionActualizada();
-  LatLng inicio;
-  LatLng? destino;
+  Future<void> iniciarMapa() async {
+    final FleteEncabezadoViewModel? flete = await _fleteFuture;
+    if (flete == null) {
+      print('No se encontró el flete');
+      return;
+    }
 
-  final origenData = await _bodegaOrigenFuture;
-  final destinoData = await _destinoFuture;
+    final bool esFletero = flete.emtrId == emplId;
+    print('aver ${flete.emtrId} $emplId');
 
-  if (origenData is ProyectoViewModel) {
-    inicio = obtenerCoordenadasDeEnlace(origenData.proyLinkUbicacion) ?? LatLng(0, 0);
-  } else if (origenData is BodegaViewModel) {
-    inicio = obtenerCoordenadasDeEnlace(origenData.bodeLinkUbicacion!) ?? LatLng(0, 0);
-  } else {
-    inicio = LatLng(0, 0);
-  }
+    // Si el flete ya ha sido completado
+    if (flete.flenEstado == true) {
+      _mostrarRutasAnteriores();
+      return;
+    }
 
-  if (destinoData is ProyectoViewModel) {
-    destino = obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
-  } else if (destinoData is BodegaViewModel) {
-    destino = obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
-  }
+    if (esFletero) {
+      // El fletero aún está llevando el flete
+      bool ubicacionObtenida = await ubicacionActualizada();
+      if (ubicacionObtenida) {
+        // Envía la ubicación actual a la API
+        FleteHubService().actualizarUbicacion(emplId!, ubicacionactual!);
 
-  if (ubicacionObtenida) {
-    locationSubscription = ubicacionController.onLocationChanged.listen((currentLocation) {
-      if (currentLocation.latitude != null && currentLocation.longitude != null) {
-        LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
-        if (mounted) {
-          setState(() {
-            ubicacionactual = nuevaUbicacion;
-          });
-          if (destino != null) {
-            _actualizarPolyline(nuevaUbicacion, destino);
-          }
+        // Genera una nueva polyline roja
+        LatLng inicio = ubicacionactual!;
+        LatLng? destino = await _obtenerDestino();
+
+        if (destino != null) {
+          final coordinates = await polylinePuntos(inicio, destino);
+          final id = PolylineId(
+              'polyline_roja_${emplId}_${DateTime.now().millisecondsSinceEpoch}');
+          generarPolylineporPuntos2(coordinates, Colors.red, id);
+        } else {
+          print('Ubicación del destino inválida');
         }
       }
-    });
+    } else {
+      // No es el fletero, mostrar solo la ruta predestinada
+      LatLng? inicio = await _obtenerOrigen();
+      LatLng? destino = await _obtenerDestino();
+
+      if (inicio != null && destino != null) {
+        final coordinates = await polylinePuntos(inicio, destino);
+        final id = PolylineId('polyline_azul_${widget.flenId}');
+        generarPolylineporPuntos2(coordinates, Colors.blue, id);
+      } else {
+        print('Ubicaciones inválidas');
+      }
+    }
   }
 
-  if (destino != null) {
-    final coordinates = await polylinePuntos(
-      ubicacionObtenida ? ubicacionactual! : inicio,
-      destino,
-    );
-    generarPolylineporPuntos(coordinates);
-  } else {
-    print('Ubicación del destino inválida');
+// Función para mostrar las rutas anteriores
+  Future<void> _mostrarRutasAnteriores() async {
+    // Aquí recuperas las rutas anteriores y las dibujas en el mapa
+    // Puedes guardar estas rutas en SharedPreferences o recuperarlas desde la API
+
+    // Ejemplo:
+    List<List<LatLng>> rutasAnteriores = await _obtenerRutasAnteriores();
+    for (int i = 0; i < rutasAnteriores.length; i++) {
+      final id = PolylineId('ruta_anterior_$i');
+      generarPolylineporPuntos2(rutasAnteriores[i], Colors.red, id);
+    }
   }
-}
+
+  Future<void> generarPolylineporPuntos2(
+    List<LatLng> polylineCoordenadas,
+    Color color,
+    PolylineId id,
+  ) async {
+    final polyline = Polyline(
+      polylineId: id,
+      color: color,
+      points: polylineCoordenadas,
+      width: 5,
+    );
+
+    if (mounted) {
+      setState(() => polylines[id] = polyline);
+    }
+  }
+
+  Future<void> _guardarRuta(List<LatLng> ruta) async {
+    // Guardar la ruta en SharedPreferences o en la API
+  }
+
+  Future<List<List<LatLng>>> _obtenerRutasAnteriores() async {
+    // Recuperar las rutas anteriores desde SharedPreferences o la API
+    return [];
+  }
+
+  Future<LatLng?> _obtenerOrigen() async {
+    final origenData = await _bodegaOrigenFuture;
+    if (origenData is ProyectoViewModel) {
+      return obtenerCoordenadasDeEnlace(origenData.proyLinkUbicacion);
+    } else if (origenData is BodegaViewModel) {
+      return obtenerCoordenadasDeEnlace(origenData.bodeLinkUbicacion!);
+    }
+    return null;
+  }
+
+  Future<LatLng?> _obtenerDestino() async {
+    final destinoData = await _destinoFuture;
+    if (destinoData is ProyectoViewModel) {
+      return obtenerCoordenadasDeEnlace(destinoData.proyLinkUbicacion);
+    } else if (destinoData is BodegaViewModel) {
+      return obtenerCoordenadasDeEnlace(destinoData.bodeLinkUbicacion);
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,10 +342,16 @@ class _DetalleFleteState extends State<DetalleFlete> {
                             Future.wait([_bodegaOrigenFuture, _destinoFuture]),
                         builder:
                             (context, AsyncSnapshot<List<dynamic>> snapshot) {
-                          if (ubicacionactual == null) {
+                          if (ubicacionactual == null && !esFletero) {
+                            // Si la ubicación actual no está disponible y no es el fletero, muestra solo la ruta destinada
                             return Center(
-                              child: SpinKitCircle(
-                                color: Color(0xFFFFF0C6),
+                              child: GoogleMap(
+                                initialCameraPosition: CameraPosition(
+                                  target: LatLng(0,
+                                      0), // Puedes cambiar esto a la ubicación deseada
+                                  zoom: 13,
+                                ),
+                                polylines: Set<Polyline>.of(polylines.values),
                               ),
                             );
                           } else if (snapshot.hasError) {
@@ -293,14 +391,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
                             if (destinoData is ProyectoViewModel) {
                               destino = obtenerCoordenadasDeEnlace(
                                   destinoData.proyLinkUbicacion);
-                              if (destino == null) {
-                                return Center(
-                                  child: Text(
-                                    'Ubicación del destino inválida',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                );
-                              }
                             } else if (destinoData is BodegaViewModel) {
                               destino = obtenerCoordenadasDeEnlace(
                                   destinoData.bodeLinkUbicacion);
@@ -321,12 +411,11 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                         BitmapDescriptor.defaultMarker,
                                     position: ubicacionactual!,
                                   ),
-                                if (ubicacionactual == null)
-                                  Marker(
-                                    markerId: const MarkerId('sourceLocation'),
-                                    icon: BitmapDescriptor.defaultMarker,
-                                    position: inicio,
-                                  ),
+                                Marker(
+                                  markerId: const MarkerId('sourceLocation'),
+                                  icon: BitmapDescriptor.defaultMarker,
+                                  position: inicio,
+                                ),
                                 Marker(
                                   markerId:
                                       const MarkerId('destinationLocation'),
@@ -466,7 +555,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                                             8.0),
                                                     child: Text(
                                                       detalle.insuDescripcion ??
-                                                          detalle.equsDescripcion!,
+                                                          detalle
+                                                              .equsDescripcion!,
                                                       style: TextStyle(
                                                           color: Colors.black),
                                                     ),
@@ -580,24 +670,26 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> generarPolylineporPuntos(
-      List<LatLng> polylineCoordenadas) async {
-    const id = PolylineId('polyline');
+      List<LatLng> polylineCoordenadas, Color color, String id) async {
+    final polylineId = PolylineId(id);
 
     final polyline = Polyline(
-      polylineId: id,
-      color: Colors.blueAccent,
+      polylineId: polylineId,
+      color: color,
       points: polylineCoordenadas,
       width: 5,
     );
 
     if (mounted) {
-      setState(() => polylines[id] = polyline);
+      setState(() => polylines[polylineId] = polyline);
     }
   }
 
-  Future<void> _actualizarPolyline(LatLng inicio, LatLng destino) async {
-    final coordinates = await polylinePuntos(inicio, destino);
-    generarPolylineporPuntos(coordinates);
+  Future<void> _actualizarPolyline(
+      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
+    // Genera una línea desde la última ubicación conocida hasta la nueva ubicación
+    final List<LatLng> polylineCoordenadas = [inicio, nuevaUbicacion];
+    await generarPolylineporPuntos(polylineCoordenadas, color, id);
   }
 
   String formatDateTime(DateTime? dateTime) {

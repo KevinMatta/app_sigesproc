@@ -860,7 +860,8 @@ Widget _buildVerificacionFlete() {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.notifications),
-            onPressed: () {},
+            onPressed: () {
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),
