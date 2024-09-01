@@ -25,6 +25,7 @@ class _LoginState extends State<Login> {
   bool contravacia = false;
   bool incorrectos = false;
 
+
   Widget _cuadritoflotante() {
     return Container(
       width: 50,
@@ -220,10 +221,13 @@ class _LoginState extends State<Login> {
     );
   }
 
+
+
+
   Future<void> _login() async {
     String usuario = usuariooController.text;
     String contra = contraController.text;
-
+    
     //Inicializar la session
     final SharedPreferences pref = await SharedPreferences.getInstance();
 
@@ -255,9 +259,16 @@ class _LoginState extends State<Login> {
       final UsuarioViewModel? response = await LoginService.login(usuario, contra);
 
       if (response != null) {
-        await pref.setString('person', response.nombreEmpleado ?? '');
-        await pref.setString('IDRegistro', response.usuaId?.toString() ?? '');
+        await pref.setString('emplNombre', response.nombreEmpleado ?? '');
+        await pref.setString('emplId', response.empleadoId?.toString() ?? '');
+        await pref.setString('usuaId', response.usuaId?.toString() ?? '');
+        await pref.setString('usuaUsuario', response.usuaUsuario?.toString() ?? '');
         await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
+
+        await pref.setString('roleDescripcion', response.rolDescripcion?.toString() ?? '');
+        await pref.setString('emplCorreoElectronico', response.correoEmpleado?.toString() ?? '');
+        await pref.setString('cargDescripcion', response.cargoDescripcion?.toString() ?? '');
+        await pref.setString('emplTelefono', response.telefonoEmpleado?.toString() ?? '');
 
         Navigator.push(
           context,

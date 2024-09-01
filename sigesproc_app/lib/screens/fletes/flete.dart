@@ -840,7 +840,8 @@ class _FleteState extends State<Flete> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.notifications),
-            onPressed: () {},
+            onPressed: () {
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),
