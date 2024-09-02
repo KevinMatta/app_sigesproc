@@ -216,9 +216,10 @@ class _CotizacionState extends State<Cotizacion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.transparent,
-      appBar: CustomAppBar(unreadCount: _unreadCount), 
+         appBar: CustomAppBar(
+        unreadCount: _unreadCount,
+        onNotificationsUpdated: _loadNotifications, // Pasar la función aquí
+      ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,

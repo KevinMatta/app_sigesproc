@@ -177,15 +177,19 @@ Future<void> obtenerTotalCantidadTrabajada() async {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insertado con Éxito."),
-        backgroundColor: Colors.green,
+        content: Text("Insertado con Éxito.", style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),),
+        backgroundColor: Color(0xFFFFF0C6),
       ));
       Navigator.of(context).pop();
       } else {
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insertado con Éxito"),
-        backgroundColor: Colors.green,
+        content: Text("Insertado con Éxito", style: TextStyle(
+            color: Color.fromARGB(255, 0, 0, 0),
+          ),),
+        backgroundColor: Color(0xFFFFF0C6),
       ));
       Navigator.of(context).pop();
 
@@ -195,14 +199,13 @@ Future<void> obtenerTotalCantidadTrabajada() async {
           double? n = idScope!.abs().toDouble();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("La cantidad del control de calidad se excede por: $n."),
-          backgroundColor: Colors.red,
+          
         ));
       // throw Exception("Error al guardar el control de calidad.");
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Error: $e."),
-      backgroundColor: Colors.red,
     ));
     print("Error al guardar el control de calidad o subir imágenes: $e.");
   }
@@ -565,7 +568,7 @@ Widget build(BuildContext context) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Error: $e"),
-                          backgroundColor: Colors.red,
+                          
                         ),
                       );
                     }
@@ -573,7 +576,7 @@ Widget build(BuildContext context) {
                 },
                 child: Text(
                   'Guardar',
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: Colors.black, fontSize: 15),
                 ),
               ),
               SizedBox(width: 20),              
@@ -590,12 +593,12 @@ Widget build(BuildContext context) {
                 },
                 child: Text(
                   'Cancelar',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ), 
             ],
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
         ],
       ),
     ),

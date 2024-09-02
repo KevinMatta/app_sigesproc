@@ -4,8 +4,9 @@ import 'package:sigesproc_app/screens/acceso/perfil.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final int unreadCount;
+  final VoidCallback onNotificationsUpdated;
 
-  CustomAppBar({required this.unreadCount});
+  CustomAppBar({required this.unreadCount, required this.onNotificationsUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -66,11 +67,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => NotificacionesScreen(),
-            
               ),
             );
-                        // _loadNotifications();
-// Aquí puedes recargar las notificaciones si es necesario
+            onNotificationsUpdated(); // Recarga las notificaciones al regresar
           },
         ),
         IconButton(

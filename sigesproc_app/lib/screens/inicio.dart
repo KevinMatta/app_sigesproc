@@ -45,7 +45,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId); 
+      final notifications = await NotificationServices.BuscarNotificacion(userId);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -75,7 +75,10 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     print('Token después de solicitar permisos: ' + prefs.token);
 
     return Scaffold(
-      appBar: CustomAppBar(unreadCount: _unreadCount), // Usando tu CustomAppBar
+      appBar: CustomAppBar(
+        unreadCount: _unreadCount,
+        onNotificationsUpdated: _loadNotifications, // Pasar la función aquí
+      ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
@@ -91,6 +94,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
       ),
     );
   }
+
 
   Widget _buildCotizacionesTab() {
     var prefs = PreferenciasUsuario();

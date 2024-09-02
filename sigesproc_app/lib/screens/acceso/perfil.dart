@@ -34,8 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     var prefs = PreferenciasUsuario();
     usua_Id = int.tryParse(prefs.userId) ?? 0;
-
-    _fetchUserData();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _fetchUserData();  // Cargar los datos después de que la pantalla se haya renderizado
+  });
   }
 
   Future<void> _fetchUserData() async {
