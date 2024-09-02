@@ -1,4 +1,7 @@
 class Detalleviaticoviewmodel {
+
+   List<String> imagenes;
+
   int? codigo;
   String? empleado;
   String? proyecto;
@@ -24,8 +27,10 @@ class Detalleviaticoviewmodel {
   DateTime? videFechaCreacion;
   DateTime? videFechaModificacion;
   double? videMontoReconocido;
+  
 
   Detalleviaticoviewmodel({
+    required this.imagenes,
     this.codigo,
     this.empleado,
     this.proyecto,
@@ -88,6 +93,7 @@ class Detalleviaticoviewmodel {
           ? DateTime.parse(json['vide_FechaModificacion'])
           : null,
       videMontoReconocido: json['vide_MontoReconocido']?.toDouble(),
+       imagenes: List<String>.from(json['imagenes'] ?? [])
     );
   }
 
@@ -117,6 +123,7 @@ class Detalleviaticoviewmodel {
       'vide_FechaCreacion': videFechaCreacion?.toIso8601String(),
       'vide_FechaModificacion': videFechaModificacion?.toIso8601String(),
       'vide_MontoReconocido': videMontoReconocido,
+      'imagenes': imagenes
     };
   }
 }
