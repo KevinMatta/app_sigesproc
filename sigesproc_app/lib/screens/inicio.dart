@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
@@ -29,6 +31,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId));
 
     _loadNotifications();
+
+    _loadUserProfileData(); // Cargar datos de usuario al iniciar
   }
 
   Future<void> _insertarToken() async {
@@ -54,6 +58,20 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     }
   }
 
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
+    }
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -75,9 +93,93 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     print('Token después de solicitar permisos: ' + prefs.token);
 
     return Scaffold(
-      appBar: CustomAppBar(
-        unreadCount: _unreadCount,
-        onNotificationsUpdated: _loadNotifications, // Pasar la función aquí
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();  
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelPadding: EdgeInsets.symmetric(horizontal: 5.0),
+          tabs: [
+            Tab(text: 'Cotizaciones'),
+            Tab(text: 'Fletes'),
+            Tab(text: 'Proyectos'),
+            Tab(text: 'Bienes'),
+          ],
+          labelColor: Color(0xFFFFF0C6),
+          unselectedLabelColor: Colors.white,
+          indicatorColor: Color(0xFFFFF0C6),
+        ),
       ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
@@ -94,7 +196,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
       ),
     );
   }
-
 
   Widget _buildCotizacionesTab() {
     var prefs = PreferenciasUsuario();
@@ -273,8 +374,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 1',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -294,8 +394,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 2',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -319,8 +418,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 3',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -340,8 +438,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 4',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -365,8 +462,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 5',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -386,8 +482,51 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 6',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: 200,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Dashboard 7',
+                              style: TextStyle(color: Colors.white, fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 5),
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: 200,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Dashboard 8',
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
