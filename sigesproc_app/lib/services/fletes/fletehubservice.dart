@@ -3,14 +3,14 @@ import 'package:signalr_core/signalr_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-
 class FleteHubService {
-  static const String hubUrl = 'http://apisuasigesproc.somee.com/fleteHub';
+   static const String hubUrl = 'http://apisuasigesproc.somee.com/fleteHub';
 
   // Crea una instancia del HubConnection
   final HubConnection connection = HubConnectionBuilder()
       .withUrl(hubUrl, HttpConnectionOptions(
         accessTokenFactory: () async {
+          print("Obteniendo API Key");
           return ApiService.apiKey;
         },
       ))
@@ -26,26 +26,24 @@ class FleteHubService {
     }
   }
 
-  // Método para detener la conexión
-  Future<void> stopConnection() async {
-    try {
-      await connection.stop();
-      debugPrint("Conexión a SignalR detenida");
-    } catch (e) {
-      debugPrint("Error al detener la conexión a SignalR: $e");
-    }
-  }
-
   Future<void> actualizarUbicacion(int emplId, LatLng ubicacion) async {
+    if (emplId == null || ubicacion == null) {
+      print("Error: emplId o ubicacion es nulo.");
+      return;
+    }
+    print(
+        'Intentando actualizar ubicación en SignalR: EmplId: $emplId, Ubicación: $ubicacion');
     try {
-      await connection.invoke("ActualizarUbicacion", args: [emplId, ubicacion.latitude, ubicacion.longitude]);
-      debugPrint("Ubicación actualizada: $ubicacion");
+      await connection.invoke("ActualizarUbicacion",
+          args: [emplId, ubicacion.latitude, ubicacion.longitude]);
+      print('Ubicación actualizada en SignalR: $ubicacion');
     } catch (e) {
-      debugPrint("Error al actualizar ubicación: $e");
+      print('Error al actualizar ubicación en SignalR: $e');
     }
   }
 
-  void onReceiveUbicacion(Function(int emplId, double lat, double lng) onUbicacionRecibida) {
+  void onReceiveUbicacion(
+      Function(int emplId, double lat, double lng) onUbicacionRecibida) {
     connection.on("RecibirUbicacion", (message) {
       if (message != null && message.length == 3) {
         int emplId = message[0] as int;
