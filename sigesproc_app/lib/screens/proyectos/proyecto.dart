@@ -412,61 +412,61 @@ void _showProjectDetails(ProyectoViewModel proyecto) async {
 
 
   TableRow _buildProyectoRow(ProyectoViewModel proyecto, int index) {
-    return TableRow(
-      children: [
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 0, bottom: 0), // Ajuste de padding superior e inferior
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Centrar los íconos horizontalmente
-              children: [
-                GestureDetector(
-                  onTap: () => _showProjectDetails(proyecto),
-                  child: Icon(Icons.info_outlined, color: Color(0xFFFFF0C6), size: 22),
+  return TableRow(
+    children: [
+      TableCell(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 0, bottom: 0), // Ajuste de padding superior e inferior
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, // Centrar los íconos horizontalmente
+            children: [
+              GestureDetector(
+                onTap: () => _showProjectDetails(proyecto),
+                child: Icon(Icons.info_outlined, color: Color(0xFFFFF0C6), size: 22),
+              ),
+              SizedBox(width: 4), // Añadir espacio entre los íconos
+              GestureDetector(
+                onTap: () => _toggleExpansion(proyecto.proyId),
+                child: Icon(
+                  _expandedProjects[proyecto.proyId] == true
+                      ? Icons.arrow_drop_down
+                      : Icons.arrow_right_outlined,
+                  color: Color(0xFFFFF0C6),
+                  size: 25,
                 ),
-                SizedBox(width: 4), // Añadir espacio entre los íconos
-                GestureDetector(
-                  onTap: () => _toggleExpansion(proyecto.proyId),
-                  child: Icon(
-                    _expandedProjects[proyecto.proyId] == true
-                        ? Icons.arrow_drop_down
-                        : Icons.arrow_right_outlined,
-                    color: Color(0xFFFFF0C6),
-                    size: 25,
+              ),
+            ],
+          ),
+        ),
+      ),
+      TableCell(
+        child: InkWell(
+          onTap: () => _navigateToLineaDeTiempo(context, proyecto),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Text(
+                  (index + 1).toString(), // Índice
+                  style: TextStyle(color: Colors.white),
+                ),
+                SizedBox(width: 33), // Espacio entre el número y la descripción
+                Expanded(
+                  child: Text(
+                    proyecto.proyNombre ?? 'N/A', // Descripción
+                    style: TextStyle(color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
           ),
         ),
-        TableCell(
-          child: InkWell(
-            onTap: () => _navigateToLineaDeTiempo(context, proyecto),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                (index + 1).toString(),
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        ),
-        TableCell(
-          child: InkWell(
-            onTap: () => _navigateToLineaDeTiempo(context, proyecto),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                proyecto.proyNombre ?? 'N/A',
-                style: TextStyle(color: Colors.white),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   Widget _buildEtapasColumn(List<EtapaPorProyectoViewModel> etapas) {
     return Column(
@@ -643,8 +643,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                                   child: Table(
                                     columnWidths: {
                                       0: FlexColumnWidth(1.5),  // Acciones
-                                      1: FlexColumnWidth(1),  // No.
-                                      2: FlexColumnWidth(4),  // Descripción
+                                      1: FlexColumnWidth(5),  // Columna combinada No. + Descripción
                                     },
                                     children: [
                                       TableRow(
@@ -665,17 +664,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
-                                              'No.',
-                                              style: TextStyle(
-                                                color: Color(0xFFFFF0C6),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Descripción',
+                                              'No.     Descripción',
                                               style: TextStyle(
                                                 color: Color(0xFFFFF0C6),
                                                 fontWeight: FontWeight.bold,
@@ -702,9 +691,6 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                                                 TableCell(
                                                   child: SizedBox.shrink(),
                                                 ),                                                
-                                                TableCell(
-                                                  child: SizedBox.shrink(),
-                                                ),
                                                 TableCell(
                                                   child: FutureBuilder<List<EtapaPorProyectoViewModel>>(
                                                     future: _etapasPorProyecto[proyecto.proyId],
@@ -744,6 +730,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                                   ),
                                 ),
                         ),
+
                         SizedBox(height: 10),
                         Text(
                           'Mostrando ${startIndex + 1} al ${endIndex} de $totalRecords entradas',
