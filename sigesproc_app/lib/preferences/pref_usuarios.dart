@@ -1,10 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferenciasUsuario{
-  ///generar instancia
+ 
   static late SharedPreferences _prefs;
 
-  //inicializar las preferencias
+
   static Future init() async{
     _prefs = await SharedPreferences.getInstance();
   }
@@ -31,6 +31,14 @@ class PreferenciasUsuario{
 
   set token(String value){
     _prefs.setString('token', value);
+  }
+
+    set userId(String id) {
+    _prefs.setString('userId', id);
+  }
+
+  String get userId {
+    return _prefs.getString('userId') ?? '';
   }
   
 }

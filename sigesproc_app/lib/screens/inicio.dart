@@ -6,6 +6,7 @@ import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'appBar.dart'; // Asegúrate de tener tu CustomAppBar importado
 
 class Inicio extends StatefulWidget {
   @override
@@ -74,94 +75,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     print('Token después de solicitar permisos: ' + prefs.token);
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50,
-            ),
-            SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start,
-              ),
-            ),
-          ],
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Stack(
-              children: [
-                Icon(Icons.notifications),
-                if (_unreadCount > 0)
-                  Positioned(
-                    right: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      constraints: BoxConstraints(
-                        minWidth: 12,
-                        minHeight: 12,
-                      ),
-                      child: Text(
-                        '$_unreadCount',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NotificacionesScreen(),
-                ),
-              );
-              _loadNotifications();  
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelPadding: EdgeInsets.symmetric(horizontal: 5.0),
-          tabs: [
-            Tab(text: 'Cotizaciones'),
-            Tab(text: 'Fletes'),
-            Tab(text: 'Proyectos'),
-            Tab(text: 'Bienes'),
-          ],
-          labelColor: Color(0xFFFFF0C6),
-          unselectedLabelColor: Colors.white,
-          indicatorColor: Color(0xFFFFF0C6),
-        ),
-      ),
+      appBar: CustomAppBar(unreadCount: _unreadCount), // Usando tu CustomAppBar
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,

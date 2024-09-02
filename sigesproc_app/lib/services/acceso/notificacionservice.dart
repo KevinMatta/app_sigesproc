@@ -12,7 +12,6 @@ class NotificationServices {
       List<dynamic> jsonResponse = json.decode(response.body); 
       
       return jsonResponse.map((item) => NotificationViewModel.fromJson(item)).toList();
-            print('esto es la respuesta de las notis $jsonResponse');
 
     } else {
       throw Exception('Error al cargar las notificaciones');

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -8,7 +9,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int userId = 5;
+  late int usua_Id;
   String _usuaUsuario = "";
   String _empleado = "";
   String _correo = "";
@@ -30,12 +31,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+
+    var prefs = PreferenciasUsuario();
+    usua_Id = int.tryParse(prefs.userId) ?? 0;
+
     _fetchUserData();
   }
 
   Future<void> _fetchUserData() async {
     try {
-      UsuarioViewModel usuario = await UsuarioService.Buscar(userId);
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
       setState(() {
         _usuaUsuario = usuario.usuaUsuario ?? "";
@@ -43,9 +48,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _correo = usuario.correoEmpleado ?? "";
         _telfono = usuario.telefonoEmpleado ?? "";
         _cargo = usuario.cargoDescripcion ?? "";
-        _profileImage = usuario.imagenEmpleado != null && usuario.imagenEmpleado!.isNotEmpty
+
+        _profileImage = (usuario.imagenEmpleado != null && usuario.imagenEmpleado!.isNotEmpty)
             ? NetworkImage(usuario.imagenEmpleado!)
             : AssetImage('lib/assets/perfil.jpeg');
+
         _emailController.text = _correo;
       });
     } catch (e) {
@@ -53,15 +60,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _showOverlayMessage(String message, bool success) {
+  void _showOverlayMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
-        backgroundColor: success ? Colors.green : Colors.red,
+        backgroundColor: Color(0xFFFFF0C6), 
         duration: Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
       ),
     );
   }
@@ -144,25 +155,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       return;
                     }
 
-                    
-                    int? result = await UsuarioService.Restablecerflutter(
-                      userId, 
-                      _currentPasswordController.text,
-                      _newPasswordController.text,
-                    );
+                    try {
+                      int? result = await UsuarioService.Restablecerflutter(
+                        usua_Id, 
+                        _currentPasswordController.text,
+                        _newPasswordController.text,
+                      );
 
-                    
-                    if (result != null && result == 1) {
-                      _showOverlayMessage('Actualizado con Éxito.', true);
                       Navigator.of(context).pop();
-                    } else {
-                      _showOverlayMessage('Contraseña actual invalida.', false);
+                      if (result != null && result == 1) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Actualizado con Éxito.')),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Contraseña actual inválida.')),
+                        );
+                      }
+                    } catch (e) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error al actualizar la contraseña.')),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFFF0C6), 
                     textStyle: TextStyle(fontSize: 14), 
                     padding: EdgeInsets.symmetric(horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
                   child: Text('Guardar', style: TextStyle(color: Colors.black)),
                 ),
@@ -180,6 +203,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     backgroundColor: Colors.black, 
                     textStyle: TextStyle(fontSize: 14),
                     padding: EdgeInsets.symmetric(horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
                   child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
                 ),
@@ -197,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     if (_emailController.text.isEmpty) {
-      _showOverlayMessage('El campo es requerido.', false);
+      _showOverlayMessage('El campo es requerido.');
       return;
     }
 
@@ -211,24 +237,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             ElevatedButton(
               onPressed: () async {
-                int? result = await UsuarioService.Restablecercorreo(userId, _emailController.text);
+                int? result = await UsuarioService.Restablecercorreo(usua_Id, _emailController.text);
 
+                Navigator.of(context).pop();
                 if (result != null && result == 1) {
-                  _showOverlayMessage('Actualizado con Éxito.', true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Actualizado con Éxito.')),
+                  );
                   setState(() {
                     _correo = _emailController.text;
                     _isEditingEmail = false;
                   });
                 } else {
-                  _showOverlayMessage('Actualizacion Fallida.', false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Actualización fallida.')),
+                  );
                 }
-
-                Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6), 
                 textStyle: TextStyle(fontSize: 14), 
                 padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
               ),
               child: Text('Aceptar', style: TextStyle(color: Colors.black)),
             ),
@@ -244,6 +276,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 backgroundColor: Colors.black, 
                 textStyle: TextStyle(fontSize: 14),
                 padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
               ),
               child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
             ),

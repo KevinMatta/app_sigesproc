@@ -258,7 +258,8 @@ class _LoginState extends State<Login> {
         await pref.setString('person', response.nombreEmpleado ?? '');
         await pref.setString('IDRegistro', response.usuaId?.toString() ?? '');
         await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
-
+        var prefs = PreferenciasUsuario();
+        prefs.userId = response.usuaId?.toString() ?? '';
         Navigator.push(
           context,
           MaterialPageRoute(
