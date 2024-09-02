@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
+import 'package:sigesproc_app/screens/bienesraices/terrenos.dart';
 import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import '../menu.dart';
@@ -857,16 +859,48 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                               _filteredProcesosVenta.isEmpty
                                   ? snapshot.data![index]
                                   : _filteredProcesosVenta[index]);
-                        },
-                      );
-                    }
+                      },
+                    );
                   }
-                },
-              ),
+                }
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    floatingActionButton: SpeedDial(
+      icon: Icons.location_on, // Icono de ubicación
+      activeIcon: Icons.close,
+      backgroundColor: Color(0xFF171717),
+      foregroundColor: Color(0xFFFFF0C6),
+      buttonSize: Size(56.0, 56.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      childrenButtonSize: Size(56.0, 56.0),
+      spaceBetweenChildren: 10.0,
+      overlayColor: Colors.transparent,
+      children: [
+        SpeedDialChild(
+          child: Icon(Icons.location_on),
+          backgroundColor: Color(0xFFFFF0C6),
+          foregroundColor: Color(0xFF171717),
+          shape: CircleBorder(),
+          labelBackgroundColor: Color(0xFFFFF0C6),
+          labelStyle: TextStyle(color: Color(0xFF171717)),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TerrenosMap(),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
 }
