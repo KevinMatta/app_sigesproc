@@ -3,6 +3,22 @@ import 'package:http/http.dart' as http;
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import '../apiservice.dart';
 
+import 'package:file_picker/file_picker.dart';
+
+  class RespuestaSoloMensaje {
+  final String? message;
+
+  RespuestaSoloMensaje({this.message});
+
+  // Factory constructor para crear una instancia desde el JSON
+  factory RespuestaSoloMensaje.fromJson(Map<String, dynamic> json) {
+    return RespuestaSoloMensaje(
+      message: json['message'],
+    );
+  }
+}
+
+
 class FleteEncabezadoService {
   static Future<List<FleteEncabezadoViewModel>> listarFletesEncabezado() async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Listar');
@@ -45,6 +61,53 @@ class FleteEncabezadoService {
       return responseBody['data']['codeStatus'];
     } else {
       return null;
+    }
+  }
+
+   static Future<RespuestaSoloMensaje> uploadImage(PlatformFile comprobante, String uniqueFileName) async {
+    final url = Uri.parse('${ApiService.apiUrl}/FleteEncabezado/Subir');
+    final request = http.MultipartRequest('POST', url);
+
+    request.headers.addAll(ApiService.getHttpHeaders());
+
+    if (comprobante.path == null) {
+      print('Error: El archivo de imagen no tiene una ruta válida.');
+      throw Exception('El archivo de imagen no tiene una ruta válida.');
+    }
+
+    // Añadir el archivo usando el path
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        comprobante.path!, 
+        filename: uniqueFileName,
+      ),
+    );
+
+    try {
+      final response = await request.send();
+
+      // Procesar la respuesta
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final parsedJson = json.decode(responseData);
+
+      print("JSON recibido: $parsedJson");
+
+      final respuesta = RespuestaSoloMensaje.fromJson(parsedJson);
+
+      // Validar si el mensaje recibido es "Éxito" antes de proceder
+      if (respuesta.message != "Éxito") {
+        throw Exception("Error al subir la imagen: ${respuesta.message}");
+      }
+
+      return respuesta;
+    } else {
+      throw Exception('Error al subir la imagen. Código de estado: ${response.statusCode}');
+    }
+    } catch (e) {
+      print('Error al procesar la imagen: $e');
+      rethrow;
     }
   }
 

@@ -1054,8 +1054,7 @@ class _EditarFleteState extends State<EditarFlete>
       // Validar Fecha y Hora Establecida de Llegada
       if (flete.flenFechaHoraEstablecidaDeLlegada == null) {
         _fechaHoraEstablecidaError = true;
-        _fechaHoraEstablecidaErrorMessage =
-            'El campo es requerido.';
+        _fechaHoraEstablecidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       } else if (flete.flenFechaHoraSalida != null &&
           flete.flenFechaHoraSalida!
@@ -1082,14 +1081,12 @@ class _EditarFleteState extends State<EditarFlete>
       }
       if (flete.emssId == null) {
         _isSupervisorSalidaError = true;
-        _supervisorSalidaErrorMessage =
-            'El campo es requerido.';
+        _supervisorSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emslId == null) {
         _isSupervisorLlegadaError = true;
-        _supervisorLlegadaErrorMessage =
-            'El campo es requerido.';
+        _supervisorLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emtrId == flete.emssId && flete.emtrId != null) {
@@ -1123,26 +1120,22 @@ class _EditarFleteState extends State<EditarFlete>
       // Validar Ubicaciones
       if (flete.boasId == null && esProyectosalida == false) {
         _ubicacionSalidaError = true;
-        _ubicacionSalidaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == null && esProyectosalida) {
         _ubicacionSalidaError = true;
-        _ubicacionSalidaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto) {
         _ubicacionLlegadaError = true;
-        _ubicacionLlegadaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto == false) {
         _ubicacionLlegadaError = true;
-        _ubicacionLlegadaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == flete.boatId &&
@@ -1165,15 +1158,13 @@ class _EditarFleteState extends State<EditarFlete>
           actividadesSalida.isNotEmpty &&
           flete.boasId == null) {
         _actividadError = true;
-        _actividadErrorMessage =
-            'El campo es requerido.';
+        _actividadErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
 
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
-        _actividadErrorMessage =
-            'El campo es requerido.';
+        _actividadErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
 
@@ -1300,6 +1291,7 @@ class _EditarFleteState extends State<EditarFlete>
   Future<void> editarFlete() async {
     try {
       flete.flenFechaHoraLlegada = DateTime(2005, 1, 1);
+      flete.flenComprobanteLLegada = null;
       flete.usuaModificacion = 3;
       flete.flenSalidaProyecto = esProyectosalida;
       flete.flenDestinoProyecto = esProyecto;
@@ -1794,7 +1786,7 @@ class _EditarFleteState extends State<EditarFlete>
               backgroundColor: Color(0xFF171717), // Color de fondo
               foregroundColor: Color(0xFFFFF0C6), // Color del icono
               buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-              shape: CircleBorder(), 
+              shape: CircleBorder(),
               childrenButtonSize: Size(56.0, 56.0),
               spaceBetweenChildren:
                   10.0, // Espacio entre los botones secundarios
@@ -1804,7 +1796,7 @@ class _EditarFleteState extends State<EditarFlete>
                   child: Icon(Icons.arrow_back),
                   backgroundColor: Color(0xFFFFF0C6),
                   foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(), 
+                  shape: CircleBorder(),
                   labelBackgroundColor: Color(0xFFFFF0C6),
                   labelStyle: TextStyle(color: Color(0xFF171717)),
                   onTap: () {
@@ -1820,7 +1812,7 @@ class _EditarFleteState extends State<EditarFlete>
                   child: Icon(Icons.add),
                   backgroundColor: Color(0xFFFFF0C6),
                   foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(), 
+                  shape: CircleBorder(),
                   labelBackgroundColor: Color(0xFF171717),
                   labelStyle: TextStyle(color: Colors.white),
                   onTap: _validarCamposYMostrarInsumos,
@@ -1840,7 +1832,7 @@ class _EditarFleteState extends State<EditarFlete>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-           ElevatedButton(
+          ElevatedButton(
             onPressed: editarFlete,
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
@@ -1868,7 +1860,6 @@ class _EditarFleteState extends State<EditarFlete>
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
-         
         ],
       ),
     );

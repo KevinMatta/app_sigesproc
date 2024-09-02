@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -46,6 +50,8 @@ class _VerificarFleteState extends State<VerificarFlete>
       TextEditingController();
   TextEditingController _fechaHoraIncidenciaController =
       TextEditingController();
+  List<PlatformFile> _uploadedImages = [];
+  PlatformFile? comprobante;
   bool _descripcionError = false;
   String _descripcionErrorMessage = '';
   bool _fechaHoraIncidenciaError = false;
@@ -159,6 +165,31 @@ class _VerificarFleteState extends State<VerificarFlete>
       _isLoading = false;
     });
   }
+
+   void _seleccionarImagen() async {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.image,
+    allowMultiple: false,
+  );
+  if (result != null && result.files.isNotEmpty) {
+    setState(() {
+      comprobante = result.files.first;
+      _uploadedImages = [comprobante!]; // Reemplaza la lista anterior con la nueva imagen
+    });
+    print('Imagen seleccionada: ${comprobante!.name}');
+  } else {
+    setState(() {
+      comprobante = null;
+    });
+    print('No se seleccionó ninguna imagen.');
+  }
+}
+  void _removeImage() {
+  setState(() {
+    _uploadedImages.clear();
+    comprobante = null;
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -277,10 +308,87 @@ class _VerificarFleteState extends State<VerificarFlete>
             SizedBox(height: 10),
             _buildFechaHoraLlegadaInput(showError: _mostrarErrores && _fechaHoraController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
+                      SizedBox(height: 20),
+                        Center(
+                          child: _buildSubirImagenButton(),
+                        ),
+                        SizedBox(height: 20),
+                        if (_uploadedImages.isNotEmpty)
+                          CarouselSlider(
+                            options: CarouselOptions(
+                              height: 200.0,
+                              enableInfiniteScroll: false,
+                              viewportFraction: 0.8,
+                              enlargeCenterPage: true,
+                            ),
+                            items: _uploadedImages.asMap().entries.map((entry) {
+                              int index = entry.key;
+                              PlatformFile file = entry.value;
+
+                              return Stack(
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.all(5.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      color: Color(0xFF222222),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      child: file.path != null && File(file.path!).existsSync() 
+                                        ? Image.file(
+                                            File(file.path!),
+                                            fit: BoxFit.cover,
+                                            width: 1000.0,
+                                          )
+                                        : Center(
+                                            child: Text(
+                                              'No se pudo cargar la imagen',
+                                              style: TextStyle(color: Colors.white),
+                                            ),
+                                          ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 5,
+                                    right: 5,
+                                    child: GestureDetector(
+                                      onTap: () => _removeImage(),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Color.fromARGB(255, 189, 13, 0).withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        padding: EdgeInsets.all(5),
+                                        child: Icon(
+                                          Icons.delete_forever,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
           ],
         ),
       ),
     );
+  }
+
+   Widget _buildSubirImagenButton() {
+     return ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _seleccionarImagen,
+              child: Text(comprobante == null ? 'Subir Imagen' : 'Cambiar Imagen'),
+            );
   }
 
   Widget _buildTabSection() {
@@ -820,9 +928,20 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
+  Future<String> _subirImagenFactura(PlatformFile file) async {
+    final uniqueFileName = "${DateTime.now().millisecondsSinceEpoch}-${file.name}";
+    final respuesta = await FleteEncabezadoService.uploadImage(file, uniqueFileName);
+    return uniqueFileName;
+  }
+
   Future<void> _verificarFlete() async {
     flete.usuaModificacion = 3;
     flete.flenEstado = true;
+
+    final String imagenUrl = await _subirImagenFactura(comprobante!);
+      print('Imagen URL: $imagenUrl');
+
+    flete.flenComprobanteLLegada = imagenUrl;
 
     bool hayNoVerificados = false;
     bool hayErrores = false;
@@ -845,6 +964,13 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
     if (flete.flenFechaHoraLlegada == null) {
+      return;
+    }
+
+    if (comprobante == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, suba el comprobante.')),
+      );
       return;
     }
 
