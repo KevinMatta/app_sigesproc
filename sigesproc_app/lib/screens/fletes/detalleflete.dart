@@ -17,6 +17,7 @@ import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/fletes/fletehubservice.dart';
 import 'package:sigesproc_app/services/insumos/bodegaservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
+import 'package:signalr_core/signalr_core.dart' as signalR;
 
 class DetalleFlete extends StatefulWidget {
   final int flenId;
@@ -28,12 +29,11 @@ class DetalleFlete extends StatefulWidget {
 }
 
 class _DetalleFleteState extends State<DetalleFlete> {
+  final FleteHubService _fleteHubService = FleteHubService();
   late Future<FleteEncabezadoViewModel?> _fleteFuture;
   late Future<List<FleteDetalleViewModel>> _detallesFuture;
   late Future<dynamic> _bodegaOrigenFuture;
-  late Future<dynamic>
-      _destinoFuture; // Puede ser BodegaViewModel o ProyectoViewModel
-
+  late Future<dynamic> _destinoFuture;
   final ubicacionController = Location();
   LatLng? ubicacionactual;
   Map<PolylineId, Polyline> polylines = {};
@@ -42,24 +42,27 @@ class _DetalleFleteState extends State<DetalleFlete> {
   bool isExpanded = false;
   int? emplId;
   bool esFletero = false;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadEmplId(); // Cargar el emplId desde las preferencias compartidas
-    FleteHubService().onReceiveUbicacion((emplId, lat, lng) {
-      setState(() {
-        // Actualiza la ubicación del fletero en el mapa
-        LatLng nuevaUbicacion = LatLng(lat, lng);
-        if (emplId != this.emplId) {
-          if (ubicacionactual != null) {
-            // Generar polyline desde la última ubicación actualizada
-            polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
-            _actualizarPolyline(
-                ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+    _loadEmplId();
+    _fleteHubService.startConnection().then((_) {
+      _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
+        setState(() {
+          LatLng nuevaUbicacion = LatLng(lat, lng);
+          if (emplId != this.emplId) {
+            print('initstate $emplId $ubicacionactual');
+            if (ubicacionactual != null) {
+              polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
+              print('aaa $ubicacionactual $nuevaUbicacion');
+              _actualizarPolyline(
+                  ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+            }
+            ubicacionactual = nuevaUbicacion;
           }
-          ubicacionactual = nuevaUbicacion;
-        }
+        });
       });
     });
 
@@ -85,7 +88,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
     setState(() {
       emplId = int.tryParse(pref.getString('emplId') ?? '');
       // emplId = 88;
-      print(emplId);
     });
   }
 
@@ -121,8 +123,10 @@ class _DetalleFleteState extends State<DetalleFlete> {
           await FleteEncabezadoService.obtenerFleteDetalle(flenId);
       if (flete != null) {
         if (flete.flenSalidaProyecto!) {
+
           return await ProyectoService.obtenerProyecto(flete.boasId!);
         } else {
+          print('yeii ${flete.boasId}');
           return await BodegaService.buscar(flete.boasId!);
         }
       }
@@ -138,6 +142,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           await FleteEncabezadoService.obtenerFleteDetalle(flenId);
       if (flete != null) {
         if (flete.flenDestinoProyecto!) {
+
           return await ProyectoService.obtenerProyecto(flete.boatId!);
         } else {
           return await BodegaService.buscar(flete.boatId!);
@@ -150,95 +155,106 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> iniciarMapa() async {
-    final FleteEncabezadoViewModel? flete = await _fleteFuture;
-    if (flete == null) {
-      print('No se encontró el flete');
-      return;
-    }
-
-    final bool esFletero = flete.emtrId == emplId;
-    print('aver ${flete.emtrId} $emplId');
-
-    // Si el flete ya ha sido completado
-    if (flete.flenEstado == true) {
-      _mostrarRutasAnteriores();
-      return;
-    }
-
-    if (esFletero) {
-      // El fletero aún está llevando el flete
+    try {
+      print('Obteniendo la ubicación actual...');
       bool ubicacionObtenida = await ubicacionActualizada();
-      if (ubicacionObtenida) {
-        // Envía la ubicación actual a la API
-        FleteHubService().actualizarUbicacion(emplId!, ubicacionactual!);
-
-        // Genera una nueva polyline roja
-        LatLng inicio = ubicacionactual!;
-        LatLng? destino = await _obtenerDestino();
-
-        if (destino != null) {
-          final coordinates = await polylinePuntos(inicio, destino);
-          final id = PolylineId(
-              'polyline_roja_${emplId}_${DateTime.now().millisecondsSinceEpoch}');
-          generarPolylineporPuntos2(coordinates, Colors.red, id);
-        } else {
-          print('Ubicación del destino inválida');
-        }
+      if (!ubicacionObtenida) {
+        print("No se pudo obtener la ubicación actual. $ubicacionObtenida");
+        return;
       }
-    } else {
-      // No es el fletero, mostrar solo la ruta predestinada
-      LatLng? inicio = await _obtenerOrigen();
-      LatLng? destino = await _obtenerDestino();
+      print("Ubicación obtenida: $ubicacionactual");
 
-      if (inicio != null && destino != null) {
-        final coordinates = await polylinePuntos(inicio, destino);
-        final id = PolylineId('polyline_azul_${widget.flenId}');
-        generarPolylineporPuntos2(coordinates, Colors.blue, id);
+      print("Cargando detalles del flete...");
+      final FleteEncabezadoViewModel? flete = await _fleteFuture;
+      if (flete == null) {
+        print('No se encontró el flete');
+        return;
+      }
+      esFletero = flete.emtrId == emplId;
+      print(
+          'Empleado es fletero: $esFletero, EmplId: $emplId, EmtrId: ${flete.emtrId}');
+
+      if (_fleteHubService.connection.state ==
+          signalR.ConnectionState.connected) {
+            
+        print('Actualizando ubicación inicial en SignalR... $emplId $ubicacionactual');
+        await _fleteHubService.actualizarUbicacion(emplId!, ubicacionactual!);
+        print('Ubicación inicial actualizada en SignalR. $emplId $ubicacionactual');
       } else {
-        print('Ubicaciones inválidas');
+        print('No se pudo establecer la conexión con SignalR');
       }
+
+      await _generarRutas(flete);
+      if (esFletero) {
+        print('Iniciando el seguimiento de la ubicación en tiempo real...');
+        locationSubscription = ubicacionController.onLocationChanged
+            .listen((LocationData currentLocation) async {
+          if (currentLocation.latitude != null &&
+              currentLocation.longitude != null) {
+            LatLng nuevaUbicacion =
+                LatLng(currentLocation.latitude!, currentLocation.longitude!);
+                print('bueno ${currentLocation.latitude} ${currentLocation.longitude}');
+            print('Nueva ubicación: $emplId $nuevaUbicacion');
+            await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
+            print('yayay $ubicacionactual');
+            await _actualizarPolyline(
+                ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+            setState(() {
+              ubicacionactual = nuevaUbicacion;
+            });
+            print('Ubicación en tiempo real actualizada y polyline generado.');
+          }
+        });
+      }
+
+      setState(() {
+        isLoading = false;
+        print('Mapa cargado y listo para mostrar');
+      });
+    } catch (e) {
+      print('Error en iniciarMapa: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-// Función para mostrar las rutas anteriores
-  Future<void> _mostrarRutasAnteriores() async {
-    // Aquí recuperas las rutas anteriores y las dibujas en el mapa
-    // Puedes guardar estas rutas en SharedPreferences o recuperarlas desde la API
+  Future<void> _generarRutas(FleteEncabezadoViewModel flete) async {
+    print('Obteniendo origen y destino...');
+    LatLng? inicio = await _obtenerOrigen();
+    LatLng? destino = await _obtenerDestino();
 
-    // Ejemplo:
-    List<List<LatLng>> rutasAnteriores = await _obtenerRutasAnteriores();
-    for (int i = 0; i < rutasAnteriores.length; i++) {
-      final id = PolylineId('ruta_anterior_$i');
-      generarPolylineporPuntos2(rutasAnteriores[i], Colors.red, id);
+    if (inicio != null && destino != null) {
+      print('Origen: $inicio, Destino: $destino');
+      final coordinates = await polylinePuntos(inicio, destino);
+      final id = PolylineId('polyline_azul_${widget.flenId}');
+      await generarPolylineporPuntos(coordinates, Colors.blue, id.toString());
+      print('Polyline azul generada con ID: $id');
+    } else {
+      print('Ubicaciones inválidas para la generación de rutas.');
     }
   }
+  void onReceiveUbicacion(int emplId, double lat, double lng) {
+    LatLng nuevaUbicacion = LatLng(lat, lng);
+    print("Ubicación recibida: EmplId: $emplId, Lat: $lat, Lng: $lng");
 
-  Future<void> generarPolylineporPuntos2(
-    List<LatLng> polylineCoordenadas,
-    Color color,
-    PolylineId id,
-  ) async {
-    final polyline = Polyline(
-      polylineId: id,
-      color: color,
-      points: polylineCoordenadas,
-      width: 5,
-    );
-
-    if (mounted) {
-      setState(() => polylines[id] = polyline);
-    }
+    setState(() {
+      if (emplId != this.emplId) {
+        // Es otro usuario viendo al fletero
+        print('es otro usuario');
+        polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
+      }
+      ubicacionactual = nuevaUbicacion;
+    });
   }
 
-  Future<void> _guardarRuta(List<LatLng> ruta) async {
-    // Guardar la ruta en SharedPreferences o en la API
+  Future<void> _actualizarPolyline(
+      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
+    final List<LatLng> polylineCoordenadas = [inicio, nuevaUbicacion];
+    print(
+        'en actualizar polyline las coordenadas a fgenerar $polylineCoordenadas');
+    await generarPolylineporPuntos(polylineCoordenadas, color, id);
   }
-
-  Future<List<List<LatLng>>> _obtenerRutasAnteriores() async {
-    // Recuperar las rutas anteriores desde SharedPreferences o la API
-    return [];
-  }
-
   Future<LatLng?> _obtenerOrigen() async {
     final origenData = await _bodegaOrigenFuture;
     if (origenData is ProyectoViewModel) {
@@ -312,288 +328,310 @@ class _DetalleFleteState extends State<DetalleFlete> {
           ),
         ],
       ),
-      body: Container(
-        color: Colors.black,
-        child: FutureBuilder<FleteEncabezadoViewModel?>(
-          future: _fleteFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: SpinKitCircle(
-                  color: Color(0xFFFFF0C6),
-                ),
-              );
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return Center(
-                child: Text(
-                  'No se encontraron detalles para el flete con ID: ${widget.flenId}',
-                  style: TextStyle(color: Colors.white),
-                ),
-              );
-            } else {
-              final flete = snapshot.data!;
-              return Stack(
-                children: [
-                  Positioned(
-                    child: Container(
-                      height: 640,
-                      child: FutureBuilder(
-                        future:
-                            Future.wait([_bodegaOrigenFuture, _destinoFuture]),
-                        builder:
-                            (context, AsyncSnapshot<List<dynamic>> snapshot) {
-                          if (ubicacionactual == null && !esFletero) {
-                            // Si la ubicación actual no está disponible y no es el fletero, muestra solo la ruta destinada
-                            return Center(
-                              child: GoogleMap(
-                                initialCameraPosition: CameraPosition(
-                                  target: LatLng(0,
-                                      0), // Puedes cambiar esto a la ubicación deseada
-                                  zoom: 13,
-                                ),
-                                polylines: Set<Polyline>.of(polylines.values),
-                              ),
-                            );
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text(
-                                'Error al cargar ubicaciones',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            );
-                          } else if (!snapshot.hasData ||
-                              snapshot.data == null ||
-                              snapshot.data!.isEmpty) {
-                            return Center(
-                              child: SpinKitCircle(
-                                color: Color(0xFFFFF0C6),
-                              ),
-                            );
-                          } else {
-                            final bodegaOrigen =
-                                snapshot.data![0] as BodegaViewModel?;
-                            final destinoData = snapshot.data![1];
-
-                            if (bodegaOrigen == null || destinoData == null) {
-                              return Center(
-                                child: Text(
-                                  'No se encontraron ubicaciones válidas',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              );
-                            }
-
-                            LatLng inicio = obtenerCoordenadasDeEnlace(
-                                    bodegaOrigen.bodeLinkUbicacion!) ??
-                                LatLng(0, 0);
-                            LatLng? destino;
-
-                            if (destinoData is ProyectoViewModel) {
-                              destino = obtenerCoordenadasDeEnlace(
-                                  destinoData.proyLinkUbicacion);
-                            } else if (destinoData is BodegaViewModel) {
-                              destino = obtenerCoordenadasDeEnlace(
-                                  destinoData.bodeLinkUbicacion);
-                            } else {
-                              destino = LatLng(0, 0);
-                            }
-
-                            return GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target: ubicacionactual ?? inicio,
-                                zoom: 13,
-                              ),
-                              markers: {
-                                if (ubicacionactual != null)
-                                  Marker(
-                                    markerId: const MarkerId('currentLocation'),
-                                    icon: carritoIcono ??
-                                        BitmapDescriptor.defaultMarker,
-                                    position: ubicacionactual!,
-                                  ),
-                                Marker(
-                                  markerId: const MarkerId('sourceLocation'),
-                                  icon: BitmapDescriptor.defaultMarker,
-                                  position: inicio,
-                                ),
-                                Marker(
-                                  markerId:
-                                      const MarkerId('destinationLocation'),
-                                  icon: BitmapDescriptor.defaultMarker,
-                                  position: destino!,
-                                )
-                              },
-                              polylines: Set<Polyline>.of(polylines.values),
-                            );
-                          }
-                        },
+      body: isLoading
+          ? Container(
+              color: Colors.black,
+              child: Center(
+                child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+              ),
+            )
+          : Container(
+              color: Colors.black,
+              child: FutureBuilder<FleteEncabezadoViewModel?>(
+                future: _fleteFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: SpinKitCircle(
+                        color: Color(0xFFFFF0C6),
                       ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ExpansionTile(
-                      collapsedBackgroundColor: Color(0xFFFFF0C6),
-                      backgroundColor: Color(0xFFFFF0C6),
-                      title: Text(
-                        'Ver Detalles',
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data == null) {
+                    return Center(
+                      child: Text(
+                        'No se encontraron detalles para el flete con ID: ${widget.flenId}',
+                        style: TextStyle(color: Colors.white),
                       ),
-                      onExpansionChanged: (bool expanding) =>
-                          setState(() => isExpanded = expanding),
+                    );
+                  } else {
+                    final flete = snapshot.data!;
+                    return Stack(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Encargado: ${flete.encargado}',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 5),
-                              Text(
-                                'Destino: ${flete.destino}',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 5),
-                              Text(
-                                'Fecha y Hora de salida: ${formatDateTime(flete.flenFechaHoraSalida)}',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 5),
-                              Text(
-                                'Fecha y Hora de llegada: ${flete.flenFechaHoraLlegada == null ? 'No ha llegado.' : formatDateTime(flete.flenFechaHoraLlegada)}',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 5),
-                              FutureBuilder<List<FleteDetalleViewModel>>(
-                                future: _detallesFuture,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                      child: SpinKitCircle(
-                                        color: Color(0xFFFFF0C6),
+                        Positioned(
+                          child: Container(
+                            height: 640,
+                            child: FutureBuilder(
+                              future: Future.wait(
+                                  [_bodegaOrigenFuture, _destinoFuture]),
+                              builder: (context,
+                                  AsyncSnapshot<List<dynamic>> snapshot) {
+                                if (ubicacionactual == null && !esFletero) {
+                                  // Si la ubicación actual no está disponible y no es el fletero, muestra solo la ruta destinada
+                                  return Center(
+                                    child: GoogleMap(
+                                      initialCameraPosition: CameraPosition(
+                                        target: LatLng(0,
+                                            0), // Puedes cambiar esto a la ubicación deseada
+                                        zoom: 13,
                                       ),
-                                    );
-                                  } else if (snapshot.hasError) {
+                                      polylines:
+                                          Set<Polyline>.of(polylines.values),
+                                    ),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text(
+                                      'Error al cargar ubicaciones',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  );
+                                } else if (!snapshot.hasData ||
+                                    snapshot.data == null ||
+                                    snapshot.data!.isEmpty) {
+                                  return Center(
+                                    child: SpinKitCircle(
+                                      color: Color(0xFFFFF0C6),
+                                    ),
+                                  );
+                                } else {
+                                  final bodegaOrigen =
+                                      snapshot.data![0] as BodegaViewModel?;
+                                  final destinoData = snapshot.data![1];
+
+                                  if (bodegaOrigen == null ||
+                                      destinoData == null) {
                                     return Center(
                                       child: Text(
-                                        'Error al cargar los detalles del flete',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    );
-                                  } else if (!snapshot.hasData ||
-                                      snapshot.data!.isEmpty) {
-                                    return Center(
-                                      child: Text(
-                                        'No se encontraron materiales para el flete.',
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    );
-                                  } else {
-                                    final detalles = snapshot.data!;
-                                    return Container(
-                                      height: 100, //  Tamano
-                                      child: SingleChildScrollView(
-                                        child: Table(
-                                          border: TableBorder.all(
-                                              color: Colors.black),
-                                          columnWidths: {
-                                            0: FlexColumnWidth(3),
-                                            1: FlexColumnWidth(1),
-                                          },
-                                          children: [
-                                            TableRow(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                    'Materiales',
-                                                    style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                    'Cantidad',
-                                                    style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            ...detalles.map((detalle) {
-                                              return TableRow(
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Text(
-                                                      detalle.insuDescripcion ??
-                                                          detalle
-                                                              .equsDescripcion!,
-                                                      style: TextStyle(
-                                                          color: Colors.black),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Text(
-                                                      detalle.fldeCantidad
-                                                          .toString(),
-                                                      style: TextStyle(
-                                                          color: Colors.black),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            }).toList(),
-                                          ],
-                                        ),
+                                        'No se encontraron ubicaciones válidas',
+                                        style: TextStyle(color: Colors.white),
                                       ),
                                     );
                                   }
-                                },
+
+                                  LatLng inicio = obtenerCoordenadasDeEnlace(
+                                          bodegaOrigen.bodeLinkUbicacion!) ??
+                                      LatLng(0, 0);
+                                  LatLng? destino;
+
+                                  if (destinoData is ProyectoViewModel) {
+                                    destino = obtenerCoordenadasDeEnlace(
+                                        destinoData.proyLinkUbicacion);
+                                  } else if (destinoData is BodegaViewModel) {
+                                    destino = obtenerCoordenadasDeEnlace(
+                                        destinoData.bodeLinkUbicacion);
+                                  } else {
+                                    destino = LatLng(0, 0);
+                                  }
+
+                                  return GoogleMap(
+                                    initialCameraPosition: CameraPosition(
+                                      target: ubicacionactual ?? inicio,
+                                      zoom: 13,
+                                    ),
+                                    markers: {
+                                      if (ubicacionactual != null)
+                                        Marker(
+                                          markerId:
+                                              const MarkerId('currentLocation'),
+                                          icon: carritoIcono ??
+                                              BitmapDescriptor.defaultMarker,
+                                          position: ubicacionactual!,
+                                        ),
+                                      Marker(
+                                        markerId:
+                                            const MarkerId('sourceLocation'),
+                                        icon: BitmapDescriptor.defaultMarker,
+                                        position: inicio,
+                                      ),
+                                      Marker(
+                                        markerId: const MarkerId(
+                                            'destinationLocation'),
+                                        icon: BitmapDescriptor.defaultMarker,
+                                        position: destino!,
+                                      )
+                                    },
+                                    polylines:
+                                        Set<Polyline>.of(polylines.values),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ExpansionTile(
+                            collapsedBackgroundColor: Color(0xFFFFF0C6),
+                            backgroundColor: Color(0xFFFFF0C6),
+                            title: Text(
+                              'Ver Detalles',
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            onExpansionChanged: (bool expanding) =>
+                                setState(() => isExpanded = expanding),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Encargado: ${flete.encargado}',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      'Destino: ${flete.destino}',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      'Fecha y Hora de salida: ${formatDateTime(flete.flenFechaHoraSalida)}',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      'Fecha y Hora de llegada: ${flete.flenFechaHoraLlegada == null ? 'No ha llegado.' : formatDateTime(flete.flenFechaHoraLlegada)}',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    FutureBuilder<List<FleteDetalleViewModel>>(
+                                      future: _detallesFuture,
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: SpinKitCircle(
+                                              color: Color(0xFFFFF0C6),
+                                            ),
+                                          );
+                                        } else if (snapshot.hasError) {
+                                          return Center(
+                                            child: Text(
+                                              'Error al cargar los detalles del flete',
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ),
+                                          );
+                                        } else if (!snapshot.hasData ||
+                                            snapshot.data!.isEmpty) {
+                                          return Center(
+                                            child: Text(
+                                              'No se encontraron materiales para el flete.',
+                                              style: TextStyle(
+                                                  color: Colors.black),
+                                            ),
+                                          );
+                                        } else {
+                                          final detalles = snapshot.data!;
+                                          return Container(
+                                            height: 100, //  Tamano
+                                            child: SingleChildScrollView(
+                                              child: Table(
+                                                border: TableBorder.all(
+                                                    color: Colors.black),
+                                                columnWidths: {
+                                                  0: FlexColumnWidth(3),
+                                                  1: FlexColumnWidth(1),
+                                                },
+                                                children: [
+                                                  TableRow(
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                          'Materiales',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(
+                                                          'Cantidad',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  ...detalles.map((detalle) {
+                                                    return TableRow(
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Text(
+                                                            detalle.insuDescripcion ??
+                                                                detalle
+                                                                    .equsDescripcion!,
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black),
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(8.0),
+                                                          child: Text(
+                                                            detalle.fldeCantidad
+                                                                .toString(),
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }).toList(),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-              );
-            }
-          },
-        ),
-      ),
+                    );
+                  }
+                },
+              ),
+            ),
     );
   }
 
@@ -637,6 +675,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           currentLocation.latitude!,
           currentLocation.longitude!,
         );
+        print('ososos $ubicacionactual');
       });
       return true;
     }
@@ -683,13 +722,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
     if (mounted) {
       setState(() => polylines[polylineId] = polyline);
     }
-  }
-
-  Future<void> _actualizarPolyline(
-      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
-    // Genera una línea desde la última ubicación conocida hasta la nueva ubicación
-    final List<LatLng> polylineCoordenadas = [inicio, nuevaUbicacion];
-    await generarPolylineporPuntos(polylineCoordenadas, color, id);
   }
 
   String formatDateTime(DateTime? dateTime) {
