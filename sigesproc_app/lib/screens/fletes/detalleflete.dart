@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -39,10 +40,11 @@ class _DetalleFleteState extends State<DetalleFlete> {
   Map<PolylineId, Polyline> polylines = {};
   StreamSubscription<LocationData>? locationSubscription;
   BitmapDescriptor? carritoIcono;
-  bool isExpanded = false;
+  bool expandido = false;
   int? emplId;
   bool esFletero = false;
-  bool isLoading = true;
+  bool estaCargando = true;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -81,6 +83,16 @@ class _DetalleFleteState extends State<DetalleFlete> {
   void dispose() {
     locationSubscription?.cancel();
     super.dispose();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+    _setMapStyle();
+  }
+
+  Future<void> _setMapStyle() async {
+    final String style = await rootBundle.loadString('assets/mapstyle.json');
+    _mapController?.setMapStyle(style);
   }
 
   Future<void> _loadEmplId() async {
@@ -208,13 +220,13 @@ class _DetalleFleteState extends State<DetalleFlete> {
       }
 
       setState(() {
-        isLoading = false;
+        estaCargando = false;
         print('Mapa cargado y listo para mostrar');
       });
     } catch (e) {
       print('Error en iniciarMapa: $e');
       setState(() {
-        isLoading = false;
+        estaCargando = false;
       });
     }
   }
@@ -328,7 +340,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           ),
         ],
       ),
-      body: isLoading
+      body: estaCargando
           ? Container(
               color: Colors.black,
               child: Center(
@@ -369,6 +381,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                   // Si la ubicación actual no está disponible y no es el fletero, muestra solo la ruta destinada
                                   return Center(
                                     child: GoogleMap(
+                                      onMapCreated: _onMapCreated,
                                       initialCameraPosition: CameraPosition(
                                         target: LatLng(0,
                                             0), // Puedes cambiar esto a la ubicación deseada
@@ -471,7 +484,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                   fontWeight: FontWeight.bold),
                             ),
                             onExpansionChanged: (bool expanding) =>
-                                setState(() => isExpanded = expanding),
+                                setState(() => expandido = expanding),
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
