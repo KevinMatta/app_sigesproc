@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
+import 'package:sigesproc_app/models/bienesraices/terrenoviewmodel.dart';
 import '../apiservice.dart';
 
 class ProcesoVentaService {
@@ -59,6 +60,18 @@ class ProcesoVentaService {
 
     if (response.statusCode != 200) {
       throw Exception('Error al vender la propiedad');
+    }
+  }
+
+    static Future<List<TerrenosViewModel>> listarTerrenos() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Terreno/Listar');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => TerrenosViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
     }
   }
 }

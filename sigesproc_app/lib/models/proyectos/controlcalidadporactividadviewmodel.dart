@@ -15,7 +15,7 @@ class ListarControlDeCalidadesPorActividadesViewModel {
   double? acetCantidad;
   String? usuaCreacionNombre;
   String? usuaModificacionNombre;
-  double? cocaAprobado;
+  bool? cocaAprobado;
 
   ListarControlDeCalidadesPorActividadesViewModel({
     this.codigo,
@@ -57,7 +57,7 @@ class ListarControlDeCalidadesPorActividadesViewModel {
       acetCantidad: _parseDouble(json['acet_Cantidad']),
       usuaCreacionNombre: json['usuaCreacion'] ?? '',
       usuaModificacionNombre: json['usuaModificacion'] ?? '',
-      cocaAprobado: _parseDouble(json['coca_Aprobado']),
+      cocaAprobado: json['coca_Aprobado'],
     );
   }
 
