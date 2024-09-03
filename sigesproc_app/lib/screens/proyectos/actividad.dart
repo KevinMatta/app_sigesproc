@@ -132,18 +132,14 @@ Future<void> _refreshControls(int acetId) async {
 }
 
 
- void _mostrarDialogoAprobar(BuildContext context, int cocaId, double? cocaAprobado, int acetId) {
+ void _mostrarDialogoAprobar(BuildContext context, int cocaId, bool? cocaAprobado, int acetId) {
   // Si ya está aprobado, no mostrar el diálogo
-  if (cocaAprobado == 1) {
+  if (cocaAprobado == true) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          "Ya ha sido aprobado.",
-          style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
+          "Ya ha sido aprobado."
         ),
-        backgroundColor: Colors.yellow,
       ),
     );
     return;
@@ -178,7 +174,7 @@ Future<void> _refreshControls(int acetId) async {
               Text(
                 '¿Está seguro de aprobar este control de calidad?',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: Colors.white,
                   fontSize: 16.0,
                 ),
               ),
@@ -193,8 +189,10 @@ Future<void> _refreshControls(int acetId) async {
                         await ControlDeCalidadesPorActividadesService.aprobarControlDeCalidad(cocaId);
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(
-                            content: Text("Aprobado con Éxito."),
-                            backgroundColor: Colors.green,
+                            content: Text("Aprobado con Éxito.",style: TextStyle(
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),),
+                            backgroundColor: Color(0xFFFFF0C6),
                           ),
                         );
 
@@ -213,7 +211,6 @@ Future<void> _refreshControls(int acetId) async {
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(
                             content: Text("No se pudo aprobar."),
-                            backgroundColor: Colors.red,
                           ),
                         );
                       }
@@ -446,7 +443,7 @@ Future<void> _refreshControls(int acetId) async {
                                             ),
                                             trailing: Icon(
                                               Icons.adjust,
-                                              color: controlCalidad.cocaAprobado == 1 ? Colors.green : Colors.red,
+                                              color: controlCalidad.cocaAprobado == true ? Colors.green : Colors.red,
                                               size: 20,
                                             ),
                                             onTap: () {
