@@ -177,19 +177,13 @@ Future<void> obtenerTotalCantidadTrabajada() async {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insertado con Éxito.", style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),),
-        backgroundColor: Color(0xFFFFF0C6),
+        content: Text("Insertado con Éxito."),
       ));
       Navigator.of(context).pop();
       } else {
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insertado con Éxito", style: TextStyle(
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),),
-        backgroundColor: Color(0xFFFFF0C6),
+        content: Text("Insertado con Éxito"),
       ));
       Navigator.of(context).pop();
 
