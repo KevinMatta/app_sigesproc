@@ -566,7 +566,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                         if (snapshot.connectionState ==
                                             ConnectionState.waiting) {
                                           return Center(
-                                            child: SpinKitCircle(
+                                            child: CircularProgressIndicator(
                                               color: Color(0xFFFFF0C6),
                                             ),
                                           );

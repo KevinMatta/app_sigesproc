@@ -539,11 +539,11 @@ class _FleteState extends State<Flete> {
                 builder: (context, snapshot) {
                   if (_isLoading) {
                     return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.hasError) {
                     return Center(
@@ -681,7 +681,7 @@ class _FleteState extends State<Flete> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+              child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
             );
           } else if (snapshot.hasError) {
             return Center(
@@ -705,7 +705,7 @@ class _FleteState extends State<Flete> {
               builder: (context, snapshotIncidencias) {
                 if (snapshotIncidencias.connectionState == ConnectionState.waiting) {
                   return Center(
-                    child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                    child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                   );
                 } else if (snapshotIncidencias.hasError) {
                   return Center(

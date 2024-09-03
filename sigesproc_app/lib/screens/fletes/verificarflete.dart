@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
@@ -64,7 +65,6 @@ class _VerificarFleteState extends State<VerificarFlete>
   Map<int, FocusNode> _focusNodes = {};
 
   bool _mostrarErrores = false;
-  bool haynorecibidos = false;
 
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
@@ -204,7 +204,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           backgroundColor: Colors.black,
           appBar: _buildAppBar(),
           body: _isLoading
-              ? Center(child: CircularProgressIndicator(color: Color(0xFFFFF0C6)))
+              ? Center(child: SpinKitCircle(color: Color(0xFFFFF0C6)))
               : SingleChildScrollView(
                   controller: _scrollController,
                   child: Column(
@@ -499,7 +499,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                     ),
                   ),
                   onPressed: () async {
-                    await _guardarIncidencia();
+                    await _guardarFleteEIncidencia();
                   },
                   child: Text(
                     'Guardar',
@@ -516,11 +516,10 @@ class _VerificarFleteState extends State<VerificarFlete>
                     ),
                   ),
                   onPressed: () {
-                    haynorecibidos = false;
                     setState(() {
                       // _mostrarFormularioIncidencia = false;
-                      _descripcionIncidenciaController.clear();
-                      _fechaHoraIncidenciaController.clear();
+                      // _descripcionIncidenciaController.clear();
+                      // _fechaHoraIncidenciaController.clear();
                     });
                     Navigator.pop(context);
                   },
@@ -544,7 +543,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-            child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
           );
         } else if (snapshot.hasError) {
           return Center(
@@ -707,10 +706,15 @@ class _VerificarFleteState extends State<VerificarFlete>
             horaSeleccionada.minute,
           );
 
-          if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraLlegada!)) {
+          if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraSalida!)) {
             _fechaHoraIncidenciaError = true;
             _fechaHoraIncidenciaErrorMessage =
-                'La fecha de la incidencia no puede ser anterior a la fecha de llegada.';
+                'La fecha de la incidencia no puede ser anterior a la fecha de salida.';
+          }
+          if (fechaHoraIncidencia.isAfter(flete.flenFechaHoraLlegada!)) {
+            _fechaHoraIncidenciaError = true;
+            _fechaHoraIncidenciaErrorMessage =
+                'La fecha de la incidencia no puede ser superior a la fecha de llegada.';
           } else {
             _fechaHoraIncidenciaError = false;
             _fechaHoraIncidenciaErrorMessage = '';
@@ -792,7 +796,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
- void _onCheckboxChanged(
+  void _onCheckboxChanged(
       bool? value, FleteDetalleViewModel item, bool isInsumo) {
     setState(() {
       item.verificado = value;
@@ -852,7 +856,6 @@ class _VerificarFleteState extends State<VerificarFlete>
           notReceivedList.add(item);
         }
       }
-      haynorecibidos = notReceivedList.isEmpty;
     });
   }
 
@@ -1112,13 +1115,13 @@ class _VerificarFleteState extends State<VerificarFlete>
   Future<void> _verificarFlete() async {
     flete.usuaModificacion = 3;
     flete.flenEstado = true;
-    bool hayNoVerificados = false;
 
     final String imagenUrl = await _subirImagenFactura(comprobante!);
     print('Imagen URL: $imagenUrl');
 
     flete.flenComprobanteLLegada = imagenUrl;
 
+    bool hayNoVerificados = false;
     bool hayErrores = false;
 
     void _actualizarCantidadesVerificadas(List<FleteDetalleViewModel> items) {
@@ -1214,6 +1217,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = true;
 
       try {
+        final pref = await SharedPreferences.getInstance();
         final resp =
             await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
         print('respuesta insumos norecibidos $resp');
@@ -1229,7 +1233,7 @@ class _VerificarFleteState extends State<VerificarFlete>
             inppId: detalleNuevo.inppId,
             usuaCreacion: detalleNuevo.usuaCreacion,
             fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-            usuaModificacion: 3,
+            usuaModificacion: int.tryParse(pref.getString('usuaId') ?? ''),
             fldeFechaModificacion: DateTime.now(),
             fldeLlegada: false,
             fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
@@ -1239,8 +1243,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           await FleteDetalleService.editarFleteDetalle(detalleInsertado);
           hayNoVerificados = true;
         } else {
-          throw Exception(
-              'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          throw Exception('Algo salió mal. Comuníquese con un Administrador.');
         }
       } catch (e) {
         print('Error al insertar detalle: $e');
@@ -1280,6 +1283,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = true;
 
       try {
+        final pref = await SharedPreferences.getInstance();
         final resp =
             await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
         print('resp equipo no rec $resp');
@@ -1293,7 +1297,7 @@ class _VerificarFleteState extends State<VerificarFlete>
             inppId: detalleNuevo.inppId,
             usuaCreacion: detalleNuevo.usuaCreacion,
             fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-            usuaModificacion: 3,
+            usuaModificacion: int.tryParse(pref.getString('usuaId') ?? ''),
             fldeFechaModificacion: DateTime.now(),
             fldeLlegada: false,
             fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
@@ -1303,8 +1307,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           await FleteDetalleService.editarFleteDetalle(detalleInsertado);
           hayNoVerificados = true;
         } else {
-          throw Exception(
-              'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          throw Exception('Algo salió mal. Comuníquese con un Administrador.');
         }
       } catch (e) {
         print('Error al insertar detalle: $e');
@@ -1312,40 +1315,52 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
 
     print('Flete a enviar: $flete');
-    try {
-      await FleteEncabezadoService.editarFlete(flete);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Datos guardados exitosamente')),
-      );
+    if (!hayNoVerificados && !hayErrores) {
+      // Guardar el flete normalmente
+      try {
+        await FleteEncabezadoService.editarFlete(flete);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verificado con Éxito.')),
+        );
 
-      haynorecibidos = false;
-
-      if (hayNoVerificados) {
-        setState(() {
-          print('hay no verificados');
-          _mostrarFormularioIncidencia = true;
-        });
-      } else {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => Flete(),
           ),
         );
+      } catch (e) {
+        print('Error al guardar el flete: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Algo salió mal. Comuníquese con un Administrador.')),
+        );
       }
-    } catch (e) {
-      print('Error al guardar el flete: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar el flete')),
-      );
+    } else if (hayNoVerificados) {
+      // Mostrar la vista de incidencia
+      setState(() {
+        _mostrarFormularioIncidencia = true;
+      });
     }
   }
 
   Future<void> _guardarIncidencia() async {
+    if (_descripcionIncidenciaController.text.isEmpty &&
+        _fechaHoraIncidenciaController.text.isEmpty) {
+      setState(() {
+        _descripcionError = true;
+        _descripcionErrorMessage = 'El campo es requerido.';
+        _fechaHoraIncidenciaError = true;
+        _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
+      });
+      return;
+    }
+
     if (_descripcionIncidenciaController.text.isEmpty) {
       setState(() {
         _descripcionError = true;
-        _descripcionErrorMessage = 'La descripción no puede estar vacía';
+        _descripcionErrorMessage = 'El campo es requerido.';
       });
       return;
     }
@@ -1353,60 +1368,63 @@ class _VerificarFleteState extends State<VerificarFlete>
     if (_fechaHoraIncidenciaController.text.isEmpty) {
       setState(() {
         _fechaHoraIncidenciaError = true;
-        _fechaHoraIncidenciaErrorMessage =
-            'La fecha y hora no pueden estar vacías';
+        _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
       });
       return;
     }
 
-    try {
-      DateTime fechaHoraIncidencia = DateFormat('dd/MM/yyyy HH:mm')
-          .parse(_fechaHoraIncidenciaController.text);
+    DateTime fechaHoraIncidencia = DateFormat('dd/MM/yyyy HH:mm')
+        .parse(_fechaHoraIncidenciaController.text);
+    final pref = await SharedPreferences.getInstance();
 
-      final incidencia = FleteControlCalidadViewModel(
-        flenId: flete.flenId!,
-        flccDescripcionIncidencia: _descripcionIncidenciaController.text,
-        flccFechaHoraIncidencia: fechaHoraIncidencia,
-        usuaCreacion: 3,
-        usuaModificacion: 3, // Si es necesario agregar usuaModificacion
+    final incidencia = FleteControlCalidadViewModel(
+      flenId: flete.flenId!,
+      flccDescripcionIncidencia: _descripcionIncidenciaController.text,
+      flccFechaHoraIncidencia: fechaHoraIncidencia,
+      usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
+      usuaModificacion: int.tryParse(pref.getString('usuaId') ??
+          ''), // Si es necesario agregar usuaModificacion
+    );
+
+    print('Incidencia a insertar: $incidencia');
+
+    int? resultado =
+        await FleteControlCalidadService.insertarIncidencia(incidencia);
+
+    if (resultado != null &&
+        _fechaHoraIncidenciaController.text.isNotEmpty &&
+        _descripcionIncidenciaController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Insertado con Éxito.')),
       );
 
-      print('Incidencia a insertar: $incidencia');
-      await _verificarFlete();
+      setState(() {
+        // _mostrarFormularioIncidencia = false;
+        _fechaHoraIncidenciaController.clear();
+        _descripcionIncidenciaController.clear();
+      });
+      FleteControlCalidadService.buscarIncidencias(widget.flenId);
 
-      int? resultado =
-          await FleteControlCalidadService.insertarIncidencia(incidencia);
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => Flete(),
+      //   ),
+      // );
+    } else {
+      throw Exception('Algo salió mal. Comuníquese con un Administrador.');
+    }
+  }
 
-      if (resultado != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Incidencia guardada exitosamente')),
-        );
-
-        haynorecibidos = false;
-
-        // Reiniciar el formulario y regresar a la vista de fletes
-        setState(() {
-         _mostrarFormularioIncidencia = false;
-          _fechaHoraIncidenciaController.clear();
-          _descripcionIncidenciaController.clear();
-        });
-        FleteControlCalidadService.buscarIncidencias(widget.flenId);
-
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => Flete(),
-        //   ),
-        // );
-      } else {
-        throw Exception('Error al guardar la incidencia');
-      }
-    } catch (e) {
-      print('Error al guardar la incidencia: $e');
+  Future<void> _guardarFleteEIncidencia() async {
+    await FleteEncabezadoService.editarFlete(flete);
+    if (_descripcionError == false) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la incidencia')),
+        SnackBar(content: Text('Insertado con Éxito')),
       );
     }
+
+    await _guardarIncidencia();
   }
 
   Widget _buildInsumosTab() {
@@ -1464,17 +1482,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                 setState(() {
                   _mostrarErrores = true;
                 });
-                print('hay o no $haynorecibidos');
-                print('insumos no recibidos $insumosNoRecibidos');
-                print('equipos no recibidos $equiposNoRecibidos');
-                if (haynorecibidos) {
-                  setState(() {
-                    print('hay no verificados');
-                    _mostrarFormularioIncidencia = true;
-                  });
-                } else {
-                  await _verificarFlete();
-                }
+                await _verificarFlete();
               },
               child: Text(
                 'Guardar',
@@ -1495,7 +1503,6 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ),
               ),
               onPressed: () {
-                haynorecibidos = false;
                 Navigator.pop(context);
               },
               child: Text(
@@ -1584,9 +1591,15 @@ class _VerificarFleteState extends State<VerificarFlete>
             horaSeleccionada.minute,
           );
 
-          // Actualiza el controlador con la fecha y hora seleccionadas
-          _fechaHoraController.text = DateFormat('dd/MM/yyyy HH:mm')
-              .format(flete.flenFechaHoraLlegada!);
+          if (flete.flenFechaHoraLlegada!
+              .isBefore(flete.flenFechaHoraSalida!)) {
+            // _fechaHoraError = true;
+            // _fechaHoraErrorMessage =
+            //     'La fecha de llegada no puede ser anterior a la fecha de salida.';
+          } else {
+            _fechaHoraController.text = DateFormat('dd/MM/yyyy HH:mm')
+                .format(flete.flenFechaHoraLlegada!);
+          }
         });
       }
     }
