@@ -106,6 +106,98 @@ class _ViaticoState extends State<Viatico> {
     }
   }
 
+  Future<void> _showDetailModal(BuildContext context, int viaticoId) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return FutureBuilder(
+        future: ViaticosEncService.buscarViaticoDetalle(viaticoId),
+        builder: (context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return AlertDialog(
+              backgroundColor: Color(0xFF171717),
+              content: Container(
+                width: double.minPositive, // Asegura que el modal no se estire mucho
+                height: 100, // Establece una altura fija mientras se carga
+                child: Center(
+                  child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                ),
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return AlertDialog(
+              backgroundColor: Color(0xFF171717),
+              title: Text('Error', style: TextStyle(color: Colors.red)),
+              content: Text('Error al cargar el detalle del viático', style: TextStyle(color: Colors.white)),
+              actions: [
+                TextButton(
+                  child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          } else {
+            final viatico = snapshot.data;
+            return AlertDialog(
+              backgroundColor: Color(0xFF171717),
+              title: Text('Detalle del Viático', style: TextStyle(color: Color(0xFFFFF0C6))),
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildDetailRow('No.', viatico.vienId?.toString() ?? 'N/A'),
+                  _buildDetailRow('Monto Estimado', 'LPS ${viatico.vienMontoEstimado?.toStringAsFixed(2) ?? 'N/A'}'),
+                  _buildDetailRow('Total Gastado', 'LPS ${viatico.vienTotalGastado?.toStringAsFixed(2) ?? 'N/A'}'),
+                  SizedBox(height: 16),
+                  _buildDetailRow('Fecha Emisión', viatico.vienFechaEmicion != null ? DateFormat('yyyy-MM-dd').format(viatico.vienFechaEmicion!) : 'N/A'),
+                  _buildDetailRow('Colaborador', viatico.empleado ?? 'N/A'),
+                  _buildDetailRow('Proyecto', viatico.proyecto ?? 'N/A'),
+                  SizedBox(height: 16),
+                  _buildDetailRow('Total Reconocido', 'LPS ${viatico.vienTotalReconocido?.toStringAsFixed(2) ?? 'N/A'}'),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          }
+        },
+      );
+    },
+  );
+}
+
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label:',
+            style: TextStyle(color: Color(0xFFFFF0C6), fontWeight: FontWeight.bold),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   TableRow _buildViaticoRow(ViaticoEncViewModel viatico, int index) {
     return TableRow(
       children: [
@@ -121,11 +213,11 @@ class _ViaticoState extends State<Viatico> {
                 } else if (result == 1) {
                   _modalEliminar(context, viatico);
                 } else if (result == 2) {
-                _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
+                  _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
                 } else if (result == 3) {
                   _modalFinalizar(context, viatico);
                 } else if (result == 4) {
-                  
+                  _showDetailModal(context, viatico.vienId!);
                 }
               },
               itemBuilder: (BuildContext context) {

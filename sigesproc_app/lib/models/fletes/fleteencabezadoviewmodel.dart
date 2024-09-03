@@ -12,6 +12,7 @@ class FleteEncabezadoViewModel {
   DateTime? flenFechaHoraSalida;
   DateTime? flenFechaHoraEstablecidaDeLlegada;
   DateTime? flenFechaHoraLlegada;
+  String? flenComprobanteLLegada;
   bool? flenEstado;
   bool? flenDestinoProyecto;
   bool? flenSalidaProyecto;
@@ -44,6 +45,7 @@ class FleteEncabezadoViewModel {
     this.flenFechaHoraSalida,
     this.flenFechaHoraEstablecidaDeLlegada,
     this.flenFechaHoraLlegada,
+    this.flenComprobanteLLegada,
     this.flenEstado,
     this.flenDestinoProyecto,
     this.flenSalidaProyecto,
@@ -85,6 +87,7 @@ class FleteEncabezadoViewModel {
       flenFechaHoraLlegada: json['flen_FechaHoraLlegada'] != null
           ? DateTime.parse(json['flen_FechaHoraLlegada'])
           : null,
+      flenComprobanteLLegada: json['flen_ComprobanteLLegada'],
       flenEstado: json['flen_Estado'],
       flenDestinoProyecto: json['flen_DestinoProyecto'],
       flenSalidaProyecto: json['flen_SalidaProyecto'],
@@ -138,6 +141,9 @@ class FleteEncabezadoViewModel {
     if (flenId != null) {
       data['flen_Id'] = flenId;
     }
+    if (flenComprobanteLLegada != null) {
+      data['flen_ComprobanteLLegada'] = flenComprobanteLLegada;
+    }
 
     if (flenFechaHoraLlegada != null) {
       data['flen_FechaHoraLlegada'] = flenFechaHoraLlegada?.toIso8601String();
@@ -156,6 +162,6 @@ class FleteEncabezadoViewModel {
 
   @override
   String toString() {
-    return 'FleteEncabezadoViewModel(flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
+    return 'FleteEncabezadoViewModel(flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, flencomprobantellegada: $flenComprobanteLLegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
   }
 }

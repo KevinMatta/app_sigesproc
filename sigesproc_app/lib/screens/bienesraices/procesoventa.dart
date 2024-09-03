@@ -24,8 +24,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   TextEditingController _searchController = TextEditingController();
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
   List<ProcesoVentaViewModel>? _selectedVenta; 
-  bool _valorFueEditado = false;
-  bool _fechaFueEditada = false;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -192,146 +190,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     }
   }
 
-  // void _modalVender(BuildContext context, ProcesoVentaViewModel venta) {
-  //   TextEditingController valorController = TextEditingController();
-  //   TextEditingController fechaController = TextEditingController();
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           return AlertDialog(
-  //             title: Text('Propiedad en venta',
-  //                 style: TextStyle(color: Colors.white)),
-  //             content: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 TextField(
-  //                   controller: valorController,
-  //                   decoration: InputDecoration(
-  //                     hintText: 'Valor de venta',
-  //                     hintStyle: TextStyle(color: Colors.white54),
-  //                     filled: true,
-  //                     fillColor: Colors.white24,
-  //                     errorText: _valorFueEditado &&
-  //                             _isValorInvalido(valorController.text)
-  //                         ? 'Ingrese un valor válido'
-  //                         : null,
-  //                   ),
-  //                   style: TextStyle(color: Colors.white),
-  //                   keyboardType: TextInputType.number,
-  //                   inputFormatters: [
-  //                     FilteringTextInputFormatter
-  //                         .digitsOnly, // Permitir solo dígitos
-  //                   ],
-  //                   onChanged: (text) {
-  //                     setState(() {
-  //                       _valorFueEditado = true;
-  //                     });
-  //                   },
-  //                 ),
-  //                 SizedBox(height: 10),
-  //                 TextField(
-  //                   controller: fechaController,
-  //                   decoration: InputDecoration(
-  //                     hintText: 'Fecha de venta',
-  //                     hintStyle: TextStyle(color: Colors.white54),
-  //                     filled: true,
-  //                     fillColor: Colors.white24,
-  //                     suffixIcon:
-  //                         Icon(Icons.calendar_today, color: Colors.white54),
-  //                     errorText: _fechaFueEditada &&
-  //                             _isFechaInvalida(fechaController.text)
-  //                         ? 'Ingrese una fecha válida'
-  //                         : null,
-  //                   ),
-  //                   style: TextStyle(color: Colors.white),
-  //                   keyboardType: TextInputType.datetime,
-  //                   onTap: () async {
-  //                     DateTime? pickedDate = await showDatePicker(
-  //                       context: context,
-  //                       initialDate: DateTime.now(),
-  //                       firstDate: DateTime(2000),
-  //                       lastDate: DateTime(2101),
-  //                       builder: (BuildContext context, Widget? child) {
-  //                         return Theme(
-  //                           data: darkTheme,
-  //                           child: child!,
-  //                         );
-  //                       },
-  //                     );
-  //                     if (pickedDate != null) {
-  //                       fechaController.text =
-  //                           DateFormat('dd/MM/yyyy').format(pickedDate);
-  //                       setState(() {
-  //                         _fechaFueEditada = true;
-  //                       });
-  //                     }
-  //                   },
-  //                   onChanged: (text) {
-  //                     setState(() {
-  //                       _fechaFueEditada = true;
-  //                     });
-  //                   },
-  //                 ),
-  //               ],
-  //             ),
-  //             backgroundColor: Color(0xFF171717),
-  //             actions: [
-  //               TextButton(
-  //                 child: Text('Guardar',
-  //                     style: TextStyle(color: Color(0xFFFFF0C6))),
-  //                 onPressed: () async {
-  //                   setState(() {
-  //                     _valorFueEditado = true;
-  //                     _fechaFueEditada = true;
-  //                   });
-
-  //                   if (_isValorInvalido(valorController.text) ||
-  //                       _isFechaInvalida(fechaController.text)) {
-  //                     return; // Mostrar errores si hay
-  //                   }
-
-  //                   try {
-  //                     venta.btrpPrecioVentaFinal =
-  //                         double.parse(valorController.text);
-  //                     venta.btrpFechaVendida =
-  //                         DateFormat('dd/MM/yyyy').parse(fechaController.text);
-
-  //                     await ProcesoVentaService.venderProcesoVenta(venta);
-  //                     Navigator.of(context).pop();
-  //                     ScaffoldMessenger.of(context).showSnackBar(
-  //                       SnackBar(content: Text('Propiedad vendida con éxito')),
-  //                     );
-  //                     setState(() {
-  //                       _selectedVenta = null;
-  //                       _reiniciarProcesosVentaFiltros();
-  //                     });
-  //                   } catch (e) {
-  //                     Navigator.of(context).pop();
-  //                     ScaffoldMessenger.of(context).showSnackBar(
-  //                       SnackBar(content: Text('Error al vender la propiedad')),
-  //                     );
-  //                   }
-  //                 },
-  //               ),
-  //               TextButton(
-  //                 child: Text('Cancelar',
-  //                     style: TextStyle(color: Color(0xFFFFF0C6))),
-  //                 onPressed: () {
-  //                   Navigator.of(context).pop();
-  //                   _valorFueEditado = false;
-  //                   _fechaFueEditada = false;
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
 
   Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
     return FutureBuilder<List<String>>(
@@ -619,15 +477,44 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                         ),
                       ),
 
+                      SizedBox(height: 2.0),
+                      
+
+                      Text(
+                        'Cliente: ${venta.clieNombreCompleto ?? 'N/A'}',
+                        style:
+                            TextStyle(color: Color(0xFFFFF0C6), fontSize: 14),
+                      ),
+                      SizedBox(height: 8.0),
+                      Row(
+                        children: [
+                          Icon(Icons.person, color: Colors.white70),
+                          SizedBox(width: 8.0),
+                          Expanded(
+                            child: Text(
+                              'DNI: ${venta.clieDNI ?? 'N/A'}',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                          Icon(Icons.phone, color: Colors.white70),
+                          SizedBox(width: 8.0),
+                          Expanded(
+                            child: Text(
+                              'Teléfono: ${venta.clieTelefono ?? 'N/A'}',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(height: 8.0),
                       Divider(
-                          color: const Color.fromARGB(
-                              179, 2, 2, 2)), // Línea de separación
+                          color: Color.fromARGB(179, 255, 255, 255)), // Línea de separación
                       SizedBox(height: 8.0),
+
                       Text(
-                        venta.agenNombreCompleto ?? 'N/A',
+                        'Agente: ${venta.agenNombreCompleto ?? 'N/A'}',
                         style:
-                            TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
+                            TextStyle(color: Color(0xFFFFF0C6), fontSize: 14),
                       ),
                       SizedBox(height: 8.0),
                       Row(
@@ -784,6 +671,26 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
             ),
           ],
         ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(40.0),
+          child: Column(
+            children: [
+              Text(
+                _selectedVenta != null ? 'Detalle Bien Raíz' : 'Bienes Raíces',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 4.0),
+              Container(
+                height: 2.0,
+                color: Color(0xFFFFF0C6),
+              ),
+            ],
+          ),
+        ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
@@ -810,7 +717,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           controller: _searchController,
                           style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            hintText: 'Buscar.....',
+                            hintText: 'Buscar...',
                             hintStyle: TextStyle(color: Colors.white54),
                             border: InputBorder.none,
                             icon: Icon(Icons.search, color: Colors.white54),

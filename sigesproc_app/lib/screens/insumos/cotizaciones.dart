@@ -94,6 +94,15 @@ class _CotizacionState extends State<Cotizacion> {
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              icon: Icon(Icons.info_outline, color: Colors.white),
+              onPressed: () => _verArticulos(cotizacion.cotiId),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
             child: Text(
               (index + 1).toString(),
               style: TextStyle(color: Colors.white),
@@ -119,15 +128,7 @@ class _CotizacionState extends State<Cotizacion> {
           ),
         ),
        
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              icon: Icon(Icons.info_outline, color: Colors.white),
-              onPressed: () => _verArticulos(cotizacion.cotiId),
-            ),
-          ),
-        ),
+        
       ],
     );
   }
@@ -273,7 +274,7 @@ class _CotizacionState extends State<Cotizacion> {
                         controller: _searchController,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Buscar.....',
+                          hintText: 'Buscar...',
                           hintStyle: TextStyle(color: Colors.white54),
                           border: InputBorder.none,
                           icon: Icon(Icons.search, color: Colors.white54),
@@ -368,10 +369,10 @@ class _CotizacionState extends State<Cotizacion> {
                                 child: SingleChildScrollView(
                                   child: Table(
                                     columnWidths: {
-                                      0: FlexColumnWidth(1),
-                                      1: FlexColumnWidth(3),
-                                      2: FlexColumnWidth(3),
-                                      3: FlexColumnWidth(2),
+                                      0: FlexColumnWidth(2),
+                                      1: FlexColumnWidth(1),
+                                      2: FlexColumnWidth(2.5),
+                                      3: FlexColumnWidth(3),
                                     },
                                     children: [
                                       TableRow(
@@ -379,6 +380,16 @@ class _CotizacionState extends State<Cotizacion> {
                                           color: Color(0xFF171717),
                                         ),
                                         children: [
+                                           Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Artículos',
+                                              style: TextStyle(
+                                                color: Color(0xFFFFF0C6),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
@@ -410,16 +421,7 @@ class _CotizacionState extends State<Cotizacion> {
                                             ),
                                           ),
                                          
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Artículos',
-                                              style: TextStyle(
-                                                color: Color(0xFFFFF0C6),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
+                                         
                                         ],
                                       ),
                                       ..._cotizacionesFiltrados
