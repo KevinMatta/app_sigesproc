@@ -19,20 +19,27 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   TabController? _tabController;
   int _unreadCount = 0;
-  final int userId = 5;
+  int? userId; // Declaramos userId sin inicializarlo en duro.
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
 
-    _insertarToken();
+    _loadUserId(); // Cargamos el userId desde las preferencias.
 
-    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId));
+    _loadUserProfileData(); // Cargar datos de usuario al iniciar.
+  }
 
-    _loadNotifications();
+  Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; 
+    
+    _insertarToken(); 
 
-    _loadUserProfileData(); // Cargar datos de usuario al iniciar
+    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications(); 
   }
 
   Future<void> _insertarToken() async {
@@ -40,7 +47,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     String? token = prefs.token;
 
     if (token != null && token.isNotEmpty) {
-      await NotificationServices.insertarToken(39, token);
+      await NotificationServices.insertarToken(userId!, token);
       print('Token insertado después del inicio de sesión: $token');
     } else {
       print('No se encontró token en las preferencias.');
@@ -49,7 +56,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId);
+      final notifications = await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });

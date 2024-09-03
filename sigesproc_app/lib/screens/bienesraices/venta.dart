@@ -9,6 +9,7 @@ import 'package:sigesproc_app/models/generales/clienteviewmodel.dart';
 import 'package:sigesproc_app/models/generales/estadocivilviewmodel.dart';
 import 'package:sigesproc_app/models/generales/estadoviewmodel.dart';
 import 'package:sigesproc_app/models/generales/paisviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
@@ -1322,29 +1323,96 @@ class _VentaState extends State<Venta> {
   }
 
 
-Future<void> _notificarVentaIniciada() async {
-  try {
-    String title = "Bien Raíz en Venta";
-    String body = "El bien raíz ${nombreController.text} ha sido puesto en venta.";
-    await NotificationServices.EnviarNotificacion(title, body, widget.btrpId as String);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Notificación de venta enviada.')),
-    );
-  } catch (e) {
-    print('Error al enviar la notificación de venta: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al enviar la notificación de venta.')),
-    );
-  }
-}
+// Future<void> _notificarVentaCompletada() async {
+//   try {
+//     String title = "Bien Raíz Vendido";
+//     String body = "El bien raíz ${nombreController.text} ha sido vendido.";
+//     await NotificationServices.EnviarNotificacion(title, body, widget.btrpId as String);
+//     // ScaffoldMessenger.of(context).showSnackBar(
+//     //   SnackBar(content: Text('Notificación de venta completada enviada.')),
+//     // );
+//   } catch (e) {
+//     print('Error al enviar la notificación de venta completada: $e');
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(content: Text('Error al enviar la notificación de venta completada.')),
+//     );
+//   }
+// }
+
+
+
+
+
+// Future<void> _notificarVentaCompletada() async {
+//   try {
+//     var prefs = PreferenciasUsuario();
+//     String title = "Bien Raíz Vendido";
+//     String body = "El bien raíz ${nombreController.text} ha sido vendido.";
+    
+//     // Intentar convertir el valor de prefs.userId a un int
+//     int? usuarioCreacionId = int.tryParse(prefs.userId);
+
+//     // Verificar si la conversión fue exitosa
+//     if (usuarioCreacionId != null) {
+//       // Crear instancia de NotificationServices
+//       final notificationService = NotificationServices();
+//         await NotificationServices.EnviarNotificacionAAdministradores(title, body);
+
+//       // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+//       await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
+
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Notificación de venta completada enviada.')),
+//       );
+//     } else {
+//       // Si la conversión falló, manejar el error
+//       print('Error: userId no es un número válido.');
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Error: ID de usuario no válido.')),
+//       );
+//     }
+//   } catch (e) {
+//     print('Error al enviar la notificación de venta completada: $e');
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(content: Text('Error al enviar la notificación de venta completada.')),
+//     );
+//   }
+// }
+
+
+
+
+
+
+
 Future<void> _notificarVentaCompletada() async {
   try {
+    var prefs = PreferenciasUsuario();
     String title = "Bien Raíz Vendido";
     String body = "El bien raíz ${nombreController.text} ha sido vendido.";
-    await NotificationServices.EnviarNotificacion(title, body, widget.btrpId as String);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Notificación de venta completada enviada.')),
-    );
+    
+    // Intentar convertir el valor de prefs.userId a un int
+    int? usuarioCreacionId = int.tryParse(prefs.userId);
+
+    // Verificar si la conversión fue exitosa
+    if (usuarioCreacionId != null) {
+      // Crear instancia de NotificationServices
+      final notificationService = NotificationServices();
+        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
+
+      // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, 39);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Notificación de venta completada enviada.')),
+      );
+    } else {
+      // Si la conversión falló, manejar el error
+      print('Error: userId no es un número válido.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ID de usuario no válido.')),
+      );
+    }
   } catch (e) {
     print('Error al enviar la notificación de venta completada: $e');
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1352,6 +1420,4 @@ Future<void> _notificarVentaCompletada() async {
     );
   }
 }
-
-
 }
