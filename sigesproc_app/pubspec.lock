@@ -289,6 +289,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  fl_chart:
+    dependency: "direct main"
+    description:
+      name: fl_chart
+      sha256: "29da130cdef13f47e1798a66e99fd119e557c293b98be8ebaf6fed2cbc43bf29"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.50.6"
   flutter:
     dependency: "direct main"
     description: flutter
