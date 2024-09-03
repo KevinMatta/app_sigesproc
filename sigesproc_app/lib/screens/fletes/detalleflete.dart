@@ -36,6 +36,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
   late Future<dynamic> _destinoFuture;
   final ubicacionController = Location();
   LatLng? ubicacionactual;
+  LatLng? ubicacionInicial;
   Map<PolylineId, Polyline> polylines = {};
   StreamSubscription<LocationData>? locationSubscription;
   BitmapDescriptor? carritoIcono;
@@ -53,10 +54,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
         setState(() {
           LatLng nuevaUbicacion = LatLng(lat, lng);
           if (emplId != this.emplId) {
-            print('initstate $emplId $ubicacionactual');
             if (ubicacionactual != null) {
               polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
-              print('aaa $ubicacionactual $nuevaUbicacion');
               _actualizarPolyline(
                   ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
             }
@@ -86,8 +85,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
   Future<void> _loadEmplId() async {
     final pref = await SharedPreferences.getInstance();
     setState(() {
-      emplId = int.tryParse(pref.getString('emplId') ?? '');
-      // emplId = 91;
+      // emplId = int.tryParse(pref.getString('emplId') ?? '');
+      emplId = 91;
     });
   }
 
@@ -174,8 +173,17 @@ class _DetalleFleteState extends State<DetalleFlete> {
         }
         print("Ubicación obtenida: $ubicacionactual");
 
-        if (_fleteHubService.connection.state ==
-            signalR.ConnectionState.connected) {
+        // Guardar la ubicación inicial solo si no ha sido almacenada previamente
+        print('hay ubicacion inicial guardada $ubicacionInicial');
+        if (ubicacionInicial == null) {
+          ubicacionInicial = ubicacionactual;
+          print('toamdno la inicial $ubicacionInicial');
+          final pref = await SharedPreferences.getInstance();
+          await pref.setDouble('latitudInicial', ubicacionInicial!.latitude);
+          await pref.setDouble('longitudInicial', ubicacionInicial!.longitude);
+        }
+
+        if (_fleteHubService.connection.state == signalR.ConnectionState.connected) {
           print('Actualizando ubicación inicial en SignalR...');
           await _fleteHubService.actualizarUbicacion(emplId!, ubicacionactual!);
         } else {
@@ -183,15 +191,11 @@ class _DetalleFleteState extends State<DetalleFlete> {
         }
 
         print('Iniciando el seguimiento de la ubicación en tiempo real...');
-        locationSubscription = ubicacionController.onLocationChanged
-            .listen((LocationData currentLocation) async {
-          if (currentLocation.latitude != null &&
-              currentLocation.longitude != null) {
-            LatLng nuevaUbicacion =
-                LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        locationSubscription = ubicacionController.onLocationChanged.listen((LocationData currentLocation) async {
+          if (currentLocation.latitude != null && currentLocation.longitude != null) {
+            LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
             await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
-            await _actualizarPolyline(
-                ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+            await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
             setState(() {
               ubicacionactual = nuevaUbicacion;
             });
@@ -721,7 +725,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           currentLocation.latitude!,
           currentLocation.longitude!,
         );
-        print('ososos $ubicacionactual');
+        print('ubi actial $ubicacionactual');
       });
       return true;
     }
@@ -737,10 +741,10 @@ class _DetalleFleteState extends State<DetalleFlete> {
       PointLatLng(destino.latitude, destino.longitude),
       travelMode: TravelMode.driving,
     );
-    print('Result de polylinePuntos: $result');
-    print('Status: ${result.status}');
-    print('Error message: ${result.errorMessage}');
-    print('Number of points: ${result.points.length}');
+    print('resultado polylinePuntos: $result');
+    print('estado: ${result.status}');
+    print('Error : ${result.errorMessage}');
+    print('numero de puntos: ${result.points.length}');
 
     if (result.points.isNotEmpty) {
       print('Puntos obtenidos: ${result.points}');
