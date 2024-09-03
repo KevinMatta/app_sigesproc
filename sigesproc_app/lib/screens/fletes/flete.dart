@@ -4,9 +4,12 @@ import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import 'package:sigesproc_app/screens/fletes/verificarflete.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/fletes/fletecontrolcalidadservice.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import '../menu.dart';
@@ -30,10 +33,15 @@ class _FleteState extends State<Flete> {
   bool _isLoading = false;
   bool _viendoVerificacion = false;
   int? _flenIdSeleccionado;
+  int _unreadCount = 0;
+  late int userId;
 
   @override
   void initState() {
     super.initState();
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0;
+    _loadNotifications();
     _fletesFuture = FleteEncabezadoService.listarFletesEncabezado();
     _fletesFuture!.then((fletes) {
       setState(() {
@@ -50,6 +58,18 @@ class _FleteState extends State<Flete> {
     _searchController.removeListener(_filterFletes);
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
 
   void _filterFletes() {
@@ -365,14 +385,18 @@ class _FleteState extends State<Flete> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (insumosLlegaron.isNotEmpty) 
-          _buildExpandableSection('Insumos Llegaron', _buildTablaInsumos(insumosLlegaron)),
-        if (insumosNoLlegaron.isNotEmpty) 
-          _buildExpandableSection('Insumos No Llegaron', _buildTablaInsumos(insumosNoLlegaron)),
-        if (equiposLlegaron.isNotEmpty) 
-          _buildExpandableSection('Equipos Llegaron', _buildTablaEquipos(equiposLlegaron)),
-        if (equiposNoLlegaron.isNotEmpty) 
-          _buildExpandableSection('Equipos No Llegaron', _buildTablaEquipos(equiposNoLlegaron)),
+        if (insumosLlegaron.isNotEmpty)
+          _buildExpandableSection(
+              'Insumos Llegaron', _buildTablaInsumos(insumosLlegaron)),
+        if (insumosNoLlegaron.isNotEmpty)
+          _buildExpandableSection(
+              'Insumos No Llegaron', _buildTablaInsumos(insumosNoLlegaron)),
+        if (equiposLlegaron.isNotEmpty)
+          _buildExpandableSection(
+              'Equipos Llegaron', _buildTablaEquipos(equiposLlegaron)),
+        if (equiposNoLlegaron.isNotEmpty)
+          _buildExpandableSection(
+              'Equipos No Llegaron', _buildTablaEquipos(equiposNoLlegaron)),
       ],
     );
   }
@@ -401,11 +425,13 @@ class _FleteState extends State<Flete> {
       border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
       children: [
         _buildTableHeader(['Descripción', 'Unidad de Medida', 'Cantidad']),
-        ...detalles.map((detalle) => _buildTableRow([
-              detalle.insuDescripcion ?? 'N/A',
-              detalle.unmeNomenclatura ?? 'N/A',
-              detalle.fldeCantidad.toString(),
-            ])).toList(),
+        ...detalles
+            .map((detalle) => _buildTableRow([
+                  detalle.insuDescripcion ?? 'N/A',
+                  detalle.unmeNomenclatura ?? 'N/A',
+                  detalle.fldeCantidad.toString(),
+                ]))
+            .toList(),
       ],
     );
   }
@@ -420,16 +446,19 @@ class _FleteState extends State<Flete> {
       border: TableBorder.all(color: Color(0xFFFFF0C6), width: 1),
       children: [
         _buildTableHeader(['Equipo', 'Descripción', 'Cantidad']),
-        ...detalles.map((detalle) => _buildTableRow([
-              detalle.equsNombre ?? 'N/A',
-              detalle.equsDescripcion ?? 'N/A',
-              detalle.fldeCantidad.toString(),
-            ])).toList(),
+        ...detalles
+            .map((detalle) => _buildTableRow([
+                  detalle.equsNombre ?? 'N/A',
+                  detalle.equsDescripcion ?? 'N/A',
+                  detalle.fldeCantidad.toString(),
+                ]))
+            .toList(),
       ],
     );
   }
 
-  Widget _buildIncidenciasFlete(List<FleteControlCalidadViewModel> incidencias) {
+  Widget _buildIncidenciasFlete(
+      List<FleteControlCalidadViewModel> incidencias) {
     return incidencias.isNotEmpty
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,11 +474,13 @@ class _FleteState extends State<Flete> {
                   children: [
                     _buildTableHeader(
                         ['Descripción de la Incidencia', 'Fecha y Hora']),
-                    ...incidencias.map((incidencia) => _buildTableRow([
-                          incidencia.flccDescripcionIncidencia ?? 'N/A',
-                          DateFormat('dd/MM/yy, hh:mm a')
-                              .format(incidencia.flccFechaHoraIncidencia!),
-                        ])).toList(),
+                    ...incidencias
+                        .map((incidencia) => _buildTableRow([
+                              incidencia.flccDescripcionIncidencia ?? 'N/A',
+                              DateFormat('dd/MM/yy, hh:mm a')
+                                  .format(incidencia.flccFechaHoraIncidencia!),
+                            ]))
+                        .toList(),
                   ],
                 ),
               ),
@@ -499,7 +530,8 @@ class _FleteState extends State<Flete> {
 
   Widget _buildListaFletes() {
     return Scaffold(
-      backgroundColor: Colors.black, // Establece el fondo negro para la pantalla
+      backgroundColor:
+          Colors.black, // Establece el fondo negro para la pantalla
       body: Container(
         color: Colors.black,
         padding: const EdgeInsets.all(20.0),
@@ -539,11 +571,14 @@ class _FleteState extends State<Flete> {
                 builder: (context, snapshot) {
                   if (_isLoading) {
                     return Center(
-                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+                      child:
+                          CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
-                  } else if (snapshot.connectionState == ConnectionState.waiting) {
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return Center(
-                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+                      child:
+                          CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.hasError) {
                     return Center(
@@ -675,7 +710,8 @@ class _FleteState extends State<Flete> {
 
   Widget _buildVerificacionFlete() {
     return Container(
-      color: Colors.black, // Establece el color de fondo negro para la pantalla de verificación del flete
+      color: Colors
+          .black, // Establece el color de fondo negro para la pantalla de verificación del flete
       child: FutureBuilder<List<FleteDetalleViewModel>>(
         future: FleteDetalleService.Buscar(_flenIdSeleccionado!),
         builder: (context, snapshot) {
@@ -703,7 +739,8 @@ class _FleteState extends State<Flete> {
             return FutureBuilder<List<FleteControlCalidadViewModel>>(
               future: _incidenciasFuture,
               builder: (context, snapshotIncidencias) {
-                if (snapshotIncidencias.connectionState == ConnectionState.waiting) {
+                if (snapshotIncidencias.connectionState ==
+                    ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                   );
@@ -729,10 +766,13 @@ class _FleteState extends State<Flete> {
                       Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: ListView(
-                          padding: EdgeInsets.only(bottom: 70.0), // Espacio en la parte inferior para el botón
+                          padding: EdgeInsets.only(
+                              bottom:
+                                  70.0), // Espacio en la parte inferior para el botón
                           children: [
                             _buildEncabezadoFlete(
-                              _allFletes.firstWhere((flete) => flete.flenId == _flenIdSeleccionado),
+                              _allFletes.firstWhere((flete) =>
+                                  flete.flenId == _flenIdSeleccionado),
                             ),
                             _buildDetallesFlete(detalles),
                             _buildIncidenciasFlete(incidencias),
@@ -744,7 +784,8 @@ class _FleteState extends State<Flete> {
                         left: 0,
                         right: 0,
                         child: Container(
-                          color: Colors.black, // Fondo negro para el área del botón
+                          color: Colors
+                              .black, // Fondo negro para el área del botón
                           padding: const EdgeInsets.all(10.0),
                           child: Row(
                             children: [
@@ -755,7 +796,8 @@ class _FleteState extends State<Flete> {
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF171717),
-                                    padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 35, vertical: 15),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -795,60 +837,9 @@ class _FleteState extends State<Flete> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50,
-            ),
-            SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start,
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                _viendoVerificacion ? 'Verificación' : 'Fletes',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(
+          unreadCount: _unreadCount,
+          onNotificationsUpdated: _loadNotifications),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
