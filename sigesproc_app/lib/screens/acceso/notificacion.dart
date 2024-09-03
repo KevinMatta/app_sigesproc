@@ -10,13 +10,14 @@ class NotificacionesScreen extends StatefulWidget {
 class _NotificacionesScreenState extends State<NotificacionesScreen> {
   List<dynamic> _notifications = [];
   bool _isLoading = false;
+  late int usua_Id;
 
   @override
   void initState() {
+    var prefs = PreferenciasUsuario();
+    usua_Id = int.tryParse(prefs.userId) ?? 0;
     super.initState();
     _loadNotifications();
-  
-
   }
 
   Future<void> _loadNotifications() async {
@@ -25,7 +26,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     });
 
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(5);
+      final notifications = await NotificationServices.BuscarNotificacion(usua_Id);
       setState(() {
         _notifications = notifications;
       });
@@ -38,15 +39,19 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     }
   }
 
-  void _showOverlayMessage(String message, bool success) {
+  void _showOverlayMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black), // Color del texto del mensaje
         ),
-        backgroundColor: success ? Colors.green : Colors.red,
+        backgroundColor: Color(0xFFFFF0C6), // Color de fondo del SnackBar
         duration: Duration(seconds: 3),
+        shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+        ),
+        behavior: SnackBarBehavior.floating, // Para que el SnackBar esté flotante
       ),
     );
   }
@@ -62,20 +67,16 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
 
   Future<void> _eliminarNotificacion(int napuId) async {
     try {
-            var prefs = PreferenciasUsuario();
+      var prefs = PreferenciasUsuario();
       final success = await NotificationServices.EliminarNotificacion(napuId);
       if (success) {
-        _showOverlayMessage('Eliminada con Éxito.', true);
-
-      _loadNotifications(); 
+        _showOverlayMessage('Eliminada con Éxito.');
+        _loadNotifications(); 
         String title = "Notificación Eliminada";
         String body = "Se ha eliminado una notificación con Id: $napuId";
-      await NotificationServices.EnviarNotificacionAAdministradores(title, body);
-
-
-        
+        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
       } else {
-        _showOverlayMessage('Error al eliminar la notificación.', false);
+        _showOverlayMessage('Error al eliminar la notificación.');
       }
     } catch (e) {
       print('Error al eliminar la notificación: $e');
@@ -105,22 +106,18 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
           actions: [
             ElevatedButton(
               onPressed: () async {
-                // final success = await _eliminarNotificacion(napuId);
-           
-                // Navigator.of(context).pop(); 
-
-                  Navigator.of(context).pop(); 
+                Navigator.of(context).pop(); 
                 _eliminarNotificacion(napuId); 
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6), 
-                textStyle: TextStyle(fontSize: 14), 
-                padding: EdgeInsets.symmetric(horizontal: 30),
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+                borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: Text('Aceptar', style: TextStyle(color: Colors.black)),
+              child: Text('Eliminar', style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -129,9 +126,9 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black, 
                 textStyle: TextStyle(fontSize: 14),
-                padding: EdgeInsets.symmetric(horizontal: 30),
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
+                borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
               child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
@@ -151,6 +148,9 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         title: Text(
           'Notificaciones',
           style: TextStyle(color: Color(0xFFFFF0C6)),
+        ),
+        iconTheme: IconThemeData(
+          color: Color(0xFFFFF0C6), 
         ),
       ),
       body: _isLoading

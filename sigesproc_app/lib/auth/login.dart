@@ -166,7 +166,7 @@ class _LoginState extends State<Login> {
                               ),
                             ),
                             Positioned(
-                              top: -90, // Ajuste para centrar el logo
+                              top: -90, 
                               child: Container(
                                 width: MediaQuery.of(context).size.width * 0.8,
                                 child: ClipRRect(
@@ -265,11 +265,19 @@ class _LoginState extends State<Login> {
         await pref.setString('usuaUsuario', response.usuaUsuario?.toString() ?? '');
         await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
 
+        var prefs = PreferenciasUsuario();
+        prefs.userId = response.usuaId?.toString() ?? '';
+      prefs.usernombre = response.nombreEmpleado ?? '';
+      prefs.userCorreo = response.correoEmpleado ?? '';
+      prefs.userTelefono = response.telefonoEmpleado ?? '';
+      prefs.userCargo = response.cargoDescripcion ?? '';
+      prefs.userImagenEmpleado = response.imagenEmpleado ?? '';
+       prefs.userRol = response.rolDescripcion ?? '';
+      prefs.nombreusuario = response.usuaUsuario ?? '';
         await pref.setString('roleDescripcion', response.rolDescripcion?.toString() ?? '');
         await pref.setString('emplCorreoElectronico', response.correoEmpleado?.toString() ?? '');
         await pref.setString('cargDescripcion', response.cargoDescripcion?.toString() ?? '');
         await pref.setString('emplTelefono', response.telefonoEmpleado?.toString() ?? '');
-
         Navigator.push(
           context,
           MaterialPageRoute(

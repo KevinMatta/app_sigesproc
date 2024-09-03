@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/insumos/articuloviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/cotizacionviewmodel.dart';
 import 'package:sigesproc_app/services/insumos/articuloservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/insumos/cotizacionservice.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
+import '../appBar.dart'; // Asegúrate de que estás importando el CustomAppBar
 
 class Cotizacion extends StatefulWidget {
   @override
@@ -21,10 +26,17 @@ class _CotizacionState extends State<Cotizacion> {
   int? _selectedCotiId;
   int _currentPage = 0;
   int _rowsPerPage = 10;
+  int _unreadCount = 0;
+  late int userId; // Definimos el userId aquí, para obtenerlo de las preferencias.
 
   @override
   void initState() {
     super.initState();
+
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; // Obtener el userId desde las preferencias
+
+    _loadNotifications();
     _cotizacionesFuture = CotizacionService.listarCotizaciones();
     _cotizacionesFuture!.then((cotizaciones) {
       setState(() {
@@ -32,6 +44,17 @@ class _CotizacionState extends State<Cotizacion> {
       });
     });
     _searchController.addListener(_filterCotizaciones);
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications = await NotificationServices.BuscarNotificacion(userId);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
 
   @override
@@ -127,8 +150,6 @@ class _CotizacionState extends State<Cotizacion> {
             ),
           ),
         ),
-       
-        
       ],
     );
   }
@@ -149,109 +170,59 @@ class _CotizacionState extends State<Cotizacion> {
     });
   }
 
- Widget ArticuloRegistro(ArticuloViewModel articulo) {
-  return ListTile(
-    leading: CircleAvatar(
-      child: Text(
-        articulo.codigo.toString(),
-        style: TextStyle(color: Colors.black),
+  Widget ArticuloRegistro(ArticuloViewModel articulo) {
+    return ListTile(
+      leading: CircleAvatar(
+        child: Text(
+          articulo.codigo.toString(),
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Color(0xFFFFF0C6),
       ),
-      backgroundColor: Color(0xFFFFF0C6),
-    ),
-    title: Text(
-      articulo.articulo,
-      style: TextStyle(color: Colors.white),
-    ),
-    subtitle: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Precio: ${articulo.precio}',
-              style: TextStyle(color: Colors.white70),
-            ),
-            Text(
-              'Cantidad: ${articulo.cantidad}',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end, 
-          children: [
-            Text(
-              'Impuesto: ${articulo.impuesto}',
-              style: TextStyle(color: Colors.white70),
-            ),
-            Text(
-              'Total: ${articulo.total}',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-       title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
-            ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
+      title: Text(
+        articulo.articulo,
+        style: TextStyle(color: Colors.white),
+      ),
+      subtitle: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _mostrarArticulos ? 'Articulos' : 'Cotizaciones',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Precio: ${articulo.precio}',
+                style: TextStyle(color: Colors.white70),
               ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
+              Text(
+                'Cantidad: ${articulo.cantidad}',
+                style: TextStyle(color: Colors.white70),
               ),
             ],
           ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Impuesto: ${articulo.impuesto}',
+                style: TextStyle(color: Colors.white70),
+              ),
+              Text(
+                'Total: ${articulo.total}',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+         appBar: CustomAppBar(
+        unreadCount: _unreadCount,
+        onNotificationsUpdated: _loadNotifications, // Pasar la función aquí
       ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
@@ -295,8 +266,7 @@ class _CotizacionState extends State<Cotizacion> {
                   ? FutureBuilder<List<ArticuloViewModel>>(
                       future: _articulosFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return Center(
                             child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                           );
@@ -307,8 +277,7 @@ class _CotizacionState extends State<Cotizacion> {
                               style: TextStyle(color: Colors.red),
                             ),
                           );
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               'No hay datos disponibles',
@@ -329,8 +298,7 @@ class _CotizacionState extends State<Cotizacion> {
                   : FutureBuilder<List<CotizacionViewModel>>(
                       future: _cotizacionesFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return Center(
                             child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                           );
@@ -342,8 +310,7 @@ class _CotizacionState extends State<Cotizacion> {
                               style: TextStyle(color: Colors.red),
                             ),
                           );
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               'No hay datos disponibles',
@@ -351,17 +318,14 @@ class _CotizacionState extends State<Cotizacion> {
                             ),
                           );
                         } else {
-                          _cotizacionesFiltrados =
-                              _searchController.text.isEmpty
-                                  ? snapshot.data!
-                                  : _cotizacionesFiltrados;
-                          final int totalRecords =
-                              _cotizacionesFiltrados.length;
+                          _cotizacionesFiltrados = _searchController.text.isEmpty
+                              ? snapshot.data!
+                              : _cotizacionesFiltrados;
+                          final int totalRecords = _cotizacionesFiltrados.length;
                           final int startIndex = _currentPage * _rowsPerPage;
-                          final int endIndex =
-                              (startIndex + _rowsPerPage > totalRecords)
-                                  ? totalRecords
-                                  : startIndex + _rowsPerPage;
+                          final int endIndex = (startIndex + _rowsPerPage > totalRecords)
+                              ? totalRecords
+                              : startIndex + _rowsPerPage;
 
                           return Column(
                             children: [
@@ -380,7 +344,7 @@ class _CotizacionState extends State<Cotizacion> {
                                           color: Color(0xFF171717),
                                         ),
                                         children: [
-                                           Padding(
+                                          Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
                                               'Artículos',
@@ -420,8 +384,6 @@ class _CotizacionState extends State<Cotizacion> {
                                               ),
                                             ),
                                           ),
-                                         
-                                         
                                         ],
                                       ),
                                       ..._cotizacionesFiltrados
@@ -472,8 +434,7 @@ class _CotizacionState extends State<Cotizacion> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF171717),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                        padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
