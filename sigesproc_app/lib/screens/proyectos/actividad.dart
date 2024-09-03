@@ -189,10 +189,7 @@ Future<void> _refreshControls(int acetId) async {
                         await ControlDeCalidadesPorActividadesService.aprobarControlDeCalidad(cocaId);
                         ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(
-                            content: Text("Aprobado con Éxito.",style: TextStyle(
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),),
-                            backgroundColor: Color(0xFFFFF0C6),
+                            content: Text("Aprobado con Éxito."),
                           ),
                         );
 
