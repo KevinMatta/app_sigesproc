@@ -5,16 +5,15 @@ import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Importa SharedPreferences
 import '../menu.dart';
 
 class EditarViatico extends StatefulWidget {
   final int viaticoId; // Recibe el ID del viático a editar
 
   EditarViatico({required this.viaticoId});
-  
 
   @override
   _EditarViaticoState createState() => _EditarViaticoState();
@@ -36,11 +35,20 @@ class _EditarViaticoState extends State<EditarViatico> {
 
   ViaticoEncViewModel? _viatico; // Aquí almacenaremos el viático a editar
   bool _isLoading = false; // Variable para controlar el estado de carga
+  int? _usuarioModificacion; // Variable para almacenar el ID del usuario que modifica
 
   @override
   void initState() {
     super.initState();
+    _loadUserData(); // Cargar el ID del usuario
     _cargarDatosIniciales();
+  }
+
+  Future<void> _loadUserData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _usuarioModificacion = int.tryParse(prefs.getString('usuaId') ?? '');
+    });
   }
 
   Future<void> _cargarDatosIniciales() async {
@@ -139,11 +147,8 @@ class _EditarViaticoState extends State<EditarViatico> {
       usuaCreacion: _viatico?.usuaCreacion ?? 3,
       vienFechaCreacion: _viatico?.vienFechaCreacion ?? DateTime.now(),
       vienFechaModificacion: DateTime.now(),
+      usuaModificacion: _usuarioModificacion, // Asignar el ID del usuario que modifica
     );
-
-    // Imprimir los datos que se van a enviar
-    print('Datos del viático actualizados:');
-    print(viaticoActualizado.toJson());
 
     try {
       await ViaticosEncService.actualizarViatico(viaticoActualizado);
@@ -151,7 +156,7 @@ class _EditarViaticoState extends State<EditarViatico> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Actualizado con éxito')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true); // Retorna `true` al cerrar la pantalla
     } catch (e) {
       print('Error al actualizar el viático: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -290,39 +295,58 @@ class _EditarViaticoState extends State<EditarViatico> {
                             ),
                           ),
                         ),
+                        Spacer(), // Añade un espacio flexible para empujar los botones hacia abajo
+                        _buildBottomButtons(), // Los botones personalizados al final
                       ],
                     ),
             ),
-      floatingActionButton: SpeedDial(
-        icon: Icons.more_vert,
-        activeIcon: Icons.close,
-        backgroundColor: Color(0xFF171717),
-        foregroundColor: Color(0xFFFFF0C6),
-        buttonSize: Size(56.0, 56.0),
-        shape: CircleBorder(),
-        childrenButtonSize: Size(56.0, 56.0),
-        spaceBetweenChildren: 10.0,
-        overlayColor: Colors.transparent,
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
         children: [
-          SpeedDialChild(
-            child: Icon(Icons.arrow_back),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFFFFF0C6),
-            labelStyle: TextStyle(color: Color(0xFF171717)),
-            onTap: () {
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+              ),
+            ),
+            onPressed: () {
+              _guardarViatico(); // Llamada a la función de guardar viático
+            },
+            child: Text(
+              'Guardar',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 14, // Reduce el tamaño del texto
+              ),
+            ),
+          ),
+          SizedBox(width: 10), // Espacio entre los botones
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+              ),
+            ),
+            onPressed: () {
               Navigator.pop(context);
             },
-          ),
-          SpeedDialChild(
-            child: Icon(Icons.save),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFF171717),
-            labelStyle: TextStyle(color: Colors.white),
-            onTap: _guardarViatico,
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14, // Reduce el tamaño del texto
+              ),
+            ),
           ),
         ],
       ),
@@ -330,57 +354,57 @@ class _EditarViaticoState extends State<EditarViatico> {
   }
 
   Widget _buildDropdownEmpleado() {
-  return TypeAheadFormField<EmpleadoViewModel>(
-    textFieldConfiguration: TextFieldConfiguration(
-      controller: TextEditingController(
-          text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Identidad Empleado',
-        labelStyle: TextStyle(color: Colors.white),
-        filled: true,
-        fillColor: Colors.black,
-        border: OutlineInputBorder(),
-        suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+    return TypeAheadFormField<EmpleadoViewModel>(
+      textFieldConfiguration: TextFieldConfiguration(
+        controller: TextEditingController(
+            text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
+        style: TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Identidad Empleado',
+          labelStyle: TextStyle(color: Colors.white),
+          filled: true,
+          fillColor: Colors.black,
+          border: OutlineInputBorder(),
+          suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+        ),
       ),
-    ),
-    suggestionsCallback: (pattern) async {
-      final lowerPattern = pattern.toLowerCase();
-      return _empleados.where((empleado) {
-        final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
-        final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
-        return dniMatch || nameMatch;
-      }).toList();
-    },
-    itemBuilder: (context, EmpleadoViewModel suggestion) {
-      return ListTile(
-        title: Text(
-          suggestion.emplDNI ?? '',
+      suggestionsCallback: (pattern) async {
+        final lowerPattern = pattern.toLowerCase();
+        return _empleados.where((empleado) {
+          final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
+          final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
+          return dniMatch || nameMatch;
+        }).toList();
+      },
+      itemBuilder: (context, EmpleadoViewModel suggestion) {
+        return ListTile(
+          title: Text(
+            suggestion.emplDNI ?? '',
+            style: TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            suggestion.empleado ?? '',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      },
+      onSuggestionSelected: (EmpleadoViewModel suggestion) {
+        setState(() {
+          _selectedEmpleado = suggestion;
+        });
+      },
+      noItemsFoundBuilder: (context) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          'No se encontraron empleados',
           style: TextStyle(color: Colors.white),
         ),
-        subtitle: Text(
-          suggestion.empleado ?? '',
-          style: TextStyle(color: Colors.white70),
-        ),
-      );
-    },
-    onSuggestionSelected: (EmpleadoViewModel suggestion) {
-      setState(() {
-        _selectedEmpleado = suggestion;
-      });
-    },
-    noItemsFoundBuilder: (context) => Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        'No se encontraron empleados',
-        style: TextStyle(color: Colors.white),
       ),
-    ),
-    suggestionsBoxDecoration: SuggestionsBoxDecoration(
-      color: Colors.black,
-    ),
-  );
-}
+      suggestionsBoxDecoration: SuggestionsBoxDecoration(
+        color: Colors.black,
+      ),
+    );
+  }
 
   Widget _buildDropdownProyecto() {
     return TypeAheadFormField<ProyectoViewModel>(
