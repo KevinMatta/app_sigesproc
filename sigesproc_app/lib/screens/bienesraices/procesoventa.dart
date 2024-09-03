@@ -4,14 +4,18 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/bienesraices/terrenos.dart';
 import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
+
 
 class ProcesoVenta extends StatefulWidget {
   @override
@@ -24,6 +28,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   TextEditingController _searchController = TextEditingController();
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
   List<ProcesoVentaViewModel>? _selectedVenta; 
+int _unreadCount = 0;
+late int userId;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -37,10 +43,25 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 
   @override
   void initState() {
+
     super.initState();
+    var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+
+  _loadNotifications();
     _cargarProcesosVenta();
     _searchController.addListener(_filtradoProcesosVenta);
   }
+Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
 
   @override
   void dispose() {
@@ -650,53 +671,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
-            ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                _selectedVenta != null ? 'Detalle Bien Raíz' : 'Bienes Raíces',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
-          IconButton(icon: Icon(Icons.person), onPressed: () {}),
-        ],
-      ),
+      appBar: CustomAppBar(
+      unreadCount: _unreadCount,
+      onNotificationsUpdated: _loadNotifications, 
+    ),
       drawer: MenuLateral(
           selectedIndex: _selectedIndex, onItemSelected: _onItemTapped),
       body: Container(

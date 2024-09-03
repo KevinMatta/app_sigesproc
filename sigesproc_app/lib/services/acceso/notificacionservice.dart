@@ -224,38 +224,54 @@ static Future<List<Map<String, dynamic>>> ListarTokenEIdsAdministradores() async
     throw Exception('Error al listar los tokens e IDs de administradores');
   }
 }
-
 Future<void> enviarNotificacionYRegistrarEnBD(String title, String body, int usuarioCreacionId) async {
   try {
     // Obtener la lista de tokens e IDs de los administradores
     final List<Map<String, dynamic>> administradores = await ListarTokenEIdsAdministradores();
 
     if (administradores.isNotEmpty) {
+      // Crear un conjunto para almacenar los IDs únicos de los usuarios
+      final Set<int> usuariosNotificados = {};
+
+      // Crear una lista temporal para los detalles
+      final List<Map<String, dynamic>> detalles = [];
+
       // Construir la lista de detalles para enviar en el cuerpo de la solicitud
-      final List<Map<String, dynamic>> detalles = administradores.map((admin) {
-        return {
-          'noti_Descripcion': body,
-          'noti_Fecha': DateTime.now().toIso8601String(),
-          'noti_Ruta': '#',
-          'usua_Creacion': usuarioCreacionId,
-          'usua_Id': admin['usua_Id'], 
-          'napu_Ruta': '#',
-        };
-      }).toList();
+      for (var admin in administradores) {
+        int userId = admin['usua_Id'];
+        if (!usuariosNotificados.contains(userId)) {
+          usuariosNotificados.add(userId);  // Agregar el usuario al conjunto de IDs únicos
+          detalles.add({
+            'noti_Descripcion': body,
+            'noti_Fecha': DateTime.now().toIso8601String(),
+            'noti_Ruta': '#',
+            'usua_Creacion': usuarioCreacionId,
+            'usua_Id': userId, 
+            'napu_Ruta': '#',
+          });
+        }
+      }
 
       // Enviar la solicitud al endpoint
-      final response = await http.post(
-        Uri.parse('${ApiService.apiUrl}/Notificacion/InsertarNotificaciones'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(detalles),
-      );
+      if (detalles.isNotEmpty) {
+        final response = await http.post(
+          Uri.parse('${ApiService.apiUrl}/Notificacion/InsertarNotificaciones'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...ApiService.getHttpHeaders(), // Incluir los encabezados de autenticación aquí
+          },
+          body: jsonEncode(detalles),
+        );
 
-      if (response.statusCode == 200) {
-        print('Notificación enviada y registrada exitosamente');
+        if (response.statusCode == 200) {
+          print('Notificación enviada y registrada exitosamente');
+        } else {
+          print('Error al enviar y registrar la notificación');
+          print('Status Code: ${response.statusCode}');
+          print('Response Body: ${response.body}');
+        }
       } else {
-        print('Error al enviar y registrar la notificación');
+        print('No hay detalles para enviar');
       }
     } else {
       print('No se encontraron administradores para notificar');
@@ -264,7 +280,6 @@ Future<void> enviarNotificacionYRegistrarEnBD(String title, String body, int usu
     print('Error: $e');
   }
 }
-
 
 }
 

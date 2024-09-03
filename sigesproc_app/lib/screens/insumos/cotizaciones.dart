@@ -27,11 +27,15 @@ class _CotizacionState extends State<Cotizacion> {
   int _currentPage = 0;
   int _rowsPerPage = 10;
   int _unreadCount = 0;
-  final int userId = 5;
+  late int userId; // Definimos el userId aquí, para obtenerlo de las preferencias.
 
   @override
   void initState() {
     super.initState();
+
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; // Obtener el userId desde las preferencias
+
     _loadNotifications();
     _cotizacionesFuture = CotizacionService.listarCotizaciones();
     _cotizacionesFuture!.then((cotizaciones) {

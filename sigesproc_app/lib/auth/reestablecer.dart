@@ -234,14 +234,13 @@ class _ReestablecerState extends State<Reestablecer> {
       } else {
         setState(() {
           usuariooController.clear();
-          contraController.clear();
           incorrectos = true;
         });
       }      
         } catch (e) {
     // Muestra el mensaje de error al usuario
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Usuario o Contraseña son Incorrectos."),
+      SnackBar(content: Text("Usuario no encontrado."),
                backgroundColor: Colors.red,),
     );
   }
