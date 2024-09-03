@@ -10,11 +10,11 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late int usua_Id;
-  String _usuaUsuario = "";
-  String _empleado = "";
-  String _correo = "";
-  String _telfono = "";
-  String _cargo = "";
+  late String _usuaUsuario = "";
+  late String _empleado = "";
+  late String _correo = "";
+  late String _telfono = "";
+  late String _cargo = "";
   ImageProvider _profileImage = AssetImage('lib/assets/perfil.jpeg');
 
   bool _isEditingEmail = false;
@@ -34,32 +34,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     var prefs = PreferenciasUsuario();
     usua_Id = int.tryParse(prefs.userId) ?? 0;
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _fetchUserData();  // Cargar los datos después de que la pantalla se haya renderizado
-  });
+   _usuaUsuario= prefs.usernombre;
+   _empleado= prefs.usernombre;
+   _usuaUsuario = prefs.nombreusuario;
+   _correo = prefs.userCorreo;
+   _telfono= prefs.userTelefono;
+   _cargo= prefs.userCargo;
+
+    String imageUrl = prefs.userImagenEmpleado;
+
+  if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
+    _profileImage = NetworkImage(imageUrl);
+  } else {
+    _profileImage = AssetImage('lib/assets/perfil.jpeg');
+  }
+  _emailController.text = _correo;
+
+  // WidgetsBinding.instance.addPostFrameCallback((_) {
+  //   _fetchUserData();  // Cargar los datos después de que la pantalla se haya renderizado
+  // });
   }
 
-  Future<void> _fetchUserData() async {
-    try {
-      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+  // Future<void> _fetchUserData() async {
+  //   try {
+  //     UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      setState(() {
-        _usuaUsuario = usuario.usuaUsuario ?? "";
-        _empleado = usuario.nombreEmpleado ?? "";
-        _correo = usuario.correoEmpleado ?? "";
-        _telfono = usuario.telefonoEmpleado ?? "";
-        _cargo = usuario.cargoDescripcion ?? "";
+  //     setState(() {
+  //       _usuaUsuario = usuario.usuaUsuario ?? "";
+  //       _empleado = usuario.nombreEmpleado ?? "";
+  //       _correo = usuario.correoEmpleado ?? "";
+  //       _telfono = usuario.telefonoEmpleado ?? "";
+  //       _cargo = usuario.cargoDescripcion ?? "";
 
-        _profileImage = (usuario.imagenEmpleado != null && usuario.imagenEmpleado!.isNotEmpty)
-            ? NetworkImage(usuario.imagenEmpleado!)
-            : AssetImage('lib/assets/perfil.jpeg');
+  //       _profileImage = (usuario.imagenEmpleado != null && usuario.imagenEmpleado!.isNotEmpty)
+  //           ? NetworkImage(usuario.imagenEmpleado!)
+  //           : AssetImage('lib/assets/perfil.jpeg');
 
-        _emailController.text = _correo;
-      });
-    } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
-    }
-  }
+  //       _emailController.text = _correo;
+  //     });
+  //   } catch (e) {
+  //     print("Error al cargar los datos del usuario: $e");
+  //   }
+  // }
 
   void _showOverlayMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(

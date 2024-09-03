@@ -267,7 +267,13 @@ class _LoginState extends State<Login> {
 
         var prefs = PreferenciasUsuario();
         prefs.userId = response.usuaId?.toString() ?? '';
-
+      prefs.usernombre = response.nombreEmpleado ?? '';
+      prefs.userCorreo = response.correoEmpleado ?? '';
+      prefs.userTelefono = response.telefonoEmpleado ?? '';
+      prefs.userCargo = response.cargoDescripcion ?? '';
+      prefs.userImagenEmpleado = response.imagenEmpleado ?? '';
+       prefs.userRol = response.rolDescripcion ?? '';
+      prefs.nombreusuario = response.usuaUsuario ?? '';
         await pref.setString('roleDescripcion', response.rolDescripcion?.toString() ?? '');
         await pref.setString('emplCorreoElectronico', response.correoEmpleado?.toString() ?? '');
         await pref.setString('cargDescripcion', response.cargoDescripcion?.toString() ?? '');

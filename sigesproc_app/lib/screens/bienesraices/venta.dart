@@ -10,6 +10,7 @@ import 'package:sigesproc_app/models/generales/estadocivilviewmodel.dart';
 import 'package:sigesproc_app/models/generales/estadoviewmodel.dart';
 import 'package:sigesproc_app/models/generales/paisviewmodel.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:sigesproc_app/services/generales/ciudadservice.dart';
 import 'package:sigesproc_app/services/generales/clienteservice.dart';
@@ -1206,7 +1207,6 @@ class _VentaState extends State<Venta> {
                       );
 
                       await ProcesoVentaService.venderProcesoVenta(venta);
-
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -1217,6 +1217,7 @@ class _VentaState extends State<Venta> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Propiedad vendida con éxito')),
                       );
+                        await _notificarVentaCompletada();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Cliente no encontrado.')),
@@ -1319,4 +1320,38 @@ class _VentaState extends State<Venta> {
       return false;
     }
   }
+
+
+Future<void> _notificarVentaIniciada() async {
+  try {
+    String title = "Bien Raíz en Venta";
+    String body = "El bien raíz ${nombreController.text} ha sido puesto en venta.";
+    await NotificationServices.EnviarNotificacion(title, body, widget.btrpId as String);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Notificación de venta enviada.')),
+    );
+  } catch (e) {
+    print('Error al enviar la notificación de venta: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al enviar la notificación de venta.')),
+    );
+  }
+}
+Future<void> _notificarVentaCompletada() async {
+  try {
+    String title = "Bien Raíz Vendido";
+    String body = "El bien raíz ${nombreController.text} ha sido vendido.";
+    await NotificationServices.EnviarNotificacion(title, body, widget.btrpId as String);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Notificación de venta completada enviada.')),
+    );
+  } catch (e) {
+    print('Error al enviar la notificación de venta completada: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al enviar la notificación de venta completada.')),
+    );
+  }
+}
+
+
 }
