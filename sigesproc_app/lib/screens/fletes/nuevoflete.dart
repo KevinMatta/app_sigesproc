@@ -121,6 +121,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    
     _tabController = TabController(length: 2, vsync: this); // 2 tabs
 
     _cargarEmpleados();
