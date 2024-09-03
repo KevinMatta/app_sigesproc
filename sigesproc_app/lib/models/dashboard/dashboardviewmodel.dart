@@ -1,10 +1,10 @@
 class DashboardViewModel {
   String? prov_Descripcion;
-  int? numeroDeCotizaciones;
+  double? numeroDeCotizaciones;
   int? prov_Id;
 
   String? articulo;
-  double? totalCompra;
+  int? totalCompra;
   String? tipoArticulo;
 
   DashboardViewModel({
@@ -22,7 +22,7 @@ class DashboardViewModel {
       numeroDeCotizaciones: json['numeroDeCotizaciones'],
       prov_Id: json['prov_Id'],
       articulo: json['articulo'],
-      totalCompra: (json['totalCompra'] as num?)?.toDouble(),
+      totalCompra: (json['totalCompra']),
       tipoArticulo: json['tipoArticulo'],
     );
   }

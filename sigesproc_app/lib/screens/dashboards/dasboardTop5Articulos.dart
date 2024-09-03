@@ -97,30 +97,27 @@ Widget _buildPieChartContainer(List<DashboardViewModel> data) {
 
 
 
+List<PieChartSectionData> _createPieChartSections(
+    List<DashboardViewModel> data) {
 
-
-
-
-
-  List<PieChartSectionData> _createPieChartSections(List<DashboardViewModel> data) {
     final colors = [
-      Color(0xFF5074A0), // Color 1
-      Color(0xFF293C50), // Color 2
-      Color(0xFF24374B), // Color 3
-      Color(0xFF1F3144), // Color 4
-      Color(0xFF162433), // Color 5
+      Color.fromARGB(255, 50, 74, 100), // Light cream
+      Color.fromARGB(255, 41, 60, 80), // Yellow
+      Color.fromARGB(255, 36, 55, 75), // Dark blue
+      Color.fromARGB(255, 31, 49, 68), // Dark blue
+      Color(0xFF162433), // Dark blue
     ];
 
     return data.asMap().entries.map((entry) {
       int index = entry.key;
       DashboardViewModel item = entry.value;
-      final double fontSize = 8.0; // Reducimos aún más el tamaño de la fuente
-      final double radius = 40.0; // Hacemos más pequeño el radio de las secciones
+      final double fontSize = 5.0; // Tamaño de fuente más pequeño y consistente
+      final double radius = 40.0; // Tamaño del radio del gráfico de pastel
 
       return PieChartSectionData(
-        color: colors[index % colors.length],
-        value: item.totalCompra != null ? item.totalCompra! : 0, // Aseguramos que el valor no sea nulo
-        title: '${item.articulo} (${item.totalCompra?.toStringAsFixed(1)})',
+        color: colors[index % colors.length], // Asigna colores especificados
+        value: item.totalCompra!.toDouble(), // Valor de cada sección
+        title: '${item.articulo} (${item.totalCompra})', // Etiqueta de cada sección
         radius: radius,
         titleStyle: TextStyle(
           fontSize: fontSize,
@@ -129,8 +126,13 @@ Widget _buildPieChartContainer(List<DashboardViewModel> data) {
         ),
       );
     }).toList();
-  }
 }
+}
+
+
+
+
+
 
 Widget _buildTopArticlesTab() {
   return Container(

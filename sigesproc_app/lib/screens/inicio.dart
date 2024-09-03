@@ -229,36 +229,39 @@ Widget _buildCotizacionesTab() {
     padding: const EdgeInsets.all(16.0),
     child: Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Card(
-                color: Color(0xFF171717),
-                child: Container(
-                  height: 200,
-                  child: Center(
-                    child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 5),
-             Expanded(
-              child: Card(
-                color: Color(0xFF171717),
-                child: Container(
-                  height: 200,
-                  child: Center(
-                    child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
-                  ),
-                ),
-              ),
-            ),
-          ],
+   Row(
+  children: [
+    Expanded(
+      child: Card(
+        color: Color(0xFF171717),
+        child: Container(
+          height: 250, // Aumenta la altura del contenedor
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
+            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
+          ),
         ),
+      ),
+    ),
+    SizedBox(width: 5),
+    Expanded(
+      child: Card(
+        color: Color(0xFF171717),
+        child: Container(
+          height: 250, // Aumenta la altura del contenedor
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
+            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 2
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+
         SizedBox(height: 10),
         Expanded(
-          child: DashboardScreen(), // Llamada al dashboard
+          child: DashboardScreen(), 
         ),
       ],
     ),
