@@ -7,6 +7,7 @@ import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Importa SharedPreferences
 import '../menu.dart';
 
 class EditarViatico extends StatefulWidget {
@@ -34,11 +35,20 @@ class _EditarViaticoState extends State<EditarViatico> {
 
   ViaticoEncViewModel? _viatico; // Aquí almacenaremos el viático a editar
   bool _isLoading = false; // Variable para controlar el estado de carga
+  int? _usuarioModificacion; // Variable para almacenar el ID del usuario que modifica
 
   @override
   void initState() {
     super.initState();
+    _loadUserData(); // Cargar el ID del usuario
     _cargarDatosIniciales();
+  }
+
+  Future<void> _loadUserData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _usuarioModificacion = int.tryParse(prefs.getString('usuaId') ?? '');
+    });
   }
 
   Future<void> _cargarDatosIniciales() async {
@@ -114,46 +124,46 @@ class _EditarViaticoState extends State<EditarViatico> {
   }
 
   void _guardarViatico() async {
-  setState(() {
-    _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
-    _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
-    _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
-  });
+    setState(() {
+      _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
+      _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
+      _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
+    });
 
-  if (_empleadoError != null || _proyectoError != null || _montoError != null) {
-    print('Formulario no válido:');
-    if (_empleadoError != null) print(_empleadoError);
-    if (_proyectoError != null) print(_proyectoError);
-    if (_montoError != null) print(_montoError);
-    return;
-  }
+    if (_empleadoError != null || _proyectoError != null || _montoError != null) {
+      print('Formulario no válido:');
+      if (_empleadoError != null) print(_empleadoError);
+      if (_proyectoError != null) print(_proyectoError);
+      if (_montoError != null) print(_montoError);
+      return;
+    }
 
-  ViaticoEncViewModel viaticoActualizado = ViaticoEncViewModel(
-    vienId: _viatico?.vienId,
-    emplId: _selectedEmpleado!.emplId,
-    proyId: _selectedProyecto!.proyId,
-    vienMontoEstimado: double.parse(_montoController.text),
-    vienFechaEmicion: _viatico?.vienFechaEmicion ?? DateTime.now(),
-    usuaCreacion: _viatico?.usuaCreacion ?? 3,
-    vienFechaCreacion: _viatico?.vienFechaCreacion ?? DateTime.now(),
-    vienFechaModificacion: DateTime.now(),
-  );
-
-  try {
-    await ViaticosEncService.actualizarViatico(viaticoActualizado);
-    print('Viático actualizado con éxito.');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Actualizado con éxito')),
+    ViaticoEncViewModel viaticoActualizado = ViaticoEncViewModel(
+      vienId: _viatico?.vienId,
+      emplId: _selectedEmpleado!.emplId,
+      proyId: _selectedProyecto!.proyId,
+      vienMontoEstimado: double.parse(_montoController.text),
+      vienFechaEmicion: _viatico?.vienFechaEmicion ?? DateTime.now(),
+      usuaCreacion: _viatico?.usuaCreacion ?? 3,
+      vienFechaCreacion: _viatico?.vienFechaCreacion ?? DateTime.now(),
+      vienFechaModificacion: DateTime.now(),
+      usuaModificacion: _usuarioModificacion, // Asignar el ID del usuario que modifica
     );
-    Navigator.pop(context, true); // Retorna `true` al cerrar la pantalla
-  } catch (e) {
-    print('Error al actualizar el viático: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al actualizar el viático: $e')),
-    );
-  }
-}
 
+    try {
+      await ViaticosEncService.actualizarViatico(viaticoActualizado);
+      print('Viático actualizado con éxito.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Actualizado con éxito')),
+      );
+      Navigator.pop(context, true); // Retorna `true` al cerrar la pantalla
+    } catch (e) {
+      print('Error al actualizar el viático: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar el viático: $e')),
+      );
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -344,57 +354,57 @@ class _EditarViaticoState extends State<EditarViatico> {
   }
 
   Widget _buildDropdownEmpleado() {
-  return TypeAheadFormField<EmpleadoViewModel>(
-    textFieldConfiguration: TextFieldConfiguration(
-      controller: TextEditingController(
-          text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Identidad Empleado',
-        labelStyle: TextStyle(color: Colors.white),
-        filled: true,
-        fillColor: Colors.black,
-        border: OutlineInputBorder(),
-        suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+    return TypeAheadFormField<EmpleadoViewModel>(
+      textFieldConfiguration: TextFieldConfiguration(
+        controller: TextEditingController(
+            text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
+        style: TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Identidad Empleado',
+          labelStyle: TextStyle(color: Colors.white),
+          filled: true,
+          fillColor: Colors.black,
+          border: OutlineInputBorder(),
+          suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+        ),
       ),
-    ),
-    suggestionsCallback: (pattern) async {
-      final lowerPattern = pattern.toLowerCase();
-      return _empleados.where((empleado) {
-        final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
-        final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
-        return dniMatch || nameMatch;
-      }).toList();
-    },
-    itemBuilder: (context, EmpleadoViewModel suggestion) {
-      return ListTile(
-        title: Text(
-          suggestion.emplDNI ?? '',
+      suggestionsCallback: (pattern) async {
+        final lowerPattern = pattern.toLowerCase();
+        return _empleados.where((empleado) {
+          final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
+          final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
+          return dniMatch || nameMatch;
+        }).toList();
+      },
+      itemBuilder: (context, EmpleadoViewModel suggestion) {
+        return ListTile(
+          title: Text(
+            suggestion.emplDNI ?? '',
+            style: TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            suggestion.empleado ?? '',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      },
+      onSuggestionSelected: (EmpleadoViewModel suggestion) {
+        setState(() {
+          _selectedEmpleado = suggestion;
+        });
+      },
+      noItemsFoundBuilder: (context) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          'No se encontraron empleados',
           style: TextStyle(color: Colors.white),
         ),
-        subtitle: Text(
-          suggestion.empleado ?? '',
-          style: TextStyle(color: Colors.white70),
-        ),
-      );
-    },
-    onSuggestionSelected: (EmpleadoViewModel suggestion) {
-      setState(() {
-        _selectedEmpleado = suggestion;
-      });
-    },
-    noItemsFoundBuilder: (context) => Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        'No se encontraron empleados',
-        style: TextStyle(color: Colors.white),
       ),
-    ),
-    suggestionsBoxDecoration: SuggestionsBoxDecoration(
-      color: Colors.black,
-    ),
-  );
-}
+      suggestionsBoxDecoration: SuggestionsBoxDecoration(
+        color: Colors.black,
+      ),
+    );
+  }
 
   Widget _buildDropdownProyecto() {
     return TypeAheadFormField<ProyectoViewModel>(

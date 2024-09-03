@@ -6,6 +6,7 @@ import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
+import 'package:shared_preferences/shared_preferences.dart';  // Importa SharedPreferences
 import '../menu.dart';
 
 class NuevoViatico extends StatefulWidget {
@@ -16,7 +17,7 @@ class NuevoViatico extends StatefulWidget {
 class _NuevoViaticoState extends State<NuevoViatico> {
   int _selectedIndex = 5;
   DateTime _fechaEmision = DateTime.now();
-  int _usuarioCreacion = 3; // ID del usuario que crea el viático
+  int? _usuarioCreacion; // ID del usuario que crea el viático, ahora puede ser nulo hasta que se cargue
   TextEditingController _montoController = TextEditingController();
 
   EmpleadoViewModel? _selectedEmpleado;
@@ -34,8 +35,16 @@ class _NuevoViaticoState extends State<NuevoViatico> {
   @override
   void initState() {
     super.initState();
+    _loadUserData(); // Cargar datos del usuario
     _cargarEmpleados();
     _cargarProyectos();
+  }
+
+  Future<void> _loadUserData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _usuarioCreacion = int.tryParse(prefs.getString('usuaId') ?? ''); // Obtener el ID del usuario desde SharedPreferences
+    });
   }
 
   Future<void> _cargarEmpleados() async {
@@ -70,7 +79,7 @@ class _NuevoViaticoState extends State<NuevoViatico> {
       _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
     });
 
-    if (_empleadoError != null || _proyectoError != null || _montoError != null) {
+    if (_empleadoError != null || _proyectoError != null || _montoError != null || _usuarioCreacion == null) {
       setState(() {
         _isSaving = false; // Desactivar el estado de guardado si hay errores
       });
@@ -82,7 +91,7 @@ class _NuevoViaticoState extends State<NuevoViatico> {
       proyId: _selectedProyecto!.proyId,
       vienMontoEstimado: double.parse(_montoController.text),
       vienFechaEmicion: DateTime.now(),
-      usuaCreacion: _usuarioCreacion,
+      usuaCreacion: _usuarioCreacion!,
       vienFechaCreacion: DateTime.now(),
     );
 

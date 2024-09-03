@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/CategoriaViaticoViewModel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoDetViewModel.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoDetservice.dart';
@@ -94,53 +95,58 @@ class _AgregarFacturaState extends State<AgregarFactura> {
   }
 
   Future<void> _guardarFactura() async {
-    _validarCampos();
+  _validarCampos();
 
-    if (_descripcionError != null ||
-        _montoGastadoError != null ||
-        _montoReconocidoError != null ||
-        _categoriaError != null) {
-      return;
-    }
-
-    if (_uploadedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, suba una imagen de la factura.')),
-      );
-      return;
-    }
-
-    final DateTime fechaCreacion = DateTime.now();
-    try {
-      for (final image in _uploadedImages) {
-        final String imagenUrl = await _subirImagenFactura(image);
-        _loadedImages.insert(0, imagenUrl);  // Insertar la URL de la imagen al inicio de la lista
-      }
-      
-      final viaticoDet = ViaticoDetViewModel(
-        videDescripcion: descripcionController.text,
-        videImagenFactura: _loadedImages.join(','),  // Guardar todas las imágenes como una cadena separada por comas
-        videMontoGastado: montoGastadoController.text,
-        vienId: widget.viaticoId,
-        caviId: int.parse(categoriaSeleccionada!),
-        usuaCreacion: 3,
-        videFechaCreacion: fechaCreacion,
-        videMontoReconocido: double.parse(montoReconocidoController.text),
-      );
-    
-      await ViaticosDetService.insertarViaticoDet(viaticoDet);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Insertado con Éxito.')),
-      );
-      _limpiarFormulario();
-    } catch (e, stacktrace) {
-      print('Error al guardar la factura: $e');
-      print('Stacktrace: $stacktrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la factura: $e')),
-      );
-    }
+  if (_descripcionError != null ||
+      _montoGastadoError != null ||
+      _montoReconocidoError != null ||
+      _categoriaError != null) {
+    return;
   }
+
+  if (_uploadedImages.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Por favor, suba una imagen de la factura.')),
+    );
+    return;
+  }
+
+  final DateTime fechaCreacion = DateTime.now();
+
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final int usuaCreacion = int.parse(prefs.getString('usuaId') ?? '0'); // Obtener el ID del usuario logueado
+
+    for (final image in _uploadedImages) {
+      final String imagenUrl = await _subirImagenFactura(image);
+      _loadedImages.insert(0, imagenUrl); // Insertar la URL de la imagen al inicio de la lista
+    }
+    
+    final viaticoDet = ViaticoDetViewModel(
+      videDescripcion: descripcionController.text,
+      videImagenFactura: _loadedImages.join(','), // Guardar todas las imágenes como una cadena separada por comas
+      videMontoGastado: montoGastadoController.text,
+      vienId: widget.viaticoId,
+      caviId: int.parse(categoriaSeleccionada!),
+      usuaCreacion: usuaCreacion, // Usar el ID del usuario logueado
+      videFechaCreacion: fechaCreacion,
+      videMontoReconocido: double.parse(montoReconocidoController.text),
+    );
+  
+    await ViaticosDetService.insertarViaticoDet(viaticoDet);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Insertado con Éxito.')),
+    );
+    _limpiarFormulario();
+  } catch (e, stacktrace) {
+    print('Error al guardar la factura: $e');
+    print('Stacktrace: $stacktrace');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al guardar la factura: $e')),
+    );
+  }
+}
+
 
   Future<String> _subirImagenFactura(PlatformFile file) async {
     final uniqueFileName = "${DateTime.now().millisecondsSinceEpoch}-${file.name}";
