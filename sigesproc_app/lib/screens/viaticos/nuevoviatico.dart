@@ -4,7 +4,6 @@ import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
@@ -221,98 +220,117 @@ class _NuevoViaticoState extends State<NuevoViatico> {
                 ),
               ),
             ),
+            Spacer(), // Añade un espacio flexible para empujar los botones hacia abajo
+            _buildBottomButtons(), // Los botones personalizados al final
           ],
         ),
       ),
-      floatingActionButton: SpeedDial(
-        icon: Icons.more_vert, // Icono inicial
-        activeIcon: Icons.close, // Icono cuando se despliega
-        backgroundColor: Color(0xFF171717), // Color de fondo
-        foregroundColor: Color(0xFFFFF0C6), // Color del icono
-        buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-        shape: CircleBorder(),
-        childrenButtonSize: Size(56.0, 56.0),
-        spaceBetweenChildren: 10.0, // Espacio entre los botones secundarios
-        overlayColor: Colors.transparent,
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
         children: [
-          SpeedDialChild(
-            child: Icon(Icons.arrow_back),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFFFFF0C6),
-            labelStyle: TextStyle(color: Color(0xFF171717)),
-            onTap: () {
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+              ),
+            ),
+            onPressed: () {
+              _guardarViatico(); // Llamada a la función de guardar viático sin await
+            },
+
+            child: Text(
+              'Guardar',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 14, // Reduce el tamaño del texto
+              ),
+            ),
+          ),
+          SizedBox(width: 10), // Espacio entre los botones
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+              ),
+            ),
+            onPressed: () {
               Navigator.pop(context);
             },
-          ),
-          SpeedDialChild(
-            child: Icon(Icons.save),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFF171717),
-            labelStyle: TextStyle(color: Colors.white),
-            onTap: _guardarViatico,
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14, // Reduce el tamaño del texto
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-Widget _buildDropdownEmpleado() {
-  return TypeAheadFormField<EmpleadoViewModel>(
-    textFieldConfiguration: TextFieldConfiguration(
-      controller: TextEditingController(
-          text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Identidad Empleado',
-        labelStyle: TextStyle(color: Colors.white),
-        filled: true,
-        fillColor: Colors.black,
-        border: OutlineInputBorder(),
-        suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+  Widget _buildDropdownEmpleado() {
+    return TypeAheadFormField<EmpleadoViewModel>(
+      textFieldConfiguration: TextFieldConfiguration(
+        controller: TextEditingController(
+            text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
+        style: TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Identidad Empleado',
+          labelStyle: TextStyle(color: Colors.white),
+          filled: true,
+          fillColor: Colors.black,
+          border: OutlineInputBorder(),
+          suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+        ),
       ),
-    ),
-    suggestionsCallback: (pattern) async {
-      final lowerPattern = pattern.toLowerCase();
-      return _empleados.where((empleado) {
-        final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
-        final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
-        return dniMatch || nameMatch;
-      }).toList();
-    },
-    itemBuilder: (context, EmpleadoViewModel suggestion) {
-      return ListTile(
-        title: Text(
-          suggestion.emplDNI ?? '',
+      suggestionsCallback: (pattern) async {
+        final lowerPattern = pattern.toLowerCase();
+        return _empleados.where((empleado) {
+          final dniMatch = empleado.emplDNI?.toLowerCase().contains(lowerPattern) ?? false;
+          final nameMatch = empleado.empleado?.toLowerCase().contains(lowerPattern) ?? false;
+          return dniMatch || nameMatch;
+        }).toList();
+      },
+      itemBuilder: (context, EmpleadoViewModel suggestion) {
+        return ListTile(
+          title: Text(
+            suggestion.emplDNI ?? '',
+            style: TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            suggestion.empleado ?? '',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      },
+      onSuggestionSelected: (EmpleadoViewModel suggestion) {
+        setState(() {
+          _selectedEmpleado = suggestion;
+        });
+      },
+      noItemsFoundBuilder: (context) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          'No se encontraron empleados',
           style: TextStyle(color: Colors.white),
         ),
-        subtitle: Text(
-          suggestion.empleado ?? '',
-          style: TextStyle(color: Colors.white70),
-        ),
-      );
-    },
-    onSuggestionSelected: (EmpleadoViewModel suggestion) {
-      setState(() {
-        _selectedEmpleado = suggestion;
-      });
-    },
-    noItemsFoundBuilder: (context) => Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        'No se encontraron empleados',
-        style: TextStyle(color: Colors.white),
       ),
-    ),
-    suggestionsBoxDecoration: SuggestionsBoxDecoration(
-      color: Colors.black,
-    ),
-  );
-}
-
+      suggestionsBoxDecoration: SuggestionsBoxDecoration(
+        color: Colors.black,
+      ),
+    );
+  }
 
   Widget _buildDropdownProyecto() {
     return TypeAheadFormField<ProyectoViewModel>(

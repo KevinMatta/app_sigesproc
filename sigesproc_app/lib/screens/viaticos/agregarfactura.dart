@@ -192,6 +192,58 @@ class _AgregarFacturaState extends State<AgregarFactura> {
     });
   }
 
+  Widget _buildBottomButtons() {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFFFF0C6),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+            ),
+          ),
+          onPressed: () async {
+            await _guardarFactura(); // Reemplazando con la función de guardar factura
+          },
+          child: Text(
+            'Guardar',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14, // Reduce el tamaño del texto
+            ),
+          ),
+        ),
+        SizedBox(width: 10), // Espacio entre los botones
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromARGB(255, 49, 49, 49),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+            ),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Cancelar',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14, // Reduce el tamaño del texto
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -316,31 +368,7 @@ class _AgregarFacturaState extends State<AgregarFactura> {
                         SizedBox(height: 20),
                         _buildCarruselDeImagenes(), // Carrusel para visualizar imágenes
                         SizedBox(height: 40), // Espacio adicional para los botones
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: _guardarFactura,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFFFF0C6),
-                                foregroundColor: Color(0xFF171717),
-                              ),
-                              // icon: Icon(Icons.save),
-                              label: Text('Guardar'),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF171717),
-                                foregroundColor: Color(0xFFFFF0C6),
-                              ),
-                              // icon: Icon(Icons.arrow_back),
-                              label: Text('Cancelar'),
-                            ),
-                          ],
-                        ),
+                        _buildBottomButtons(), // Aquí se agregan los nuevos botones
                       ],
                     ),
                   ),

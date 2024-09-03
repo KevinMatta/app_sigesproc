@@ -5,7 +5,6 @@ import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
@@ -14,7 +13,6 @@ class EditarViatico extends StatefulWidget {
   final int viaticoId; // Recibe el ID del viático a editar
 
   EditarViatico({required this.viaticoId});
-  
 
   @override
   _EditarViaticoState createState() => _EditarViaticoState();
@@ -116,49 +114,46 @@ class _EditarViaticoState extends State<EditarViatico> {
   }
 
   void _guardarViatico() async {
-    setState(() {
-      _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
-      _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
-      _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
-    });
+  setState(() {
+    _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
+    _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
+    _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
+  });
 
-    if (_empleadoError != null || _proyectoError != null || _montoError != null) {
-      print('Formulario no válido:');
-      if (_empleadoError != null) print(_empleadoError);
-      if (_proyectoError != null) print(_proyectoError);
-      if (_montoError != null) print(_montoError);
-      return;
-    }
-
-    ViaticoEncViewModel viaticoActualizado = ViaticoEncViewModel(
-      vienId: _viatico?.vienId,
-      emplId: _selectedEmpleado!.emplId,
-      proyId: _selectedProyecto!.proyId,
-      vienMontoEstimado: double.parse(_montoController.text),
-      vienFechaEmicion: _viatico?.vienFechaEmicion ?? DateTime.now(),
-      usuaCreacion: _viatico?.usuaCreacion ?? 3,
-      vienFechaCreacion: _viatico?.vienFechaCreacion ?? DateTime.now(),
-      vienFechaModificacion: DateTime.now(),
-    );
-
-    // Imprimir los datos que se van a enviar
-    print('Datos del viático actualizados:');
-    print(viaticoActualizado.toJson());
-
-    try {
-      await ViaticosEncService.actualizarViatico(viaticoActualizado);
-      print('Viático actualizado con éxito.');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Actualizado con éxito')),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      print('Error al actualizar el viático: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar el viático: $e')),
-      );
-    }
+  if (_empleadoError != null || _proyectoError != null || _montoError != null) {
+    print('Formulario no válido:');
+    if (_empleadoError != null) print(_empleadoError);
+    if (_proyectoError != null) print(_proyectoError);
+    if (_montoError != null) print(_montoError);
+    return;
   }
+
+  ViaticoEncViewModel viaticoActualizado = ViaticoEncViewModel(
+    vienId: _viatico?.vienId,
+    emplId: _selectedEmpleado!.emplId,
+    proyId: _selectedProyecto!.proyId,
+    vienMontoEstimado: double.parse(_montoController.text),
+    vienFechaEmicion: _viatico?.vienFechaEmicion ?? DateTime.now(),
+    usuaCreacion: _viatico?.usuaCreacion ?? 3,
+    vienFechaCreacion: _viatico?.vienFechaCreacion ?? DateTime.now(),
+    vienFechaModificacion: DateTime.now(),
+  );
+
+  try {
+    await ViaticosEncService.actualizarViatico(viaticoActualizado);
+    print('Viático actualizado con éxito.');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Actualizado con éxito')),
+    );
+    Navigator.pop(context, true); // Retorna `true` al cerrar la pantalla
+  } catch (e) {
+    print('Error al actualizar el viático: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al actualizar el viático: $e')),
+    );
+  }
+}
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -290,39 +285,58 @@ class _EditarViaticoState extends State<EditarViatico> {
                             ),
                           ),
                         ),
+                        Spacer(), // Añade un espacio flexible para empujar los botones hacia abajo
+                        _buildBottomButtons(), // Los botones personalizados al final
                       ],
                     ),
             ),
-      floatingActionButton: SpeedDial(
-        icon: Icons.more_vert,
-        activeIcon: Icons.close,
-        backgroundColor: Color(0xFF171717),
-        foregroundColor: Color(0xFFFFF0C6),
-        buttonSize: Size(56.0, 56.0),
-        shape: CircleBorder(),
-        childrenButtonSize: Size(56.0, 56.0),
-        spaceBetweenChildren: 10.0,
-        overlayColor: Colors.transparent,
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
         children: [
-          SpeedDialChild(
-            child: Icon(Icons.arrow_back),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFFFFF0C6),
-            labelStyle: TextStyle(color: Color(0xFF171717)),
-            onTap: () {
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+              ),
+            ),
+            onPressed: () {
+              _guardarViatico(); // Llamada a la función de guardar viático
+            },
+            child: Text(
+              'Guardar',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 14, // Reduce el tamaño del texto
+              ),
+            ),
+          ),
+          SizedBox(width: 10), // Espacio entre los botones
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+              ),
+            ),
+            onPressed: () {
               Navigator.pop(context);
             },
-          ),
-          SpeedDialChild(
-            child: Icon(Icons.save),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFF171717),
-            labelStyle: TextStyle(color: Colors.white),
-            onTap: _guardarViatico,
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14, // Reduce el tamaño del texto
+              ),
+            ),
           ),
         ],
       ),
