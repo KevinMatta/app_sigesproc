@@ -298,7 +298,7 @@ class _CotizacionState extends State<Cotizacion> {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return Center(
-                            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                            child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                           );
                         } else if (snapshot.hasError) {
                           return Center(
@@ -332,7 +332,7 @@ class _CotizacionState extends State<Cotizacion> {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return Center(
-                            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                            child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                           );
                         } else if (snapshot.hasError) {
                           print('tiene error $snapshot');

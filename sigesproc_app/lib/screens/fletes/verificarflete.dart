@@ -57,8 +57,6 @@ class _VerificarFleteState extends State<VerificarFlete>
   bool _fechaHoraIncidenciaError = false;
   String _fechaHoraIncidenciaErrorMessage = '';
 
-
-
   bool _mostrarFormularioIncidencia = false;
   Map<int, int> _cantidadesRecibidasTemp = {};
 
@@ -66,6 +64,7 @@ class _VerificarFleteState extends State<VerificarFlete>
   Map<int, FocusNode> _focusNodes = {};
 
   bool _mostrarErrores = false;
+  bool haynorecibidos = false;
 
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
@@ -205,7 +204,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           backgroundColor: Colors.black,
           appBar: _buildAppBar(),
           body: _isLoading
-              ? Center(child: SpinKitCircle(color: Color(0xFFFFF0C6)))
+              ? Center(child: CircularProgressIndicator(color: Color(0xFFFFF0C6)))
               : SingleChildScrollView(
                   controller: _scrollController,
                   child: Column(
@@ -428,113 +427,115 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Widget _buildNuevaIncidenciaCard() {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF171717),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
+    return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Agregar Incidencia',
-            style: TextStyle(
-              color: Color(0xFFFFF0C6),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 20),
-          TextField(
-            controller: _descripcionIncidenciaController,
-            decoration: InputDecoration(
-              labelText: 'Descripción de la Incidencia',
-              errorText: _descripcionError ? _descripcionErrorMessage : null,
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-              errorStyle: TextStyle(
-                color: Colors.red,
-                fontSize: 12,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(0xFF171717),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Agregar Incidencia',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 10),
-          TextField(
-            controller: _fechaHoraIncidenciaController,
-            readOnly: true,
-            onTap: _seleccionarFechaHoraIncidencia,
-            decoration: InputDecoration(
-              labelText: 'Fecha y Hora de la Incidencia',
-              errorText: _fechaHoraIncidenciaError
-                  ? _fechaHoraIncidenciaErrorMessage
-                  : null,
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-              labelStyle: TextStyle(color: Colors.white),
-              errorStyle: TextStyle(
-                color: Colors.red,
-                fontSize: 12,
+            SizedBox(height: 20),
+            TextField(
+              controller: _descripcionIncidenciaController,
+              decoration: InputDecoration(
+                labelText: 'Descripción de la Incidencia',
+                errorText: _descripcionError ? _descripcionErrorMessage : null,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorStyle: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
               ),
+              style: TextStyle(color: Colors.white),
             ),
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end, 
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFFF0C6),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            SizedBox(height: 10),
+            TextField(
+              controller: _fechaHoraIncidenciaController,
+              readOnly: true,
+              onTap: _seleccionarFechaHoraIncidencia,
+              decoration: InputDecoration(
+                labelText: 'Fecha y Hora de la Incidencia',
+                errorText: _fechaHoraIncidenciaError
+                    ? _fechaHoraIncidenciaErrorMessage
+                    : null,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                suffixIcon:
+                    Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+                labelStyle: TextStyle(color: Colors.white),
+                errorStyle: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFFFF0C6),
+                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await _guardarIncidencia();
+                  },
+                  child: Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
-                onPressed: () async {
-                await _guardarIncidencia();
-              },
-                child: Text(
-                  'Guardar',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-              SizedBox(width: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF222222),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                SizedBox(width: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF222222),
+                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    haynorecibidos = false;
+                    setState(() {
+                      // _mostrarFormularioIncidencia = false;
+                      _descripcionIncidenciaController.clear();
+                      _fechaHoraIncidenciaController.clear();
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-                onPressed: () {
-                setState(() {
-                  // _mostrarFormularioIncidencia = false;
-                  _descripcionIncidenciaController.clear();
-                  _fechaHoraIncidenciaController.clear();
-                });
-                Navigator.pop(context);
-              },
-                child: Text(
-                  'Cancelar',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildIncidenciasTable() {
     return FutureBuilder<List<FleteControlCalidadViewModel>>(
@@ -543,7 +544,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-            child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+            child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
           );
         } else if (snapshot.hasError) {
           return Center(
@@ -553,7 +554,6 @@ class _VerificarFleteState extends State<VerificarFlete>
             ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-
           return Center(
             child: Text(
               'No hay incidencias registradas',
@@ -639,17 +639,18 @@ class _VerificarFleteState extends State<VerificarFlete>
             ),
           ),
         ),
-       TableCell(
-  child: Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Text(
-      incidencia.flccFechaHoraIncidencia != null
-          ? DateFormat('dd/MM/yyyy hh:mm a').format(incidencia.flccFechaHoraIncidencia!)
-          : 'N/A',
-      style: TextStyle(color: Colors.white),
-    ),
-  ),
-),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              incidencia.flccFechaHoraIncidencia != null
+                  ? DateFormat('dd/MM/yyyy hh:mm a')
+                      .format(incidencia.flccFechaHoraIncidencia!)
+                  : 'N/A',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -791,7 +792,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
   }
 
-  void _onCheckboxChanged(
+ void _onCheckboxChanged(
       bool? value, FleteDetalleViewModel item, bool isInsumo) {
     setState(() {
       item.verificado = value;
@@ -851,6 +852,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           notReceivedList.add(item);
         }
       }
+      haynorecibidos = notReceivedList.isEmpty;
     });
   }
 
@@ -1110,13 +1112,13 @@ class _VerificarFleteState extends State<VerificarFlete>
   Future<void> _verificarFlete() async {
     flete.usuaModificacion = 3;
     flete.flenEstado = true;
+    bool hayNoVerificados = false;
 
     final String imagenUrl = await _subirImagenFactura(comprobante!);
     print('Imagen URL: $imagenUrl');
 
     flete.flenComprobanteLLegada = imagenUrl;
 
-    bool hayNoVerificados = false;
     bool hayErrores = false;
 
     void _actualizarCantidadesVerificadas(List<FleteDetalleViewModel> items) {
@@ -1316,6 +1318,8 @@ class _VerificarFleteState extends State<VerificarFlete>
         SnackBar(content: Text('Datos guardados exitosamente')),
       );
 
+      haynorecibidos = false;
+
       if (hayNoVerificados) {
         setState(() {
           print('hay no verificados');
@@ -1368,6 +1372,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       );
 
       print('Incidencia a insertar: $incidencia');
+      await _verificarFlete();
 
       int? resultado =
           await FleteControlCalidadService.insertarIncidencia(incidencia);
@@ -1377,9 +1382,11 @@ class _VerificarFleteState extends State<VerificarFlete>
           SnackBar(content: Text('Incidencia guardada exitosamente')),
         );
 
+        haynorecibidos = false;
+
         // Reiniciar el formulario y regresar a la vista de fletes
         setState(() {
-          // _mostrarFormularioIncidencia = false;
+         _mostrarFormularioIncidencia = false;
           _fechaHoraIncidenciaController.clear();
           _descripcionIncidenciaController.clear();
         });
@@ -1440,24 +1447,34 @@ class _VerificarFleteState extends State<VerificarFlete>
       color: Colors.black,
       padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (_mostrarFormularioIncidencia) ...[
-            
-          ] else ...[
+          if (_mostrarFormularioIncidencia)
+            ...[]
+          else ...[
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6),
-                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onPressed: () async {
                 setState(() {
                   _mostrarErrores = true;
                 });
-                await _verificarFlete();
+                print('hay o no $haynorecibidos');
+                print('insumos no recibidos $insumosNoRecibidos');
+                print('equipos no recibidos $equiposNoRecibidos');
+                if (haynorecibidos) {
+                  setState(() {
+                    print('hay no verificados');
+                    _mostrarFormularioIncidencia = true;
+                  });
+                } else {
+                  await _verificarFlete();
+                }
               },
               child: Text(
                 'Guardar',
@@ -1468,15 +1485,17 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ),
               ),
             ),
+            SizedBox(width: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF171717),
-                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                backgroundColor: Color(0xFF222222),
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onPressed: () {
+                haynorecibidos = false;
                 Navigator.pop(context);
               },
               child: Text(

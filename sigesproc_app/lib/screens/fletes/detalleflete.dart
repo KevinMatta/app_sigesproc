@@ -332,7 +332,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           ? Container(
               color: Colors.black,
               child: Center(
-                child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
               ),
             )
           : Container(
@@ -342,7 +342,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: SpinKitCircle(
+                      child: CircularProgressIndicator(
                         color: Color(0xFFFFF0C6),
                       ),
                     );
@@ -371,7 +371,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                       snapshot.data == null ||
                                       snapshot.data!.isEmpty) {
                                     return Center(
-                                      child: SpinKitCircle(
+                                      child: CircularProgressIndicator(
                                         color: Color(0xFFFFF0C6),
                                       ),
                                     );
@@ -440,8 +440,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                     snapshot.data == null ||
                                     snapshot.data!.isEmpty) {
                                   return Center(
-                                    child: SpinKitCircle(
-                                      color: Color(0xFFFFF0C6),
+                                    child: CircularProgressIndicator(
+                                      color: ui.Color.fromARGB(255, 232, 232, 231),
                                     ),
                                   );
                                 } else {

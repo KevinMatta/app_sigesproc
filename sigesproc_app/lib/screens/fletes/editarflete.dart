@@ -1270,7 +1270,7 @@ class _EditarFleteState extends State<EditarFlete>
           ? Container(
               color: Colors.black,
               child: Center(
-                child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
               ),
             )
           : Container(
