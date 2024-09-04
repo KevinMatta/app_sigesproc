@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -24,7 +23,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 }
 
-  
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   final int userId;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -37,6 +35,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   void _onInitializeNotifications(InitializeNotificationsEvent event, Emitter<NotificationsState> emit) {
     requestPermision();
   }
+
   void requestPermision() async {
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
@@ -48,7 +47,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       sound: true,
     );
 
-    // Verificar el estado de autorización
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('Notificaciones permitidas');
     } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
@@ -69,9 +67,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       final prefs = PreferenciasUsuario();
       prefs.token = token;
       print('FCM Token: $token');
-    
-    } 
-    else {
+    } else {
       print('No se pudo obtener el token');
     }
   }
@@ -81,9 +77,14 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void handleRemoteMessage(RemoteMessage message) {
-    var title = message.notification?.title ?? message.data['title'];
-    var body = message.notification?.body ?? message.data['body'];
+  // Asegúrate de que el mensaje contiene los datos correctos
+  var title = message.data['title'];
+  var body = message.data['body'];
 
+  print('Título: $title');
+  print('Cuerpo: $body');
+
+  if (title != null && body != null) {
     Random random = Random();
     var id = random.nextInt(100000);
 
@@ -92,8 +93,10 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       title: title,
       body: body,
     );
+  } else {
+    print('Error: El título o el cuerpo son null');
   }
 
+}
 
-  
 }

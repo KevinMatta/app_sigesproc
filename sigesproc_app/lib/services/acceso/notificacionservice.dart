@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import '../apiservice.dart';
 import 'package:sigesproc_app/models/acceso/notificacionviewmodel.dart';
 
@@ -155,36 +156,93 @@ static Future<List<String>> ListarTokenAdministradores() async {
 
 
 
+// static Future<void> EnviarNotificacionAAdministradores(String title, String body) async {
+//   try {
+//     List<String> adminTokens = await ListarTokenAdministradores();
+
+//     for (String token in adminTokens) {
+//     final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
+
+//       final response = await http.post(
+//       url,
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode({
+//         'token': [token], 
+//         'data': {
+//           'title': title,
+//           'body': body,
+//         }
+//       }),
+//     );
+
+//       if (response.statusCode != 200) {
+//         print('Error al enviar la notificación a $token: ${response.statusCode}');
+//       } else {
+//         print('Notificación enviada con éxito a $token');
+//       }
+//     }
+//   } catch (e) {
+//     print('Error al enviar la notificación: $e');
+//     throw Exception('Error al enviar la notificación');
+//   }
+// }
+ 
 static Future<void> EnviarNotificacionAAdministradores(String title, String body) async {
   try {
+    // Obtener los tokens de los administradores
     List<String> adminTokens = await ListarTokenAdministradores();
 
-    for (String token in adminTokens) {
-    final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
+    // Obtener el token del dispositivo actual para marcarlo como origen de la acción
+    var prefs = PreferenciasUsuario();
+    String currentDeviceToken = prefs.token; // Token del dispositivo actual
 
-      final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'token': [token], 
+    // Asegurarse de que los tokens no estén vacíos
+    if (adminTokens.isNotEmpty) {
+      // Verificar si el dispositivo actual está en la lista de tokens y remover duplicación
+      bool currentDeviceIsAdmin = adminTokens.contains(currentDeviceToken);
+
+      // Construir la URL para el envío de la notificación
+      final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
+
+      // Crear el cuerpo de la solicitud de notificación
+      final bodyRequest = jsonEncode({
+        'token': adminTokens, 
         'data': {
           'title': title,
           'body': body,
         }
-      }),
-    );
+      });
 
-      if (response.statusCode != 200) {
-        print('Error al enviar la notificación a $token: ${response.statusCode}');
-      } else {
-        print('Notificación enviada con éxito a $token');
+      // Enviar la notificación a los administradores (incluyendo el dispositivo actual, si es admin)
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: bodyRequest,
+      );
+
+      // Verificar si el dispositivo actual está recibiendo duplicación
+      if (currentDeviceIsAdmin) {
+        print('El dispositivo actual es un administrador y ha recibido la notificación solo una vez.');
       }
+
+      // Verificar el estado de la respuesta
+      if (response.statusCode != 200) {
+        print('Error al enviar la notificación: ${response.statusCode}');
+        print('Respuesta del servidor: ${response.body}');
+      } else {
+        print('Notificación enviada con éxito a todos los administradores.');
+      }
+    } else {
+      print('No hay tokens de administradores para enviar la notificación.');
     }
   } catch (e) {
     print('Error al enviar la notificación: $e');
     throw Exception('Error al enviar la notificación');
   }
 }
+
+
+ 
  static Future<void> eliminarTokenUsuario(int userId, String token) async {
     final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/EliminarToken?id=$userId&token=$token');
 
@@ -224,6 +282,7 @@ static Future<List<Map<String, dynamic>>> ListarTokenEIdsAdministradores() async
     throw Exception('Error al listar los tokens e IDs de administradores');
   }
 }
+
 Future<void> enviarNotificacionYRegistrarEnBD(String title, String body, int usuarioCreacionId) async {
   try {
     // Obtener la lista de tokens e IDs de los administradores
