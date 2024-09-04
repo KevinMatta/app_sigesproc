@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:sigesproc_app/auth/reestablecer.dart';
+import 'package:sigesproc_app/auth/cambiarClave.dart';
+import 'package:sigesproc_app/auth/login.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/inicio.dart';
@@ -11,18 +12,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../services/loginservice.dart';
 
-class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+class CambiarClave extends StatefulWidget {
+  const CambiarClave({Key? key}) : super(key: key);
 
   @override
-  _LoginState createState() => _LoginState();
+  _CambiarClaveState createState() => _CambiarClaveState();
 }
 
-class _LoginState extends State<Login> {
-  final TextEditingController usuariooController = TextEditingController();
-  final TextEditingController contraController = TextEditingController();
-  bool usuariovacio = false;
-  bool contravacia = false;
+class _CambiarClaveState extends State<CambiarClave> {
+  final TextEditingController claveController = TextEditingController();
+  final TextEditingController claveConfirmarController = TextEditingController();
+  bool clavevacio = false;
+  bool claveConfirmarvacio = false;
   bool incorrectos = false;
 
 
@@ -124,7 +125,7 @@ class _LoginState extends State<Login> {
                                         SizedBox(
                                             height: 50), // Reducir el tamaño
                                         Text(
-                                          'Inicio de sesión',
+                                          'Nueva Contraseña',
                                           style: TextStyle(
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold,
@@ -132,33 +133,11 @@ class _LoginState extends State<Login> {
                                           ),
                                         ),
                                         SizedBox(height: 20),
-                                        usuariotextb(),
-                                        SizedBox(height: 10),
-                                        contratextb(),
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: TextButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const Reestablecer(),
-                                                ),
-                                              );
-                                            },
-                                            child: Text(
-                                              '¿Olvidaste tu contraseña?',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                        usuariotextb(),    
                                         SizedBox(height: 20),
-                                        botonLogin()
+                                        confirmartextb(),                                      
+                                        SizedBox(height: 20),
+                                        botonCambiarClave()
                                       ],
                                     ),
                                   ),
@@ -202,100 +181,7 @@ class _LoginState extends State<Login> {
 
   Widget usuariotextb() {
     return TextField(
-      controller: usuariooController,
-      decoration: InputDecoration(
-        prefixIcon: Icon(
-          Icons.person,
-          color: Colors.black,
-        ),
-        labelText: 'Usuario',
-        labelStyle: TextStyle(color: Colors.black),
-        filled: true,
-        fillColor: Colors.grey.withOpacity(0.3),
-        errorText: usuariovacio
-            ? 'Campo requerido'
-            : incorrectos
-                ? ''
-                : null,
-      ),
-    );
-  }
-
-
-
-
-  Future<void> _login() async {
-    String usuario = usuariooController.text;
-    String contra = contraController.text;
-    
-    //Inicializar la session
-    final SharedPreferences pref = await SharedPreferences.getInstance();
-
-    if (usuario.isEmpty && contra.isEmpty) {
-      setState(() {
-        usuariovacio = true;
-        contravacia = true;
-      });
-      return;
-    }
-
-    if (usuario.isEmpty) {
-      setState(() {
-        usuariovacio = true;
-        contravacia = false;
-      });
-      return;
-    }
-
-    if (contra.isEmpty) {
-      setState(() {
-        contravacia = true;
-        usuariovacio = false;
-      });
-      return;
-    }
-
-  try {
-      final UsuarioViewModel? response = await LoginService.login(usuario, contra);
-
-      if (response != null) {
-        await pref.setString('emplNombre', response.nombreEmpleado ?? '');
-        await pref.setString('emplId', response.empleadoId?.toString() ?? '');
-        await pref.setString('usuaId', response.usuaId?.toString() ?? '');
-        await pref.setString('usuaUsuario', response.usuaUsuario?.toString() ?? '');
-        await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
-
-        await pref.setString('roleDescripcion', response.rolDescripcion?.toString() ?? '');
-        await pref.setString('emplCorreoElectronico', response.correoEmpleado?.toString() ?? '');
-        await pref.setString('cargDescripcion', response.cargoDescripcion?.toString() ?? '');
-        await pref.setString('emplTelefono', response.telefonoEmpleado?.toString() ?? '');
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Inicio(),
-          ),
-        );
-      } else {
-        setState(() {
-          usuariooController.clear();
-          contraController.clear();
-          incorrectos = true;
-        });
-      }      
-        } catch (e) {
-    // Muestra el mensaje de error al usuario
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Usuario o Contraseña son Incorrectos."))
-    );
-  }
-
-
-  }
-
-  Widget contratextb() {
-    return TextField(
-      controller: contraController,
+      controller: claveController,
       decoration: InputDecoration(
         prefixIcon: Icon(
           Icons.key,
@@ -305,17 +191,117 @@ class _LoginState extends State<Login> {
         labelStyle: TextStyle(color: Colors.black),
         filled: true,
         fillColor: Colors.grey.withOpacity(0.3),
-        errorText: contravacia
+        errorText: clavevacio
             ? 'Campo requerido'
             : incorrectos
-                ? 'Usuario o contraseña son incorrectos'
+                ? ''
+                : null,
+      ),
+      obscureText: true,
+
+    );
+  }
+
+Widget confirmartextb() {
+    return TextField(
+      controller: claveConfirmarController,
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          Icons.key,
+          color: Colors.black,
+        ),
+        labelText: 'Confirmar Contraseña',
+        labelStyle: TextStyle(color: Colors.black),
+        filled: true,
+        fillColor: Colors.grey.withOpacity(0.3),
+        errorText: claveConfirmarvacio
+            ? 'Campo requerido'
+            : incorrectos
+                ? ''
                 : null,
       ),
       obscureText: true,
     );
   }
 
-  Widget botonLogin() {
+
+
+  Future<void> _CambiarClave() async {
+    String clave = claveController.text;
+    String confirmarClave = claveConfirmarController.text;
+
+    int usuarioReestablecer;
+    
+    //Inicializar la session
+    final SharedPreferences pref = await SharedPreferences.getInstance();
+
+
+    if (clave.isEmpty && confirmarClave.isEmpty) {
+      setState(() {
+        clavevacio = true;
+        claveConfirmarvacio = true;
+      });
+      return;
+    }
+
+    if (clave.isEmpty) {
+      setState(() {
+        clavevacio = true;
+      });
+      return;
+    }
+
+      if (confirmarClave.isEmpty) {
+      setState(() {
+        claveConfirmarvacio = true;
+      });
+      return;
+    }
+
+      if (clave != confirmarClave) {
+
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("La contraseña no coincide."),),
+    );      
+      return;
+    }
+
+    final UsuarioViewModel? response;
+        String idParse = pref.getString('usuarioReestablecerIdVerificado')!;
+        usuarioReestablecer = int.parse(idParse);
+
+                final usuarioModel = UsuarioReestablecerViewModel(
+                usuaId: usuarioReestablecer,
+                usuaUsuario: '',
+                clave: clave,
+                usuaEsAdministrador: true,
+                rolId: 0,
+                empleadoId:  0,
+                usuaCreacion: usuarioReestablecer,
+                usuaModificacion: usuarioReestablecer,
+                );
+
+          response = await LoginService.cambiarClave(usuarioModel);
+       
+          if(response != null)
+          {
+              Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Login(),
+            ),
+          );
+          }  else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("No se pudo actualizar la contraseña.")),
+          );
+        }
+
+
+  }
+
+
+  Widget botonCambiarClave() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
@@ -324,9 +310,9 @@ class _LoginState extends State<Login> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      onPressed: _login,
+      onPressed: _CambiarClave,
       child: Text(
-        'Entrar',
+        'Actualizar',
         style: TextStyle(
           color: Colors.white,
           fontSize: 16,

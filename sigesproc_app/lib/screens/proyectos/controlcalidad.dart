@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/proyectos/controlcalidadporactividadviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/imagenporcontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/services/proyectos/controlcalidadporactividadservice.dart';
@@ -125,6 +126,11 @@ Future<void> obtenerTotalCantidadTrabajada() async {
   ControlDeCalidadesPorActividadesViewModel controlDeCalidadesViewModel,
   List<PlatformFile> uploadedImages,
 ) async {
+  int usuarioLogueado;
+
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+              String idParse = pref.getString('usuaId')!;
+        usuarioLogueado = int.parse(idParse);
   try {
     // Guardar el control de calidad
     final respuesta = await ControlDeCalidadesPorActividadesService.insertarControlCalidad(controlDeCalidadesViewModel);
@@ -152,7 +158,7 @@ Future<void> obtenerTotalCantidadTrabajada() async {
                 final imagenPorControlCalidad = ImagenPorControlCalidadViewModel(
                   iccaImagen: uniqueFileName,  // La URL de la imagen subida
                   cocaId: idScope!,  // El ID del control de calidad guardado
-                  usuaCreacion: 3,
+                  usuaCreacion: usuarioLogueado,
                   iccaFechaCreacion: DateTime.now(),
                 );
 
