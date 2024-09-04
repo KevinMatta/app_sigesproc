@@ -240,7 +240,7 @@ void _showProjectDetails(ProyectoViewModel proyecto) async {
               )
             : proyecto.iccaImagen != null
                 ? Image.network(
-                    '/uploads/${proyecto.iccaImagen}',
+                    'http://apisigesproc.somee.com/uploads/${proyecto.iccaImagen}',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

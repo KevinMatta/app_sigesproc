@@ -313,7 +313,7 @@ Future<void> _loadNotifications() async {
                                 return Container(
                                   color: Color(0xFF171717),
                                   child: Image.network(
-                                    'http://www.backsigespro.somee.com$imagePath',
+                                    'http://apisigesprocmindy.somee.com$imagePath',
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width,
                                     errorBuilder: (context, error, stackTrace) {
@@ -425,7 +425,7 @@ Future<void> _loadNotifications() async {
                           return Container(
                             color: Color(0xFF171717),
                             child: Image.network(
-                              'http://www.backsigespro.somee.com$imagePath',
+                              'http://apisigesprocmindy.somee.com$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
                               errorBuilder: (context, error, stackTrace) {
@@ -710,6 +710,37 @@ Future<void> _loadNotifications() async {
                 ),
               ),
               SizedBox(height: 10),
+              
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TerrenosMap(),
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: Color(0xFFFFF0C6),
+                      size: 20,
+                    ),
+                    SizedBox(width: 4), // Espacio entre el ícono y el texto
+                    Text(
+                      'Ver todos los terrenos',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 10),
             ],
             Expanded(
               child: FutureBuilder<List<ProcesoVentaViewModel>>(
@@ -753,38 +784,6 @@ Future<void> _loadNotifications() async {
           ),
         ],
       ),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    floatingActionButton: SpeedDial(
-      icon: Icons.location_on, // Icono de ubicación
-      activeIcon: Icons.close,
-      backgroundColor: Color(0xFF171717),
-      foregroundColor: Color(0xFFFFF0C6),
-      buttonSize: Size(56.0, 56.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      childrenButtonSize: Size(56.0, 56.0),
-      spaceBetweenChildren: 10.0,
-      overlayColor: Colors.transparent,
-      children: [
-        SpeedDialChild(
-          child: Icon(Icons.location_on),
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
-          shape: CircleBorder(),
-          labelBackgroundColor: Color(0xFFFFF0C6),
-          labelStyle: TextStyle(color: Color(0xFF171717)),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TerrenosMap(),
-              ),
-            );
-          },
-        ),
-      ],
     ),
   );
 }

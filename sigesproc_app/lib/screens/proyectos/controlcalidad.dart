@@ -132,14 +132,14 @@ Future<void> obtenerTotalCantidadTrabajada() async {
               String idParse = pref.getString('usuaId')!;
         usuarioLogueado = int.parse(idParse);
   try {
-    // Guardar el control de calidad
+
+    if(uploadedImages.length > 0)
+    {
+          // Guardar el control de calidad
     final respuesta = await ControlDeCalidadesPorActividadesService.insertarControlCalidad(controlDeCalidadesViewModel);
 
     // Accede a codeStatus desde respuesta.data
     int? idScope = respuesta.data['codeStatus'];
-
-    if(uploadedImages.length > 0)
-    {
 
     if (respuesta.success == true && idScope != null) {
 
