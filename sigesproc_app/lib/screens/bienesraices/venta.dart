@@ -75,6 +75,8 @@ class _VentaState extends State<Venta> {
   bool _mostrarErrores = false;
   bool _mostrarErroresventa = false;
 
+  bool _cargando = false;
+
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
       primary: Color(0xFFFFF0C6),
@@ -244,15 +246,18 @@ class _VentaState extends State<Venta> {
           ),
         ],
       ),
-      body: Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
-        child: _mostrarFormularioCliente ? _clienteVista() : _ventaVista(),
-      ),
-      bottomNavigationBar: Container(
-        color: Colors.black,
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      body: _cargando
+          ? Center(child: CircularProgressIndicator(color: Color(0xFFFFF0C6)))
+          : Container(
+              color: Colors.black,
+              padding: const EdgeInsets.all(16.0),
+              child:
+                  _mostrarFormularioCliente ? _clienteVista() : _ventaVista(),
+            ),
+      bottomNavigationBar: Padding(
+            padding:  EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom)
+                ,
         child: _buildSaveCancelButtons(),
       ),
     );
@@ -297,11 +302,11 @@ class _VentaState extends State<Venta> {
                               .hasMatch(correoController.text),
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
-                  _campoDeTextoCliente(
-                      'Teléfono', telefonoclienteController, 'Ingrese el teléfono',
+                  _campoDeTextoCliente('Teléfono', telefonoclienteController,
+                      'Ingrese el teléfono',
                       isNumeric: true,
-                      showError:
-                          _mostrarErrores && telefonoclienteController.text.length < 7,
+                      showError: _mostrarErrores &&
+                          telefonoclienteController.text.length < 7,
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _buildDateField(
@@ -877,23 +882,31 @@ class _VentaState extends State<Venta> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildDNIAutocomplete(clienteController,
-                  showError: _mostrarErroresventa && clienteController.text.isEmpty,
+                      showError: _mostrarErroresventa &&
+                          clienteController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _campodeTexto('Nombre Completo', nombreController, '',
                       enabled: false,
-                      showError: _mostrarErroresventa && nombreController.text.isEmpty,
+                      showError:
+                          _mostrarErroresventa && nombreController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _campodeTexto('Teléfono', telefonoController, '',
-                      enabled: false,showError: _mostrarErroresventa && telefonoController.text.isEmpty,
+                      enabled: false,
+                      showError: _mostrarErroresventa &&
+                          telefonoController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _campodeTexto('Precio Final', precioController, '0.00',
-                      isNumeric: true,showError: _mostrarErroresventa && precioController.text.isEmpty,
+                      isNumeric: true,
+                      showError:
+                          _mostrarErroresventa && precioController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
-                  _buildDateField('Fecha de Venta Final', fechaController,showError: _mostrarErroresventa && fechaController.text.isEmpty,
+                  _buildDateField('Fecha de Venta Final', fechaController,
+                      showError:
+                          _mostrarErroresventa && fechaController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
                 ],
               ),
@@ -904,7 +917,8 @@ class _VentaState extends State<Venta> {
     );
   }
 
-  Widget _buildDNIAutocomplete(TextEditingController controller,{bool showError = false,String? errorMessage}) {
+  Widget _buildDNIAutocomplete(TextEditingController controller,
+      {bool showError = false, String? errorMessage}) {
     FocusNode focusNode = FocusNode();
 
     return Row(
@@ -1031,41 +1045,38 @@ class _VentaState extends State<Venta> {
     );
   }
 
- Widget _campodeTexto(
-    String label, 
-    TextEditingController controller, 
-    String hint,
-    {bool isNumeric = false, 
-    bool enabled = true,
-    bool showError = false,
-    String? errorMessage}) {
+  Widget _campodeTexto(
+      String label, TextEditingController controller, String hint,
+      {bool isNumeric = false,
+      bool enabled = true,
+      bool showError = false,
+      String? errorMessage}) {
+    bool shouldShowError = showError && enabled;
 
-  bool shouldShowError = showError && enabled;
-
-  return TextField(
-    controller: controller,
-    enabled: enabled,
-    decoration: InputDecoration(
-      labelText: label,
-      hintText: hint,
-      labelStyle: TextStyle(color: Colors.white),
-      hintStyle: TextStyle(color: Colors.white),
-      filled: true,
-      fillColor: Colors.black,
-      border: OutlineInputBorder(),
-      errorText: shouldShowError ? errorMessage : null,
-    ),
-    style: TextStyle(color: Colors.white),
-    keyboardType: isNumeric
-        ? TextInputType.numberWithOptions(decimal: true)
-        : TextInputType.text,
-    inputFormatters: isNumeric
-        ? [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-          ]
-        : null,
-  );
-}
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        labelStyle: TextStyle(color: Colors.white),
+        hintStyle: TextStyle(color: Colors.white),
+        filled: true,
+        fillColor: Colors.black,
+        border: OutlineInputBorder(),
+        errorText: shouldShowError ? errorMessage : null,
+      ),
+      style: TextStyle(color: Colors.white),
+      keyboardType: isNumeric
+          ? TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.text,
+      inputFormatters: isNumeric
+          ? [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ]
+          : null,
+    );
+  }
 
   Widget _buildDateField(String label, TextEditingController controller,
       {bool showError = false, String? errorMessage}) {
@@ -1085,8 +1096,8 @@ class _VentaState extends State<Venta> {
         DateTime? pickedDate = await showDatePicker(
           context: context,
           initialDate: DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime.now(),
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2101),
           builder: (BuildContext context, Widget? child) {
             return Theme(
               data: Theme.of(context).copyWith(
@@ -1116,160 +1127,193 @@ class _VentaState extends State<Venta> {
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           ElevatedButton(
             onPressed: () async {
-              if (_mostrarFormularioCliente) {
-                setState(() {
-                  _mostrarErrores = true;
-                });
+              if (_cargando) return;
+              // Activar el spinner al iniciar el guardado
+              setState(() {
+                _mostrarErrores = true;
+                _cargando = true;
+              });
+              try {
+                if (_mostrarFormularioCliente) {
+                  setState(() {
+                    _mostrarErrores = true;
+                  });
 
-                if (_isClienteFormValid()) {
-                  try {
-                    // Crear el modelo del cliente con los datos del formulario
-                    final nuevoCliente = ClienteViewModel(
-                      clieDNI: dniController.text,
-                      clieNombre: nombreclientecontroller.text,
-                      clieApellido: apellidoController.text,
-                      clieCorreoElectronico: correoController.text,
-                      clieTelefono: telefonoclienteController.text,
-                      clieFechaNacimiento: DateFormat('dd/MM/yyyy')
-                          .parse(fechaNacimientoController.text),
-                      clieSexo: sexo == 'Masculino' ? 'M' : 'F',
-                      clieTipo: tipoCliente == 'Bien Raiz'
-                          ? 'B'
-                          : (tipoCliente == 'Proyecto' ? 'P' : 'A'),
-                      clieDireccionExacta: direccionController.text,
-                      ciudId: ciudadSeleccionada?.ciudId,
-                      civiId: estadoCivilSeleccionado?.civiId,
-                      clieUsuaCreacion: '3',
-                    );
-                    print(nuevoCliente);
+                  if (_isClienteFormValid()) {
+                    try {
+                      // Crear el modelo del cliente con los datos del formulario
+                      final nuevoCliente = ClienteViewModel(
+                        clieDNI: dniController.text,
+                        clieNombre: nombreclientecontroller.text,
+                        clieApellido: apellidoController.text,
+                        clieCorreoElectronico: correoController.text,
+                        clieTelefono: telefonoclienteController.text,
+                        clieFechaNacimiento: DateFormat('dd/MM/yyyy')
+                            .parse(fechaNacimientoController.text),
+                        clieSexo: sexo == 'Masculino' ? 'M' : 'F',
+                        clieTipo: tipoCliente == 'Bien Raiz'
+                            ? 'B'
+                            : (tipoCliente == 'Proyecto' ? 'P' : 'A'),
+                        clieDireccionExacta: direccionController.text,
+                        ciudId: ciudadSeleccionada?.ciudId,
+                        civiId: estadoCivilSeleccionado?.civiId,
+                        clieUsuaCreacion: '3',
+                      );
+                      print(nuevoCliente);
 
-                    // Insertar el cliente en la base de datos o servicio
-                    await ClienteService.insertarCliente(nuevoCliente);
+                      // Insertar el cliente en la base de datos o servicio
+                      await ClienteService.insertarCliente(nuevoCliente);
 
-                    // Actualizar la lista de clientes después de insertar el nuevo cliente
-                    clientes = await ClienteService.listarClientes();
+                      // Actualizar la lista de clientes después de insertar el nuevo cliente
+                      clientes = await ClienteService.listarClientes();
 
-                    // Buscar el cliente recién insertado en la lista de clientes
-                    ClienteViewModel? clienteInsertado = clientes.firstWhere(
-                      (cliente) => cliente.clieDNI == dniController.text,
-                      orElse: () => ClienteViewModel(),
-                    );
+                      // Buscar el cliente recién insertado en la lista de clientes
+                      ClienteViewModel? clienteInsertado = clientes.firstWhere(
+                        (cliente) => cliente.clieDNI == dniController.text,
+                        orElse: () => ClienteViewModel(),
+                      );
 
-                    if (clienteInsertado.clieId != null) {
-                      // Actualizar los controladores en la vista de venta de bien raíz
-                      setState(() {
-                        clienteController.text =
-                            "${clienteInsertado.clieDNI} - ${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
-                        nombreController.text =
-                            "${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
-                        telefonoController.text =
-                            clienteInsertado.clieTelefono!;
-                        _mostrarFormularioCliente =
-                            false; // Volver a la vista de venta
-                      });
+                      if (clienteInsertado.clieId != null) {
+                        // Actualizar los controladores en la vista de venta de bien raíz
+                        setState(() {
+                          clienteController.text =
+                              "${clienteInsertado.clieDNI} - ${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
+                          nombreController.text =
+                              "${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
+                          telefonoController.text =
+                              clienteInsertado.clieTelefono!;
+                          _mostrarFormularioCliente =
+                              false; // Volver a la vista de venta
+                        });
 
-                      // Mostrar mensaje de éxito
+                        // Mostrar mensaje de éxito
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Cliente insertado con éxito')),
+                        );
+                      }
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Cliente insertado con éxito')),
+                        SnackBar(
+                            content: Text('Error al insertar el cliente: $e')),
                       );
                     }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Error al insertar el cliente: $e')),
-                    );
-                  }
+                  } else {}
                 } else {
-                }
-              } else {
-                setState(() {
-                  _mostrarErroresventa = true;
-                });
+                  setState(() {
+                    _mostrarErroresventa = true;
+                  });
 
-                if (_isFormValid()) {
-                  try {
-                    ClienteViewModel? clienteSeleccionado = clientes.firstWhere(
-                      (cliente) => cliente.cliente == clienteController.text,
-                      orElse: () => ClienteViewModel(),
-                    );
+                  if (_isFormValid()) {
+                    try {
+                      await ClienteService.listarClientes();
 
-                    if (clienteSeleccionado.clieId != null) {
-                      final venta = ProcesoVentaViewModel(
-                        btrpId: widget.btrpId,
-                        btrpPrecioVentaFinal:
-                            double.parse(precioController.text),
-                        btrpFechaVendida: DateFormat('dd/MM/yyyy')
-                            .parse(fechaController.text),
-                        clieId: clienteSeleccionado.clieId.toString(),
+                      // Comparar usando el DNI extraído del controlador clienteController
+                      String dni = clienteController.text.split(' - ')[0];
+
+                      ClienteViewModel? clienteSeleccionado =
+                          clientes.firstWhere(
+                        (cliente) => cliente.clieDNI == dni,
+                        orElse: () => ClienteViewModel(),
                       );
 
-                      await ProcesoVentaService.venderProcesoVenta(venta);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProcesoVenta(),
-                        ),
-                      );
+                      print('Cliente seleccionado: $clienteSeleccionado');
+                      print(
+                          'Texto del clienteController: ${clienteController.text}');
+                      print(
+                          'Nombre y Apellido: ${nombreController.text} ${apellidoController.text}');
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Propiedad vendida con éxito')),
-                      );
+                      if (clienteSeleccionado.clieId != null) {
+                        final venta = ProcesoVentaViewModel(
+                          btrpId: widget.btrpId,
+                          btrpPrecioVentaFinal:
+                              double.parse(precioController.text),
+                          btrpFechaVendida: DateFormat('dd/MM/yyyy')
+                              .parse(fechaController.text),
+                          clieId: clienteSeleccionado.clieId.toString(),
+                        );
+
+                        await ProcesoVentaService.venderProcesoVenta(venta);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProcesoVenta(),
+                          ),
+                        );
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Propiedad vendida con éxito')),
+                        );
                         await _notificarVentaCompletada();
-                    } else {
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Cliente no encontrado.')),
+                        );
+                      }
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Cliente no encontrado.')),
+                        SnackBar(
+                            content: Text('Error al vender la propiedad: $e')),
                       );
                     }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Error al vender la propiedad: $e')),
-                    );
                   }
-                } else {
-                 
                 }
+              } catch (e) {
+                // Manejar otros errores generales aquí
+              } finally {
+                // Desactivar el spinner al finalizar
+                setState(() {
+                  _cargando = false;
+                });
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                backgroundColor: Color(0xFFFFF0C6),
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-            ),
             child: Text(
-              'Guardar',
-              style: TextStyle(color: Colors.black, fontSize: 15),
-            ),
+                'Guardar',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 15,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
           ),
+          SizedBox(width: 20),
           ElevatedButton(
             onPressed: () {
               if (_mostrarFormularioCliente) {
                 setState(() {
-                  _mostrarFormularioCliente =
-                            false;
+                  _mostrarFormularioCliente = false;
                 });
-              } else{
-              Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pop();
               }
-
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                backgroundColor: Color(0xFF222222),
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-            ),
-            child: Text(
-              'Regresar',
-              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
-            ),
+           child: Text(
+                'Regresar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
           ),
         ],
       ),
@@ -1322,7 +1366,6 @@ class _VentaState extends State<Venta> {
     }
   }
 
-
 // Future<void> _notificarVentaCompletada() async {
 //   try {
 //     String title = "Bien Raíz Vendido";
@@ -1339,16 +1382,12 @@ class _VentaState extends State<Venta> {
 //   }
 // }
 
-
-
-
-
 // Future<void> _notificarVentaCompletada() async {
 //   try {
 //     var prefs = PreferenciasUsuario();
 //     String title = "Bien Raíz Vendido";
 //     String body = "El bien raíz ${nombreController.text} ha sido vendido.";
-    
+
 //     // Intentar convertir el valor de prefs.userId a un int
 //     int? usuarioCreacionId = int.tryParse(prefs.userId);
 
@@ -1379,45 +1418,43 @@ class _VentaState extends State<Venta> {
 //   }
 // }
 
+  Future<void> _notificarVentaCompletada() async {
+    try {
+      var prefs = PreferenciasUsuario();
+      String title = "Bien Raíz Vendido";
+      String body = "El bien raíz ${nombreController.text} ha sido vendido.";
 
+      // Intentar convertir el valor de prefs.userId a un int
+      int? usuarioCreacionId = int.tryParse(prefs.userId);
 
+      // Verificar si la conversión fue exitosa
+      if (usuarioCreacionId != null) {
+        // Crear instancia de NotificationServices
+        final notificationService = NotificationServices();
+        await NotificationServices.EnviarNotificacionAAdministradores(
+            title, body);
 
+        // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+        await notificationService.enviarNotificacionYRegistrarEnBD(
+            title, body, usuarioCreacionId);
 
-
-
-Future<void> _notificarVentaCompletada() async {
-  try {
-    var prefs = PreferenciasUsuario();
-    String title = "Bien Raíz Vendido";
-    String body = "El bien raíz ${nombreController.text} ha sido vendido.";
-    
-    // Intentar convertir el valor de prefs.userId a un int
-    int? usuarioCreacionId = int.tryParse(prefs.userId);
-
-    // Verificar si la conversión fue exitosa
-    if (usuarioCreacionId != null) {
-      // Crear instancia de NotificationServices
-      final notificationService = NotificationServices();
-        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
-
-      // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
-      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
-
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Notificación de venta completada enviada.')),
+        );
+      } else {
+        // Si la conversión falló, manejar el error
+        print('Error: userId no es un número válido.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ID de usuario no válido.')),
+        );
+      }
+    } catch (e) {
+      print('Error al enviar la notificación de venta completada: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Notificación de venta completada enviada.')),
-      );
-    } else {
-      // Si la conversión falló, manejar el error
-      print('Error: userId no es un número válido.');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ID de usuario no válido.')),
+        SnackBar(
+            content:
+                Text('Error al enviar la notificación de venta completada.')),
       );
     }
-  } catch (e) {
-    print('Error al enviar la notificación de venta completada: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al enviar la notificación de venta completada.')),
-    );
   }
-}
 }

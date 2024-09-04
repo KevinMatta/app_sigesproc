@@ -125,4 +125,9 @@ class ProcesoVentaViewModel {
       'btrp_Estado': btrpEstado,
     };
   }
+
+  @override
+  String toString() {
+    return 'procesoventa(btrpId: $btrpId, clieNombreCompleto: $clieNombreCompleto, clieId: $clieId, clieDNI: $clieDNI, clieTelefono: $clieTelefono';
+  }
 }

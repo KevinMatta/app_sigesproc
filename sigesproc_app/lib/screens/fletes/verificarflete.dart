@@ -1491,9 +1491,9 @@ Future<void> _enviarNotificacionFleteVerificado() async {
   Widget _buildBottomButtons() {
     return Container(
       color: Colors.black,
-      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           if (_mostrarFormularioIncidencia)
             ...[]
@@ -1508,7 +1508,6 @@ Future<void> _enviarNotificacionFleteVerificado() async {
               ),
               onPressed: () async {
                 if (!_isLoading) {
-                  // Evita múltiples clics mientras está cargando
                   setState(() {
                     _isLoading = true; // Inicia la carga
                     _mostrarErrores = true;
