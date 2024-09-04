@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
 import 'package:sigesproc_app/screens/menu.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/fletes/fletecontrolcalidadservice.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
@@ -48,7 +50,7 @@ class _VerificarFleteState extends State<VerificarFlete>
   bool _fechaLlegadaError = false;
   String _fechaLlegadaErrorMessage = '';
   bool _fechaHoraError = false;
-String _fechaHoraErrorMessage = '';
+  String _fechaHoraErrorMessage = '';
   TextEditingController _descripcionIncidenciaController =
       TextEditingController();
   TextEditingController _fechaHoraIncidenciaController =
@@ -296,104 +298,126 @@ String _fechaHoraErrorMessage = '';
     );
   }
 
- Widget _buildFechaHoraLlegadaCard() {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Container(
+  Widget _buildFechaHoraLlegadaCard() {
+    return Padding(
       padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Color(0xFF171717),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Fecha y Hora de Llegada:',
-            style: TextStyle(
-              color: Color(0xFFFFF0C6),
-              fontSize: 18,
-            ),
-          ),
-          SizedBox(height: 10),
-          _buildFechaHoraLlegadaInput(
-            showError: _mostrarErrores && (_fechaHoraController.text.isEmpty || _fechaHoraError),
-            errorMessage: _fechaHoraController.text.isEmpty
-              ? 'El campo es requerido.'
-              : _fechaHoraErrorMessage,
-          ),
-          SizedBox(height: 20),
-          Center(
-            child: _buildSubirImagenButton(),
-          ),
-          SizedBox(height: 20),
-          if (_uploadedImages.isNotEmpty)
-            CarouselSlider(
-              options: CarouselOptions(
-                height: 200.0,
-                enableInfiniteScroll: false,
-                viewportFraction: 0.8,
-                enlargeCenterPage: true,
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Color(0xFF171717),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Fecha y Hora de Llegada:',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 18,
               ),
-              items: _uploadedImages.asMap().entries.map((entry) {
-                int index = entry.key;
-                PlatformFile file = entry.value;
+            ),
+            SizedBox(height: 10),
+            _buildFechaHoraLlegadaInput(
+              showError: _mostrarErrores &&
+                  (_fechaHoraController.text.isEmpty || _fechaHoraError),
+              errorMessage: _fechaHoraController.text.isEmpty
+                  ? 'El campo es requerido.'
+                  : _fechaHoraErrorMessage,
+            ),
+            SizedBox(height: 20),
+            Center(
+              child: _buildSubirImagenButton(),
+            ),
+            SizedBox(height: 20),
+            if (_uploadedImages.isNotEmpty)
+              CarouselSlider(
+                options: CarouselOptions(
+                  height: 200.0,
+                  enableInfiniteScroll: false,
+                  viewportFraction: 0.8,
+                  enlargeCenterPage: true,
+                ),
+                items: _uploadedImages.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  PlatformFile file = entry.value;
 
-                return Stack(
-                  children: [
-                    Container(
-                      margin: EdgeInsets.all(5.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        color: Color(0xFF222222),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child:
-                            file.path != null && File(file.path!).existsSync()
-                                ? Image.file(
-                                    File(file.path!),
-                                    fit: BoxFit.cover,
-                                    width: 1000.0,
-                                  )
-                                : Center(
-                                    child: Text(
-                                      'No se pudo cargar la imagen',
-                                      style: TextStyle(color: Colors.white),
+                  return Stack(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.all(5.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.0),
+                          color: Color(0xFF222222),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child:
+                              file.path != null && File(file.path!).existsSync()
+                                  ? Image.file(
+                                      File(file.path!),
+                                      fit: BoxFit.cover,
+                                      width: 1000.0,
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        'No se pudo cargar la imagen',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                     ),
-                                  ),
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      top: 5,
-                      right: 5,
-                      child: GestureDetector(
-                        onTap: () => _removeImage(),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 189, 13, 0)
-                                .withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.all(5),
-                          child: Icon(
-                            Icons.delete_forever,
-                            color: Colors.white,
-                            size: 20,
+                      Positioned(
+                        top: 5,
+                        right: 5,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color.fromARGB(255, 189, 13, 0)
+                                  .withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: EdgeInsets.all(5),
+                            child: Icon(
+                              Icons.delete_forever,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-        ],
+                    ],
+                  );
+                }).toList(),
+              ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+Future<void> _enviarNotificacionFleteVerificado() async {
+      var prefs = PreferenciasUsuario();
 
+      int? usuarioCreacionId = int.tryParse(prefs.userId);
+
+  String title = 'Flete Verificado';
+  String body = 'Se recibió el flete enviado por ${flete.supervisorSalida} desde ${flete.salida}';
+
+  // Enviar la notificación a los administradores
+  if (usuarioCreacionId != null) {
+      // Crear instancia de NotificationServices
+      final notificationService = NotificationServices();
+        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
+
+      // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Notificación de venta completada enviada.')),
+      );
+    }
+}
 
   Widget _buildSubirImagenButton() {
     return ElevatedButton(
@@ -729,16 +753,25 @@ String _fechaHoraErrorMessage = '';
             horaSeleccionada.minute,
           );
 
+          DateTime fechaHoraLleg = DateFormat('dd/MM/yyyy HH:mm').parse(_fechaHoraController.text);
+
+
           if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraSalida!)) {
             _fechaHoraIncidenciaError = true;
+            print('aja');
             _fechaHoraIncidenciaErrorMessage =
                 'La fecha de la incidencia no puede ser anterior a la fecha de salida.';
-          }
-          if (fechaHoraIncidencia.isAfter(flete.flenFechaHoraLlegada!)) {
+                _fechaHoraIncidenciaController.text =
+                DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraIncidencia);
+          } else if (fechaHoraIncidencia.isAfter(fechaHoraLleg)) {
+            print('aqui');
             _fechaHoraIncidenciaError = true;
             _fechaHoraIncidenciaErrorMessage =
-                'La fecha de la incidencia no puede ser superior a la fecha de llegada.';
+                'La fecha de la incidencia no puede ser posterior a la fecha de llegada.';
+                _fechaHoraIncidenciaController.text =
+                DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraIncidencia);
           } else {
+            print('lerololelole');
             _fechaHoraIncidenciaError = false;
             _fechaHoraIncidenciaErrorMessage = '';
             _fechaHoraIncidenciaController.text =
@@ -1141,12 +1174,20 @@ String _fechaHoraErrorMessage = '';
     flete.flenEstado = true;
 
     try {
-      // Subir el comprobante
-      final String imagenUrl = await _subirImagenFactura(comprobante!);
-      flete.flenComprobanteLLegada = imagenUrl;
-
       bool hayNoVerificados = false;
       bool hayErrores = false;
+
+      if (comprobante == null) {
+        hayErrores = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('El comprobante es requerido.')),
+        );
+        return;
+      }
+      await _enviarNotificacionFleteVerificado();
+
+      final String imagenUrl = await _subirImagenFactura(comprobante!);
+      flete.flenComprobanteLLegada = imagenUrl;
 
       void _actualizarCantidadesVerificadas(List<FleteDetalleViewModel> items) {
         for (var item in items) {
@@ -1167,12 +1208,8 @@ String _fechaHoraErrorMessage = '';
       }
 
       // Validar si falta la fecha de llegada o el comprobante
-      print('quuququ ${flete.flenFechaHoraLlegada}');
-      if (flete.flenFechaHoraLlegada == null) {
-        return;
-      }
-
-      if (comprobante == null) {
+      print('quuququ ${_fechaHoraController.text.isEmpty}');
+      if (_fechaHoraController.text.isEmpty) {
         return;
       }
 
@@ -1194,14 +1231,12 @@ String _fechaHoraErrorMessage = '';
 
       // Si no hay insumos o equipos no recibidos, guardar todo
       if (!hayNoVerificados) {
-
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => Flete()),
         );
         await _guardarFleteCompleto();
 
-        
         return;
       }
 
@@ -1277,16 +1312,26 @@ String _fechaHoraErrorMessage = '';
 
     // Validar que la fecha no esté vacía
     if (_fechaHoraIncidenciaController.text.isEmpty) {
+      print('como asi');
       setState(() {
         _fechaHoraIncidenciaError = true;
         _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
       });
       hayErrores = true;
-    } else {
+    } else if(_fechaHoraIncidenciaController.text.isNotEmpty && !_fechaHoraIncidenciaError){
       setState(() {
         _fechaHoraIncidenciaError = false;
         _fechaHoraIncidenciaErrorMessage = '';
       });
+    } else {
+      print('dondeee');
+      _fechaHoraIncidenciaController.clear();
+    }
+
+    if(_fechaHoraIncidenciaError)
+    {
+      print('aaakss');
+    return;
     }
 
     // Si hay errores, no continuar con el guardado
@@ -1510,40 +1555,45 @@ String _fechaHoraErrorMessage = '';
     );
   }
 
-Widget _buildFechaHoraLlegadaInput({bool showError = false, String? errorMessage}) {
-  return TextField(
-    readOnly: true,
-    onTap: _seleccionarFechaHora,
-    decoration: InputDecoration(
-      labelText: 'Fecha y Hora de Llegada',
-      errorText: _fechaHoraError ? _fechaHoraErrorMessage : (showError ? errorMessage : null), // Mostrar mensaje de error específico
-      border: OutlineInputBorder(),
-      filled: true,
-      fillColor: Colors.black,
-      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-      labelStyle: TextStyle(color: Colors.white),
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.red, width: 1.0), // Borde rojo en caso de error
+  Widget _buildFechaHoraLlegadaInput(
+      {bool showError = false, String? errorMessage}) {
+    return TextField(
+      readOnly: true,
+      onTap: _seleccionarFechaHora,
+      decoration: InputDecoration(
+        labelText: 'Fecha y Hora de Llegada',
+        errorText: _fechaHoraError
+            ? _fechaHoraErrorMessage
+            : (showError
+                ? errorMessage
+                : null), // Mostrar mensaje de error específico
+        border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.black,
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+        labelStyle: TextStyle(color: Colors.white),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+              color: Colors.red, width: 1.0), // Borde rojo en caso de error
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+              color: Colors.red,
+              width: 1.0), // Borde rojo cuando está enfocado y hay error
+        ),
+        errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
+        errorStyle: TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
+        ),
       ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.red, width: 1.0), // Borde rojo cuando está enfocado y hay error
-      ),
-      errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
-      errorStyle: TextStyle(
-        color: Colors.red,
-        fontSize: 12,
-        height: 1.0, // Controla el espaciado entre líneas
-      ),
-    ),
-    style: TextStyle(color: Colors.white),
-    controller: _fechaHoraController,
-  );
-}
+      style: TextStyle(color: Colors.white),
+      controller: _fechaHoraController,
+    );
+  }
 
-
-
-
-Future<void> _seleccionarFechaHora() async {
+  Future<void> _seleccionarFechaHora() async {
     DateTime? fechaSeleccionada = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -1604,13 +1654,11 @@ Future<void> _seleccionarFechaHora() async {
           } else {
             _fechaHoraError = false;
             _fechaHoraErrorMessage = '';
-            _fechaHoraController.text = DateFormat('dd/MM/yyyy HH:mm')
-                .format(fechaHoraLlegada);
+            _fechaHoraController.text =
+                DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraLlegada);
           }
         });
       }
     }
-}
-
-
+  }
 }
