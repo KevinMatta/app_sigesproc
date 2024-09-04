@@ -65,6 +65,7 @@ class _AgregarFacturaState extends State<AgregarFactura> {
 
 Future<void> _cargarDetalleViatico() async {
   try {
+    // Obtener el detalle del viático que contiene las imágenes
     final detalle = await ViaticosEncService.buscarViaticoDetalle(widget.viaticoId);
 
     setState(() {
@@ -78,6 +79,7 @@ Future<void> _cargarDetalleViatico() async {
     print('Error al cargar el detalle del viático: $e');
   }
 }
+
 
 
   void _seleccionarImagen() async {
@@ -141,6 +143,11 @@ Future<void> _cargarDetalleViatico() async {
       final String imagenNombre = await _subirImagenFactura(image);
       final String rutaCompletaImagen = rutaBaseImagenes + imagenNombre;
       rutasImagenes.add(rutaCompletaImagen);
+
+      // Agregar la imagen subida a _loadedImages para que se muestre en el carrusel
+      setState(() {
+        _loadedImages.insert(0, rutaCompletaImagen); // Insertar al principio de la lista
+      });
     }
 
     final viaticoDet = ViaticoDetViewModel(
@@ -156,16 +163,11 @@ Future<void> _cargarDetalleViatico() async {
           : null,  // Solo enviar el monto si es admin
     );
 
-    print('Enviando los siguientes datos a la API:');
-    print(viaticoDet.toJson());
-
-    // Llama al servicio para insertar los datos
+    // Enviar los datos a la API
     final response = await ViaticosDetService.insertarViaticoDet(viaticoDet);
 
-    // Si la respuesta no es exitosa, arrojar un error
     if (response.statusCode != 200 && response.statusCode != 201) {
       print('Error en la respuesta de la API: ${response.statusCode}');
-      print('Cuerpo de la respuesta: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al guardar la factura.')),
       );
@@ -177,17 +179,14 @@ Future<void> _cargarDetalleViatico() async {
     );
     _limpiarFormulario();
   } catch (e, stacktrace) {
-    // Imprimir el error en detalle
+    // Manejar errores
     print('Error al guardar la factura: $e');
-    print('Detalles del stacktrace: $stacktrace');
+    print('Stacktrace: $stacktrace');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error al guardar la factura. Detalles: $e')),
     );
   }
 }
-
-
-
 
   Future<String> _subirImagenFactura(PlatformFile file) async {
     // Imprimir información del archivo antes de subirlo
@@ -315,56 +314,63 @@ Widget _buildCarruselDeImagenes() {
       // Mostrar las imágenes nuevas cargadas desde el dispositivo
       ..._uploadedImages.asMap().entries.map((entry) {
         int index = entry.key;
+        final imagePath = entry.value.path;
 
-        return Stack(
-          children: [
-            Container(
-              margin: EdgeInsets.all(5.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                color: Color(0xFF222222),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: entry.value.path != null && File(entry.value.path!).existsSync()
-                    ? Image.file(
-                        File(entry.value.path!),
-                        fit: BoxFit.cover,
-                        width: 1000.0,
-                      )
-                    : Center(
-                        child: Text(
-                          'No se pudo cargar la imagen',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-              ),
-            ),
-            Positioned(
-              top: 5,
-              right: 5,
-              child: GestureDetector(
-                onTap: () => _removeImage(index),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 189, 13, 0).withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: EdgeInsets.all(5),
-                  child: Icon(
-                    Icons.delete_forever,
-                    color: Colors.white,
-                    size: 20,
+        // Verifica que la imagen tenga una ruta válida antes de mostrarla
+        if (imagePath != null && File(imagePath).existsSync()) {
+          return Stack(
+            children: [
+              Container(
+                margin: EdgeInsets.all(5.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: Color(0xFF222222),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Image.file(
+                    File(imagePath),
+                    fit: BoxFit.cover,
+                    width: 1000.0,
                   ),
                 ),
               ),
+              Positioned(
+                top: 5,
+                right: 5,
+                child: GestureDetector(
+                  onTap: () => _removeImage(index),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 189, 13, 0).withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.all(5),
+                    child: Icon(
+                      Icons.delete_forever,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else {
+          return Center(
+            child: Text(
+              'No se pudo cargar la imagen',
+              style: TextStyle(color: Colors.white),
             ),
-          ],
-        );
+          );
+        }
       }).toList(),
       
       // Mostrar las imágenes ya subidas que están almacenadas en el servidor
       ..._loadedImages.map((imageUrl) {
+        // Imprime la URL de la imagen para depuración
+        print("Mostrando imagen desde el servidor: $imageUrl");
+
         return Container(
           margin: EdgeInsets.all(5.0),
           decoration: BoxDecoration(

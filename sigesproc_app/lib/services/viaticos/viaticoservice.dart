@@ -39,8 +39,25 @@ static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
     final data = json.decode(response.body);
 
     if (data is List && data.isNotEmpty) {
-      // Si data es una lista, y está no está vacía, toma el primer elemento
-      return Detalleviaticoviewmodel.fromJson(data[0]);
+      // Obtener el objeto de detalle
+      final detalle = Detalleviaticoviewmodel.fromJson(data[0]);
+
+      // Concatenar la URL base de la imagen si es necesario
+      const String baseUrl = 'http://www.apisigesproc.somee.com';  // Cambia a tu URL real
+
+      // Asegúrate de que el campo de imagen no sea nulo y que contenga una ruta
+      if (detalle.videImagenFactura != null && detalle.videImagenFactura!.isNotEmpty) {
+        // Convertir la cadena separada por comas en una lista de URLs de las imágenes
+        List<String> imagenes = detalle.videImagenFactura!.split(',').map((imagePath) {
+          // Quitar espacios en blanco y concatenar con la URL base
+          return '$baseUrl${imagePath.trim()}';
+        }).toList();
+
+        // Asignar la lista de imágenes procesadas al detalle
+        detalle.videImagenFactura = imagenes.join(',');
+      }
+
+      return detalle;
     } else {
       throw Exception('No se encontraron datos en la respuesta');
     }
@@ -48,6 +65,9 @@ static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
     throw Exception('Error al buscar el detalle del viático');
   }
 }
+
+
+
 
 
   static Future<void> eliminarViatico(int id) async {
