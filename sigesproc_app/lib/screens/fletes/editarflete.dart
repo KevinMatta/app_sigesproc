@@ -1292,6 +1292,9 @@ class _EditarFleteState extends State<EditarFlete>
   }
 
   Future<void> editarFlete() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final pref = await SharedPreferences.getInstance();
       
@@ -1559,6 +1562,10 @@ class _EditarFleteState extends State<EditarFlete>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false; // Finaliza la carga
+      });
     }
   }
 
@@ -1827,35 +1834,36 @@ class _EditarFleteState extends State<EditarFlete>
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           ElevatedButton(
             onPressed: editarFlete,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            child: Text(
-              'Guardar',
-              style: TextStyle(color: Colors.black, fontSize: 15),
-            ),
+                    backgroundColor: Color(0xFFFFF0C6),
+                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+           child: Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.black),
+                  ),
           ),
+          SizedBox(width: 20),
           ElevatedButton(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
+                    backgroundColor: Color(0xFF222222),
+                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
             child: Text(
-              'Regresar',
-              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
-            ),
+                    'Cancelar',
+                    style: TextStyle(color: Colors.white),
+                  ),
           ),
         ],
       ),
