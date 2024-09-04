@@ -114,4 +114,9 @@ class InsumoPorProveedorViewModel {
       'stockRestante': stockRestante,
     };
   }
+
+  @override
+  String toString() {
+    return 'insumoporporveedorvie(inppid: $inppId, insudes: $insuDescripcion, matedesc: $mateDescripcion';
+  }
 }

@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/CategoriaViaticoViewModel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoDetViewModel.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoDetservice.dart';
@@ -94,53 +95,58 @@ class _AgregarFacturaState extends State<AgregarFactura> {
   }
 
   Future<void> _guardarFactura() async {
-    _validarCampos();
+  _validarCampos();
 
-    if (_descripcionError != null ||
-        _montoGastadoError != null ||
-        _montoReconocidoError != null ||
-        _categoriaError != null) {
-      return;
-    }
-
-    if (_uploadedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, suba una imagen de la factura.')),
-      );
-      return;
-    }
-
-    final DateTime fechaCreacion = DateTime.now();
-    try {
-      for (final image in _uploadedImages) {
-        final String imagenUrl = await _subirImagenFactura(image);
-        _loadedImages.insert(0, imagenUrl);  // Insertar la URL de la imagen al inicio de la lista
-      }
-      
-      final viaticoDet = ViaticoDetViewModel(
-        videDescripcion: descripcionController.text,
-        videImagenFactura: _loadedImages.join(','),  // Guardar todas las imágenes como una cadena separada por comas
-        videMontoGastado: montoGastadoController.text,
-        vienId: widget.viaticoId,
-        caviId: int.parse(categoriaSeleccionada!),
-        usuaCreacion: 3,
-        videFechaCreacion: fechaCreacion,
-        videMontoReconocido: double.parse(montoReconocidoController.text),
-      );
-    
-      await ViaticosDetService.insertarViaticoDet(viaticoDet);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Insertado con Éxito.')),
-      );
-      _limpiarFormulario();
-    } catch (e, stacktrace) {
-      print('Error al guardar la factura: $e');
-      print('Stacktrace: $stacktrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la factura: $e')),
-      );
-    }
+  if (_descripcionError != null ||
+      _montoGastadoError != null ||
+      _montoReconocidoError != null ||
+      _categoriaError != null) {
+    return;
   }
+
+  if (_uploadedImages.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Por favor, suba una imagen de la factura.')),
+    );
+    return;
+  }
+
+  final DateTime fechaCreacion = DateTime.now();
+
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final int usuaCreacion = int.parse(prefs.getString('usuaId') ?? '0'); // Obtener el ID del usuario logueado
+
+    for (final image in _uploadedImages) {
+      final String imagenUrl = await _subirImagenFactura(image);
+      _loadedImages.insert(0, imagenUrl); // Insertar la URL de la imagen al inicio de la lista
+    }
+    
+    final viaticoDet = ViaticoDetViewModel(
+      videDescripcion: descripcionController.text,
+      videImagenFactura: _loadedImages.join(','), // Guardar todas las imágenes como una cadena separada por comas
+      videMontoGastado: montoGastadoController.text,
+      vienId: widget.viaticoId,
+      caviId: int.parse(categoriaSeleccionada!),
+      usuaCreacion: usuaCreacion, // Usar el ID del usuario logueado
+      videFechaCreacion: fechaCreacion,
+      videMontoReconocido: double.parse(montoReconocidoController.text),
+    );
+  
+    await ViaticosDetService.insertarViaticoDet(viaticoDet);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Insertado con Éxito.')),
+    );
+    _limpiarFormulario();
+  } catch (e, stacktrace) {
+    print('Error al guardar la factura: $e');
+    print('Stacktrace: $stacktrace');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al guardar la factura: $e')),
+    );
+  }
+}
+
 
   Future<String> _subirImagenFactura(PlatformFile file) async {
     final uniqueFileName = "${DateTime.now().millisecondsSinceEpoch}-${file.name}";
@@ -191,6 +197,58 @@ class _AgregarFacturaState extends State<AgregarFactura> {
       _selectedIndex = index;
     });
   }
+
+  Widget _buildBottomButtons() {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFFFFF0C6),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+            ),
+          ),
+          onPressed: () async {
+            await _guardarFactura(); // Reemplazando con la función de guardar factura
+          },
+          child: Text(
+            'Guardar',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14, // Reduce el tamaño del texto
+            ),
+          ),
+        ),
+        SizedBox(width: 10), // Espacio entre los botones
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromARGB(255, 49, 49, 49),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+            ),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Cancelar',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14, // Reduce el tamaño del texto
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -316,31 +374,7 @@ class _AgregarFacturaState extends State<AgregarFactura> {
                         SizedBox(height: 20),
                         _buildCarruselDeImagenes(), // Carrusel para visualizar imágenes
                         SizedBox(height: 40), // Espacio adicional para los botones
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: _guardarFactura,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFFFF0C6),
-                                foregroundColor: Color(0xFF171717),
-                              ),
-                              // icon: Icon(Icons.save),
-                              label: Text('Guardar'),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF171717),
-                                foregroundColor: Color(0xFFFFF0C6),
-                              ),
-                              // icon: Icon(Icons.arrow_back),
-                              label: Text('Cancelar'),
-                            ),
-                          ],
-                        ),
+                        _buildBottomButtons(), // Aquí se agregan los nuevos botones
                       ],
                     ),
                   ),

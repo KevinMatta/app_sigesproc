@@ -34,7 +34,8 @@ dependencies:
     
   flutter:
     sdk: flutter
-    
+   
+  fl_chart: 0.36.3
   google_maps_flutter: ^2.7.0
   location: ^5.0.3
   flutter_polyline_points: ^1.0.0

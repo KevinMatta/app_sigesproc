@@ -9,6 +9,9 @@ import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'appBar.dart'; // Asegúrate de tener tu CustomAppBar importado
+import 'package:sigesproc_app/screens/dashboards/dashboard.dart';
+import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
+
 
 class Inicio extends StatefulWidget {
   @override
@@ -159,7 +162,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   builder: (context) => NotificacionesScreen(),
                 ),
               );
-              _loadNotifications();  
+              _loadNotifications();
             },
           ),
           IconButton(
@@ -204,94 +207,77 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCotizacionesTab() {
-    var prefs = PreferenciasUsuario();
-    String token = prefs.token;
 
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 1',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 5),
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 2',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+
+
+
+
+
+
+
+
+
+
+
+
+Widget _buildCotizacionesTab() {
+  var prefs = PreferenciasUsuario();
+  String token = prefs.token;
+
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      children: [
+   Row(
+  children: [
+    Expanded(
+      child: Card(
+        color: Color(0xFF171717),
+        child: Container(
+          height: 250, // Aumenta la altura del contenedor
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
+            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
           ),
-          SizedBox(height: 10),
-          Expanded(
-            child: Card(
-              color: Color(0xFF171717),
-              child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Top 5 de proveedores',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'FCM Token:',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          token.isNotEmpty ? token : 'Token no disponible',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
-    );
-  }
+    ),
+    SizedBox(width: 5),
+    Expanded(
+      child: Card(
+        color: Color(0xFF171717),
+        child: Container(
+          height: 250, // Aumenta la altura del contenedor
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
+            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 2
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+
+        SizedBox(height: 10),
+        Expanded(
+          child: DashboardScreen(), 
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
 
   Widget _buildFletesTab() {
     return Container(
@@ -381,7 +367,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 1',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -401,7 +388,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 2',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -425,7 +413,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 3',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -445,7 +434,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 4',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -469,7 +459,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 5',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -489,7 +480,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 6',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -513,7 +505,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 7',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),
@@ -533,7 +526,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 8',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
                             ),
                           ],
                         ),

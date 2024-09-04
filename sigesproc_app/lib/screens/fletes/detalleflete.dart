@@ -12,6 +12,9 @@ import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/bodegaviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/fletes/fletehubservice.dart';
@@ -44,10 +47,16 @@ class _DetalleFleteState extends State<DetalleFlete> {
   int? emplId;
   bool esFletero = false;
   bool estaCargando = true;
+  int _unreadCount = 0;
+late int userId;
 
   @override
   void initState() {
     super.initState();
+    var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+
+  _loadNotifications();
     _loadEmplId();
     _fleteHubService.startConnection().then((_) {
       _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
@@ -81,6 +90,17 @@ class _DetalleFleteState extends State<DetalleFlete> {
     locationSubscription?.cancel();
     super.dispose();
   }
+
+  Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
 
   Future<void> _loadEmplId() async {
     final pref = await SharedPreferences.getInstance();
@@ -278,61 +298,12 @@ class _DetalleFleteState extends State<DetalleFlete> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 60,
-            ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Detalle Flete',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(  unreadCount: _unreadCount,  onNotificationsUpdated: _loadNotifications),
       body: estaCargando
           ? Container(
               color: Colors.black,
               child: Center(
-                child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
               ),
             )
           : Container(
@@ -342,7 +313,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: SpinKitCircle(
+                      child: CircularProgressIndicator(
                         color: Color(0xFFFFF0C6),
                       ),
                     );
@@ -371,7 +342,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                       snapshot.data == null ||
                                       snapshot.data!.isEmpty) {
                                     return Center(
-                                      child: SpinKitCircle(
+                                      child: CircularProgressIndicator(
                                         color: Color(0xFFFFF0C6),
                                       ),
                                     );
@@ -440,8 +411,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                     snapshot.data == null ||
                                     snapshot.data!.isEmpty) {
                                   return Center(
-                                    child: SpinKitCircle(
-                                      color: Color(0xFFFFF0C6),
+                                    child: CircularProgressIndicator(
+                                      color: ui.Color.fromARGB(255, 232, 232, 231),
                                     ),
                                   );
                                 } else {
@@ -566,7 +537,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                         if (snapshot.connectionState ==
                                             ConnectionState.waiting) {
                                           return Center(
-                                            child: SpinKitCircle(
+                                            child: CircularProgressIndicator(
                                               color: Color(0xFFFFF0C6),
                                             ),
                                           );

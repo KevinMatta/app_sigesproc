@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
@@ -56,8 +57,6 @@ class _VerificarFleteState extends State<VerificarFlete>
   String _descripcionErrorMessage = '';
   bool _fechaHoraIncidenciaError = false;
   String _fechaHoraIncidenciaErrorMessage = '';
-
-
 
   bool _mostrarFormularioIncidencia = false;
   Map<int, int> _cantidadesRecibidasTemp = {};
@@ -428,113 +427,114 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Widget _buildNuevaIncidenciaCard() {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF171717),
-        borderRadius: BorderRadius.circular(8.0),
-      ),
+    return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Agregar Incidencia',
-            style: TextStyle(
-              color: Color(0xFFFFF0C6),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 20),
-          TextField(
-            controller: _descripcionIncidenciaController,
-            decoration: InputDecoration(
-              labelText: 'Descripción de la Incidencia',
-              errorText: _descripcionError ? _descripcionErrorMessage : null,
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              labelStyle: TextStyle(color: Colors.white),
-              errorStyle: TextStyle(
-                color: Colors.red,
-                fontSize: 12,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(0xFF171717),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Agregar Incidencia',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 10),
-          TextField(
-            controller: _fechaHoraIncidenciaController,
-            readOnly: true,
-            onTap: _seleccionarFechaHoraIncidencia,
-            decoration: InputDecoration(
-              labelText: 'Fecha y Hora de la Incidencia',
-              errorText: _fechaHoraIncidenciaError
-                  ? _fechaHoraIncidenciaErrorMessage
-                  : null,
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.black,
-              suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
-              labelStyle: TextStyle(color: Colors.white),
-              errorStyle: TextStyle(
-                color: Colors.red,
-                fontSize: 12,
+            SizedBox(height: 20),
+            TextField(
+              controller: _descripcionIncidenciaController,
+              decoration: InputDecoration(
+                labelText: 'Descripción de la Incidencia',
+                errorText: _descripcionError ? _descripcionErrorMessage : null,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                labelStyle: TextStyle(color: Colors.white),
+                errorStyle: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
               ),
+              style: TextStyle(color: Colors.white),
             ),
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end, 
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFFF0C6),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            SizedBox(height: 10),
+            TextField(
+              controller: _fechaHoraIncidenciaController,
+              readOnly: true,
+              onTap: _seleccionarFechaHoraIncidencia,
+              decoration: InputDecoration(
+                labelText: 'Fecha y Hora de la Incidencia',
+                errorText: _fechaHoraIncidenciaError
+                    ? _fechaHoraIncidenciaErrorMessage
+                    : null,
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.black,
+                suffixIcon:
+                    Icon(Icons.calendar_today, color: Color(0xFFFFF0C6)),
+                labelStyle: TextStyle(color: Colors.white),
+                errorStyle: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFFFF0C6),
+                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await _guardarFleteEIncidencia();
+                  },
+                  child: Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
-                onPressed: () async {
-                await _guardarIncidencia();
-              },
-                child: Text(
-                  'Guardar',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-              SizedBox(width: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF222222),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                SizedBox(width: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF222222),
+                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      // _mostrarFormularioIncidencia = false;
+                      // _descripcionIncidenciaController.clear();
+                      // _fechaHoraIncidenciaController.clear();
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-                onPressed: () {
-                setState(() {
-                  // _mostrarFormularioIncidencia = false;
-                  _descripcionIncidenciaController.clear();
-                  _fechaHoraIncidenciaController.clear();
-                });
-                Navigator.pop(context);
-              },
-                child: Text(
-                  'Cancelar',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildIncidenciasTable() {
     return FutureBuilder<List<FleteControlCalidadViewModel>>(
@@ -553,7 +553,6 @@ class _VerificarFleteState extends State<VerificarFlete>
             ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-
           return Center(
             child: Text(
               'No hay incidencias registradas',
@@ -639,17 +638,18 @@ class _VerificarFleteState extends State<VerificarFlete>
             ),
           ),
         ),
-       TableCell(
-  child: Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Text(
-      incidencia.flccFechaHoraIncidencia != null
-          ? DateFormat('dd/MM/yyyy hh:mm a').format(incidencia.flccFechaHoraIncidencia!)
-          : 'N/A',
-      style: TextStyle(color: Colors.white),
-    ),
-  ),
-),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              incidencia.flccFechaHoraIncidencia != null
+                  ? DateFormat('dd/MM/yyyy hh:mm a')
+                      .format(incidencia.flccFechaHoraIncidencia!)
+                  : 'N/A',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -706,10 +706,15 @@ class _VerificarFleteState extends State<VerificarFlete>
             horaSeleccionada.minute,
           );
 
-          if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraLlegada!)) {
+          if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraSalida!)) {
             _fechaHoraIncidenciaError = true;
             _fechaHoraIncidenciaErrorMessage =
-                'La fecha de la incidencia no puede ser anterior a la fecha de llegada.';
+                'La fecha de la incidencia no puede ser anterior a la fecha de salida.';
+          }
+          if (fechaHoraIncidencia.isAfter(flete.flenFechaHoraLlegada!)) {
+            _fechaHoraIncidenciaError = true;
+            _fechaHoraIncidenciaErrorMessage =
+                'La fecha de la incidencia no puede ser superior a la fecha de llegada.';
           } else {
             _fechaHoraIncidenciaError = false;
             _fechaHoraIncidenciaErrorMessage = '';
@@ -1212,6 +1217,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = true;
 
       try {
+        final pref = await SharedPreferences.getInstance();
         final resp =
             await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
         print('respuesta insumos norecibidos $resp');
@@ -1227,7 +1233,7 @@ class _VerificarFleteState extends State<VerificarFlete>
             inppId: detalleNuevo.inppId,
             usuaCreacion: detalleNuevo.usuaCreacion,
             fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-            usuaModificacion: 3,
+            usuaModificacion: int.tryParse(pref.getString('usuaId') ?? ''),
             fldeFechaModificacion: DateTime.now(),
             fldeLlegada: false,
             fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
@@ -1237,8 +1243,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           await FleteDetalleService.editarFleteDetalle(detalleInsertado);
           hayNoVerificados = true;
         } else {
-          throw Exception(
-              'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          throw Exception('Algo salió mal. Comuníquese con un Administrador.');
         }
       } catch (e) {
         print('Error al insertar detalle: $e');
@@ -1278,6 +1283,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = true;
 
       try {
+        final pref = await SharedPreferences.getInstance();
         final resp =
             await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
         print('resp equipo no rec $resp');
@@ -1291,7 +1297,7 @@ class _VerificarFleteState extends State<VerificarFlete>
             inppId: detalleNuevo.inppId,
             usuaCreacion: detalleNuevo.usuaCreacion,
             fldeFechaCreacion: detalleNuevo.fldeFechaCreacion,
-            usuaModificacion: 3,
+            usuaModificacion: int.tryParse(pref.getString('usuaId') ?? ''),
             fldeFechaModificacion: DateTime.now(),
             fldeLlegada: false,
             fldeTipodeCarga: detalleNuevo.fldeTipodeCarga,
@@ -1301,8 +1307,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           await FleteDetalleService.editarFleteDetalle(detalleInsertado);
           hayNoVerificados = true;
         } else {
-          throw Exception(
-              'Error al insertar detalle: Respuesta no exitosa o datos nulos');
+          throw Exception('Algo salió mal. Comuníquese con un Administrador.');
         }
       } catch (e) {
         print('Error al insertar detalle: $e');
@@ -1310,38 +1315,52 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
 
     print('Flete a enviar: $flete');
-    try {
-      await FleteEncabezadoService.editarFlete(flete);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Datos guardados exitosamente')),
-      );
+    if (!hayNoVerificados && !hayErrores) {
+      // Guardar el flete normalmente
+      try {
+        await FleteEncabezadoService.editarFlete(flete);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verificado con Éxito.')),
+        );
 
-      if (hayNoVerificados) {
-        setState(() {
-          print('hay no verificados');
-          _mostrarFormularioIncidencia = true;
-        });
-      } else {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => Flete(),
           ),
         );
+      } catch (e) {
+        print('Error al guardar el flete: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Algo salió mal. Comuníquese con un Administrador.')),
+        );
       }
-    } catch (e) {
-      print('Error al guardar el flete: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar el flete')),
-      );
+    } else if (hayNoVerificados) {
+      // Mostrar la vista de incidencia
+      setState(() {
+        _mostrarFormularioIncidencia = true;
+      });
     }
   }
 
   Future<void> _guardarIncidencia() async {
+    if (_descripcionIncidenciaController.text.isEmpty &&
+        _fechaHoraIncidenciaController.text.isEmpty) {
+      setState(() {
+        _descripcionError = true;
+        _descripcionErrorMessage = 'El campo es requerido.';
+        _fechaHoraIncidenciaError = true;
+        _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
+      });
+      return;
+    }
+
     if (_descripcionIncidenciaController.text.isEmpty) {
       setState(() {
         _descripcionError = true;
-        _descripcionErrorMessage = 'La descripción no puede estar vacía';
+        _descripcionErrorMessage = 'El campo es requerido.';
       });
       return;
     }
@@ -1349,57 +1368,63 @@ class _VerificarFleteState extends State<VerificarFlete>
     if (_fechaHoraIncidenciaController.text.isEmpty) {
       setState(() {
         _fechaHoraIncidenciaError = true;
-        _fechaHoraIncidenciaErrorMessage =
-            'La fecha y hora no pueden estar vacías';
+        _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
       });
       return;
     }
 
-    try {
-      DateTime fechaHoraIncidencia = DateFormat('dd/MM/yyyy HH:mm')
-          .parse(_fechaHoraIncidenciaController.text);
+    DateTime fechaHoraIncidencia = DateFormat('dd/MM/yyyy HH:mm')
+        .parse(_fechaHoraIncidenciaController.text);
+    final pref = await SharedPreferences.getInstance();
 
-      final incidencia = FleteControlCalidadViewModel(
-        flenId: flete.flenId!,
-        flccDescripcionIncidencia: _descripcionIncidenciaController.text,
-        flccFechaHoraIncidencia: fechaHoraIncidencia,
-        usuaCreacion: 3,
-        usuaModificacion: 3, // Si es necesario agregar usuaModificacion
+    final incidencia = FleteControlCalidadViewModel(
+      flenId: flete.flenId!,
+      flccDescripcionIncidencia: _descripcionIncidenciaController.text,
+      flccFechaHoraIncidencia: fechaHoraIncidencia,
+      usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
+      usuaModificacion: int.tryParse(pref.getString('usuaId') ??
+          ''), // Si es necesario agregar usuaModificacion
+    );
+
+    print('Incidencia a insertar: $incidencia');
+
+    int? resultado =
+        await FleteControlCalidadService.insertarIncidencia(incidencia);
+
+    if (resultado != null &&
+        _fechaHoraIncidenciaController.text.isNotEmpty &&
+        _descripcionIncidenciaController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Insertado con Éxito.')),
       );
 
-      print('Incidencia a insertar: $incidencia');
+      setState(() {
+        // _mostrarFormularioIncidencia = false;
+        _fechaHoraIncidenciaController.clear();
+        _descripcionIncidenciaController.clear();
+      });
+      FleteControlCalidadService.buscarIncidencias(widget.flenId);
 
-      int? resultado =
-          await FleteControlCalidadService.insertarIncidencia(incidencia);
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => Flete(),
+      //   ),
+      // );
+    } else {
+      throw Exception('Algo salió mal. Comuníquese con un Administrador.');
+    }
+  }
 
-      if (resultado != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Incidencia guardada exitosamente')),
-        );
-
-        // Reiniciar el formulario y regresar a la vista de fletes
-        setState(() {
-          // _mostrarFormularioIncidencia = false;
-          _fechaHoraIncidenciaController.clear();
-          _descripcionIncidenciaController.clear();
-        });
-        FleteControlCalidadService.buscarIncidencias(widget.flenId);
-
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => Flete(),
-        //   ),
-        // );
-      } else {
-        throw Exception('Error al guardar la incidencia');
-      }
-    } catch (e) {
-      print('Error al guardar la incidencia: $e');
+  Future<void> _guardarFleteEIncidencia() async {
+    await FleteEncabezadoService.editarFlete(flete);
+    if (_descripcionError == false) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la incidencia')),
+        SnackBar(content: Text('Insertado con Éxito')),
       );
     }
+
+    await _guardarIncidencia();
   }
 
   Widget _buildInsumosTab() {
@@ -1440,17 +1465,17 @@ class _VerificarFleteState extends State<VerificarFlete>
       color: Colors.black,
       padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (_mostrarFormularioIncidencia) ...[
-            
-          ] else ...[
+          if (_mostrarFormularioIncidencia)
+            ...[]
+          else ...[
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6),
-                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onPressed: () async {
@@ -1468,12 +1493,13 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ),
               ),
             ),
+            SizedBox(width: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF171717),
-                padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                backgroundColor: Color(0xFF222222),
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onPressed: () {
@@ -1565,9 +1591,15 @@ class _VerificarFleteState extends State<VerificarFlete>
             horaSeleccionada.minute,
           );
 
-          // Actualiza el controlador con la fecha y hora seleccionadas
-          _fechaHoraController.text = DateFormat('dd/MM/yyyy HH:mm')
-              .format(flete.flenFechaHoraLlegada!);
+          if (flete.flenFechaHoraLlegada!
+              .isBefore(flete.flenFechaHoraSalida!)) {
+            // _fechaHoraError = true;
+            // _fechaHoraErrorMessage =
+            //     'La fecha de llegada no puede ser anterior a la fecha de salida.';
+          } else {
+            _fechaHoraController.text = DateFormat('dd/MM/yyyy HH:mm')
+                .format(flete.flenFechaHoraLlegada!);
+          }
         });
       }
     }

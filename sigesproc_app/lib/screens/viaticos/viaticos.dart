@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import 'package:sigesproc_app/screens/viaticos/agregarfactura.dart';
 import 'package:sigesproc_app/screens/viaticos/editarviatico.dart';
@@ -22,29 +23,47 @@ class _ViaticoState extends State<Viatico> {
   int _currentPage = 0;
   int _rowsPerPage = 10;
   bool _isLoading = false;
-  int _usuarioEsAdm = 1; // Variable para almacenar si el usuario es admin
+  bool _usuarioEsAdm = false; // Inicializa como no administrador por defecto
+  String? _usuaId;
 
   @override
   void initState() {
     super.initState();
-    _cargarViaticos();
+    _loadUserData();
     _searchController.addListener(_filterViaticos);
   }
+
+  Future<void> _loadUserData() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  setState(() {
+    _usuaId = prefs.getString('usuaId') ?? '';
+
+    // Manejar la conversión de String a bool si es necesario
+    dynamic esAdminValue = prefs.get('EsAdmin');
+    if (esAdminValue is bool) {
+      _usuarioEsAdm = esAdminValue;
+    } else if (esAdminValue is String) {
+      // Convertir el String "true" o "false" en bool
+      _usuarioEsAdm = esAdminValue.toLowerCase() == 'true';
+    } else {
+      _usuarioEsAdm = false; // Valor por defecto si no está definido
+    }
+  });
+  _cargarViaticos();
+}
+
 
   void _cargarViaticos() {
     setState(() {
       _isLoading = true;
     });
 
-    _viaticosFuture = ViaticosEncService.listarViaticos(3); // Aquí puedes pasar el ID de usuario adecuado
+    _viaticosFuture = ViaticosEncService.listarViaticos(int.parse(_usuaId!));
     _viaticosFuture!.then((viaticos) {
       setState(() {
         _allViaticos = viaticos;
         _filteredViaticos = viaticos;
         _isLoading = false;
-
-        // Aquí asumimos que el rol de admin es el mismo para todos los viáticos, puedes ajustar según sea necesario
-        _usuarioEsAdm = viaticos.isNotEmpty && viaticos.first.usuarioEsAdm == 1 ? 1 : 0;
       });
     });
   }
@@ -107,73 +126,72 @@ class _ViaticoState extends State<Viatico> {
   }
 
   Future<void> _showDetailModal(BuildContext context, int viaticoId) async {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return FutureBuilder(
-        future: ViaticosEncService.buscarViaticoDetalle(viaticoId),
-        builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return AlertDialog(
-              backgroundColor: Color(0xFF171717),
-              content: Container(
-                width: double.minPositive, // Asegura que el modal no se estire mucho
-                height: 100, // Establece una altura fija mientras se carga
-                child: Center(
-                  child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FutureBuilder(
+          future: ViaticosEncService.buscarViaticoDetalle(viaticoId),
+          builder: (context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return AlertDialog(
+                backgroundColor: Color(0xFF171717),
+                content: Container(
+                  width: double.minPositive, // Asegura que el modal no se estire mucho
+                  height: 100, // Establece una altura fija mientras se carga
+                  child: Center(
+                    child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                  ),
                 ),
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return AlertDialog(
-              backgroundColor: Color(0xFF171717),
-              title: Text('Error', style: TextStyle(color: Colors.red)),
-              content: Text('Error al cargar el detalle del viático', style: TextStyle(color: Colors.white)),
-              actions: [
-                TextButton(
-                  child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          } else {
-            final viatico = snapshot.data;
-            return AlertDialog(
-              backgroundColor: Color(0xFF171717),
-              title: Text('Detalle del Viático', style: TextStyle(color: Color(0xFFFFF0C6))),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildDetailRow('No.', viatico.vienId?.toString() ?? 'N/A'),
-                  _buildDetailRow('Monto Estimado', 'LPS ${viatico.vienMontoEstimado?.toStringAsFixed(2) ?? 'N/A'}'),
-                  _buildDetailRow('Total Gastado', 'LPS ${viatico.vienTotalGastado?.toStringAsFixed(2) ?? 'N/A'}'),
-                  SizedBox(height: 16),
-                  _buildDetailRow('Fecha Emisión', viatico.vienFechaEmicion != null ? DateFormat('yyyy-MM-dd').format(viatico.vienFechaEmicion!) : 'N/A'),
-                  _buildDetailRow('Colaborador', viatico.empleado ?? 'N/A'),
-                  _buildDetailRow('Proyecto', viatico.proyecto ?? 'N/A'),
-                  SizedBox(height: 16),
-                  _buildDetailRow('Total Reconocido', 'LPS ${viatico.vienTotalReconocido?.toStringAsFixed(2) ?? 'N/A'}'),
+              );
+            } else if (snapshot.hasError) {
+              return AlertDialog(
+                backgroundColor: Color(0xFF171717),
+                title: Text('Error', style: TextStyle(color: Colors.red)),
+                content: Text('Error al cargar el detalle del viático', style: TextStyle(color: Colors.white)),
+                actions: [
+                  TextButton(
+                    child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
                 ],
-              ),
-              actions: [
-                TextButton(
-                  child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+              );
+            } else {
+              final viatico = snapshot.data;
+              return AlertDialog(
+                backgroundColor: Color(0xFF171717),
+                title: Text('Detalle del Viático', style: TextStyle(color: Color(0xFFFFF0C6))),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildDetailRow('No.', viatico.vienId?.toString() ?? 'N/A'),
+                    _buildDetailRow('Monto Estimado', 'LPS ${viatico.vienMontoEstimado?.toStringAsFixed(2) ?? 'N/A'}'),
+                    _buildDetailRow('Total Gastado', 'LPS ${viatico.vienTotalGastado?.toStringAsFixed(2) ?? 'N/A'}'),
+                    SizedBox(height: 16),
+                    _buildDetailRow('Fecha Emisión', viatico.vienFechaEmicion != null ? DateFormat('yyyy-MM-dd').format(viatico.vienFechaEmicion!) : 'N/A'),
+                    _buildDetailRow('Colaborador', viatico.empleado ?? 'N/A'),
+                    _buildDetailRow('Proyecto', viatico.proyecto ?? 'N/A'),
+                    SizedBox(height: 16),
+                    _buildDetailRow('Total Reconocido', 'LPS ${viatico.vienTotalReconocido?.toStringAsFixed(2) ?? 'N/A'}'),
+                  ],
                 ),
-              ],
-            );
-          }
-        },
-      );
-    },
-  );
-}
-
+                actions: [
+                  TextButton(
+                    child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            }
+          },
+        );
+      },
+    );
+  }
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
@@ -199,109 +217,108 @@ class _ViaticoState extends State<Viatico> {
   }
 
   TableRow _buildViaticoRow(ViaticoEncViewModel viatico, int index) {
-    return TableRow(
-      children: [
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: PopupMenuButton<int>(
-              color: Colors.black,
-              icon: Icon(Icons.more_vert, color: Colors.white),
-              onSelected: (int result) {
-                if (result == 0) {
+  return TableRow(
+    children: [
+      TableCell(
+        child: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: PopupMenuButton<int>(
+            color: Colors.black,
+            icon: Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (int result) {
+              if (result == 0) {
+                _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
+              } else if (result == 1) {
+                _showDetailModal(context, viatico.vienId!);
+              } else if (_usuarioEsAdm) {
+                if (result == 2) {
                   _navigateAndRefresh(context, EditarViatico(viaticoId: viatico.vienId!));
-                } else if (result == 1) {
-                  _modalEliminar(context, viatico);
-                } else if (result == 2) {
-                  _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
                 } else if (result == 3) {
-                  _modalFinalizar(context, viatico);
+                  _modalEliminar(context, viatico);
                 } else if (result == 4) {
-                  _showDetailModal(context, viatico.vienId!);
+                  _modalFinalizar(context, viatico);
                 }
-              },
-              itemBuilder: (BuildContext context) {
-                List<PopupMenuEntry<int>> menuItems = [];
-                if (viatico.vienEstadoFacturas == true) {
-                  menuItems.add(const PopupMenuItem<int>(
-                    value: 0,
-                    child: Text(
-                      'Editar Viáticos',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ));
-                  menuItems.add(const PopupMenuItem<int>(
-                    value: 1,
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ));
-                  menuItems.add(const PopupMenuItem<int>(
-                    value: 2,
-                    child: Text(
-                      'Agregar Facturas',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ));
-                  menuItems.add(const PopupMenuItem<int>(
-                    value: 3,
-                    child: Text(
-                      'Finalizar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ));
-                  menuItems.add(const PopupMenuItem<int>(
-                    value: 4,
-                    child: Text(
-                      'Detalle',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ));
-                } else {
-                  menuItems.add(const PopupMenuItem<int>(
-                    value: 4,
-                    child: Text(
-                      'Detalle',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ));
-                }
-                return menuItems;
-              },
-            ),
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              List<PopupMenuEntry<int>> menuItems = [];
+
+              menuItems.add(const PopupMenuItem<int>(
+                value: 0,
+                child: Text(
+                  'Agregar Facturas',
+                  style: TextStyle(color: Color(0xFFFFF0C6)),
+                ),
+              ));
+
+              menuItems.add(const PopupMenuItem<int>(
+                value: 1,
+                child: Text(
+                  'Detalle',
+                  style: TextStyle(color: Color(0xFFFFF0C6)),
+                ),
+              ));
+
+              if (_usuarioEsAdm && viatico.vienEstadoFacturas == true) {
+                menuItems.add(const PopupMenuItem<int>(
+                  value: 2,
+                  child: Text(
+                    'Editar Viáticos',
+                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  ),
+                ));
+                menuItems.add(const PopupMenuItem<int>(
+                  value: 3,
+                  child: Text(
+                    'Eliminar',
+                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  ),
+                ));
+                menuItems.add(const PopupMenuItem<int>(
+                  value: 4,
+                  child: Text(
+                    'Finalizar',
+                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                  ),
+                ));
+              }
+
+              return menuItems;
+            },
           ),
         ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              (index + 1).toString(),
-              style: TextStyle(color: Colors.white),
-            ),
+      ),
+      TableCell(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            (index + 1).toString(),
+            style: TextStyle(color: Colors.white),
           ),
         ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              viatico.proyecto ?? 'N/A',
-              style: TextStyle(color: Colors.white),
-            ),
+      ),
+      TableCell(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            viatico.proyecto ?? 'N/A',
+            style: TextStyle(color: Colors.white),
           ),
         ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              viatico.vienEstadoFacturas == false ? Icons.adjust : Icons.adjust,
-              color: viatico.vienEstadoFacturas == false ? Colors.red : Colors.green,
-            ),
+      ),
+      TableCell(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            viatico.vienEstadoFacturas == false ? Icons.adjust : Icons.adjust,
+            color: viatico.vienEstadoFacturas == false ? Colors.red : Colors.green,
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   void _modalEliminar(BuildContext context, ViaticoEncViewModel viatico) {
     showDialog(
@@ -573,7 +590,7 @@ class _ViaticoState extends State<Viatico> {
           ],
         ),
       ),
-      floatingActionButton: _usuarioEsAdm == 0
+      floatingActionButton: _usuarioEsAdm
           ? FloatingActionButton(
               onPressed: () {
                 _navigateAndRefresh(context, NuevoViatico());
@@ -651,7 +668,7 @@ class _ViaticoState extends State<Viatico> {
       body: Stack(
         children: [
           _buildListaViaticos(),
-          if (_usuarioEsAdm == 1)
+          if (_usuarioEsAdm)
             Positioned(
               bottom: 20,
               right: 20,
