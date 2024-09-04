@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
 import 'package:sigesproc_app/screens/menu.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/fletes/fletecontrolcalidadservice.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
@@ -394,6 +396,28 @@ class _VerificarFleteState extends State<VerificarFlete>
       ),
     );
   }
+Future<void> _enviarNotificacionFleteVerificado() async {
+      var prefs = PreferenciasUsuario();
+
+      int? usuarioCreacionId = int.tryParse(prefs.userId);
+
+  String title = 'Flete Verificado';
+  String body = 'Se recibió el flete enviado por ${flete.supervisorSalida} desde ${flete.salida}';
+
+  // Enviar la notificación a los administradores
+  if (usuarioCreacionId != null) {
+      // Crear instancia de NotificationServices
+      final notificationService = NotificationServices();
+        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
+
+      // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Notificación de venta completada enviada.')),
+      );
+    }
+}
 
   Widget _buildSubirImagenButton() {
     return ElevatedButton(
@@ -1160,6 +1184,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
         return;
       }
+      await _enviarNotificacionFleteVerificado();
 
       final String imagenUrl = await _subirImagenFactura(comprobante!);
       flete.flenComprobanteLLegada = imagenUrl;
