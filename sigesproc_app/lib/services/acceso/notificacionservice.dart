@@ -9,12 +9,14 @@ class NotificationServices {
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonResponse = json.decode(response.body);  // Cambiado a List<dynamic>
+      List<dynamic> jsonResponse = json.decode(response.body); 
       
       return jsonResponse.map((item) => NotificationViewModel.fromJson(item)).toList();
+
     } else {
       throw Exception('Error al cargar las notificaciones');
     }
+    
   }
 
     static Future<void> LeerNotificacion(int napuId) async {
@@ -105,6 +107,7 @@ class NotificationServices {
   //     throw Exception('Error al insertar/actualizar el token');
   //   }
   // }
+
 
 static Future<void> insertarToken(int usuaId, String token) async {
   final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/InsertarToken');
@@ -197,6 +200,86 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
       throw Exception('Error al eliminar el token en el servidor');
     }
   }
+static Future<List<Map<String, dynamic>>> ListarTokenEIdsAdministradores() async {
+  final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/Listartokenadministradores');
+  final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+  if (response.statusCode == 200) {
+    List<dynamic> jsonResponse = json.decode(response.body);
+
+    List<Map<String, dynamic>> administradores = [];
+    for (var item in jsonResponse) {
+      if (item['tokn_JsonToken'] != null) {
+        List<String> tokens = item['tokn_JsonToken'].split(',');
+        for (String token in tokens) {
+          administradores.add({
+            'token': token,
+            'usua_Id': item['usua_Id'],  // Suponiendo que 'usua_Id' esté en la respuesta
+          });
+        }
+      }
+    }
+    return administradores;
+  } else {
+    throw Exception('Error al listar los tokens e IDs de administradores');
+  }
+}
+Future<void> enviarNotificacionYRegistrarEnBD(String title, String body, int usuarioCreacionId) async {
+  try {
+    // Obtener la lista de tokens e IDs de los administradores
+    final List<Map<String, dynamic>> administradores = await ListarTokenEIdsAdministradores();
+
+    if (administradores.isNotEmpty) {
+      // Crear un conjunto para almacenar los IDs únicos de los usuarios
+      final Set<int> usuariosNotificados = {};
+
+      // Crear una lista temporal para los detalles
+      final List<Map<String, dynamic>> detalles = [];
+
+      // Construir la lista de detalles para enviar en el cuerpo de la solicitud
+      for (var admin in administradores) {
+        int userId = admin['usua_Id'];
+        if (!usuariosNotificados.contains(userId)) {
+          usuariosNotificados.add(userId);  // Agregar el usuario al conjunto de IDs únicos
+          detalles.add({
+            'noti_Descripcion': body,
+            'noti_Fecha': DateTime.now().toIso8601String(),
+            'noti_Ruta': '#',
+            'usua_Creacion': usuarioCreacionId,
+            'usua_Id': userId, 
+            'napu_Ruta': '#',
+          });
+        }
+      }
+
+      // Enviar la solicitud al endpoint
+      if (detalles.isNotEmpty) {
+        final response = await http.post(
+          Uri.parse('${ApiService.apiUrl}/Notificacion/InsertarNotificaciones'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...ApiService.getHttpHeaders(), // Incluir los encabezados de autenticación aquí
+          },
+          body: jsonEncode(detalles),
+        );
+
+        if (response.statusCode == 200) {
+          print('Notificación enviada y registrada exitosamente');
+        } else {
+          print('Error al enviar y registrar la notificación');
+          print('Status Code: ${response.statusCode}');
+          print('Response Body: ${response.body}');
+        }
+      } else {
+        print('No hay detalles para enviar');
+      }
+    } else {
+      print('No se encontraron administradores para notificar');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
 
 }
 

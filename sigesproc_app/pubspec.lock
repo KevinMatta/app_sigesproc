@@ -289,6 +289,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  fl_chart:
+    dependency: "direct main"
+    description:
+      name: fl_chart
+      sha256: "4c4468a9e36a54f2994fd10825ce9acdc229b38372fa68c8cd2cacce2f3ce796"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.36.3"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -757,6 +765,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.0"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   matcher:
     dependency: transitive
     description:
@@ -869,6 +885,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pedantic:
+    dependency: transitive
+    description:
+      name: pedantic
+      sha256: "67fc27ed9639506c856c840ccce7594d0bdcd91bc8d53d6e52359449a1d50602"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.11.1"
   petitparser:
     dependency: transitive
     description:
@@ -989,6 +1013,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  signalr_core:
+    dependency: "direct main"
+    description:
+      name: signalr_core
+      sha256: dca676372a00c051511591ed0e24521ff7aa4e9320a7fa778a1007f7f522c8c0
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1018,6 +1050,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.0"
+  sse_client:
+    dependency: transitive
+    description:
+      name: sse_client
+      sha256: "71bd826430b41ab20a69d85bf2dfe9f11cfe222938e681ada1aea71fc8adf348"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   stack_trace:
     dependency: transitive
     description:
@@ -1218,6 +1258,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.1"
+  web_socket_channel:
+    dependency: transitive
+    description:
+      name: web_socket_channel
+      sha256: "58c6666b342a38816b2e7e50ed0f1e261959630becd4c879c4f26bfa14aa5a42"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.5"
   win32:
     dependency: transitive
     description:

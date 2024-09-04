@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'appBar.dart'; // Asegúrate de tener tu CustomAppBar importado
+import 'package:sigesproc_app/screens/dashboards/dashboard.dart';
+import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
+
 
 class Inicio extends StatefulWidget {
   @override
@@ -16,20 +22,27 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   TabController? _tabController;
   int _unreadCount = 0;
-  final int userId = 5;
+  int? userId; // Declaramos userId sin inicializarlo en duro.
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
 
-    // Insertar el token si es necesario después de que el usuario llega a la pantalla de inicio
-    _insertarToken();
+    _loadUserId(); // Cargamos el userId desde las preferencias.
 
-    // Aquí agregamos el evento de inicialización de las notificaciones
-    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId));
+    _loadUserProfileData(); // Cargar datos de usuario al iniciar.
+  }
 
-    _loadNotifications();
+  Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; 
+    
+    _insertarToken(); 
+
+    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications(); 
   }
 
   Future<void> _insertarToken() async {
@@ -37,7 +50,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     String? token = prefs.token;
 
     if (token != null && token.isNotEmpty) {
-      await NotificationServices.insertarToken(39, token);
+      await NotificationServices.insertarToken(userId!, token);
       print('Token insertado después del inicio de sesión: $token');
     } else {
       print('No se encontró token en las preferencias.');
@@ -46,12 +59,26 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId); 
+      final notifications = await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
       print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -135,7 +162,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   builder: (context) => NotificacionesScreen(),
                 ),
               );
-              _loadNotifications();  
+              _loadNotifications();
             },
           ),
           IconButton(
@@ -180,94 +207,77 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCotizacionesTab() {
-    var prefs = PreferenciasUsuario();
-    String token = prefs.token;
 
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 1',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 5),
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 2',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+
+
+
+
+
+
+
+
+
+
+
+
+Widget _buildCotizacionesTab() {
+  var prefs = PreferenciasUsuario();
+  String token = prefs.token;
+
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      children: [
+   Row(
+  children: [
+    Expanded(
+      child: Card(
+        color: Color(0xFF171717),
+        child: Container(
+          height: 250, // Aumenta la altura del contenedor
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
+            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
           ),
-          SizedBox(height: 10),
-          Expanded(
-            child: Card(
-              color: Color(0xFF171717),
-              child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Top 5 de proveedores',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'FCM Token:',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          token.isNotEmpty ? token : 'Token no disponible',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
-    );
-  }
+    ),
+    SizedBox(width: 5),
+    Expanded(
+      child: Card(
+        color: Color(0xFF171717),
+        child: Container(
+          height: 250, // Aumenta la altura del contenedor
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
+            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 2
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+
+        SizedBox(height: 10),
+        Expanded(
+          child: DashboardScreen(), 
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
 
   Widget _buildFletesTab() {
     return Container(
@@ -470,6 +480,52 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Dashboard 6',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: 200,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Dashboard 7',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 5),
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: 200,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Dashboard 8',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 15),
                             ),

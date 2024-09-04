@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/proyectos/actividadporetapaviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/proyectos/actividad.dart';
 import 'package:sigesproc_app/screens/proyectos/etapaslineatiempo.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/services/proyectos/etapaporproyectoservice.dart';
 import 'package:sigesproc_app/services/proyectos/actividadporetapaservice.dart';
@@ -24,7 +27,8 @@ class _ProyectoState extends State<Proyecto> {
   List<ProyectoViewModel> _proyectosFiltrados = [];
   int _currentPage = 0;
   int _rowsPerPage = 10;
-
+int _unreadCount = 0;
+late int userId;
   Map<int, bool> _expandedProjects = {};
   Map<int, Future<List<EtapaPorProyectoViewModel>>?> _etapasPorProyecto = {};
   bool _isLoadingEtapas = false;
@@ -36,9 +40,23 @@ class _ProyectoState extends State<Proyecto> {
   @override
   void initState() {
     super.initState();
+     var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+
+  _loadNotifications();
     _proyectosFuture = ProyectoService.listarProyectos();
     _searchController.addListener(_proyectoFiltrado);
   }
+Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
 
   void _onItemTapped(int index) {
     setState(() {
@@ -540,40 +558,10 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 60,
-            ),
-            SizedBox(width: 5),
-            Text(
-              'SIGESPROC',
-              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 20),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Proyectos',
-                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4.0),
-              Container(height: 2.0, color: Color(0xFFFFF0C6)),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
-          IconButton(icon: Icon(Icons.person), onPressed: () {}),
-        ],
-      ),
+     appBar: CustomAppBar(
+  unreadCount: _unreadCount,
+  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
+),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,

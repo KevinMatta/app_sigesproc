@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
@@ -120,6 +121,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    
     _tabController = TabController(length: 2, vsync: this); // 2 tabs
 
     _cargarEmpleados();
@@ -1044,7 +1046,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   }
 
   Future<void> guardarFlete() async {
-    flete.usuaCreacion = 3;
+    final pref = await SharedPreferences.getInstance();
+    flete.usuaCreacion = int.tryParse(pref.getString('usuaId') ?? '');
     flete.flenEstado = false;
     flete.flenSalidaProyecto = esProyectosalida;
     flete.flenDestinoProyecto = esProyecto;
@@ -1164,7 +1167,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           fldeTipodeCarga: true,
           flenId: flenIdNuevo,
           inppId: selectedInsumos[i].inppId,
-          usuaCreacion: 3,
+          usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
         );
         print('Detalle data: ${detalle.toJson()}');
         await FleteDetalleService.insertarFleteDetalle(detalle);
@@ -1175,7 +1178,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           fldeTipodeCarga: false,
           flenId: flenIdNuevo,
           inppId: selectedEquipos[i].eqppId,
-          usuaCreacion: 3,
+          usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
         );
         print('Detalle eq: ${detalle.toJson()}');
         await FleteDetalleService.insertarFleteDetalle(detalle);
@@ -1187,11 +1190,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         ),
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Flete enviado con éxito')),
+        SnackBar(content: Text('Insertado con Éxito.')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al enviar el flete')),
+        SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
     }
   }

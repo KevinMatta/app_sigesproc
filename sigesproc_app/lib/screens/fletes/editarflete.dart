@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
@@ -339,6 +340,8 @@ class _EditarFleteState extends State<EditarFlete>
               var insumo = insumosList.firstWhere(
                   (insumo) => insumo.inppId == detalle.inppId,
                   orElse: () => InsumoPorProveedorViewModel());
+
+              print('que prueba c $insumo');
 
               if (insumo != null) {
                 selectedInsumos.add(insumo);
@@ -1270,7 +1273,7 @@ class _EditarFleteState extends State<EditarFlete>
           ? Container(
               color: Colors.black,
               child: Center(
-                child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
               ),
             )
           : Container(
@@ -1290,9 +1293,11 @@ class _EditarFleteState extends State<EditarFlete>
 
   Future<void> editarFlete() async {
     try {
+      final pref = await SharedPreferences.getInstance();
+      
       flete.flenFechaHoraLlegada = DateTime(2005, 1, 1);
       flete.flenComprobanteLLegada = null;
-      flete.usuaModificacion = 3;
+      flete.usuaModificacion = int.tryParse(pref.getString('usuaId') ?? '');
       flete.flenSalidaProyecto = esProyectosalida;
       flete.flenDestinoProyecto = esProyecto;
 
@@ -1441,8 +1446,8 @@ class _EditarFleteState extends State<EditarFlete>
             fldeTipodeCarga: true,
             flenId: fleteId,
             inppId: selectedInsumos[i].inppId,
-            usuaModificacion: 3,
-            usuaCreacion: 3,
+            usuaModificacion: int.tryParse(pref.getString('usuaId') ?? ''),
+            usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
           );
 
           // Insertar o actualizar el detalle
@@ -1480,8 +1485,8 @@ class _EditarFleteState extends State<EditarFlete>
             fldeTipodeCarga: false,
             flenId: fleteId,
             inppId: selectedEquipos[i].eqppId,
-            usuaModificacion: 3,
-            usuaCreacion: 3,
+            usuaModificacion: int.tryParse(pref.getString('usuaId') ?? ''),
+            usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
           );
 
           // Insertar o actualizar el detalle
@@ -1535,7 +1540,6 @@ class _EditarFleteState extends State<EditarFlete>
           }
         }
 
-        // Navegar y mostrar mensaje de éxito
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -1544,17 +1548,16 @@ class _EditarFleteState extends State<EditarFlete>
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Flete actualizado con éxito')),
+          SnackBar(content: Text('Actualizado con Éxito.')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar el flete')),
+          SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
         );
       }
     } catch (e) {
-      print('Error al editar el flete: $e, flete error: $flete');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ocurrió un error al editar el flete')),
+        SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
     }
   }
@@ -1799,13 +1802,7 @@ class _EditarFleteState extends State<EditarFlete>
                   shape: CircleBorder(),
                   labelBackgroundColor: Color(0xFFFFF0C6),
                   labelStyle: TextStyle(color: Color(0xFF171717)),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Flete(),
-                      ),
-                    );
+                  onTap: () {Navigator.pop(context);
                   },
                 ),
                 SpeedDialChild(
