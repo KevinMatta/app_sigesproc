@@ -138,10 +138,11 @@ Future<void> obtenerTotalCantidadTrabajada() async {
     // Accede a codeStatus desde respuesta.data
     int? idScope = respuesta.data['codeStatus'];
 
+    if(uploadedImages.length > 0)
+    {
+
     if (respuesta.success == true && idScope != null) {
 
-      if(uploadedImages.length > 0)
-      {
       // Subir las imágenes una por una
       for (var imagen in uploadedImages) {
         print('Subiendo imagen: ${imagen.name}');
@@ -186,14 +187,6 @@ Future<void> obtenerTotalCantidadTrabajada() async {
         content: Text("Insertado con Éxito."),
       ));
       Navigator.of(context).pop();
-      } else {
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insertado con Éxito"),
-      ));
-      Navigator.of(context).pop();
-
-      }
     } else {
           obtenerTotalCantidadTrabajada();
           double? n = idScope!.abs().toDouble();
@@ -203,6 +196,13 @@ Future<void> obtenerTotalCantidadTrabajada() async {
         ));
       // throw Exception("Error al guardar el control de calidad.");
     }
+  } else {
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Imágenes Requeridas"),
+      ));
+
+      }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Error: $e."),

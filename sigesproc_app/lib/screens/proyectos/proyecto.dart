@@ -604,7 +604,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                 future: _proyectosFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: SpinKitCircle(color: Color(0xFFFFF0C6)));
+                    return Center(child: CircularProgressIndicator(color: Color(0xFFFFF0C6)));
                   } else if (snapshot.hasError) {
                     return Center(
                       child: Text('Error al cargar los datos', style: TextStyle(color: Colors.red)),
@@ -625,7 +625,7 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
                       children: [
                         Expanded(
                           child: _isLoadingEtapas
-                              ? Center(child: SpinKitCircle(color: Color(0xFFFFF0C6)))
+                              ? Center(child: CircularProgressIndicator(color: Color(0xFFFFF0C6)))
                               : SingleChildScrollView(
                                   controller: _scrollController,
                                   child: Table(
