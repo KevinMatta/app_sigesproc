@@ -3,15 +3,15 @@ class DashboardViewModel {
   double? numeroDeCotizaciones;
   int? prov_Id;
 
-  String? articulo;
-  int? totalCompra;
-  String? tipoArticulo;
+ String? articulo;      // Nombre del artículo (String)
+  double? totalCompra;   // Total de la compra (double)
+  String? tipoArticulo; 
 
   DashboardViewModel({
     this.prov_Descripcion,
     this.numeroDeCotizaciones,
     this.prov_Id,
-    this.articulo,
+  this.articulo,
     this.totalCompra,
     this.tipoArticulo,
   });
@@ -21,9 +21,9 @@ class DashboardViewModel {
       prov_Descripcion: json['prov_Descripcion'],
       numeroDeCotizaciones: json['numeroDeCotizaciones'],
       prov_Id: json['prov_Id'],
-      articulo: json['articulo'],
-      totalCompra: (json['totalCompra']),
-      tipoArticulo: json['tipoArticulo'],
+     articulo: json['articulo'] as String,
+      totalCompra: json['totalCompra'] != null ? (json['totalCompra'] as num).toDouble() : 0.0,
+      tipoArticulo: json['tipoArticulo'] as String?,
     );
   }
 
@@ -32,7 +32,7 @@ class DashboardViewModel {
       'prov_Descripcion': prov_Descripcion,
       'numeroDeCotizaciones': numeroDeCotizaciones,
       'prov_Id': prov_Id,
-      'articulo': articulo,
+      'articulo': articulo.toString(),
       'totalCompra': totalCompra,
       'tipoArticulo': tipoArticulo,
     };
