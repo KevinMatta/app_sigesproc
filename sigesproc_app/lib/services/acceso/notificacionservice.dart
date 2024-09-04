@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/services/localNotification/local_notification.dart';
 import '../apiservice.dart';
 import 'package:sigesproc_app/models/acceso/notificacionviewmodel.dart';
 
@@ -192,19 +194,19 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
     // Obtener los tokens de los administradores
     List<String> adminTokens = await ListarTokenAdministradores();
 
-    // Obtener el token del dispositivo actual para marcarlo como origen de la acción
+    // Obtener el token del dispositivo actual
     var prefs = PreferenciasUsuario();
-    String currentDeviceToken = prefs.token; // Token del dispositivo actual
+    String currentDeviceToken = prefs.token; // El token del dispositivo actual
 
     // Asegurarse de que los tokens no estén vacíos
     if (adminTokens.isNotEmpty) {
-      // Verificar si el dispositivo actual está en la lista de tokens y remover duplicación
-      bool currentDeviceIsAdmin = adminTokens.contains(currentDeviceToken);
+      // Filtrar el token del dispositivo actual de la lista para que no lo reciba desde Firebase
+      adminTokens.remove(currentDeviceToken);
 
-      // Construir la URL para el envío de la notificación
+      // Construir la URL
       final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
 
-      // Crear el cuerpo de la solicitud de notificación
+      // Crear el cuerpo de la solicitud de notificación para los demás administradores
       final bodyRequest = jsonEncode({
         'token': adminTokens, 
         'data': {
@@ -213,25 +215,24 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
         }
       });
 
-      // Enviar la notificación a los administradores (incluyendo el dispositivo actual, si es admin)
+      // Enviar la notificación a los demás administradores
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: bodyRequest,
       );
 
-      // Verificar si el dispositivo actual está recibiendo duplicación
-      if (currentDeviceIsAdmin) {
-        print('El dispositivo actual es un administrador y ha recibido la notificación solo una vez.');
-      }
-
       // Verificar el estado de la respuesta
       if (response.statusCode != 200) {
         print('Error al enviar la notificación: ${response.statusCode}');
         print('Respuesta del servidor: ${response.body}');
       } else {
-        print('Notificación enviada con éxito a todos los administradores.');
+        print('Notificación enviada con éxito a todos los administradores, excepto al dispositivo actual.');
       }
+
+      // Ahora manejamos la notificación para el dispositivo actual manualmente
+      await _enviarNotificacionManualAlDispositivoActual(title, body);
+
     } else {
       print('No hay tokens de administradores para enviar la notificación.');
     }
@@ -239,6 +240,19 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
     print('Error al enviar la notificación: $e');
     throw Exception('Error al enviar la notificación');
   }
+}
+
+static Future<void> _enviarNotificacionManualAlDispositivoActual(String title, String body) async {
+  // Lógica para mostrar la notificación manualmente al dispositivo actual usando flutter_local_notifications
+  Random random = Random();
+  var id = random.nextInt(100000);
+  
+  // Usar flutter_local_notifications para mostrar la notificación en el dispositivo actual
+  LocalNotification.showLocalNotification(
+    id: id,
+    title: title,
+    body: body,
+  );
 }
 
 

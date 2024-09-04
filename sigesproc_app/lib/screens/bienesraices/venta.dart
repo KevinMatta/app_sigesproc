@@ -1401,7 +1401,7 @@ Future<void> _notificarVentaCompletada() async {
         await NotificationServices.EnviarNotificacionAAdministradores(title, body);
 
       // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
-      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, 39);
+      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Notificación de venta completada enviada.')),
