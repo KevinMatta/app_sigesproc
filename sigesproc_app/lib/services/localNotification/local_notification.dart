@@ -1,73 +1,61 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-class LocalNotification{
-
-  static Future<void> requestPermissionLocalNotifications() async{
-
+class LocalNotification {
+  static Future<void> initializeLocalNotifications() async {
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    await flutterLocalNotificationsPlugin
-    .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-    ?.requestNotificationsPermission();
-  }
+    
+    const initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
+    const initializationSettingsIOS = DarwinInitializationSettings();
 
-  static Future<void> initializeLocalNotifications() async{
-
-    final flutterLocalnotificationsPlugin = FlutterLocalNotificationsPlugin();
-    const initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher2');
-    const initializationSettingsDarwin = DarwinInitializationSettings(
-      onDidReceiveLocalNotification: iosShowNotification
-    );
-
-    const initializationsSettings = InitializationSettings(
+    const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin
+      iOS: initializationSettingsIOS,
     );
 
-    await flutterLocalnotificationsPlugin.initialize(
-      initializationsSettings
-    );
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  static void iosShowNotification(int id, String? title, String? body, String? data){
-    showLocalNotification(id:id, title:title, body:body, data:data);
+  static Future<void> requestPermissionLocalNotifications() async {
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
   }
 
   static void showLocalNotification({
-    required int id, 
-    String? title, 
-    String? body, 
-    String? data
-  }){
+    required int id,
+    String? title,
+    String? body,
+  }) {
     const androidDetails = AndroidNotificationDetails(
-      'channelId',
-      'channelName',
-      playSound: true, 
+      'channel_id',
+      'channel_name',
       importance: Importance.max,
-      priority: Priority.high
+      priority: Priority.high,
+      playSound: true,
     );
 
     const notificationDetails = NotificationDetails(
       android: androidDetails,
-      iOS: DarwinNotificationDetails(
-        presentSound: true,
-        presentAlert: true
-      )
-    ); 
+      iOS: DarwinNotificationDetails(),
+    );
 
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
     flutterLocalNotificationsPlugin.show(
-      id, 
-      title, 
-      body, 
-      notificationDetails
+      id,
+      title,
+      body,
+      notificationDetails,
     );
-
-
   }
-
-
-
-
-
 }
