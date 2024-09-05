@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
 
@@ -20,7 +20,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black,
+      color: const Color(0xFF171717),
       child: FutureBuilder<List<DashboardViewModel>>(
         future: _dashboardData,
         builder: (context, snapshot) {
@@ -29,14 +29,23 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error al cargar los datos', style: TextStyle(color: Colors.white)));
           } else if (snapshot.hasData) {
-            // Filtrar los datos que tienen totalCompra mayor que 0
-            List<DashboardViewModel> filteredData = snapshot.data!.where((item) => item.totalCompra != null && item.totalCompra! > 0).toList();
-            
-            if (filteredData.isEmpty) {
-              return Center(child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)));
-            }
+            // Agregar un print para verificar los datos recibidos
+snapshot.data!.forEach((item) {
+  print('Artículo: ${item.articulo}, Total Compra: ${item.totalCompra}');
+  
+  // Verifica que totalCompra sea numérico
+  if (item.totalCompra is! num) {
+    print('Error: totalCompra no es numérico para el artículo ${item.articulo}');
+  }
 
-            return _buildPieChartContainer(filteredData);
+  // Verifica que articulo sea un String
+  if (item.articulo is! String) {
+    print('Error: articulo no es un String');
+  }
+});
+
+
+            return _buildHorizontalBarChartContainer(snapshot.data!);
           } else {
             return Center(child: Text('No hay datos disponibles', style: TextStyle(color: Colors.white)));
           }
@@ -45,77 +54,66 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
     );
   }
 
-  Widget _buildPieChartContainer(List<DashboardViewModel> data) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-        color: Color(0xFF171717),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Top 5 Artículos más Comprados',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 8.0),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.3, // Ajuste de altura dinámico para pantallas pequeñas
-                child: Center(
-                  child: PieChart(
-                    PieChartData(
-                      sections: _createPieChartSections(data),
-                      sectionsSpace: 1,
-                      centerSpaceRadius: 0,
-                      borderData: FlBorderData(show: false),
-                      pieTouchData: PieTouchData(
-                        touchCallback: (PieTouchResponse? pieTouchResponse) {
-                          // Manejo de interacciones si es necesario
-                        },
-                      ),
-                    ),
+  Widget _buildHorizontalBarChartContainer(List<DashboardViewModel> data) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Card(
+          color: Color(0xFF171717),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Top 5 Artículos más Comprados',
+                  style: TextStyle(
+                    color: Color(0xFFFFF0C6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 8.0),
+                Container(
+                  height: 150, // Ajusta la altura según sea necesario
+                  child: SfCartesianChart(
+                    isTransposed: true, // Gráfico de barras horizontales
+                    primaryXAxis: NumericAxis(
+                      labelStyle: TextStyle(color: Colors.white),
+                      title: AxisTitle(
+                        text: 'Total Compra',
+                        textStyle: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    primaryYAxis: CategoryAxis(
+                      labelStyle: TextStyle(color: Colors.white),
+                    ),
+                    series: <ChartSeries>[
+BarSeries<DashboardViewModel, String>(
+  dataSource: [
+    DashboardViewModel(articulo: "Producto A", totalCompra: 100.0),
+    DashboardViewModel(articulo: "Producto B", totalCompra: 200.0),
+  ],
+  xValueMapper: (DashboardViewModel item, _) => item.articulo ?? '',
+  yValueMapper: (DashboardViewModel item, _) => item.totalCompra ?? 0.0,
+  color: Colors.blueAccent,
+  dataLabelSettings: DataLabelSettings(
+    isVisible: true,
+    textStyle: TextStyle(color: Colors.white),
+  ),
+),
+
+
+
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-
-  List<PieChartSectionData> _createPieChartSections(List<DashboardViewModel> data) {
-    final colors = [
-      Color.fromARGB(255, 50, 74, 100),
-      Color.fromARGB(255, 41, 60, 80),
-      Color.fromARGB(255, 36, 55, 75),
-      Color.fromARGB(255, 31, 49, 68),
-      Color(0xFF162433),
-    ];
-
-    return data.asMap().entries.map((entry) {
-      int index = entry.key;
-      DashboardViewModel item = entry.value;
-      final double fontSize = 5.0; 
-      final double radius = 40.0;
-
-      return PieChartSectionData(
-        color: colors[index % colors.length],
-        value: item.totalCompra!.toDouble(),
-        title: '${item.articulo} (${item.totalCompra})',
-        radius: radius,
-        titleStyle: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-          color: const Color(0xffffffff),
-        ),
-      );
-    }).toList();
   }
 }

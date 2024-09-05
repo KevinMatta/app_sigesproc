@@ -8,7 +8,7 @@ import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
-import 'appBar.dart'; // Asegúrate de tener tu CustomAppBar importado
+import 'appBar.dart'; 
 import 'package:sigesproc_app/screens/dashboards/dashboard.dart';
 import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
 
@@ -22,16 +22,16 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   TabController? _tabController;
   int _unreadCount = 0;
-  int? userId; // Declaramos userId sin inicializarlo en duro.
+  int? userId; 
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
 
-    _loadUserId(); // Cargamos el userId desde las preferencias.
+    _loadUserId(); 
 
-    _loadUserProfileData(); // Cargar datos de usuario al iniciar.
+    _loadUserProfileData(); 
   }
 
   Future<void> _loadUserId() async {
@@ -260,9 +260,9 @@ Widget _buildCotizacionesTab() {
 ),
 
         SizedBox(height: 10),
-        Expanded(
-          child: DashboardScreen(), 
-        ),
+        //  Expanded(
+        //    child: DashboardScreen(), 
+        //  ),
       ],
     ),
   );
