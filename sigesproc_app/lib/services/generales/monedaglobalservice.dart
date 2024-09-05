@@ -45,6 +45,7 @@ class MonedaGlobalService {
 
 
   //LLAMAR A ESTE METODO Y ASIGNARSELO A LA VARIABLE QUE LLEVARÁ LA ABREVIATURA DE LA MONEDA COMO VALOR
+  //ASI SE ASIGNA: String? abreviatura = await MonedaGlobalService.obtenerAbreviaturaMoneda();
     static Future<String?> obtenerAbreviaturaMoneda() async {
     try {
       // Cargar los datos de la API
