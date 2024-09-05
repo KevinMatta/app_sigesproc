@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sigesproc_app/auth/reestablecer.dart';
+import 'package:sigesproc_app/auth/verificarCodigo.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/inicio.dart';
@@ -206,6 +207,7 @@ class _ReestablecerState extends State<Reestablecer> {
     //Inicializar la session
     final SharedPreferences pref = await SharedPreferences.getInstance();
 
+
     if (usuario.isEmpty) {
       setState(() {
         usuariovacio = true;
@@ -214,36 +216,86 @@ class _ReestablecerState extends State<Reestablecer> {
     }
 
 
+    final UsuarioViewModel? response;
 
-  try {
-      final UsuarioViewModel? response = await LoginService.login(usuario, '111');
+    // Obtener la lista de usuarios del Future
+    Future<List<UsuarioViewModel>>? _usuariosFuture = LoginService.listarUsuarios();
+    
+    // Espera a que se completen los datos del Future
+    List<UsuarioViewModel>? usuarios = await _usuariosFuture;
+    
+    // Verificar si la lista no es nula y contiene datos
+    if (usuarios != null && usuarios.isNotEmpty) {
+        // Variables para almacenar usuaId y correo
+        int? usuaId;
+        String? correo;
+        
+        // Iterar sobre la lista de usuarios
+        for (var usuarioItem in usuarios) {
+            if (usuarioItem.usuaUsuario == usuario) {
+                usuaId = usuarioItem.usuaId;
+                correo = usuarioItem.correoEmpleado;
+                
+                print("Usuario encontrado: ID = $usuaId, Correo = $correo");
+                
+                break; // Romper el bucle si encuentras el usuario
+            }
+        }
+        // Verificar si se encontraron los datos
+        if (usuaId != null && correo != null) {
+          response = await LoginService.reestablecer(usuaId, correo);
+          await pref.setString('usuarioReestablecerId', usuaId.toString());
+       
+          if(response != null)
+          {
 
-      if (response != null) {
-        await pref.setString('emplNombre', response.nombreEmpleado ?? '');
-        await pref.setString('emplId', response.empleadoId?.toString() ?? '');
-        await pref.setString('usuaId', response.usuaId?.toString() ?? '');
-        await pref.setString('usuaUsuario', response.usuaUsuario?.toString() ?? '');
-        await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
+              Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Verificar(),
+            ),
+          );
+          }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Inicio(),
-          ),
-        );
-      } else {
-        setState(() {
-          usuariooController.clear();
-          incorrectos = true;
-        });
-      }      
-        } catch (e) {
-    // Muestra el mensaje de error al usuario
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Usuario no encontrado."),
-               backgroundColor: Colors.red,),
+        } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Usuario Inválido.")),
     );
-  }
+        }
+    } else {
+        print("No se encontraron usuarios o la lista está vacía.");
+    }
+
+
+  // try {
+  //     final UsuarioViewModel? response = await LoginService.reestablecer(48, '111');
+
+  //     if (response != null) {
+  //       await pref.setString('emplNombre', response.nombreEmpleado ?? '');
+  //       await pref.setString('emplId', response.empleadoId?.toString() ?? '');
+  //       await pref.setString('usuaId', response.usuaId?.toString() ?? '');
+  //       await pref.setString('usuaUsuario', response.usuaUsuario?.toString() ?? '');
+  //       await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
+
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => Inicio(),
+  //         ),
+  //       );
+  //     } else {
+  //       setState(() {
+  //         usuariooController.clear();
+  //         incorrectos = true;
+  //       });
+  //     }      
+  //       } catch (e) {
+  //   // Muestra el mensaje de error al usuario
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text("Usuario no encontrado."),
+  //              backgroundColor: Colors.red,),
+  //   );
+  // }
 
 
   }
