@@ -313,7 +313,7 @@ Future<void> _loadNotifications() async {
                                 return Container(
                                   color: Color(0xFF171717),
                                   child: Image.network(
-                                    'http://www.backsigespro.somee.com$imagePath',
+                                    'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net$imagePath',
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width,
                                     errorBuilder: (context, error, stackTrace) {
@@ -425,7 +425,7 @@ Future<void> _loadNotifications() async {
                           return Container(
                             color: Color(0xFF171717),
                             child: Image.network(
-                              'http://www.backsigespro.somee.com$imagePath',
+                              'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
                               errorBuilder: (context, error, stackTrace) {
