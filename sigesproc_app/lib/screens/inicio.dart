@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardCompraMesActual.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardProyectoIncidenciasMensuales.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'menu.dart';
@@ -9,11 +11,10 @@ import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'appBar.dart';
-import 'package:sigesproc_app/screens/dashboards/dashboard.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardTop5Proveedores.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardFletesTop5ProyectosRelacionados.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardTop5ProyectosPresupuesto.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardFleteIncidenciasMes.dart';
-import 'package:sigesproc_app/screens/dashboards/dashboardProyectoIncidenciasMensuales.dart';
 import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardFletesTop5Bodegas.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardMaximoPresupuestoMes.dart';
@@ -219,50 +220,49 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     var prefs = PreferenciasUsuario();
     String token = prefs.token;
 
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 250, // Aumenta la altura del contenedor
-                    child: Padding(
-                      padding: const EdgeInsets.all(
-                          8.0), // Añade padding si es necesario
-                      child:
-                          TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
-                    ),
-                  ),
+    return SingleChildScrollView(
+      child: Container(
+        color: Colors.black,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Card(
+              color: Color(0xFF171717),
+              child: Container(
+                height: 150,
+                child: Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child:
+                      DashboardCompraMesActual(), // Componente nuevo para compras del mes
                 ),
               ),
-              SizedBox(width: 5),
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 250, // Aumenta la altura del contenedor
-                    child: Padding(
-                      padding: const EdgeInsets.all(
-                          8.0), // Añade padding si es necesario
-                      child:
-                          TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 2
-                    ),
-                  ),
+            ),
+            SizedBox(height: 10),
+            Card(
+              color: Color(0xFF171717),
+              child: Container(
+                height: 250,
+                child: Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child:
+                      TopArticlesDashboard(), // Gráfico de los top 5 artículos
                 ),
               ),
-            ],
-          ),
-
-          SizedBox(height: 10),
-          //  Expanded(
-          //    child: DashboardScreen(),
-          //  ),
-        ],
+            ),
+            SizedBox(height: 10),
+            Card(
+              color: Color(0xFF171717),
+              child: Container(
+                height: 250,
+                child: Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child:
+                      TopProveedoresDashboard(), // Gráfico de los top 5 proveedores
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
