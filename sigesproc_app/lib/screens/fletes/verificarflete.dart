@@ -294,7 +294,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ? EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom)
                 : EdgeInsets.zero,
-            child: _buildBottomButtons(),
+            child: _isLoading ? SizedBox.shrink() : _buildBottomButtons(),
           ),
           drawer: MenuLateral(
             selectedIndex: _selectedIndex,
@@ -521,23 +521,25 @@ class _VerificarFleteState extends State<VerificarFlete>
       // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
       await notificationService.enviarNotificacionYRegistrarEnBD(
           title, body, usuarioCreacionId);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Notificación de venta completada enviada.')),
-      );
     }
   }
 
   Widget _buildSubirImagenButton() {
-    return ElevatedButton(
+    return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFFFFF0C6),
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
       onPressed: _seleccionarImagen,
-      child: Text(comprobante == null ? 'Subir Imagen' : 'Cambiar Imagen'),
+      icon: Icon(Icons.upload_file,
+          color: Colors.black), // Icono de subir archivo
+      label: Text(
+        comprobante == null ? 'Subir Imagen' : 'Cambiar Imagen',
+        style: TextStyle(color: Colors.black),
+      ),
     );
   }
 
@@ -651,38 +653,45 @@ class _VerificarFleteState extends State<VerificarFlete>
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFFF0C6),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                ElevatedButton.icon(
                   onPressed: () async {
                     await _guardarFleteEIncidencia();
                   },
-                  child: Text(
-                    'Guardar',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-                SizedBox(width: 20),
-                ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF222222),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    backgroundColor: Color(0xFFFFF0C6),
+                    padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: Colors.white),
+                  icon:
+                      Icon(Icons.save, color: Colors.black), // Icono de Guardar
+                  label: Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.black, fontSize: 15),
                   ),
+                ),
+                SizedBox(width: 18),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF222222),
+                    padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: Icon(Icons.close,
+                      color: Colors.white), // Icono de Cancelar
+                  label: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Flete()),
+                    );
+                  },
                 ),
               ],
             ),
@@ -1293,7 +1302,6 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
         return;
       }
-      await _enviarNotificacionFleteVerificado();
 
       final String imagenUrl = await _subirImagenFactura(comprobante!);
       flete.flenComprobanteLLegada = imagenUrl;
@@ -1322,6 +1330,9 @@ class _VerificarFleteState extends State<VerificarFlete>
         return;
       }
 
+      flete.flenFechaHoraLlegada =
+          DateFormat('dd/MM/yyyy HH:mm').parse(_fechaHoraController.text);
+
       // Actualizar las cantidades verificadas para insumos y equipos
       _actualizarCantidadesVerificadas(insumosVerificados);
       _actualizarCantidadesVerificadas(equiposVerificados);
@@ -1339,12 +1350,15 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
 
       // Si no hay insumos o equipos no recibidos, guardar todo
+      print('hayyy $hayNoVerificados');
       if (!hayNoVerificados) {
+        await _enviarNotificacionFleteVerificado();
+
+        await _guardarFleteCompleto();
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => Flete()),
         );
-        await _guardarFleteCompleto();
 
         return;
       }
@@ -1369,12 +1383,14 @@ class _VerificarFleteState extends State<VerificarFlete>
     bool hayNoVerificados = false;
 
     // Verificar insumos no recibidos
+    print('insumos no $insumosNoRecibidos');
     for (var item in insumosNoRecibidos) {
       print("Insumo no recibido: ${item.fldeId}");
       hayNoVerificados = true;
     }
 
     // Verificar equipos no recibidos
+    print('equipos no $equiposNoRecibidos');
     for (var detalle in equiposNoRecibidos) {
       print("Equipo no recibido: ${detalle.fldeId}");
       hayNoVerificados = true;
@@ -1487,10 +1503,14 @@ class _VerificarFleteState extends State<VerificarFlete>
         await FleteDetalleService.editarFleteDetalle(item);
       }
 
-      await FleteEncabezadoService.editarFlete(flete);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verificado con Éxito.')),
-      );
+      print('fleetevenviando $flete');
+      bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
+      if (hayNoVerificados) {
+        await FleteEncabezadoService.editarFlete(flete);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verificado con Éxito.')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1602,22 +1622,27 @@ class _VerificarFleteState extends State<VerificarFlete>
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           if (_mostrarFormularioIncidencia)
             ...[]
           else ...[
-            ElevatedButton(
+            ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6),
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+              label: Text(
+                'Guardar',
+                style: TextStyle(color: Colors.black, fontSize: 15),
+              ),
               onPressed: () async {
                 if (!_isLoading) {
-                  // Evita múltiples clics mientras está cargando
+                  print('carg $_isLoading');
                   setState(() {
                     _isLoading = true; // Inicia la carga
                     _mostrarErrores = true;
@@ -1628,35 +1653,24 @@ class _VerificarFleteState extends State<VerificarFlete>
                   });
                 }
               },
-              child: Text(
-                'Guardar',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 15,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
-            SizedBox(width: 20),
-            ElevatedButton(
+            SizedBox(width: 18),
+            ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF222222),
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+              label: Text(
+                'Cancelar',
+                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ],
         ],
@@ -1670,7 +1684,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       readOnly: true,
       onTap: _seleccionarFechaHora,
       decoration: InputDecoration(
-        labelText: 'Fecha y Hora de Llegada',
+        labelText: '',
         errorText: _fechaHoraError
             ? _fechaHoraErrorMessage
             : (showError

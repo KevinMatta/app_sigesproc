@@ -138,7 +138,7 @@ class _EditarFleteState extends State<EditarFlete>
     super.initState();
     _loadUserId(); // Cargamos el userId desde las preferencias.
 
-    _loadUserProfileData(); 
+    _loadUserProfileData();
     _tabController = TabController(length: 2, vsync: this);
     _cargarEmpleados();
     _cargarBodegas();
@@ -184,13 +184,15 @@ class _EditarFleteState extends State<EditarFlete>
 
   Future<void> _loadUserId() async {
     var prefs = PreferenciasUsuario();
-    userId = int.tryParse(prefs.userId) ?? 0; 
-    
-    _insertarToken(); 
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+    _insertarToken();
 
-    _loadNotifications(); 
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
   }
 
   Future<void> _insertarToken() async {
@@ -205,9 +207,10 @@ class _EditarFleteState extends State<EditarFlete>
     }
   }
 
-   Future<void> _loadNotifications() async {
+  Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId!);
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -216,7 +219,7 @@ class _EditarFleteState extends State<EditarFlete>
     }
   }
 
-   Future<void> _loadUserProfileData() async {
+  Future<void> _loadUserProfileData() async {
     var prefs = PreferenciasUsuario();
     int usua_Id = int.tryParse(prefs.userId) ?? 0;
 
@@ -638,16 +641,24 @@ class _EditarFleteState extends State<EditarFlete>
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<BodegaViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
+            List<BodegaViewModel> filteredBodegas;
+
             if (textEditingValue.text.isEmpty) {
-              return bodegas.isNotEmpty
-                  ? bodegas
-                  : []; // Mostrar todas las opciones cuando el campo está vacío
+              filteredBodegas = List.from(bodegas);
+            } else {
+              filteredBodegas = bodegas.where((BodegaViewModel option) {
+                return option.bodeDescripcion!
+                    .toLowerCase()
+                    .contains(textEditingValue.text.toLowerCase());
+              }).toList();
             }
-            return bodegas.where((BodegaViewModel option) {
-              return option.bodeDescripcion!
-                  .toLowerCase()
-                  .contains(textEditingValue.text.toLowerCase());
-            });
+
+            // Ordenar la lista alfabéticamente por bodeDescripcion
+            filteredBodegas.sort((a, b) => a.bodeDescripcion!
+                .toLowerCase()
+                .compareTo(b.bodeDescripcion!.toLowerCase()));
+
+            return filteredBodegas;
           },
           displayStringForOption: (BodegaViewModel option) =>
               option.bodeDescripcion!,
@@ -668,15 +679,13 @@ class _EditarFleteState extends State<EditarFlete>
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: isError ? errorMessage : null,
                 errorMaxLines: 3,
-                errorStyle: TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
+                errorStyle:
+                    TextStyle(color: Colors.red, fontSize: 12, height: 1.0),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red, width: 1.0),
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                  borderSide: BorderSide(color: Colors.red, width: 1.0),
                 ),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -782,14 +791,24 @@ class _EditarFleteState extends State<EditarFlete>
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Autocomplete<ProyectoViewModel>(
         optionsBuilder: (TextEditingValue textEditingValue) {
+          List<ProyectoViewModel> filteredProyectos;
+
           if (textEditingValue.text.isEmpty) {
-            return proyectos.isNotEmpty ? proyectos : [];
+            filteredProyectos = List.from(proyectos);
+          } else {
+            filteredProyectos = proyectos.where((ProyectoViewModel option) {
+              return option.proyNombre!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            }).toList();
           }
-          return proyectos.where((ProyectoViewModel option) {
-            return option.proyNombre!
-                .toLowerCase()
-                .contains(textEditingValue.text.toLowerCase());
-          });
+
+          // Ordenar la lista alfabéticamente por la propiedad proyNombre
+          filteredProyectos.sort((a, b) => a.proyNombre!
+              .toLowerCase()
+              .compareTo(b.proyNombre!.toLowerCase()));
+
+          return filteredProyectos;
         },
         displayStringForOption: (ProyectoViewModel option) =>
             option.proyNombre!,
@@ -809,9 +828,21 @@ class _EditarFleteState extends State<EditarFlete>
               fillColor: Colors.black,
               labelStyle: TextStyle(color: Colors.white),
               errorText: isError ? errorMessage : null,
+              errorBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Colors.red,
+                    width: 1.0), // Borde rojo en caso de error
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Colors.red,
+                    width: 1.0), // Borde rojo cuando está enfocado y hay error
+              ),
+              errorMaxLines: 3,
               errorStyle: TextStyle(
                 color: Colors.red,
                 fontSize: 12,
+                height: 1.0, // Controla el espaciado entre líneas
               ),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1314,7 +1345,7 @@ class _EditarFleteState extends State<EditarFlete>
                 ),
               ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-         actions: <Widget>[
+        actions: <Widget>[
           IconButton(
             icon: Stack(
               children: [
@@ -1399,7 +1430,7 @@ class _EditarFleteState extends State<EditarFlete>
     });
     try {
       final pref = await SharedPreferences.getInstance();
-      
+
       flete.flenFechaHoraLlegada = DateTime(2005, 1, 1);
       flete.flenComprobanteLLegada = null;
       flete.usuaModificacion = int.tryParse(pref.getString('usuaId') ?? '');
@@ -1657,12 +1688,15 @@ class _EditarFleteState extends State<EditarFlete>
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
+          SnackBar(
+              content:
+                  Text('Algo salió mal. Comuníquese con un Administrador.')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
+        SnackBar(
+            content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
     } finally {
       // setState(() {
@@ -1911,7 +1945,8 @@ class _EditarFleteState extends State<EditarFlete>
                   shape: CircleBorder(),
                   labelBackgroundColor: Color(0xFFFFF0C6),
                   labelStyle: TextStyle(color: Color(0xFF171717)),
-                  onTap: () {Navigator.pop(context);
+                  onTap: () {
+                    Navigator.pop(context);
                   },
                 ),
                 SpeedDialChild(
@@ -1938,34 +1973,36 @@ class _EditarFleteState extends State<EditarFlete>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: editarFlete,
+            icon: Icon(Icons.save, color: Colors.black),
             style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFFF0C6),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-           child: Text(
-                    'Guardar',
-                    style: TextStyle(color: Colors.black),
-                  ),
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            label: Text(
+              'Guardar',
+              style: TextStyle(color: Colors.black, fontSize: 15),
+            ),
           ),
-          SizedBox(width: 20),
-          ElevatedButton(
+          SizedBox(width: 18),
+          ElevatedButton.icon(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF222222),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-            child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: Colors.white),
-                  ),
+              backgroundColor: Color(0xFF222222),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+            label: Text(
+              'Cancelar',
+              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+            ),
           ),
         ],
       ),
@@ -2054,10 +2091,19 @@ class _EditarFleteState extends State<EditarFlete>
         labelStyle: TextStyle(color: Colors.white),
         errorText: _fechaSalidaError ? _fechaSalidaErrorMessage : null,
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: Colors.red, width: 1.0), // Borde rojo en caso de error
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: const Color.fromARGB(255, 117, 102, 100),
+              width: 1.0), // Borde rojo cuando está enfocado y hay error
+        ),
+        errorMaxLines: 3,
+        errorStyle: TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
         ),
       ),
       style: TextStyle(color: Colors.white),
@@ -2093,10 +2139,19 @@ class _EditarFleteState extends State<EditarFlete>
             ? _fechaHoraEstablecidaErrorMessage
             : null,
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: Colors.red, width: 1.0), // Borde rojo en caso de error
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: Colors.red,
+              width: 1.0), // Borde rojo cuando está enfocado y hay error
+        ),
+        errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
+        errorStyle: TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
         ),
       ),
       style: TextStyle(color: Colors.white),
@@ -2129,18 +2184,25 @@ class _EditarFleteState extends State<EditarFlete>
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<EmpleadoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
+            List<EmpleadoViewModel> filteredEmpleados;
+
             if (textEditingValue.text.isEmpty) {
-              print('empleados $empleados');
-              return empleados.isNotEmpty ? empleados : [];
+              filteredEmpleados = List.from(empleados);
+            } else {
+              filteredEmpleados = empleados.where((EmpleadoViewModel option) {
+                return option.empleado!
+                        .toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase()) ||
+                    option.emplDNI!
+                        .toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase());
+              }).toList();
             }
-            return empleados.where((EmpleadoViewModel option) {
-              return option.empleado!
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase()) ||
-                  option.emplDNI!
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase());
-            });
+
+            filteredEmpleados.sort((a, b) =>
+                a.empleado!.toLowerCase().compareTo(b.empleado!.toLowerCase()));
+
+            return filteredEmpleados;
           },
           displayStringForOption: (EmpleadoViewModel option) =>
               option.empleado!,
@@ -2164,12 +2226,18 @@ class _EditarFleteState extends State<EditarFlete>
                 errorStyle: TextStyle(
                   color: Colors.red,
                   fontSize: 12,
+                  height: 1.0, // Controla el espaciado entre líneas
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                  borderSide: BorderSide(
+                      color: Colors.red,
+                      width: 1.0), // Borde rojo en caso de error
                 ),
                 focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                  borderSide: BorderSide(
+                      color: Colors.red,
+                      width:
+                          1.0), // Borde rojo cuando está enfocado y hay error
                 ),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
