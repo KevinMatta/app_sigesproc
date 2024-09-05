@@ -119,123 +119,152 @@ class _NuevoViaticoState extends State<NuevoViatico> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
-            ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Nuevo Viático',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.transparent,
+    appBar: AppBar(
+      backgroundColor: Colors.black,
+      title: Row(
+        children: [
+          Image.asset(
+            'lib/assets/logo-sigesproc.png',
+            height: 50, // Ajusta la altura si es necesario
+          ),
+          SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+          Expanded(
+            child: Text(
+              'SIGESPROC',
+              style: TextStyle(
                 color: Color(0xFFFFF0C6),
+                fontSize: 20,
               ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
+              textAlign: TextAlign.start, // Alinea el texto a la izquierda
+            ),
           ),
         ],
       ),
-      drawer: MenuLateral(
-        selectedIndex: _selectedIndex,
-        onItemSelected: _onItemTapped,
-      ),
-      body: Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(40.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              color: Color(0xFF171717),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDropdownEmpleado(),
-                    if (_empleadoError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          _empleadoError!,
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                    SizedBox(height: 20),
-                    _buildDropdownProyecto(),
-                    if (_proyectoError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          _proyectoError!,
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                    SizedBox(height: 20),
-                    _buildMontoTextField(),
-                    if (_montoError != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          _montoError!,
-                          style: TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                  ],
-                ),
+            Text(
+              'Nuevo Viático',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            Spacer(), // Añade un espacio flexible para empujar los botones hacia abajo
-            _buildBottomButtons(), // Los botones personalizados al final
+            SizedBox(height: 4.0),
+            Container(
+              height: 2.0,
+              color: Color(0xFFFFF0C6),
+            ),
+            SizedBox(height: 5),
+            Row(
+              children: [
+                SizedBox(width: 5.0),
+                GestureDetector(
+                  onTap: () {
+                    // Acción para el botón de "Regresar"
+                    Navigator.pop(context);
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.arrow_back,
+                        color: Color(0xFFFFF0C6),
+                      ),
+                      SizedBox(width: 3.0),
+                      Text(
+                        'Regresar',
+                        style: TextStyle(
+                          color: Color(0xFFFFF0C6),
+                          fontSize: 15.0,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-    );
-  }
+      iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.notifications),
+          onPressed: () {},
+        ),
+        IconButton(
+          icon: Icon(Icons.person),
+          onPressed: () {},
+        ),
+      ],
+    ),
+    drawer: MenuLateral(
+      selectedIndex: _selectedIndex,
+      onItemSelected: _onItemTapped,
+    ),
+    body: Container(
+      color: Colors.black,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            color: Color(0xFF171717),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDropdownEmpleado(),
+                  if (_empleadoError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: Text(
+                        _empleadoError!,
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                  SizedBox(height: 20),
+                  _buildDropdownProyecto(),
+                  if (_proyectoError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: Text(
+                        _proyectoError!,
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                  SizedBox(height: 20),
+                  _buildMontoTextField(),
+                  if (_montoError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: Text(
+                        _montoError!,
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Spacer(), // Añade un espacio flexible para empujar los botones hacia abajo
+          _buildBottomButtons(), // Los botones personalizados al final
+        ],
+      ),
+    ),
+  );
+}
 
   Widget _buildBottomButtons() {
     return Container(
