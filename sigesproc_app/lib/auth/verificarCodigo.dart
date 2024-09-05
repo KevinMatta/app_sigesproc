@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigesproc_app/auth/cambiarClave.dart';
 
-import 'package:sigesproc_app/auth/reestablecer.dart';
+import 'package:sigesproc_app/auth/verificarCodigo.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/inicio.dart';
@@ -11,18 +12,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../services/loginservice.dart';
 
-class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+class Verificar extends StatefulWidget {
+  const Verificar({Key? key}) : super(key: key);
 
   @override
-  _LoginState createState() => _LoginState();
+  _VerificarState createState() => _VerificarState();
 }
 
-class _LoginState extends State<Login> {
-  final TextEditingController usuariooController = TextEditingController();
-  final TextEditingController contraController = TextEditingController();
-  bool usuariovacio = false;
-  bool contravacia = false;
+class _VerificarState extends State<Verificar> {
+  final TextEditingController codigoController = TextEditingController();
+  bool codigovacio = false;
   bool incorrectos = false;
 
 
@@ -124,7 +123,7 @@ class _LoginState extends State<Login> {
                                         SizedBox(
                                             height: 50), // Reducir el tamaño
                                         Text(
-                                          'Inicio de sesión',
+                                          'Verificar Código',
                                           style: TextStyle(
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold,
@@ -132,33 +131,9 @@ class _LoginState extends State<Login> {
                                           ),
                                         ),
                                         SizedBox(height: 20),
-                                        usuariotextb(),
-                                        SizedBox(height: 10),
-                                        contratextb(),
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: TextButton(
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const Reestablecer(),
-                                                ),
-                                              );
-                                            },
-                                            child: Text(
-                                              '¿Olvidaste tu contraseña?',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                        usuariotextb(),                                        
                                         SizedBox(height: 20),
-                                        botonLogin()
+                                        botonVerificar()
                                       ],
                                     ),
                                   ),
@@ -166,7 +141,7 @@ class _LoginState extends State<Login> {
                               ),
                             ),
                             Positioned(
-                              top: -90, 
+                              top: -90, // Ajuste para centrar el logo
                               child: Container(
                                 width: MediaQuery.of(context).size.width * 0.8,
                                 child: ClipRRect(
@@ -202,17 +177,17 @@ class _LoginState extends State<Login> {
 
   Widget usuariotextb() {
     return TextField(
-      controller: usuariooController,
+      controller: codigoController,
       decoration: InputDecoration(
         prefixIcon: Icon(
-          Icons.person,
+          Icons.key,
           color: Colors.black,
         ),
-        labelText: 'Usuario',
+        labelText: 'Código',
         labelStyle: TextStyle(color: Colors.black),
         filled: true,
         fillColor: Colors.grey.withOpacity(0.3),
-        errorText: usuariovacio
+        errorText: codigovacio
             ? 'Campo requerido'
             : incorrectos
                 ? ''
@@ -224,106 +199,49 @@ class _LoginState extends State<Login> {
 
 
 
-  Future<void> _login() async {
-    String usuario = usuariooController.text;
-    String contra = contraController.text;
+  Future<void> _Verificar() async {
+    String codigo = codigoController.text;
+    int idReestablecer;
     
     //Inicializar la session
     final SharedPreferences pref = await SharedPreferences.getInstance();
 
-    if (usuario.isEmpty && contra.isEmpty) {
+    if (codigo.isEmpty) {
       setState(() {
-        usuariovacio = true;
-        contravacia = true;
+        codigovacio = true;
       });
       return;
     }
 
-    if (usuario.isEmpty) {
-      setState(() {
-        usuariovacio = true;
-        contravacia = false;
-      });
-      return;
-    }
+        final UsuarioViewModel? response;
+        String idParse = pref.getString('usuarioReestablecerId')!;
+        idReestablecer = int.parse(idParse);
 
-    if (contra.isEmpty) {
-      setState(() {
-        contravacia = true;
-        usuariovacio = false;
-      });
-      return;
-    }
 
-  try {
-      final UsuarioViewModel? response = await LoginService.login(usuario, contra);
+          response = await LoginService.verificarCodigo(idReestablecer, codigo);
+       
+          if(response != null)
+          {
+          await pref.setString('usuarioReestablecerIdVerificado', idReestablecer.toString());
 
-      if (response != null) {
-        await pref.setString('emplNombre', response.nombreEmpleado ?? '');
-        await pref.setString('emplId', response.empleadoId?.toString() ?? '');
-        await pref.setString('usuaId', response.usuaId?.toString() ?? '');
-        await pref.setString('usuaUsuario', response.usuaUsuario?.toString() ?? '');
-        await pref.setString('EsAdmin', response.usuaEsAdministrador?.toString() ?? '');
 
-        var prefs = PreferenciasUsuario();
-        prefs.userId = response.usuaId?.toString() ?? '';
-      prefs.usernombre = response.nombreEmpleado ?? '';
-      prefs.userCorreo = response.correoEmpleado ?? '';
-      prefs.userTelefono = response.telefonoEmpleado ?? '';
-      prefs.userCargo = response.cargoDescripcion ?? '';
-      prefs.userImagenEmpleado = response.imagenEmpleado ?? '';
-       prefs.userRol = response.rolDescripcion ?? '';
-      prefs.nombreusuario = response.usuaUsuario ?? '';
-        await pref.setString('roleDescripcion', response.rolDescripcion?.toString() ?? '');
-        await pref.setString('emplCorreoElectronico', response.correoEmpleado?.toString() ?? '');
-        await pref.setString('cargDescripcion', response.cargoDescripcion?.toString() ?? '');
-        await pref.setString('emplTelefono', response.telefonoEmpleado?.toString() ?? '');
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Inicio(),
-          ),
-        );
-      } else {
-        setState(() {
-          usuariooController.clear();
-          contraController.clear();
-          incorrectos = true;
-        });
-      }      
-        } catch (e) {
-    // Muestra el mensaje de error al usuario
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Usuario o Contraseña son Incorrectos."))
-    );
-  }
+              Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CambiarClave(),
+            ),
+          );
+          }  else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Código Inválido.")),
+          );
+        }
 
 
   }
 
-  Widget contratextb() {
-    return TextField(
-      controller: contraController,
-      decoration: InputDecoration(
-        prefixIcon: Icon(
-          Icons.key,
-          color: Colors.black,
-        ),
-        labelText: 'Contraseña',
-        labelStyle: TextStyle(color: Colors.black),
-        filled: true,
-        fillColor: Colors.grey.withOpacity(0.3),
-        errorText: contravacia
-            ? 'Campo requerido'
-            : incorrectos
-                ? 'Usuario o contraseña son incorrectos'
-                : null,
-      ),
-      obscureText: true,
-    );
-  }
 
-  Widget botonLogin() {
+  Widget botonVerificar() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
@@ -332,9 +250,9 @@ class _LoginState extends State<Login> {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      onPressed: _login,
+      onPressed: _Verificar,
       child: Text(
-        'Entrar',
+        'Verificar Código',
         style: TextStyle(
           color: Colors.white,
           fontSize: 16,

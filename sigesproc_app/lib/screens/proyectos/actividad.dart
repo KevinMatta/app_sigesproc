@@ -166,7 +166,7 @@ Future<void> _refreshControls(int acetId) async {
                 'Confirmación',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 17.0,
+                  fontSize: 20.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -175,7 +175,7 @@ Future<void> _refreshControls(int acetId) async {
                 '¿Está seguro de aprobar este control de calidad?',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16.0,
+                  fontSize: 15.0,
                 ),
               ),
               SizedBox(height: 20.0),
@@ -412,9 +412,9 @@ Future<void> _refreshControls(int acetId) async {
                                     return SizedBox(
                                       height: 300,  // Set a fixed height for the spinner section
                                       child: Center(
-                                        child: SpinKitCircle(
+                                        child: CircularProgressIndicator(
                                           color: Color(0xFFFFF0C6),
-                                          size: 50.0,
+                                          
                                         ),
                                       ),
                                     );
