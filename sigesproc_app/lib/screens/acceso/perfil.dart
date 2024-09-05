@@ -41,8 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
    _telfono= prefs.userTelefono;
    _cargo= prefs.userCargo;
 
-    String imageUrl = prefs.userImagenEmpleado;
-
+    String imageUrl2 = prefs.userImagenEmpleado;
+  String baseUrl = "https://localhost:44337/api/Empleado";
+  String imageUrl = "$baseUrl/$imageUrl2";  
   if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
     _profileImage = NetworkImage(imageUrl);
   } else {

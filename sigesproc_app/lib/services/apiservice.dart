@@ -8,7 +8,7 @@ class ApiService {
 
 //  static const String apiUrl = 'http://apisigesproc.somee.com/api';
 
-  static const String apiUrl = 'http://apisigesprocmindy.somee.com/api';
+  static const String apiUrl = 'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net/api';
   // static const String apiUrl = 'https://localhost:44337/api';
 
   // static const String apiUrl = 'http://apisigesproc.somee.com/api';
