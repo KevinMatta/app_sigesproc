@@ -233,7 +233,7 @@ Widget build(BuildContext context) {
         ],
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(60.0),
+        preferredSize: Size.fromHeight(90.0),
         child: Column(
           children: [
             Text(
@@ -248,17 +248,51 @@ Widget build(BuildContext context) {
             Container(
               height: 2.0,
               color: Color(0xFFFFF0C6),
-            ),SizedBox(height: 5),
-              Text(
-                'Nuevo Control de Calidad:',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 16,
-                ),
+            ),
+            SizedBox(height: 5),
+              Row(
+                children: [
+                  SizedBox(width: 5.0),
+                  GestureDetector(
+                    onTap: () {
+                      // Acción para el botón de "Regresar"
+                      Navigator.pop(context);
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_back,
+                          color: Color(0xFFFFF0C6),
+                        ),
+                        SizedBox(width: 3.0),
+                        Text(
+                          'Regresar',
+                          style: TextStyle(
+                            color: Color(0xFFFFF0C6),
+                            fontSize: 15.0,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 20), // Espacio entre el botón y el texto
+                    Padding(
+                      padding: const EdgeInsets.only(top: 30.0), // Padding de 20 unidades por arriba
+                      child: Text(
+                        'Nuevo Control de Calidad',
+                        style: TextStyle(
+                          color: Color(0xFFFFF0C6),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-          ],
+            ],
+          ),
         ),
-      ),
+
       iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
       actions: <Widget>[
         IconButton(
