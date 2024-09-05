@@ -252,36 +252,40 @@ Future<void> _cargarDetalleViatico() async {
 }
 
 
-  Widget _buildBottomButtons() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
-        children: [
-          ElevatedButton(
+Widget _buildBottomButtons() {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
+      children: [
+        Flexible(
+          child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: () async {
-              await _guardarFactura(); // Llamar a la función de guardar factura
+            onPressed: () {
+              _guardarFactura();
             },
-            child: Text(
+            icon: Icon(Icons.save, color: Colors.black),
+            label: Text(
               'Guardar',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 14,
+                fontSize: 14, // Tamaño de texto más pequeño
               ),
             ),
           ),
-          SizedBox(width: 10), // Espacio entre los botones
-          ElevatedButton(
+        ),
+        SizedBox(width: 10),
+        Flexible(
+          child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 49, 49, 49),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              backgroundColor: Color(0xFF171717),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -289,18 +293,22 @@ Future<void> _cargarDetalleViatico() async {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text(
+            icon: Icon(Icons.close, color: Colors.white),
+            label: Text(
               'Cancelar',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
+                color: Color(0xFFFFF0C6),
+                fontSize: 14, // Tamaño de texto más pequeño
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
+
 
 Widget _buildCarruselDeImagenes() {
   return CarouselSlider(
@@ -402,6 +410,16 @@ Widget _buildCarruselDeImagenes() {
   );
 }
 
+
+
+
+
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -444,6 +462,38 @@ Widget _buildCarruselDeImagenes() {
                 height: 2.0,
                 color: Color(0xFFFFF0C6),
               ),
+                SizedBox(height: 5),
+      Row(
+        children: [
+          SizedBox(width: 5.0),
+          GestureDetector(
+            onTap: () {
+              // Acción para el botón de "Regresar"
+              Navigator.pop(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10.0), // Padding superior de 10 píxeles
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.arrow_back,
+                    color: Color(0xFFFFF0C6),
+                  ),
+                  SizedBox(width: 3.0),
+                  Text(
+                    'Regresar',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 15.0,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
             ],
           ),
         ),
@@ -536,6 +586,17 @@ Widget _buildCarruselDeImagenes() {
     );
   }
 
+
+
+
+
+
+
+
+
+
+
+
   Widget _buildDescripcionTextField() {
     return TextFormField(
       controller: descripcionController,
@@ -620,16 +681,24 @@ Widget _buildCarruselDeImagenes() {
     );
   }
 
-  Widget _buildSubirImagenButton() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: _seleccionarImagen,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
+ Widget _buildSubirImagenButton() {
+  return Center(
+    child: ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFFFFF0C6),
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(facturaSeleccionada == null ? 'Subir Imagen' : 'Cambiar Imagen'),
       ),
-    );
-  }
+      onPressed: _seleccionarImagen, // Acción para seleccionar o cambiar imagen
+      icon: Icon(Icons.upload_file, color: Colors.black), // Icono de subir archivo
+      label: Text(
+        facturaSeleccionada == null ? 'Subir Imágenes' : 'Cambiar Imagen',
+        style: TextStyle(color: Colors.black), // Estilo del texto
+      ),
+    ),
+  );
+}
+
 }
