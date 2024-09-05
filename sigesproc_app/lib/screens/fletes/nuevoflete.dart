@@ -2,13 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/actividadesporetapaviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/actividadesporetapaservice.dart';
@@ -89,7 +97,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   TabController? _tabController;
   late StreamSubscription<bool> keyboardSubscription;
   bool _isKeyboardVisible = false;
-  bool _cargando = true;
+  bool _cargando = false;
+  int _unreadCount = 0;
+  int? userId;
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
       primary: Color(0xFFFFF0C6),
@@ -122,16 +132,15 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+    _loadUserId(); // Cargamos el userId desde las preferencias.
+    _loadUserProfileData();
     _tabController = TabController(length: 2, vsync: this); // 2 tabs
-
     _cargarEmpleados();
     _cargarBodegas();
     _cargarProyectos();
     var keyboardVisibilityController = KeyboardVisibilityController();
     // Query
     _isKeyboardVisible = keyboardVisibilityController.isVisible;
-
     // Subscribe
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((bool visible) {
@@ -173,6 +182,54 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+   Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; 
+    
+    _insertarToken(); 
+
+    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications(); 
+  }
+
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(userId!, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications = await NotificationServices.BuscarNotificacion(userId!);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
+    }
   }
 
   Future<void> _cargarEmpleados() async {
@@ -1016,14 +1073,56 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                 ),
               ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
+         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
