@@ -78,7 +78,7 @@ class _VerificarFleteState extends State<VerificarFlete>
   bool _fleteGuardado = false;
 
   int _unreadCount = 0;
-  int? userId; 
+  int? userId;
 
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
@@ -126,13 +126,15 @@ class _VerificarFleteState extends State<VerificarFlete>
 
   Future<void> _loadUserId() async {
     var prefs = PreferenciasUsuario();
-    userId = int.tryParse(prefs.userId) ?? 0; 
-    
-    _insertarToken(); 
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+    _insertarToken();
 
-    _loadNotifications(); 
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
   }
 
   Future<void> _insertarToken() async {
@@ -149,7 +151,8 @@ class _VerificarFleteState extends State<VerificarFlete>
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId!);
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -291,7 +294,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ? EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom)
                 : EdgeInsets.zero,
-            child: _buildBottomButtons(),
+            child: _isLoading ? SizedBox.shrink() : _buildBottomButtons(),
           ),
           drawer: MenuLateral(
             selectedIndex: _selectedIndex,
@@ -345,58 +348,58 @@ class _VerificarFleteState extends State<VerificarFlete>
         ),
       ),
       iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-       actions: <Widget>[
-          IconButton(
-            icon: Stack(
-              children: [
-                Icon(Icons.notifications),
-                if (_unreadCount > 0)
-                  Positioned(
-                    right: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(6),
+      actions: <Widget>[
+        IconButton(
+          icon: Stack(
+            children: [
+              Icon(Icons.notifications),
+              if (_unreadCount > 0)
+                Positioned(
+                  right: 0,
+                  child: Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: BoxConstraints(
+                      minWidth: 12,
+                      minHeight: 12,
+                    ),
+                    child: Text(
+                      '$_unreadCount',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
                       ),
-                      constraints: BoxConstraints(
-                        minWidth: 12,
-                        minHeight: 12,
-                      ),
-                      child: Text(
-                        '$_unreadCount',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-              ],
-            ),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NotificacionesScreen(),
                 ),
-              );
-              _loadNotifications();
-            },
+            ],
           ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NotificacionesScreen(),
+              ),
+            );
+            _loadNotifications();
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.person),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -498,28 +501,28 @@ class _VerificarFleteState extends State<VerificarFlete>
       ),
     );
   }
-Future<void> _enviarNotificacionFleteVerificado() async {
-      var prefs = PreferenciasUsuario();
 
-      int? usuarioCreacionId = int.tryParse(prefs.userId);
+  Future<void> _enviarNotificacionFleteVerificado() async {
+    var prefs = PreferenciasUsuario();
 
-  String title = 'Flete Verificado';
-  String body = 'Se recibió el flete enviado por ${flete.supervisorSalida} desde ${flete.salida}';
+    int? usuarioCreacionId = int.tryParse(prefs.userId);
 
-  // Enviar la notificación a los administradores
-  if (usuarioCreacionId != null) {
+    String title = 'Flete Verificado';
+    String body =
+        'Se recibió el flete enviado por ${flete.supervisorSalida} desde ${flete.salida}';
+
+    // Enviar la notificación a los administradores
+    if (usuarioCreacionId != null) {
       // Crear instancia de NotificationServices
       final notificationService = NotificationServices();
-        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
+      await NotificationServices.EnviarNotificacionAAdministradores(
+          title, body);
 
       // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
-      await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Notificación de venta completada enviada.')),
-      );
+      await notificationService.enviarNotificacionYRegistrarEnBD(
+          title, body, usuarioCreacionId);
     }
-}
+  }
 
   Widget _buildSubirImagenButton() {
     return ElevatedButton(
@@ -670,7 +673,10 @@ Future<void> _enviarNotificacionFleteVerificado() async {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Flete()),
+                    );
                   },
                   child: Text(
                     'Cancelar',
@@ -855,22 +861,22 @@ Future<void> _enviarNotificacionFleteVerificado() async {
             horaSeleccionada.minute,
           );
 
-          DateTime fechaHoraLleg = DateFormat('dd/MM/yyyy HH:mm').parse(_fechaHoraController.text);
-
+          DateTime fechaHoraLleg =
+              DateFormat('dd/MM/yyyy HH:mm').parse(_fechaHoraController.text);
 
           if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraSalida!)) {
             _fechaHoraIncidenciaError = true;
             print('aja');
             _fechaHoraIncidenciaErrorMessage =
                 'La fecha de la incidencia no puede ser anterior a la fecha de salida.';
-                _fechaHoraIncidenciaController.text =
+            _fechaHoraIncidenciaController.text =
                 DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraIncidencia);
           } else if (fechaHoraIncidencia.isAfter(fechaHoraLleg)) {
             print('aqui');
             _fechaHoraIncidenciaError = true;
             _fechaHoraIncidenciaErrorMessage =
                 'La fecha de la incidencia no puede ser posterior a la fecha de llegada.';
-                _fechaHoraIncidenciaController.text =
+            _fechaHoraIncidenciaController.text =
                 DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraIncidencia);
           } else {
             print('lerololelole');
@@ -1286,7 +1292,6 @@ Future<void> _enviarNotificacionFleteVerificado() async {
         );
         return;
       }
-      await _enviarNotificacionFleteVerificado();
 
       final String imagenUrl = await _subirImagenFactura(comprobante!);
       flete.flenComprobanteLLegada = imagenUrl;
@@ -1315,6 +1320,9 @@ Future<void> _enviarNotificacionFleteVerificado() async {
         return;
       }
 
+      flete.flenFechaHoraLlegada =
+          DateFormat('dd/MM/yyyy HH:mm').parse(_fechaHoraController.text);
+
       // Actualizar las cantidades verificadas para insumos y equipos
       _actualizarCantidadesVerificadas(insumosVerificados);
       _actualizarCantidadesVerificadas(equiposVerificados);
@@ -1332,12 +1340,15 @@ Future<void> _enviarNotificacionFleteVerificado() async {
       hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
 
       // Si no hay insumos o equipos no recibidos, guardar todo
+      print('hayyy $hayNoVerificados');
       if (!hayNoVerificados) {
+        await _enviarNotificacionFleteVerificado();
+
+        await _guardarFleteCompleto();
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => Flete()),
         );
-        await _guardarFleteCompleto();
 
         return;
       }
@@ -1362,12 +1373,14 @@ Future<void> _enviarNotificacionFleteVerificado() async {
     bool hayNoVerificados = false;
 
     // Verificar insumos no recibidos
+    print('insumos no $insumosNoRecibidos');
     for (var item in insumosNoRecibidos) {
       print("Insumo no recibido: ${item.fldeId}");
       hayNoVerificados = true;
     }
 
     // Verificar equipos no recibidos
+    print('equipos no $equiposNoRecibidos');
     for (var detalle in equiposNoRecibidos) {
       print("Equipo no recibido: ${detalle.fldeId}");
       hayNoVerificados = true;
@@ -1420,7 +1433,8 @@ Future<void> _enviarNotificacionFleteVerificado() async {
         _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
       });
       hayErrores = true;
-    } else if(_fechaHoraIncidenciaController.text.isNotEmpty && !_fechaHoraIncidenciaError){
+    } else if (_fechaHoraIncidenciaController.text.isNotEmpty &&
+        !_fechaHoraIncidenciaError) {
       setState(() {
         _fechaHoraIncidenciaError = false;
         _fechaHoraIncidenciaErrorMessage = '';
@@ -1430,10 +1444,9 @@ Future<void> _enviarNotificacionFleteVerificado() async {
       _fechaHoraIncidenciaController.clear();
     }
 
-    if(_fechaHoraIncidenciaError)
-    {
+    if (_fechaHoraIncidenciaError) {
       print('aaakss');
-    return;
+      return;
     }
 
     // Si hay errores, no continuar con el guardado
@@ -1480,10 +1493,14 @@ Future<void> _enviarNotificacionFleteVerificado() async {
         await FleteDetalleService.editarFleteDetalle(item);
       }
 
-      await FleteEncabezadoService.editarFlete(flete);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verificado con Éxito.')),
-      );
+      print('fleetevenviando $flete');
+      bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
+      if (hayNoVerificados) {
+        await FleteEncabezadoService.editarFlete(flete);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verificado con Éxito.')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1610,6 +1627,7 @@ Future<void> _enviarNotificacionFleteVerificado() async {
               ),
               onPressed: () async {
                 if (!_isLoading) {
+                  print('carg $_isLoading');
                   setState(() {
                     _isLoading = true; // Inicia la carga
                     _mostrarErrores = true;
@@ -1662,7 +1680,7 @@ Future<void> _enviarNotificacionFleteVerificado() async {
       readOnly: true,
       onTap: _seleccionarFechaHora,
       decoration: InputDecoration(
-        labelText: 'Fecha y Hora de Llegada',
+        labelText: '',
         errorText: _fechaHoraError
             ? _fechaHoraErrorMessage
             : (showError
