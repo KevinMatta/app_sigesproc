@@ -525,15 +525,21 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Widget _buildSubirImagenButton() {
-    return ElevatedButton(
+    return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFFFFF0C6),
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
       onPressed: _seleccionarImagen,
-      child: Text(comprobante == null ? 'Subir Imagen' : 'Cambiar Imagen'),
+      icon: Icon(Icons.upload_file,
+          color: Colors.black), // Icono de subir archivo
+      label: Text(
+        comprobante == null ? 'Subir Imagen' : 'Cambiar Imagen',
+        style: TextStyle(color: Colors.black),
+      ),
     );
   }
 
@@ -647,30 +653,38 @@ class _VerificarFleteState extends State<VerificarFlete>
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFFF0C6),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                ElevatedButton.icon(
                   onPressed: () async {
                     await _guardarFleteEIncidencia();
                   },
-                  child: Text(
-                    'Guardar',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-                SizedBox(width: 20),
-                ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF222222),
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                    backgroundColor: Color(0xFFFFF0C6),
+                    padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                  ),
+                  icon:
+                      Icon(Icons.save, color: Colors.black), // Icono de Guardar
+                  label: Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.black, fontSize: 15),
+                  ),
+                ),
+                SizedBox(width: 18),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF222222),
+                    padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: Icon(Icons.close,
+                      color: Colors.white), // Icono de Cancelar
+                  label: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -678,10 +692,6 @@ class _VerificarFleteState extends State<VerificarFlete>
                       MaterialPageRoute(builder: (context) => Flete()),
                     );
                   },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: Colors.white),
-                  ),
                 ),
               ],
             ),
@@ -1612,18 +1622,23 @@ class _VerificarFleteState extends State<VerificarFlete>
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           if (_mostrarFormularioIncidencia)
             ...[]
           else ...[
-            ElevatedButton(
+            ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6),
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+              ),
+              icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+              label: Text(
+                'Guardar',
+                style: TextStyle(color: Colors.black, fontSize: 15),
               ),
               onPressed: () async {
                 if (!_isLoading) {
@@ -1638,35 +1653,24 @@ class _VerificarFleteState extends State<VerificarFlete>
                   });
                 }
               },
-              child: Text(
-                'Guardar',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 15,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
-            SizedBox(width: 20),
-            ElevatedButton(
+            SizedBox(width: 18),
+            ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF222222),
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+              label: Text(
+                'Cancelar',
+                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ],
         ],

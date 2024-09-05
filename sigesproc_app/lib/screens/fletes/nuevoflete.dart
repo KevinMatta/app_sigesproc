@@ -1624,33 +1624,36 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: guardarFlete,
+            icon: Icon(Icons.save, color: Colors.black),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
+            label: Text(
               'Guardar',
               style: TextStyle(color: Colors.black, fontSize: 15),
             ),
           ),
-          ElevatedButton(
+          SizedBox(width: 18),
+          ElevatedButton.icon(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              backgroundColor: Color(0xFF222222),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
-              'Regresar',
+            icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+            label: Text(
+              'Cancelar',
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
