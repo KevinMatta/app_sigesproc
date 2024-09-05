@@ -89,6 +89,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   TabController? _tabController;
   late StreamSubscription<bool> keyboardSubscription;
   bool _isKeyboardVisible = false;
+  bool _cargando = true;
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
       primary: Color(0xFFFFF0C6),
@@ -1030,7 +1031,14 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
       ),
-      body: Container(
+      body: _cargando
+          ? Container(
+              color: Colors.black,
+              child: Center(
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+              ),
+            )
+          : Container(
         color: Colors.black,
         padding: const EdgeInsets.all(16.0),
         child: _mostrarInsumos ? _buildTabsView() : _buildFleteView(),
@@ -1046,6 +1054,10 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   }
 
   Future<void> guardarFlete() async {
+    setState(() {
+      _cargando = true;
+    });
+    try {
     final pref = await SharedPreferences.getInstance();
     flete.usuaCreacion = int.tryParse(pref.getString('usuaId') ?? '');
     flete.flenEstado = false;
@@ -1197,6 +1209,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
     }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
+      );
+    } 
   }
 
   Widget _buildTabsView() {

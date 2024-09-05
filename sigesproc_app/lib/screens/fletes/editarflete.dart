@@ -93,6 +93,7 @@ class _EditarFleteState extends State<EditarFlete>
   TextEditingController actividadControllerLlegada = TextEditingController();
   TabController? _tabController;
   FleteEncabezadoViewModel? fleteOriginal;
+  int? userId;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -126,6 +127,7 @@ class _EditarFleteState extends State<EditarFlete>
   @override
   void initState() {
     super.initState();
+    
     _tabController = TabController(length: 2, vsync: this);
     _cargarEmpleados();
     _cargarBodegas();
@@ -1563,9 +1565,9 @@ class _EditarFleteState extends State<EditarFlete>
         SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
     } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
+      // setState(() {
+      //   _isLoading = false; // Finaliza la carga
+      // });
     }
   }
 
