@@ -8,10 +8,15 @@ import 'menu.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
-import 'appBar.dart'; 
+import 'appBar.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboard.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardFletesTop5ProyectosRelacionados.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardTop5ProyectosPresupuesto.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardFleteIncidenciasMes.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardProyectoIncidenciasMensuales.dart';
 import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
-
+import 'package:sigesproc_app/screens/dashboards/dashboardFletesTop5Bodegas.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardMaximoPresupuestoMes.dart';
 
 class Inicio extends StatefulWidget {
   @override
@@ -22,27 +27,29 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   TabController? _tabController;
   int _unreadCount = 0;
-  int? userId; 
+  int? userId;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
 
-    _loadUserId(); 
+    _loadUserId();
 
-    _loadUserProfileData(); 
+    _loadUserProfileData();
   }
 
   Future<void> _loadUserId() async {
     var prefs = PreferenciasUsuario();
-    userId = int.tryParse(prefs.userId) ?? 0; 
-    
-    _insertarToken(); 
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+    _insertarToken();
 
-    _loadNotifications(); 
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
   }
 
   Future<void> _insertarToken() async {
@@ -59,7 +66,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId!);
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -207,77 +215,57 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildCotizacionesTab() {
+    var prefs = PreferenciasUsuario();
+    String token = prefs.token;
 
-
-
-
-
-
-
-
-
-
-
-
-
-Widget _buildCotizacionesTab() {
-  var prefs = PreferenciasUsuario();
-  String token = prefs.token;
-
-  return Container(
-    color: Colors.black,
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      children: [
-   Row(
-  children: [
-    Expanded(
-      child: Card(
-        color: Color(0xFF171717),
-        child: Container(
-          height: 250, // Aumenta la altura del contenedor
-          child: Padding(
-            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
-            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
+    return Container(
+      color: Colors.black,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Card(
+                  color: Color(0xFF171717),
+                  child: Container(
+                    height: 250, // Aumenta la altura del contenedor
+                    child: Padding(
+                      padding: const EdgeInsets.all(
+                          8.0), // Añade padding si es necesario
+                      child:
+                          TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 1
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 5),
+              Expanded(
+                child: Card(
+                  color: Color(0xFF171717),
+                  child: Container(
+                    height: 250, // Aumenta la altura del contenedor
+                    child: Padding(
+                      padding: const EdgeInsets.all(
+                          8.0), // Añade padding si es necesario
+                      child:
+                          TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 2
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
+
+          SizedBox(height: 10),
+          //  Expanded(
+          //    child: DashboardScreen(),
+          //  ),
+        ],
       ),
-    ),
-    SizedBox(width: 5),
-    Expanded(
-      child: Card(
-        color: Color(0xFF171717),
-        child: Container(
-          height: 250, // Aumenta la altura del contenedor
-          child: Padding(
-            padding: const EdgeInsets.all(8.0), // Añade padding si es necesario
-            child: TopArticlesDashboard(), // Call TopArticlesDashboard in Dashboard 2
-          ),
-        ),
-      ),
-    ),
-  ],
-),
-
-        SizedBox(height: 10),
-        //  Expanded(
-        //    child: DashboardScreen(), 
-        //  ),
-      ],
-    ),
-  );
-}
-
-
-
-
-
-
-
-
-
-
-
+    );
+  }
 
   Widget _buildFletesTab() {
     return Container(
@@ -290,16 +278,12 @@ Widget _buildCotizacionesTab() {
             child: Card(
               color: Color(0xFF171717),
               child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Dashboard 1',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ],
-                  ),
+                height: 250, // Aumenta la altura del contenedor
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      8.0), // Añade padding si es necesario
+                  child:
+                      IncidenceDashboardCard(), // Call IncidenceDashboardCard here
                 ),
               ),
             ),
@@ -309,16 +293,12 @@ Widget _buildCotizacionesTab() {
             child: Card(
               color: Color(0xFF171717),
               child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Dashboard 2',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ],
-                  ),
+                height: 250, // Aumenta la altura del contenedor
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      8.0), // Añade padding si es necesario
+                  child:
+                      TopWarehousesDashboard(), // Call TopArticlesDashboard in Dashboard 1
                 ),
               ),
             ),
@@ -328,16 +308,12 @@ Widget _buildCotizacionesTab() {
             child: Card(
               color: Color(0xFF171717),
               child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Dashboard 3',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ],
-                  ),
+                height: 250, // Aumenta la altura del contenedor
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      8.0), // Añade padding si es necesario
+                  child:
+                      TopProjectsDashboard(), // Call TopArticlesDashboard in Dashboard 1
                 ),
               ),
             ),
@@ -354,70 +330,40 @@ Widget _buildCotizacionesTab() {
       child: SingleChildScrollView(
         child: Column(
           children: [
+            // First dashboard (spans the entire row)
             Row(
               children: [
                 Expanded(
                   child: Card(
                     color: Color(0xFF171717),
                     child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 1',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
+                      height: 300, // Reduced height for the container
+                      child: Padding(
+                        padding: const EdgeInsets.all(
+                            8.0), // Add padding if necessary
+                        child:
+                            TopProjectsBudgetDashboard(), // Call the updated dashboard here
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 5),
-                Expanded(
-                  child: Card(
-                    color: Color(0xFF171717),
-                    child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 2',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                )
               ],
             ),
             SizedBox(height: 10),
+
+            // Dashboard 3 and Dashboard 4
             Row(
               children: [
                 Expanded(
                   child: Card(
                     color: Color(0xFF171717),
                     child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 3',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
+                      height: 130, // Reduced height for the container
+                      child: Padding(
+                        padding: const EdgeInsets.all(
+                            8.0), // Add padding if necessary
+                        child:
+                            IncidenceCostDashboardCard(), // Call the updated dashboard here
                       ),
                     ),
                   ),
@@ -427,110 +373,12 @@ Widget _buildCotizacionesTab() {
                   child: Card(
                     color: Color(0xFF171717),
                     child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 4',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: Card(
-                    color: Color(0xFF171717),
-                    child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 5',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 5),
-                Expanded(
-                  child: Card(
-                    color: Color(0xFF171717),
-                    child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 6',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: Card(
-                    color: Color(0xFF171717),
-                    child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 7',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 5),
-                Expanded(
-                  child: Card(
-                    color: Color(0xFF171717),
-                    child: Container(
-                      height: 200,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Dashboard 8',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15),
-                            ),
-                          ],
-                        ),
+                      height: 130, // Reduced height for the container
+                      child: Padding(
+                        padding: const EdgeInsets.all(
+                            8.0), // Add padding if necessary
+                        child:
+                            ProjectCostDashboardCard(), // Call the updated dashboard here
                       ),
                     ),
                   ),

@@ -3,18 +3,20 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
 
-class TopArticlesDashboard extends StatefulWidget {
+class TopProjectsBudgetDashboard extends StatefulWidget {
   @override
-  _TopArticlesDashboardState createState() => _TopArticlesDashboardState();
+  _TopProjectsBudgetDashboardState createState() =>
+      _TopProjectsBudgetDashboardState();
 }
 
-class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
+class _TopProjectsBudgetDashboardState
+    extends State<TopProjectsBudgetDashboard> {
   late Future<List<DashboardViewModel>> _dashboardData;
 
   @override
   void initState() {
     super.initState();
-    _dashboardData = DashboardService.listarTop5ArticulosComprados();
+    _dashboardData = DashboardService.listarTop5ProyectosMayorPresupuesto();
   }
 
   @override
@@ -44,9 +46,6 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
   }
 
   Widget _buildComparisonBarChartContainer(List<DashboardViewModel> data) {
-    // For demonstration purposes, we'll simulate another data set
-    List<double> engagementRate = [4.2, 10.9, 14.9, 29.3, 33.2, 7.4];
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -59,7 +58,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'Top 5 Artículos más Comprados y Tasa de Compromiso',
+                  'Top 5 Proyectos con Mayor Presupuesto',
                   style: TextStyle(
                     color: const Color(0xFFFFF0C6),
                     fontSize: 12, // Reduced font size
@@ -68,13 +67,14 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                 ),
                 const SizedBox(height: 8.0), // Reduced spacing
                 Container(
+                  width: double.infinity, // Make sure it fills the width
                   height: 200, // Adjusted height for the comparison chart
                   child: SfCartesianChart(
                     primaryXAxis: CategoryAxis(
                       labelStyle: const TextStyle(
                           color: Colors.white, fontSize: 8), // Smaller text
                       title: AxisTitle(
-                        text: 'Artículo',
+                        text: 'Proyecto',
                         textStyle: const TextStyle(
                             color: Colors.white, fontSize: 8), // Smaller text
                       ),
@@ -82,36 +82,18 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                     primaryYAxis: NumericAxis(
                       labelStyle: const TextStyle(
                           color: Colors.white, fontSize: 8), // Smaller text
-                      title: AxisTitle(
-                        text: 'Total Compra / Tasa de Compromiso',
-                        textStyle: const TextStyle(
-                            color: Colors.white, fontSize: 8), // Smaller text
-                      ),
+                      // Removed the 'Presupuesto Total' title here to avoid compression
                     ),
                     legend: Legend(isVisible: true),
                     series: <ChartSeries>[
                       BarSeries<DashboardViewModel, String>(
-                        name: 'Total Compra',
+                        name: ' ',
                         dataSource: data,
                         xValueMapper: (DashboardViewModel item, _) =>
-                            item.articulo ?? '',
+                            item.proy_Nombre ?? '',
                         yValueMapper: (DashboardViewModel item, _) =>
-                            item.totalCompra ?? 0.0,
-                        color: Colors.redAccent, // Adjust the color to red
-                        dataLabelSettings: DataLabelSettings(
-                          isVisible: true,
-                          textStyle: const TextStyle(
-                              color: Colors.white, fontSize: 8), // Smaller text
-                        ),
-                      ),
-                      BarSeries<DashboardViewModel, String>(
-                        name: 'Tasa de Compromiso',
-                        dataSource: data,
-                        xValueMapper: (DashboardViewModel item, int index) =>
-                            item.articulo ?? '',
-                        yValueMapper: (DashboardViewModel item, int index) =>
-                            engagementRate[index], // Using simulated data
-                        color: Colors.cyanAccent, // Adjust the color to cyan
+                            item.presupuestoTotal ?? 0.0,
+                        color: Colors.blueAccent, // Adjust the color to blue
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
                           textStyle: const TextStyle(
