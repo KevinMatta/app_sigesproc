@@ -595,7 +595,7 @@ Widget build(BuildContext context) {
                 icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
                 label: Text(
                   'Cancelar',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
                 ),
               ),
             ],
