@@ -45,21 +45,23 @@ class ViaticosDetService {
     }
   }
 
-  static Future<void> insertarViaticoDet(ViaticoDetViewModel viaticoDet) async {
-    final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Insertar');
-    final response = await http.post(
-      url,
-      headers: {
-        ...ApiService.getHttpHeaders(),
-        "Content-Type": "application/json"
-      },
-      body: json.encode(viaticoDet.toJson()),
-    );
+  static Future<http.Response> insertarViaticoDet(ViaticoDetViewModel viaticoDet) async {
+  final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Insertar');
+  final response = await http.post(
+    url,
+    headers: {
+      ...ApiService.getHttpHeaders(),
+      "Content-Type": "application/json"
+    },
+    body: json.encode(viaticoDet.toJson()),
+  );
 
-    if (response.statusCode != 200) {
-      throw Exception('Error al insertar el detalle del viático');
-    }
+  if (response.statusCode != 200) {
+    throw Exception('Error al insertar el detalle del viático');
   }
+
+  return response;
+}
 
   static Future<void> actualizarViaticoDet(ViaticoDetViewModel viaticoDet) async {
     final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Actualizar');
@@ -104,32 +106,32 @@ class ViaticosDetService {
 
 
   static Future<RespuestaSoloMensaje> uploadImage(PlatformFile imagenControlCalidad, String uniqueFileName) async {
-    final url = Uri.parse('${ApiService.apiUrl}/DocumentoBienRaiz/Subir');
-    final request = http.MultipartRequest('POST', url);
+  final url = Uri.parse('${ApiService.apiUrl}/DocumentoBienRaiz/Subir');
+  final request = http.MultipartRequest('POST', url);
 
-    // Añadir encabezados desde el servicio
-    request.headers.addAll(ApiService.getHttpHeaders());
+  // Añadir encabezados desde el servicio
+  request.headers.addAll(ApiService.getHttpHeaders());
 
-    // Verificar si el path es válido
-    if (imagenControlCalidad.path == null) {
-      print('Error: El archivo de imagen no tiene una ruta válida.');
-      throw Exception('El archivo de imagen no tiene una ruta válida.');
-    }
+  // Verificar si el path es válido
+  if (imagenControlCalidad.path == null) {
+    print('Error: El archivo de imagen no tiene una ruta válida.');
+    throw Exception('El archivo de imagen no tiene una ruta válida.');
+  }
 
-    // Añadir el archivo usando el path
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'file',
-        imagenControlCalidad.path!, // Usamos el path para cargar el archivo
-        filename: uniqueFileName,
-      ),
-    );
+  // Añadir el archivo usando el path
+  request.files.add(
+    await http.MultipartFile.fromPath(
+      'file', // Nombre del campo en tu API
+      imagenControlCalidad.path!, // Usamos el path para cargar el archivo
+      filename: uniqueFileName,
+    ),
+  );
 
-    try {
-      // Enviar la solicitud
-      final response = await request.send();
+  try {
+    // Enviar la solicitud
+    final response = await request.send();
 
-      // Procesar la respuesta
+    // Procesar la respuesta
     if (response.statusCode == 200) {
       final responseData = await response.stream.bytesToString();
       final parsedJson = json.decode(responseData);
@@ -147,10 +149,11 @@ class ViaticosDetService {
     } else {
       throw Exception('Error al subir la imagen. Código de estado: ${response.statusCode}');
     }
-    } catch (e) {
-      print('Error al procesar la imagen: $e');
-      rethrow;
-    }
+  } catch (e) {
+    print('Error al procesar la imagen: $e');
+    rethrow;
   }
+}
+
 
 }

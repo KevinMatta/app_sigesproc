@@ -225,12 +225,12 @@ void _showProjectDetails(ProyectoViewModel proyecto) async {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: Colors.grey[300],
+                    color: Color.fromARGB(255, 18, 16, 16),
                     child: Center(
                       child: Text(
                         'Imagen no disponible',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 16,
                         ),
                       ),
@@ -244,12 +244,12 @@ void _showProjectDetails(ProyectoViewModel proyecto) async {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: Colors.grey[300],
+                        color: Color.fromARGB(255, 18, 16, 16),
                         child: Center(
                           child: Text(
                             'Imagen no disponible',
                             style: TextStyle(
-                              color: Colors.black,
+                              color: Colors.white,
                               fontSize: 16,
                             ),
                           ),

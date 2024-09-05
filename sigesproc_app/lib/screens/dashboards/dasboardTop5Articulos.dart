@@ -40,7 +40,8 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                 );
               } else if (snapshot.hasData) {
                 if (snapshot.data!.length < 5) {
-                  print("No hay suficientes artículos para mostrar los 5 más comprados.");
+                  print(
+                      "No hay suficientes artículos para mostrar los 5 más comprados.");
                 }
 
                 return _buildPieChart(snapshot.data!, constraints);
@@ -66,24 +67,30 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
         child: SfCircularChart(
           title: ChartTitle(
             text: 'Top 5 Artículos más Comprados',
-            textStyle: TextStyle(color: Colors.white, fontSize: 12), // Reducir tamaño del título
+            textStyle: TextStyle(
+                color: Colors.white, fontSize: 12), // Reducir tamaño del título
           ),
           legend: Legend(
             isVisible: true,
             overflowMode: LegendItemOverflowMode.wrap,
             position: LegendPosition.bottom, // Mover la leyenda al fondo
-            textStyle: TextStyle(color: Colors.white, fontSize: 10), // Tamaño reducido
+            textStyle:
+                TextStyle(color: Colors.white, fontSize: 10), // Tamaño reducido
           ),
           series: <CircularSeries>[
             PieSeries<DashboardViewModel, String>(
               dataSource: data,
               xValueMapper: (DashboardViewModel item, _) => item.articulo ?? '',
-              yValueMapper: (DashboardViewModel item, _) => item.totalCompra ?? 0.0,
-              dataLabelMapper: (DashboardViewModel item, _) => '${item.articulo}\n${item.totalCompra}', // Mostrar el nombre arriba del valor
+              yValueMapper: (DashboardViewModel item, _) =>
+                  item.totalCompra ?? 0.0,
+              dataLabelMapper: (DashboardViewModel item, _) =>
+                  '${item.articulo}\n${item.totalCompra}', // Mostrar el nombre arriba del valor
               dataLabelSettings: DataLabelSettings(
                 isVisible: true,
-                labelPosition: ChartDataLabelPosition.outside, // Etiquetas afuera del gráfico
-                textStyle: TextStyle(color: Colors.white, fontSize: 10), // Tamaño más pequeño
+                labelPosition: ChartDataLabelPosition
+                    .outside, // Etiquetas afuera del gráfico
+                textStyle: TextStyle(
+                    color: Colors.white, fontSize: 10), // Tamaño más pequeño
               ),
               explode: true, // Destacar las secciones
               explodeAll: true,
