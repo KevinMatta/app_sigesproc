@@ -454,20 +454,21 @@ Widget build(BuildContext context) {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFFFF0C6),
-                            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFFFF0C6),
+                              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          onPressed: _selectImages,
-                          child: Text(
-                            'Subir Imágenes',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
+                            onPressed: _selectImages,
+                            icon: Icon(Icons.upload_file, color: Colors.black), // Icono de subir archivo
+                            label: Text(
+                              'Subir Imágenes',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          )
                       ],
                     ),
                     SizedBox(height: 20),
@@ -537,10 +538,10 @@ Widget build(BuildContext context) {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-                           ElevatedButton(
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFFFF0C6),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -568,22 +569,22 @@ Widget build(BuildContext context) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Error: $e"),
-                          
                         ),
                       );
                     }
                   }
                 },
-                child: Text(
+                icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+                label: Text(
                   'Guardar',
                   style: TextStyle(color: Colors.black, fontSize: 15),
                 ),
               ),
-              SizedBox(width: 20),              
-              ElevatedButton(
+              SizedBox(width: 18),
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF222222),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -591,11 +592,12 @@ Widget build(BuildContext context) {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text(
+                icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+                label: Text(
                   'Cancelar',
                   style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
-              ), 
+              ),
             ],
           ),
           SizedBox(height: 10),
