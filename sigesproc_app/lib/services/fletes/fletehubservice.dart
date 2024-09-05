@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class FleteHubService {
-   static const String hubUrl = 'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net/fleteHub';
+   static const String hubUrl = 'https://backendsigesproc-production.up.railway.app/fleteHub';
 
   // Crea una instancia del HubConnection
   final HubConnection connection = HubConnectionBuilder()

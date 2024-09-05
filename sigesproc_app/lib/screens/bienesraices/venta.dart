@@ -122,13 +122,15 @@ class _VentaState extends State<Venta> {
 
   Future<void> _loadUserId() async {
     var prefs = PreferenciasUsuario();
-    userId = int.tryParse(prefs.userId) ?? 0; 
-    
-    _insertarToken(); 
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-    context.read<NotificationsBloc>().add(InitializeNotificationsEvent(userId: userId!));
+    _insertarToken();
 
-    _loadNotifications(); 
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
   }
 
   Future<void> _insertarToken() async {
@@ -145,7 +147,8 @@ class _VentaState extends State<Venta> {
 
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId!);
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
@@ -356,9 +359,8 @@ class _VentaState extends State<Venta> {
                   _mostrarFormularioCliente ? _clienteVista() : _ventaVista(),
             ),
       bottomNavigationBar: Padding(
-            padding:  EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom)
-                ,
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: _buildSaveCancelButtons(),
       ),
     );
@@ -395,13 +397,19 @@ class _VentaState extends State<Venta> {
                               .hasMatch(apellidoController.text),
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
-                  _campoDeTextoCliente('Correo Electrónico', correoController,
-                      'Ingrese el correo',
-                      isEmail: true,
-                      showError: _mostrarErrores &&
-                          !RegExp(r'^[^@]+@[^@]+\.[^@]+$')
-                              .hasMatch(correoController.text),
-                      errorMessage: 'El campo es requerido.'),
+                  _campoDeTextoCliente(
+                    'Correo Electrónico',
+                    correoController,
+                    'Ingrese el correo',
+                    isEmail: true,
+                    showError: _mostrarErrores &&
+                        (correoController.text.isEmpty ||
+                            !RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+                                .hasMatch(correoController.text)),
+                    errorMessage: correoController.text.isEmpty
+                        ? 'El campo es requerido.'
+                        : 'Ingrese un correo válido.',
+                  ),
                   SizedBox(height: 10),
                   _campoDeTextoCliente('Teléfono', telefonoclienteController,
                       'Ingrese el teléfono',
@@ -430,11 +438,18 @@ class _VentaState extends State<Venta> {
                     });
                   }),
                   SizedBox(height: 10),
-                  _campoDeTextoCliente('Dirección Exacta', direccionController,
-                      'Ingrese la dirección',
-                      showError:
-                          _mostrarErrores && direccionController.text.isEmpty,
-                      errorMessage: 'El campo es requerido.'),
+                  _campoDeTextoCliente(
+                    'Dirección Exacta',
+                    direccionController,
+                    'Ingrese la dirección',
+                    showError: _mostrarErrores &&
+                        (direccionController.text.isEmpty ||
+                            !RegExp(r'^[a-zA-Z0-9\s,.#-]+$')
+                                .hasMatch(direccionController.text)),
+                    errorMessage: direccionController.text.isEmpty
+                        ? 'El campo es requerido.'
+                        : 'Ingrese una dirección válida.',
+                  ),
                   SizedBox(height: 10),
                   _paisAutocomplete(paisController),
                   SizedBox(height: 10),
@@ -1230,7 +1245,7 @@ class _VentaState extends State<Venta> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () async {
               if (_cargando) return;
               // Activar el spinner al iniciar el guardado
@@ -1374,23 +1389,20 @@ class _VentaState extends State<Venta> {
               }
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFFF0C6),
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              backgroundColor: Color(0xFFFFF0C6),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-            child: Text(
-                'Guardar',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 15,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
+            ),
+            icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+            label: Text(
+              'Guardar',
+              style: TextStyle(color: Colors.black, fontSize: 15),
+            ),
           ),
-          SizedBox(width: 20),
-          ElevatedButton(
+          SizedBox(width: 18),
+          ElevatedButton.icon(
             onPressed: () {
               if (_mostrarFormularioCliente) {
                 setState(() {
@@ -1401,20 +1413,17 @@ class _VentaState extends State<Venta> {
               }
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF222222),
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              backgroundColor: Color(0xFF222222),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-           child: Text(
-                'Regresar',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
+            ),
+            icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+            label: Text(
+              'Cancelar',
+              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+            ),
           ),
         ],
       ),

@@ -649,7 +649,7 @@ class _VerificarFleteState extends State<VerificarFlete>
               ),
               style: TextStyle(color: Colors.white),
             ),
-            SizedBox(height: 20), // Espaciado entre los inputs y los botones
+            SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -665,7 +665,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                     ),
                   ),
                   icon:
-                      Icon(Icons.save, color: Colors.black), // Icono de Guardar
+                      Icon(Icons.save, color: Colors.black),
                   label: Text(
                     'Guardar',
                     style: TextStyle(color: Colors.black, fontSize: 15),
@@ -1627,7 +1627,8 @@ class _VerificarFleteState extends State<VerificarFlete>
           if (_mostrarFormularioIncidencia)
             ...[]
           else ...[
-            ElevatedButton.icon(
+            if(_isLoading)...[
+              ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6),
                 padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -1672,6 +1673,10 @@ class _VerificarFleteState extends State<VerificarFlete>
                 Navigator.pop(context);
               },
             ),
+            ] else... [
+              SizedBox.shrink(),
+            ]
+            
           ],
         ],
       ),

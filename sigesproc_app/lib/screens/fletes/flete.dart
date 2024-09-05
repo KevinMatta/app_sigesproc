@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
@@ -35,10 +36,16 @@ class _FleteState extends State<Flete> {
   int? _flenIdSeleccionado;
   int _unreadCount = 0;
   late int userId;
+  int? emplId;
+  bool? EsAdmin;
+  bool esFletero = false;
+  bool esSupervisorSalida = false;
+  bool esSupervisorLlegada = false;
 
   @override
   void initState() {
     super.initState();
+    _cargarEmpleado();
     var prefs = PreferenciasUsuario();
     userId = int.tryParse(prefs.userId) ?? 0;
     _loadNotifications();
@@ -70,6 +77,15 @@ class _FleteState extends State<Flete> {
     } catch (e) {
       print('Error al cargar notificaciones: $e');
     }
+  }
+
+  Future<void> _cargarEmpleado() async {
+    final pref = await SharedPreferences.getInstance();
+    setState(() {
+      emplId = int.tryParse(pref.getString('emplId') ?? '');
+      EsAdmin = bool.tryParse(pref.getString('EsAdmin') ?? 'false');
+      print('adddmi $EsAdmin');
+    });
   }
 
   void _filterFletes() {
@@ -112,6 +128,10 @@ class _FleteState extends State<Flete> {
   }
 
   TableRow _buildFleteRow(FleteEncabezadoViewModel flete, int index) {
+    esFletero = flete.emtrId == emplId;
+    esSupervisorSalida = flete.emssId == emplId;
+    esSupervisorLlegada = flete.emslId == emplId;
+
     return TableRow(
       children: [
         TableCell(
@@ -157,56 +177,142 @@ class _FleteState extends State<Flete> {
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
                 if (flete.flenEstado == true) ...[
-                  const PopupMenuItem<int>(
-                    value: 0,
-                    child: Text(
-                      'Detalle',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                  if (EsAdmin!) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 1,
-                    child: Text(
-                      'Ver Verificación',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    const PopupMenuItem<int>(
+                      value: 1,
+                      child: Text(
+                        'Verificación',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 2,
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    const PopupMenuItem<int>(
+                      value: 2,
+                      child: Text(
+                        'Eliminar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
+                  ],
+                  if (esFletero) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ],
+                  if (esSupervisorSalida) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                    const PopupMenuItem<int>(
+                      value: 1,
+                      child: Text(
+                        'Verificación',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ],
+                  if (esSupervisorLlegada) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                    const PopupMenuItem<int>(
+                      value: 1,
+                      child: Text(
+                        'Verificación',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ]
                 ] else ...[
-                  const PopupMenuItem<int>(
-                    value: 0,
-                    child: Text(
-                      'Detalle',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                  if (EsAdmin!) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 3,
-                    child: Text(
-                      'Editar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    const PopupMenuItem<int>(
+                      value: 3,
+                      child: Text(
+                        'Editar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 4,
-                    child: Text(
-                      'Verificar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    const PopupMenuItem<int>(
+                      value: 4,
+                      child: Text(
+                        'Verificar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 2,
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    const PopupMenuItem<int>(
+                      value: 2,
+                      child: Text(
+                        'Eliminar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
                     ),
-                  ),
+                  ],
+                  if (esFletero) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ],
+                  if (esSupervisorSalida) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                    const PopupMenuItem<int>(
+                      value: 3,
+                      child: Text(
+                        'Editar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ],
+                  if (esSupervisorLlegada) ...[
+                    const PopupMenuItem<int>(
+                      value: 0,
+                      child: Text(
+                        'Detalle',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                    const PopupMenuItem<int>(
+                      value: 4,
+                      child: Text(
+                        'Verificar',
+                        style: TextStyle(color: Color(0xFFFFF0C6)),
+                      ),
+                    ),
+                  ]
                 ],
               ],
             ),

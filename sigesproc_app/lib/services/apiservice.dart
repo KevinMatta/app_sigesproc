@@ -1,6 +1,6 @@
 class ApiService {
 
-  static const String apiUrl = 'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net/api';
+  static const String apiUrl = 'https://backendsigesproc-production.up.railway.app/api';
   // static const String apiUrl = 'https://localhost:44337/api';
 
   static const String googleApiKey = 'AIzaSyAOiZCVZgs7nw1PHRUFhEMm995sK4nlsD4';

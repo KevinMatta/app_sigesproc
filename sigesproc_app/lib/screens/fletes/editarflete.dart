@@ -1419,7 +1419,7 @@ class _EditarFleteState extends State<EditarFlete>
             bottom: _isKeyboardVisible
                 ? MediaQuery.of(context).viewInsets.bottom
                 : 0),
-        child: _buildBottomBar(),
+        child:_isLoading ? SizedBox.shrink() : _buildBottomBar(),
       ),
     );
   }
