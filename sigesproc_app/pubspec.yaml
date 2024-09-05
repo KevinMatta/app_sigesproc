@@ -92,7 +92,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "lib/assets/logo_black_background.jpg"
+  image_path: "lib/assets/logo_background.png"
 # The following section is specific to Flutter packages.
 flutter:
 
