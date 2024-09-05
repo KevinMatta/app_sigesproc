@@ -44,14 +44,14 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.black), // Color del texto del mensaje
+          style: TextStyle(color: Colors.black), 
         ),
-        backgroundColor: Color(0xFFFFF0C6), // Color de fondo del SnackBar
+        backgroundColor: Color(0xFFFFF0C6), 
         duration: Duration(seconds: 3),
         shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
         ),
-        behavior: SnackBarBehavior.floating, // Para que el SnackBar esté flotante
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -104,7 +104,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
             style: TextStyle(color: Colors.white, fontSize: 16),
           ),
           actions: [
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () async {
                 Navigator.of(context).pop(); 
                 _eliminarNotificacion(napuId); 
@@ -117,9 +117,10 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: Text('Eliminar', style: TextStyle(color: Colors.black)),
+              icon: Icon(Icons.delete, color: Colors.black),
+              label: Text('Eliminar', style: TextStyle(color: Colors.black)),
             ),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.of(context).pop(); 
               },
@@ -131,7 +132,8 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              icon: Icon(Icons.close, color: Color(0xFFFFF0C6)),
+              label: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
             ),
           ],
         );
@@ -145,6 +147,26 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       backgroundColor: Colors.black,  
       appBar: AppBar(
         backgroundColor: Colors.black,
+        leadingWidth: 100, // Aumentar el espacio de la palabra "Regresar"
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+          child: Row(
+            children: [
+              SizedBox(width: 8),
+              Icon(Icons.arrow_back, color: Color(0xFFFFF0C6)),
+              SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  'Regresar',
+                  style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 16),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
         title: Text(
           'Notificaciones',
           style: TextStyle(color: Color(0xFFFFF0C6)),
