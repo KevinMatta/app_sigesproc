@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/services/localNotification/local_notification.dart';
 import '../apiservice.dart';
 import 'package:sigesproc_app/models/acceso/notificacionviewmodel.dart';
 
@@ -155,36 +158,105 @@ static Future<List<String>> ListarTokenAdministradores() async {
 
 
 
+// static Future<void> EnviarNotificacionAAdministradores(String title, String body) async {
+//   try {
+//     List<String> adminTokens = await ListarTokenAdministradores();
+
+//     for (String token in adminTokens) {
+//     final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
+
+//       final response = await http.post(
+//       url,
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode({
+//         'token': [token], 
+//         'data': {
+//           'title': title,
+//           'body': body,
+//         }
+//       }),
+//     );
+
+//       if (response.statusCode != 200) {
+//         print('Error al enviar la notificación a $token: ${response.statusCode}');
+//       } else {
+//         print('Notificación enviada con éxito a $token');
+//       }
+//     }
+//   } catch (e) {
+//     print('Error al enviar la notificación: $e');
+//     throw Exception('Error al enviar la notificación');
+//   }
+// }
+ 
 static Future<void> EnviarNotificacionAAdministradores(String title, String body) async {
   try {
+    // Obtener los tokens de los administradores
     List<String> adminTokens = await ListarTokenAdministradores();
 
-    for (String token in adminTokens) {
-    final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
+    // Obtener el token del dispositivo actual
+    var prefs = PreferenciasUsuario();
+    String currentDeviceToken = prefs.token; // El token del dispositivo actual
 
-      final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'token': [token], 
+    // Asegurarse de que los tokens no estén vacíos
+    if (adminTokens.isNotEmpty) {
+      // Filtrar el token del dispositivo actual de la lista para que no lo reciba desde Firebase
+      adminTokens.remove(currentDeviceToken);
+
+      // Construir la URL
+      final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
+
+      // Crear el cuerpo de la solicitud de notificación para los demás administradores
+      final bodyRequest = jsonEncode({
+        'token': adminTokens, 
         'data': {
           'title': title,
           'body': body,
         }
-      }),
-    );
+      });
 
+      // Enviar la notificación a los demás administradores
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: bodyRequest,
+      );
+
+      // Verificar el estado de la respuesta
       if (response.statusCode != 200) {
-        print('Error al enviar la notificación a $token: ${response.statusCode}');
+        print('Error al enviar la notificación: ${response.statusCode}');
+        print('Respuesta del servidor: ${response.body}');
       } else {
-        print('Notificación enviada con éxito a $token');
+        print('Notificación enviada con éxito a todos los administradores, excepto al dispositivo actual.');
       }
+
+      // Ahora manejamos la notificación para el dispositivo actual manualmente
+      await _enviarNotificacionManualAlDispositivoActual(title, body);
+
+    } else {
+      print('No hay tokens de administradores para enviar la notificación.');
     }
   } catch (e) {
     print('Error al enviar la notificación: $e');
     throw Exception('Error al enviar la notificación');
   }
 }
+
+static Future<void> _enviarNotificacionManualAlDispositivoActual(String title, String body) async {
+  // Lógica para mostrar la notificación manualmente al dispositivo actual usando flutter_local_notifications
+  Random random = Random();
+  var id = random.nextInt(100000);
+  
+  // Usar flutter_local_notifications para mostrar la notificación en el dispositivo actual
+  LocalNotification.showLocalNotification(
+    id: id,
+    title: title,
+    body: body,
+  );
+}
+
+
+ 
  static Future<void> eliminarTokenUsuario(int userId, String token) async {
     final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/EliminarToken?id=$userId&token=$token');
 
@@ -224,6 +296,7 @@ static Future<List<Map<String, dynamic>>> ListarTokenEIdsAdministradores() async
     throw Exception('Error al listar los tokens e IDs de administradores');
   }
 }
+
 Future<void> enviarNotificacionYRegistrarEnBD(String title, String body, int usuarioCreacionId) async {
   try {
     // Obtener la lista de tokens e IDs de los administradores

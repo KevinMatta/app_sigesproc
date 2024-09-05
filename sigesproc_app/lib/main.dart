@@ -8,30 +8,49 @@ import 'package:sigesproc_app/firebase_options.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'package:sigesproc_app/services/localNotification/local_notification.dart';
+import 'dart:math';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-   await PreferenciasUsuario.init();
-     await LocalNotification.initializeLocalNotifications();
- const int userId = 5;
-  runApp(
-  
-MultiBlocProvider(
-  providers: [
-        BlocProvider(create: (context) => NotificationsBloc(userId: userId)),
-  
-  ],
-  child: MyApp(),
-)
-  
-  
-  
+
+  // Manejar mensajes en segundo plano
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Inicializar preferencias del usuario
+  await PreferenciasUsuario.init();
+
+  // Inicializar notificaciones locales
+  await LocalNotification.initializeLocalNotifications();
+
+  // Solicitar permisos para notificaciones locales
+  await LocalNotification.requestPermissionLocalNotifications();
+
+  // Deshabilitar completamente la presentación automática de notificaciones en primer plano
+  FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: false,  // No mostrar notificaciones automáticamente
+    badge: true,
+    sound: true,
   );
-  
+
+  // Configurar el manejo de notificaciones
+  setupFirebaseMessaging();
+
+  // Inicializar el Bloc para las notificaciones
+  const int userId = 5;
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => NotificationsBloc(userId: userId)),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -54,55 +73,80 @@ class MyApp extends StatelessWidget {
       supportedLocales: [
         const Locale('es', 'ES'), // Español
       ],
-      home: Login(), 
+      home: Login(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+// Configuración de Firebase Messaging para manejar notificaciones
+void setupFirebaseMessaging() {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Mensaje recibido en primer plano: ${message.messageId}');
 
-  final String title;
+    // Manejamos todas las notificaciones manualmente en primer plano
+    if (message.notification != null) {
+      var title = message.notification?.title ?? 'Título predeterminado';
+      var body = message.notification?.body ?? 'Mensaje predeterminado';
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+      print('Título recibido: $title');
+      print('Cuerpo recibido: $body');
+
+      // Mostrar notificación localmente con flutter_local_notifications
+      Random random = Random();
+      var id = random.nextInt(100000);
+      LocalNotification.showLocalNotification(
+        id: id,
+        title: title,
+        body: body,
+      );
+    } else if (message.data.isNotEmpty) {
+      // Manejar solo data si no hay notification
+      var title = message.data['title'] ?? 'Título predeterminado';
+      var body = message.data['body'] ?? 'Mensaje predeterminado';
+
+      print('Título de data recibido: $title');
+      print('Cuerpo de data recibido: $body');
+
+      // Mostrar notificación localmente con flutter_local_notifications
+      Random random = Random();
+      var id = random.nextInt(100000);
+      LocalNotification.showLocalNotification(
+        id: id,
+        title: title,
+        body: body,
+      );
+    }
+  });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    print('App abierta desde la notificación: ${message.messageId}');
+    // Maneja la lógica cuando la app se abre desde una notificación
+  });
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+// Función para manejar mensajes en segundo plano
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('Mensaje recibido en segundo plano: ${message.messageId}');
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  if (message.notification != null) {
+    // Firebase ya maneja la notificación automáticamente en segundo plano
+    print('Notificación manejada automáticamente por Firebase.');
+  } else if (message.data.isNotEmpty) {
+    // Si solo se envía data sin notification, manejamos manualmente la notificación
+    var title = message.data['title'] ?? 'Título predeterminado';
+    var body = message.data['body'] ?? 'Mensaje predeterminado';
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    print('Título de data recibido (background): $title');
+    print('Cuerpo de data recibido (background): $body');
+
+    Random random = Random();
+    var id = random.nextInt(100000);
+
+    // Mostrar notificación localmente con flutter_local_notifications
+    LocalNotification.showLocalNotification(
+      id: id,
+      title: title,
+      body: body,
     );
   }
 }
