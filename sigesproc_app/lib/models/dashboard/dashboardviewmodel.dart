@@ -16,6 +16,14 @@ class DashboardViewModel {
   double? totalCompraMes;
   int? numeroCompras;
 
+  //Bienes Raices
+  double? totalVentasMes;
+    int? cantidadVendidosMes;
+   int? agen_Id ;
+    int? cantidadVendida ;
+    String? agen_NombreCompleto ;
+
+
   // Campos para el top 5 de proveedores más cotizados
   int? provId;
   String? provDescripcion;
@@ -67,6 +75,14 @@ class DashboardViewModel {
     this.tipoArticulo,
     this.prov_Id,
     this.prov_Descripcion,
+    //BIENES RAICES
+    required this.agen_NombreCompleto,
+    this.cantidadVendida,
+    this.agen_Id,
+    this.totalVentasMes,
+    this.cantidadVendidosMes,
+
+    //FLETES
     this.destino,
     this.numeroFletes,
     this.proy_Id,
@@ -160,7 +176,19 @@ class DashboardViewModel {
       totalPrestamos: json['totalPrestamos'] as int?,
       totalMontoPrestado: json['totalMontoPrestado'] as double?,
       totalSaldoRestante: json['totalSaldoRestante'] as double?,
+
+
+//BIENES RAICES
+//ventas mensuales
+    totalVentasMes: json['totalVentasMes'] != null? double.tryParse(json['totalVentasMes'].toString()) ?? 0.0: 0.0,
+      cantidadVendidosMes: json['cantidadVendidosMes'] as int?,
+      //agentes
+               agen_Id: json['agen_Id'] as int?,
+
+         cantidadVendida: json['cantidadVendida'] as int?,
+      agen_NombreCompleto: json['agen_NombreCompleto'] as String?
     );
+
   }
 
   Map<String, dynamic> toJson() {
@@ -195,6 +223,16 @@ class DashboardViewModel {
       'totalMontoPrestado': totalMontoPrestado,
       'totalSaldoRestante': totalSaldoRestante,
       'anio': anio,
+            'agen_Id': agen_Id,
+
+      'cantidadVendida': cantidadVendida,
+
+      'agen_NombreCompleto': agen_NombreCompleto,
+
+      'cantidadVendidosMes': cantidadVendidosMes,
+
+      'totalVentasMes': totalVentasMes,
+
     };
   }
 }

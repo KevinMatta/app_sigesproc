@@ -5,6 +5,9 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/CategoriaViaticoViewModel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoDetViewModel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoDetservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
@@ -32,7 +35,8 @@ class _AgregarFacturaState extends State<AgregarFactura> {
   PlatformFile? facturaSeleccionada;
   List<PlatformFile> _uploadedImages = [];
   List<String> _loadedImages = []; // Aquí se almacenan las URLs de las imágenes cargadas
-
+int _unreadCount = 0;
+late int userId;
   String? _descripcionError;
   String? _montoGastadoError;
   String? _montoReconocidoError;
@@ -43,10 +47,23 @@ class _AgregarFacturaState extends State<AgregarFactura> {
   void initState() {
     super.initState();
     _cargarCategorias();
+      var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+
+  _loadNotifications();
     _cargarDetalleViatico(); // Carga las imágenes existentes
     _cargarEsAdmin(); // Cargar si es admin o no
   }
-
+Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
   Future<void> _cargarCategorias() async {
     try {
       categorias = await ViaticosDetService.listarCategoriasViatico();
@@ -424,7 +441,10 @@ Widget _buildCarruselDeImagenes() {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
+      appBar:CustomAppBar(
+  unreadCount: _unreadCount,
+  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
+), AppBar(
         backgroundColor: Colors.black,
         title: Row(
           children: [

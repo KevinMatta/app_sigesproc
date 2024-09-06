@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import '../.././services/apiservice.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -34,49 +35,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     var prefs = PreferenciasUsuario();
     usua_Id = int.tryParse(prefs.userId) ?? 0;
-   _usuaUsuario= prefs.usernombre;
-   _empleado= prefs.usernombre;
-   _usuaUsuario = prefs.nombreusuario;
-   _correo = prefs.userCorreo;
-   _telfono= prefs.userTelefono;
-   _cargo= prefs.userCargo;
+    _usuaUsuario = prefs.usernombre;
+    _empleado = prefs.usernombre;
+    _usuaUsuario = prefs.nombreusuario;
+    _correo = prefs.userCorreo;
+    _telfono = prefs.userTelefono;
+    _cargo = prefs.userCargo;
 
-    String imageUrl2 = prefs.userImagenEmpleado;
-  String baseUrl = "https://localhost:44337/api/Empleado";
-  String imageUrl = "$baseUrl/$imageUrl2";  
-  if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
-    _profileImage = NetworkImage(imageUrl);
-  } else {
-    _profileImage = AssetImage('lib/assets/perfil.jpeg');
-  }
-  _emailController.text = _correo;
-
-  // WidgetsBinding.instance.addPostFrameCallback((_) {
-  //   _fetchUserData();  // Cargar los datos después de que la pantalla se haya renderizado
-  // });
-  }
-
-  // Future<void> _fetchUserData() async {
-  //   try {
-  //     UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
-
-  //     setState(() {
-  //       _usuaUsuario = usuario.usuaUsuario ?? "";
-  //       _empleado = usuario.nombreEmpleado ?? "";
-  //       _correo = usuario.correoEmpleado ?? "";
-  //       _telfono = usuario.telefonoEmpleado ?? "";
-  //       _cargo = usuario.cargoDescripcion ?? "";
-
-  //       _profileImage = (usuario.imagenEmpleado != null && usuario.imagenEmpleado!.isNotEmpty)
-  //           ? NetworkImage(usuario.imagenEmpleado!)
-  //           : AssetImage('lib/assets/perfil.jpeg');
-
-  //       _emailController.text = _correo;
-  //     });
-  //   } catch (e) {
-  //     print("Error al cargar los datos del usuario: $e");
+  //   String imageUrl2 = prefs.userImagenEmpleado;
+  //   final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
+  // // String baseUrl = "https://backendsigesproc-production.up.railway.app/api/Empleado";
+  //   String imageUrl = "$baseUrl$imageUrl2";  
+  //   if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
+  //     _profileImage = NetworkImage(imageUrl);
+  //   } else {
+  //     _profileImage = AssetImage('lib/assets/usuario.jpeg');
   //   }
-  // }
+
+
+String imageUrl2 = prefs.userImagenEmpleado;
+    final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
+    
+    // Verificar si imageUrl2 viene vacío o no es válida
+    if (imageUrl2.isNotEmpty && imageUrl2.startsWith('http')) {
+      String imageUrl = "$baseUrl$imageUrl2";  
+      _profileImage = NetworkImage(imageUrl);
+    } else {
+      // Si viene vacío, usar AssetImage por defecto
+      _profileImage = AssetImage('lib/assets/usuario.jpg');
+    }
+
+    _emailController.text = _correo;
+  }
 
   void _showOverlayMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -159,73 +149,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      _passwordSubmitted = true; 
-                    });
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        setState(() {
+                          _passwordSubmitted = true; 
+                        });
 
-                    if (_currentPasswordController.text.isEmpty ||
-                        _newPasswordController.text.isEmpty ||
-                        _confirmPasswordController.text.isEmpty ||
-                        _machclave) {
-                      
-                      return;
-                    }
+                        if (_currentPasswordController.text.isEmpty ||
+                            _newPasswordController.text.isEmpty ||
+                            _confirmPasswordController.text.isEmpty ||
+                            _machclave) {
+                          
+                          return;
+                        }
 
-                    try {
-                      int? result = await UsuarioService.Restablecerflutter(
-                        usua_Id, 
-                        _currentPasswordController.text,
-                        _newPasswordController.text,
-                      );
+                        try {
+                          int? result = await UsuarioService.Restablecerflutter(
+                            usua_Id, 
+                            _currentPasswordController.text,
+                            _newPasswordController.text,
+                          );
 
-                      Navigator.of(context).pop();
-                      if (result != null && result == 1) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Actualizado con Éxito.')),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Contraseña actual inválida.')),
-                        );
-                      }
-                    } catch (e) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error al actualizar la contraseña.')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFFF0C6), 
-                    textStyle: TextStyle(fontSize: 14), 
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                          Navigator.of(context).pop();
+                          if (result != null && result == 1) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Actualizado con Éxito.')),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Contraseña actual inválida.')),
+                            );
+                          }
+                        } catch (e) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al actualizar la contraseña.')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFFFF0C6), 
+                        textStyle: TextStyle(fontSize: 14), 
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.save, color: Colors.black),
+                          SizedBox(width: 6),
+                          Text('Guardar', style: TextStyle(color: Colors.black)),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: Text('Guardar', style: TextStyle(color: Colors.black)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _currentPasswordController.clear();
-                      _newPasswordController.clear();
-                      _confirmPasswordController.clear();
-                      _passwordSubmitted = false;
-                    });
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black, 
-                    textStyle: TextStyle(fontSize: 14),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _currentPasswordController.clear();
+                          _newPasswordController.clear();
+                          _confirmPasswordController.clear();
+                          _passwordSubmitted = false;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black, 
+                        textStyle: TextStyle(fontSize: 14),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.close, color: Color(0xFFFFF0C6)),
+                          SizedBox(width: 6),
+                          Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                  ],
                 ),
               ],
             );
@@ -251,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return AlertDialog(
           backgroundColor: Color(0xFF171717),
           title: Text('Confirmación', style: TextStyle(color: Colors.white)),
-          content: Text('¿Estás seguro de que quieres cambiar tu correo electrónico?', style: TextStyle(color: Colors.white)),
+          content: Text('¿Estás seguro de querer cambiar tu correo electrónico?', style: TextStyle(color: Colors.white)),
           actions: [
             ElevatedButton(
               onPressed: () async {
@@ -273,14 +282,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFFF0C6), 
-                textStyle: TextStyle(fontSize: 14), 
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                backgroundColor: Color(0xFFFFF0C6),
+                textStyle: TextStyle(fontSize: 15),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: Text('Aceptar', style: TextStyle(color: Colors.black)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.edit, color: Colors.black),
+                  SizedBox(width: 8),
+                  Text('Aceptar', style: TextStyle(color: Colors.black)),
+                ],
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -291,15 +307,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black, 
-                textStyle: TextStyle(fontSize: 14),
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                backgroundColor: Colors.black,
+                textStyle: TextStyle(fontSize: 15),
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-            ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.close, color: Color(0xFFFFF0C6)),
+                  SizedBox(width: 8),
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                ],
+              ),
+            ),      
           ],
         );
       },
@@ -316,10 +339,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
+         
         appBar: AppBar(
-          title: Text('Perfil', style: TextStyle(color: Color(0xFFFFF0C6))),
           backgroundColor: Colors.black,
-          iconTheme: IconThemeData(color: Color(0xFFFFF0C6)), 
+          leadingWidth: 100, 
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop(); // Acción para regresar
+            },
+            child: Row(
+              children: [
+                SizedBox(width: 8), // Espacio inicial para evitar que se corte
+                Icon(Icons.arrow_back, color: Color(0xFFFFF0C6)), // Flecha de regreso
+                SizedBox(width: 4), // Espacio entre el ícono y el texto
+                Text(
+                  'Regresar',
+                  style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 16),
+                  overflow: TextOverflow.visible, // Mostrar el texto completo
+                ),
+              ],
+            ),
+          ),
+          title: Text('Perfil', style: TextStyle(color: Color(0xFFFFF0C6))),
+          centerTitle: true, // Centrar el título
+          iconTheme: IconThemeData(color: Color(0xFFFFF0C6)),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -377,6 +420,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+                  SizedBox(height: 10),
+              TextField(
+                controller: TextEditingController(text: _telfono),
+                style: TextStyle(color: Colors.white),
+                enabled: false,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.phone, color: Colors.white),
+                  filled: true,
+                  fillColor: Color(0xFF171717),
+                  hintText: "Teléfono",
+                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
               SizedBox(height: 10),
               Stack(
                 children: [
@@ -417,23 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: TextEditingController(text: _telfono),
-                style: TextStyle(color: Colors.white),
-                enabled: false,
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.phone, color: Colors.white),
-                  filled: true,
-                  fillColor: Color(0xFF171717),
-                  hintText: "Teléfono",
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
+          
             ],
           ),
         ),

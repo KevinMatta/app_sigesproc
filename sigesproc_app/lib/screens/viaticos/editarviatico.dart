@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
@@ -20,6 +23,8 @@ class EditarViatico extends StatefulWidget {
 }
 
 class _EditarViaticoState extends State<EditarViatico> {
+  int _unreadCount = 0;
+late int userId;
   int _selectedIndex = 5;
   final TextEditingController _montoController = TextEditingController();
 
@@ -40,9 +45,23 @@ class _EditarViaticoState extends State<EditarViatico> {
   @override
   void initState() {
     super.initState();
+      var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+
+  _loadNotifications();
     _loadUserData(); // Cargar el ID del usuario
     _cargarDatosIniciales();
   }
+Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
 
   Future<void> _loadUserData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -175,7 +194,10 @@ class _EditarViaticoState extends State<EditarViatico> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
+      appBar: CustomAppBar(
+  unreadCount: _unreadCount,
+  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
+), AppBar(
         backgroundColor: Colors.black,
         title: Row(
           children: [

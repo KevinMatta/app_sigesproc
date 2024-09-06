@@ -1,8 +1,8 @@
 class ApiService {
-  // static const String apiUrl = 'http://apisigesproc.somee.com/api';
+  // static const String apiUrl = 'https://localhost:44337/api';
   // static const String apiUrl = 'http://nuevobackendsiges.somee.com/api';
 //  static const String apiUrl = 'http://apisigesproc.somee.com/api';
- static const String apiUrl = 'https://backendsigesproc-production.up.railway.app/api';
+
 
 
   // static const String apiUrl =
@@ -10,6 +10,7 @@ class ApiService {
 
   //  static const String apiUrl = 'https://localhost:44337/api';
 
+ static const String apiUrl = 'https://backendsigesproc-production.up.railway.app/api';
   // static const String apiUrl = 'http://apisigesprocmindy.somee.com/api';
 
   static const String googleApiKey = 'AIzaSyAOiZCVZgs7nw1PHRUFhEMm995sK4nlsD4';
