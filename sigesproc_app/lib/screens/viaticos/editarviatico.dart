@@ -175,7 +175,7 @@ Future<void> _loadNotifications() async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Actualizado con éxito')),
       );
-      Navigator.pop(context, true); // Retorna `true` al cerrar la pantalla
+      Navigator.pop(context, true); // Retorna true al cerrar la pantalla
     } catch (e) {
       print('Error al actualizar el viático: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -194,95 +194,10 @@ Future<void> _loadNotifications() async {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: CustomAppBar(
+       appBar: CustomAppBar(
   unreadCount: _unreadCount,
   onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
-), AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50,
-            ),
-            SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start,
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Editar Viático',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-              SizedBox(height: 5),
-      Row(
-        children: [
-          SizedBox(width: 5.0),
-          GestureDetector(
-            onTap: () {
-              // Acción para el botón de "Regresar"
-              Navigator.pop(context);
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0), // Padding superior de 10 píxeles
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.arrow_back,
-                    color: Color(0xFFFFF0C6),
-                  ),
-                  SizedBox(width: 3.0),
-                  Text(
-                    'Regresar',
-                    style: TextStyle(
-                      color: Color(0xFFFFF0C6),
-                      fontSize: 15.0,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
-      ),
+),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
@@ -358,74 +273,55 @@ Future<void> _loadNotifications() async {
     );
   }
 
-
-
-
-Widget _buildBottomButtons() {
-  return Container(
-    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
-      children: [
-        Flexible(
-          child: ElevatedButton.icon(
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
+        children: [
+          ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
               ),
             ),
             onPressed: () {
-              _guardarViatico();
+              _guardarViatico(); // Llamada a la función de guardar viático
             },
-            icon: Icon(Icons.save, color: Colors.black),
-            label: Text(
+            child: Text(
               'Guardar',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 14, // Tamaño de texto más pequeño
+                fontSize: 14, // Reduce el tamaño del texto
               ),
             ),
           ),
-        ),
-        SizedBox(width: 10),
-        Flexible(
-          child: ElevatedButton.icon(
+          SizedBox(width: 10), // Espacio entre los botones
+          ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
               ),
             ),
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: Icon(Icons.close, color: Colors.white),
-            label: Text(
+            child: Text(
               'Cancelar',
               style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 14, // Tamaño de texto más pequeño
+                color: Colors.white,
+                fontSize: 14, // Reduce el tamaño del texto
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-
-
-
-
-
-
-
-
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildDropdownEmpleado() {
     return TypeAheadFormField<EmpleadoViewModel>(

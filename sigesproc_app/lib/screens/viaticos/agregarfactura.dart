@@ -1,3 +1,4 @@
+//AGREGAR FACTURA
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -441,10 +442,7 @@ Widget _buildCarruselDeImagenes() {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar:CustomAppBar(
-  unreadCount: _unreadCount,
-  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
-), AppBar(
+      appBar:AppBar(
         backgroundColor: Colors.black,
         title: Row(
           children: [

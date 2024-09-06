@@ -634,10 +634,6 @@ Future<void> _loadNotifications() async {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
-        appBar: CustomAppBar(
-  unreadCount: _unreadCount,
-  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
-),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,

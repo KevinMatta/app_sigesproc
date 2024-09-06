@@ -456,11 +456,10 @@ Widget _buildBienesTab() {
             ),
           ),
         ),
-        ],
-      ),
-    );
-  }
-
+      ],
+    ),
+  );
+}
   Widget _buildBienesPlanilla() {
     return Container(
       color: Colors.black,
