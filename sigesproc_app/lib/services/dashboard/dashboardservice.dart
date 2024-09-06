@@ -16,12 +16,14 @@ class RespuestaSoloMensaje {
     );
   }
 }
+
 class DashboardService {
   // Method to list top 5 providers
   static Future<List<DashboardViewModel>> listarTop5Proveedores() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5Proveedores');
+    final url =
+        Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5Proveedores');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
- print(response );
+    print(response);
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => DashboardViewModel.fromJson(json)).toList();
@@ -29,8 +31,10 @@ class DashboardService {
       throw Exception('Error al cargar los datos');
     }
   }
-static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5ArticulosCompradoss');
+
+  static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardTop5ArticulosCompradoss');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -54,8 +58,10 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
   // }
 
   // Method to get monthly purchase totals
-  static Future<List<DashboardViewModel>> listarTotalesComprasMensuales() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTotalesComprasMensuales');
+  static Future<List<DashboardViewModel>>
+      listarTotalesComprasMensuales() async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardTotalesComprasMensuales');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -68,7 +74,8 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
 
   // Method to list related projects
   static Future<List<DashboardViewModel>> listarProyectosRelacionados() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardProyectosRelacionados');
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardProyectosRelacionados');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -81,7 +88,8 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
 
   // Method to list top 5 destination warehouses
   static Future<List<DashboardViewModel>> listarTop5BodegasDestino() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5BodegasDestino');
+    final url =
+        Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5BodegasDestino');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -94,7 +102,8 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
 
   // Method to get freight incidence rates
   static Future<List<DashboardViewModel>> listarFletesTasaIncidencias() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardFletesTasaIncidencias');
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardFletesTasaIncidencias');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -107,7 +116,8 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
 
   // Method to list sales by agent
   static Future<List<DashboardViewModel>> listarVentasPorAgente() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardVentasPorAgente');
+    final url =
+        Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardVentasPorAgente');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -120,7 +130,8 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
 
   // Method to list lands by month
   static Future<List<DashboardViewModel>> listarTerrenosPorMees() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTerrenosPorMees');
+    final url =
+        Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTerrenosPorMees');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -132,8 +143,10 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
   }
 
   // Method to list top 5 projects with the highest budget
-  static Future<List<DashboardViewModel>> listarTop5ProyectosMayorPresupuesto() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5ProyectosMayorPresupuesto');
+  static Future<List<DashboardViewModel>>
+      listarTop5ProyectosMayorPresupuesto() async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardTop5ProyectosMayorPresupuesto');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -145,8 +158,10 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
   }
 
   // Method to list project details by department
-  static Future<DashboardViewModel> listarProyectosPorDepartamentoDetalle(int id) async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardProyectosPorDepartamentoteDetalle/$id');
+  static Future<DashboardViewModel> listarProyectosPorDepartamentoDetalle(
+      int id) async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardProyectosPorDepartamentoteDetalle/$id');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -158,11 +173,63 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
 
   // Method to list debts by employee
   static Future<DashboardViewModel> listarDeudasPorEmpleado(int id) async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardDeudasPorEmpleado/$id');
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardDeudasPorEmpleado/$id');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       return DashboardViewModel.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<DashboardViewModel>> listarTop5Bancos() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5Bancos');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<DashboardViewModel>> listarPrestamosViaticosMes() async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardPrestamoViaticosMes');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<DashboardViewModel>> listarPrestamosMesDias() async {
+    final url =
+        Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardPrestamoMes');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<DashboardViewModel>> ProyectosPorDepartamento() async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardProyectosPorDepartamentos');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
     } else {
       throw Exception('Error al cargar los datos');
     }

@@ -61,7 +61,7 @@ class _TopProjectsBudgetDashboardState
                   'Top 5 Proyectos con Mayor Presupuesto',
                   style: TextStyle(
                     color: const Color(0xFFFFF0C6),
-                    fontSize: 12, // Reduced font size
+                    fontSize: 11, // Reduced font size
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -93,11 +93,21 @@ class _TopProjectsBudgetDashboardState
                             item.proy_Nombre ?? '',
                         yValueMapper: (DashboardViewModel item, _) =>
                             item.presupuestoTotal ?? 0.0,
-                        color: Colors.blueAccent, // Adjust the color to blue
+                        pointColorMapper: (DashboardViewModel item, index) {
+                          // Asignar diferentes colores a cada barra
+                          List<Color> barColors = [
+                            Colors.blueAccent,
+                            Colors.redAccent,
+                            Colors.greenAccent,
+                            Colors.orangeAccent,
+                            Colors.purpleAccent
+                          ];
+                          return barColors[index % barColors.length];
+                        },
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
-                          textStyle: const TextStyle(
-                              color: Colors.white, fontSize: 8), // Smaller text
+                          textStyle:
+                              const TextStyle(color: Colors.white, fontSize: 8),
                         ),
                       ),
                     ],

@@ -3,7 +3,9 @@ class DashboardViewModel {
   double? totalCompra;
   String? tipoArticulo;
   int? prov_Id;
+  int? anio;
   String? prov_Descripcion;
+
   //FLETES
   //top 5 bodegas
   String? destino; // Total de la compra (double)
@@ -35,13 +37,36 @@ class DashboardViewModel {
   int? costoIncidenciaMensuales;
 
   //top 5 proyectos con mayor presupuesto
+
+  //Planilla
+
+  //Top 5 bancos
+  String? banco;
+  int? numeroAcreditaciones;
+
+  //Prestamo viatico
+  double? totalGastado;
+  double? montoEstimado;
+  int? cantidadViaticos;
+
+  //Prestamo Mes Dia
+  int? dia;
+  int? totalPrestamos;
+  double? totalMontoPrestado;
+  double? totalSaldoRestante;
+
+  //proyectos por departamento
+  int? cantidad_Proyectos;
+  String? esta_Nombre;
+
   DashboardViewModel({
+    this.esta_Nombre,
+    this.cantidad_Proyectos,
     this.articulo,
     this.totalCompra,
     this.tipoArticulo,
     this.prov_Id,
     this.prov_Descripcion,
-    //FLETES
     this.destino,
     this.numeroFletes,
     this.proy_Id,
@@ -57,6 +82,16 @@ class DashboardViewModel {
     this.provId,
     this.provDescripcion,
     this.numeroDeCotizaciones,
+    this.banco,
+    this.numeroAcreditaciones,
+    this.totalGastado,
+    this.montoEstimado,
+    this.cantidadViaticos,
+    this.dia,
+    this.totalPrestamos,
+    this.totalMontoPrestado,
+    this.totalSaldoRestante,
+    this.anio,
   });
 
   // Método para transformar el número del mes en el nombre del mes
@@ -86,8 +121,11 @@ class DashboardViewModel {
           json['prov_Descripcion'] ?? '', // Use empty string if null
 
       prov_Id: json['prov_Id'] ?? 0, // Default to 0 if null
+      cantidad_Proyectos:
+          json['cantidad_Proyectos'] ?? 0, // Default to 0 if null
 
       destino: json['destino'] ?? '', // Use empty string if null
+      esta_Nombre: json['esta_Nombre'] ?? '', // Use empty string if null
       numeroFletes: json['numeroFletes'] ?? 0, // Default to 0 if null
       proy_Id: json['proy_Id'] ?? 0,
       proy_Nombre: json['proy_Nombre'] ?? '',
@@ -108,17 +146,27 @@ class DashboardViewModel {
           ? double.tryParse(json['totalCompraMes'].toString()) ?? 0.0
           : 0.0,
       numeroCompras: json['numeroCompras'] as int?,
-
+      anio: json['anio'] as int?,
       // Campos para proveedores
       provId: json['prov_Id'] as int?,
       provDescripcion: json['prov_Descripcion'] as String?,
       numeroDeCotizaciones: json['numeroDeCotizaciones'] as int?,
+      banco: json['banco'] as String?,
+      numeroAcreditaciones: json['numeroAcreditaciones'] as int?,
+      totalGastado: json['totalGastado'] as double?,
+      montoEstimado: json['montoEstimado'] as double?,
+      cantidadViaticos: json['cantidadViaticos'] as int?,
+      dia: json['dia'] as int?,
+      totalPrestamos: json['totalPrestamos'] as int?,
+      totalMontoPrestado: json['totalMontoPrestado'] as double?,
+      totalSaldoRestante: json['totalSaldoRestante'] as double?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'articulo': articulo,
+      'esta_Nombre': esta_Nombre,
       'totalCompra': totalCompra,
       'tipoArticulo': tipoArticulo,
       'destino': destino,
@@ -136,6 +184,17 @@ class DashboardViewModel {
       'prov_Id': provId,
       'prov_Descripcion': provDescripcion,
       'numeroDeCotizaciones': numeroDeCotizaciones,
+      'banco': banco,
+      'numeroAcreditaciones': numeroAcreditaciones,
+      'totalGastado': totalGastado,
+      'montoEstimado': montoEstimado,
+      'cantidad_Proyectos': cantidad_Proyectos,
+      'cantidadViaticos': cantidadViaticos,
+      'dia': dia,
+      'totalPrestamos': totalPrestamos,
+      'totalMontoPrestado': totalMontoPrestado,
+      'totalSaldoRestante': totalSaldoRestante,
+      'anio': anio,
     };
   }
 }

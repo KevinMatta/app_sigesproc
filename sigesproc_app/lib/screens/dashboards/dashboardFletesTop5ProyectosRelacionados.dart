@@ -70,7 +70,7 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
                   'Top 5 Proyectos con más Fletes Recibidos',
                   style: TextStyle(
                     color: const Color(0xFFFFF0C6),
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

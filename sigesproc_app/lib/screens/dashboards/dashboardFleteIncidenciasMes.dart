@@ -9,20 +9,20 @@ class IncidenceDashboardCard extends StatelessWidget {
   // Helper function to convert month number to month name (in this case September)
   String getMonthName(int monthNumber) {
     List<String> monthNames = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre'
+      'ENERO',
+      'FEBRERO',
+      'MARZO',
+      'ABRIL',
+      'MAYO',
+      'JUNIO',
+      'JULIO',
+      'AGOSTO',
+      'SEPTIEMBRE',
+      'OCTUBRE',
+      'NOVIEMBRE',
+      'DICIEMBRE'
     ];
-    return monthNames[monthNumber - 1]; // Adjust for 0-indexed list
+    return monthNames[monthNumber - 1];
   }
 
   @override
@@ -52,14 +52,14 @@ class IncidenceDashboardCard extends StatelessWidget {
                 Text(
                   'Tasa de Incidencias - ${getMonthName(hardcodedMonth)}',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                    color: Color(0xFFFFF0C6),
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 9),
             // Display total incidences for the month with an icon
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -80,12 +80,11 @@ class IncidenceDashboardCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            // Display total freights for the month with an icon
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.local_shipping, // Freight icon
+                  Icons.local_shipping,
                   color: Colors.greenAccent,
                   size: 18,
                 ),

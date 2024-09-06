@@ -54,7 +54,7 @@ class IncidenceCostDashboardCard extends StatelessWidget {
                   child: Text(
                     'Incidencias - ${getMonthName(hardcodedMonth)}',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFFFFF0C6),
                       fontSize: 9, // Smaller text
                       fontWeight: FontWeight.bold,
                     ),
