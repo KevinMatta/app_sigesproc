@@ -1,176 +1,71 @@
-// NUEVO VIATICO
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
-import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
-import 'package:shared_preferences/shared_preferences.dart';  // Importa SharedPreferences
 import '../menu.dart';
 
 class NuevoViatico extends StatefulWidget {
   @override
   _NuevoViaticoState createState() => _NuevoViaticoState();
 }
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final int unreadCount;
-  final Function onNotificationsUpdated;
-
-  CustomAppBar({required this.unreadCount, required this.onNotificationsUpdated});
-
-  @override
-  
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.black,
-      title: Row(
-        children: [
-          Image.asset(
-            'lib/assets/logo-sigesproc.png',
-            height: 50, // Ajusta la altura si es necesario
-          ),
-          SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
-          Expanded(
-            child: Text(
-              'SIGESPROC',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 20,
-              ),
-              textAlign: TextAlign.start, // Alinea el texto a la izquierda
-            ),
-          ),
-        ],
-      ),
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
-        child: Column(
-          children: [
-            Text(
-              'Nuevo Viático',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 4.0),
-            Container(
-              height: 2.0,
-              color: Color(0xFFFFF0C6),
-            ),
-            SizedBox(height: 5),
-            Row(
-              children: [
-                SizedBox(width: 5.0),
-                GestureDetector(
-                  onTap: () {
-                    // Acción para el botón de "Regresar"
-                    Navigator.pop(context);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: Color(0xFFFFF0C6),
-                        ),
-                        SizedBox(width: 3.0),
-                        Text(
-                          'Regresar',
-                          style: TextStyle(
-                            color: Color(0xFFFFF0C6),
-                            fontSize: 15.0,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-      actions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.notifications),
-          onPressed: () {
-            onNotificationsUpdated(); // Llama a la función para actualizar las notificaciones
-          },
-        ),
-        IconButton(
-          icon: Icon(Icons.person),
-          onPressed: () {
-            // Acción para el perfil
-          },
-        ),
-      ],
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.fromHeight(100.0); // Ajusta el tamaño según sea necesario
-}
-
-
-
 
 class _NuevoViaticoState extends State<NuevoViatico> {
   int _selectedIndex = 5;
   DateTime _fechaEmision = DateTime.now();
-  int? _usuarioCreacion; // ID del usuario que crea el viático, ahora puede ser nulo hasta que se cargue
+  int? _usuarioCreacion;
   TextEditingController _montoController = TextEditingController();
-
   EmpleadoViewModel? _selectedEmpleado;
   ProyectoViewModel? _selectedProyecto;
 
   List<EmpleadoViewModel> _empleados = [];
   List<ProyectoViewModel> _proyectos = [];
-int _unreadCount = 0;
-late int userId;
-  // Variables para mostrar mensajes de error
+  int _unreadCount = 0;
+  late int userId;
+
   String? _empleadoError;
   String? _proyectoError;
   String? _montoError;
-  bool _isSaving = false; // Bandera para prevenir duplicación
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData(); // Cargar datos del usuario
+    _loadUserData();
     _cargarEmpleados();
     _cargarProyectos();
     var prefs = PreferenciasUsuario();
-  userId = int.tryParse(prefs.userId) ?? 0;
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-  _loadNotifications;
+    _loadNotifications();
   }
 
   Future<void> _loadUserData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _usuarioCreacion = int.tryParse(prefs.getString('usuaId') ?? ''); // Obtener el ID del usuario desde SharedPreferences
+      _usuarioCreacion = int.tryParse(prefs.getString('usuaId') ?? '');
     });
   }
-Future<void> _loadNotifications() async {
-  try {
-    final notifications = await NotificationServices.BuscarNotificacion(userId);
-    setState(() {
-      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
-    });
-  } catch (e) {
-    print('Error al cargar notificaciones: $e');
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications = await NotificationServices.BuscarNotificacion(userId);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
-}
+
   Future<void> _cargarEmpleados() async {
     try {
       List<EmpleadoViewModel> empleadosList = await EmpleadoService.listarEmpleados();
@@ -194,10 +89,10 @@ Future<void> _loadNotifications() async {
   }
 
   void _guardarViatico() async {
-    if (_isSaving) return; // Prevenir múltiples llamadas
+    if (_isSaving) return;
 
     setState(() {
-      _isSaving = true; // Activar el estado de guardado
+      _isSaving = true;
       _empleadoError = _selectedEmpleado == null ? 'El campo es requerido' : null;
       _proyectoError = _selectedProyecto == null ? 'El campo es requerido' : null;
       _montoError = _montoController.text.isEmpty ? 'El campo es requerido' : null;
@@ -205,7 +100,7 @@ Future<void> _loadNotifications() async {
 
     if (_empleadoError != null || _proyectoError != null || _montoError != null || _usuarioCreacion == null) {
       setState(() {
-        _isSaving = false; // Desactivar el estado de guardado si hay errores
+        _isSaving = false;
       });
       return;
     }
@@ -224,7 +119,7 @@ Future<void> _loadNotifications() async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Insertado con Éxito.')),
       );
-      Navigator.pop(context, true); // Devolver true para indicar que se ha guardado correctamente
+      Navigator.pop(context, true);
     } catch (e) {
       print('Error al guardar el viático: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -232,7 +127,7 @@ Future<void> _loadNotifications() async {
       );
     } finally {
       setState(() {
-        _isSaving = false; // Desactivar el estado de guardado
+        _isSaving = false;
       });
     }
   }
@@ -243,97 +138,200 @@ Future<void> _loadNotifications() async {
     });
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.transparent,
-    appBar: CustomAppBar(
-      unreadCount: _unreadCount,
-      onNotificationsUpdated: _loadNotifications,
-    ),
-    drawer: MenuLateral(
-      selectedIndex: _selectedIndex,
-      onItemSelected: _onItemTapped,
-    ),
-    body: Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Card(
-            color: Color(0xFF171717),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png', // Asegúrate de tener el logo
+              height: 40,
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+            SizedBox(width: 10),
+            Text(
+              'SIGESPROC',
+              style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 18),
+            ),
+          ],
+        ),
+        actions: [
+          // Botón de notificaciones con el ícono amarillo claro
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications, color: Color(0xFFFFF0C6)),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificacionesScreen(),
+                    ),
+                  );
+                  if (result != null) {
+                    _loadNotifications();
+                  }
+                },
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: BoxConstraints(
+                      minWidth: 12,
+                      minHeight: 12,
+                    ),
+                    child: Text(
+                      '$_unreadCount',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // Botón de perfil con el ícono amarillo claro
+          IconButton(
+            icon: Icon(Icons.person, color: Color(0xFFFFF0C6)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+        iconTheme: IconThemeData(color: Color(0xFFFFF0C6)),
+      ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
+      ),
+      body: Container(
+        color: Colors.black,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDropdownEmpleado(),
-                  if (_empleadoError != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: Text(
-                        _empleadoError!,
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
+                  Text(
+                    'Nuevo Viático',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  SizedBox(height: 20),
-                  _buildDropdownProyecto(),
-                  if (_proyectoError != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: Text(
-                        _proyectoError!,
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
-                  SizedBox(height: 20),
-                  _buildMontoTextField(),
-                  if (_montoError != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 5.0),
-                      child: Text(
-                        _montoError!,
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
+                  ),
+                  SizedBox(height: 4.0),
+                  Container(
+                    height: 2.0,
+                    color: Color(0xFFFFF0C6),
+                  ),
                 ],
               ),
             ),
-          ),
-          Spacer(), // Añade un espacio flexible para empujar los botones hacia abajo
-          _buildBottomButtons(), // Los botones personalizados al final
-        ],
+            // Botón de "Regresar" debajo del título "Nuevo Viático"
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.arrow_back,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                    SizedBox(width: 5.0),
+                    Text(
+                      'Regresar',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 15.0,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 10.0),
+            Card(
+              color: Color(0xFF171717),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDropdownEmpleado(),
+                    if (_empleadoError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _empleadoError!,
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+                    _buildDropdownProyecto(),
+                    if (_proyectoError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _proyectoError!,
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+                    _buildMontoTextField(),
+                    if (_montoError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Text(
+                          _montoError!,
+                          style: TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Spacer(),
+            _buildBottomButtons(),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-
-
-
-
-
-
-
-
-
-
-
-Widget _buildBottomButtons() {
-  return Container(
-    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
-      children: [
-        Flexible(
-          child: ElevatedButton.icon(
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -341,22 +339,19 @@ Widget _buildBottomButtons() {
             onPressed: () {
               _guardarViatico();
             },
-            icon: Icon(Icons.save, color: Colors.black),
-            label: Text(
+            child: Text(
               'Guardar',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 14, // Tamaño de texto más pequeño
+                fontSize: 14,
               ),
             ),
           ),
-        ),
-        SizedBox(width: 10),
-        Flexible(
-          child: ElevatedButton.icon(
+          SizedBox(width: 10),
+          ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -364,29 +359,24 @@ Widget _buildBottomButtons() {
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: Icon(Icons.close, color: Colors.white),
-            label: Text(
+            child: Text(
               'Cancelar',
               style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 14, // Tamaño de texto más pequeño
+                color: Colors.white,
+                fontSize: 14,
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildDropdownEmpleado() {
     return TypeAheadFormField<EmpleadoViewModel>(
       textFieldConfiguration: TextFieldConfiguration(
         controller: TextEditingController(
-            text: _selectedEmpleado?.emplDNI ?? ''), // Inicializa con DNI
+            text: _selectedEmpleado?.emplDNI ?? ''),
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: 'Identidad Empleado',
@@ -439,7 +429,7 @@ Widget _buildBottomButtons() {
     return TypeAheadFormField<ProyectoViewModel>(
       textFieldConfiguration: TextFieldConfiguration(
         controller: TextEditingController(
-            text: _selectedProyecto?.proyNombre ?? ''), // Inicializa con el nombre del proyecto
+            text: _selectedProyecto?.proyNombre ?? ''),
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: 'Proyecto',
