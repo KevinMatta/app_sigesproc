@@ -3,9 +3,13 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/viaticos/agregarfactura.dart';
 import 'package:sigesproc_app/screens/viaticos/editarviatico.dart';
 import 'package:sigesproc_app/screens/viaticos/nuevoviatico.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
 
@@ -25,14 +29,37 @@ class _ViaticoState extends State<Viatico> {
   bool _isLoading = false;
   bool _usuarioEsAdm = false; // Inicializa como no administrador por defecto
   String? _usuaId;
-
+int _unreadCount = 0;
+  String _abreviaturaMoneda = "L";
+late int userId;
   @override
   void initState() {
+      var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+  _loadNotifications();
+
     super.initState();
     _loadUserData();
     _searchController.addListener(_filterViaticos);
   }
-
+  String formatNumber(int value) {
+  final NumberFormat formatter = NumberFormat('#,##0', 'es_ES');
+  return formatter.format(value);
+}
+  Future<void> _loadData() async {
+    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar los nuevos datos
+  }
+Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
   Future<void> _loadUserData() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   setState(() {
@@ -167,15 +194,14 @@ class _ViaticoState extends State<Viatico> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildDetailRow('No.', viatico.vienId?.toString() ?? 'N/A'),
-                    _buildDetailRow('Monto Estimado', 'LPS ${viatico.vienMontoEstimado?.toStringAsFixed(2) ?? 'N/A'}'),
-                    _buildDetailRow('Total Gastado', 'LPS ${viatico.vienTotalGastado?.toStringAsFixed(2) ?? 'N/A'}'),
-                    SizedBox(height: 16),
+                    _buildDetailRow('Monto Estimado','$_abreviaturaMoneda ${formatNumber(viatico.vienMontoEstimado ?? 0)}',),
+                    _buildDetailRow('Total Gastado','$_abreviaturaMoneda ${formatNumber(viatico.vienTotalGastado ?? 0)}',),                    SizedBox(height: 16),
                     _buildDetailRow('Fecha Emisión', viatico.vienFechaEmicion != null ? DateFormat('yyyy-MM-dd').format(viatico.vienFechaEmicion!) : 'N/A'),
                     _buildDetailRow('Colaborador', viatico.empleado ?? 'N/A'),
                     _buildDetailRow('Proyecto', viatico.proyecto ?? 'N/A'),
                     SizedBox(height: 16),
-                    _buildDetailRow('Total Reconocido', 'LPS ${viatico.vienTotalReconocido?.toStringAsFixed(2) ?? 'N/A'}'),
-                  ],
+                    _buildDetailRow('Total Reconocido','$_abreviaturaMoneda ${formatNumber(viatico.vienTotalReconocido ?? 0)}',),
+                                      ],
                 ),
                 actions: [
                   TextButton(
@@ -608,59 +634,10 @@ class _ViaticoState extends State<Viatico> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50,
-            ),
-            SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start,
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Viáticos',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
-      ),
+        appBar: CustomAppBar(
+  unreadCount: _unreadCount,
+  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
+),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,

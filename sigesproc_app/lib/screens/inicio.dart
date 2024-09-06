@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/dashboards/DashboardVentasPorAgente.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardCompraMesActual.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardProyectoIncidenciasMensuales.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
@@ -18,6 +19,8 @@ import 'package:sigesproc_app/screens/dashboards/dashboardFleteIncidenciasMes.da
 import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardFletesTop5Bodegas.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardMaximoPresupuestoMes.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardVentaBienRaiz .dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardVentaTerreno.dart';
 
 class Inicio extends StatefulWidget {
   @override
@@ -217,31 +220,26 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   }
 
   Widget _buildCotizacionesTab() {
-    var prefs = PreferenciasUsuario();
-    String token = prefs.token;
-
-    return SingleChildScrollView(
+  
+    return Container(
       child: Container(
         color: Colors.black,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Card(
-              color: Color(0xFF171717),
-              child: Container(
-                height: 150,
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child:
-                      DashboardCompraMesActual(), // Componente nuevo para compras del mes
-                ),
-              ),
-            ),
+        Card(
+  color: Color(0xFF171717),
+  child: Padding(
+    padding: const EdgeInsets.all(1.0),
+    child: DashboardCompraMesActual(), // Componente nuevo para compras del mes
+  ),
+   ),
+
             SizedBox(height: 10),
             Card(
               color: Color(0xFF171717),
               child: Container(
-                height: 250,
+                height: 270,
                 child: Padding(
                   padding: const EdgeInsets.all(1.0),
                   child:
@@ -253,12 +251,12 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
             Card(
               color: Color(0xFF171717),
               child: Container(
-                height: 250,
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
+                height: 230,
+                padding: const EdgeInsets.all(
+                      8.0),
                   child:
                       TopProveedoresDashboard(), // Gráfico de los top 5 proveedores
-                ),
+              
               ),
             ),
           ],
@@ -391,95 +389,54 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildBienesTab() {
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 1',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 5),
-              Expanded(
-                child: Card(
-                  color: Color(0xFF171717),
-                  child: Container(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Dashboard 2',
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: Card(
-              color: Color(0xFF171717),
-              child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Dashboard 3',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ],
-                  ),
+Widget _buildBienesTab() {
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Card(
+                color: Color(0xFF171717),
+                child: Container(
+                  height: 200,
+                    padding: const EdgeInsets.all(
+                      8.0), 
+                  child: DashboardVentaBienRaiz(), // Dashboard de Bienes Raíces
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: Card(
-              color: Color(0xFF171717),
-              child: Container(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Dashboard 4',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ],
-                  ),
+            SizedBox(width: 5),
+            Expanded(
+              child: Card(
+                color: Color(0xFF171717),
+                child: Container(
+                  height: 200,
+                    padding: const EdgeInsets.all(
+                      8.0), 
+                  child: DashboardVentaTerreno(), // Nuevo Dashboard de Terrenos
                 ),
               ),
             ),
+          ],
+        ),
+        SizedBox(height: 10),
+        Expanded(
+          child: Card(
+            color: Color(0xFF171717),
+            child: Container(
+              height: 200,
+                padding: const EdgeInsets.all(
+                      8.0),  // Ajusta la altura si es necesario
+              child: DashboardVentasPorAgente(), // Dashboard de Ventas por Agente (nuevo gráfico circular)
+            ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 }
