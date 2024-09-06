@@ -3,20 +3,20 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
 
-class TopProveedoresDashboard extends StatefulWidget {
+class DashboardVentasPorAgente extends StatefulWidget {
   @override
-  _TopProveedoresDashboardState createState() => _TopProveedoresDashboardState();
+  _DashboardVentasPorAgenteState createState() => _DashboardVentasPorAgenteState();
 }
 
-class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
+class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
   late Future<List<DashboardViewModel>> _dashboardData;
-  TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true);
+  TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true); // Habilitar tooltip
   List<bool> _selectedSections = [true, true, true, true, true]; // Control de las secciones activadas/desactivadas
 
   @override
   void initState() {
     super.initState();
-    _dashboardData = DashboardService.listarTop5Proveedores();
+    _dashboardData = DashboardService.listarVentasPorAgente(); // Llamada al servicio
   }
 
   @override
@@ -43,7 +43,7 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
                   );
                 } else if (snapshot.hasData) {
                   if (snapshot.data!.length < 5) {
-                    print("No hay suficientes proveedores para mostrar los 5 más cotizados.");
+                    print("No hay suficientes agentes para mostrar.");
                   }
                   return _buildPieChart(snapshot.data!, constraints);
                 } else {
@@ -62,17 +62,17 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
 
   Widget _buildPieChart(
       List<DashboardViewModel> data, BoxConstraints constraints) {
-    // Calcular el total de cotizaciones
-    int totalCotizaciones = data.fold(0, (sum, item) => sum + (item.numeroDeCotizaciones ?? 0));
+    // Calcular el total de ventas
+    int totalVentas = data.fold(0, (sum, item) => sum + (item.cantidadVendida ?? 0));
 
     return Column(
       children: [
         Container(
-          height: constraints.maxHeight * 0.70,
-          width: constraints.maxWidth * 0.95, // Usamos el mismo ancho que el otro gráfico
+          height: constraints.maxHeight * 0.70, // Ajustamos el tamaño del gráfico
+          width: constraints.maxWidth * 0.95, // Usamos el mismo ancho que en el otro gráfico
           child: SfCircularChart(
             title: ChartTitle(
-              text: 'Top 5 Proveedores más Cotizados',
+              text: 'Ventas por Agente',
               textStyle: TextStyle(
                   color: Colors.white, fontSize: 10), // Reducir tamaño del título
             ),
@@ -80,11 +80,11 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
             series: <CircularSeries>[
               PieSeries<DashboardViewModel, String>(
                 dataSource: data,
-                xValueMapper: (DashboardViewModel item, index) => item.provDescripcion ?? '',
+                xValueMapper: (DashboardViewModel item, index) => item.agen_NombreCompleto ?? '',
                 yValueMapper: (DashboardViewModel item, index) =>
-                    _selectedSections[index] ? item.numeroDeCotizaciones ?? 0 : 0, // Mostrar solo las secciones seleccionadas
+                    _selectedSections[index] ? item.cantidadVendida ?? 0 : 0, // Mostrar solo las secciones seleccionadas
                 dataLabelMapper: (DashboardViewModel item, _) {
-                  double percentage = ((item.numeroDeCotizaciones ?? 0) / totalCotizaciones) * 100;
+                  double percentage = ((item.cantidadVendida ?? 0) / totalVentas) * 100;
                   return '${percentage.toStringAsFixed(2)}%'; // Mostrar porcentaje
                 },
                 dataLabelSettings: DataLabelSettings(
@@ -133,7 +133,7 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
                     ),
                     SizedBox(width: 4),
                     Text(
-                      data[index].provDescripcion ?? '',
+                      data[index].agen_NombreCompleto ?? '',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,

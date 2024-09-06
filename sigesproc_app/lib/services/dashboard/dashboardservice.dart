@@ -118,6 +118,35 @@ static Future<List<DashboardViewModel>> listarTop5ArticulosComprados() async {
     }
   }
 
+
+  static Future<List<DashboardViewModel>> ventamensualbienraiz() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardVentaMensualBienRaiz');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+
+
+
+    static Future<List<DashboardViewModel>> ventamensualterreno() async {
+    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardVentaMensualTerreno');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+
   // Method to list lands by month
   static Future<List<DashboardViewModel>> listarTerrenosPorMees() async {
     final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTerrenosPorMees');

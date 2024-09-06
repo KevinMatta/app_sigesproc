@@ -42,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _cargo = prefs.userCargo;
 
     String imageUrl2 = prefs.userImagenEmpleado;
-  String baseUrl = "https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net/api/Empleado";
+  String baseUrl = "https://backendsigesproc-production.up.railway.app/api/Empleado";
     String imageUrl = "$baseUrl/$imageUrl2";  
     if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
       _profileImage = NetworkImage(imageUrl);

@@ -74,7 +74,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         _loadNotifications(); 
         String title = "Notificación Eliminada";
         String body = "Se ha eliminado una notificación con Id: $napuId";
-        await NotificationServices.EnviarNotificacionAAdministradores(title, body);
+        // await NotificationServices.EnviarNotificacionAAdministradores(title, body);
       } else {
         _showOverlayMessage('Error al eliminar la notificación.');
       }
