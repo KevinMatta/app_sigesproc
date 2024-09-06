@@ -3,13 +3,9 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
-import 'package:sigesproc_app/preferences/pref_usuarios.dart';
-import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/viaticos/agregarfactura.dart';
 import 'package:sigesproc_app/screens/viaticos/editarviatico.dart';
 import 'package:sigesproc_app/screens/viaticos/nuevoviatico.dart';
-import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
-import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
 import '../menu.dart';
 
@@ -27,58 +23,32 @@ class _ViaticoState extends State<Viatico> {
   int _currentPage = 0;
   int _rowsPerPage = 10;
   bool _isLoading = false;
-  bool _usuarioEsAdm = false; // Inicializa como no administrador por defecto
+  bool _usuarioEsAdm = false;
   String? _usuaId;
-int _unreadCount = 0;
-  String _abreviaturaMoneda = "L";
-late int userId;
+
   @override
   void initState() {
-      var prefs = PreferenciasUsuario();
-  userId = int.tryParse(prefs.userId) ?? 0;
-  _loadNotifications();
-
     super.initState();
     _loadUserData();
     _searchController.addListener(_filterViaticos);
   }
-  String formatNumber(int value) {
-  final NumberFormat formatter = NumberFormat('#,##0', 'es_ES');
-  return formatter.format(value);
-}
-  Future<void> _loadData() async {
-    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
-    setState(() {}); // Refresca el widget para reflejar los nuevos datos
-  }
-Future<void> _loadNotifications() async {
-  try {
-    final notifications = await NotificationServices.BuscarNotificacion(userId);
-    setState(() {
-      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
-    });
-  } catch (e) {
-    print('Error al cargar notificaciones: $e');
-  }
-}
+
   Future<void> _loadUserData() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  setState(() {
-    _usuaId = prefs.getString('usuaId') ?? '';
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _usuaId = prefs.getString('usuaId') ?? '';
 
-    // Manejar la conversión de String a bool si es necesario
-    dynamic esAdminValue = prefs.get('EsAdmin');
-    if (esAdminValue is bool) {
-      _usuarioEsAdm = esAdminValue;
-    } else if (esAdminValue is String) {
-      // Convertir el String "true" o "false" en bool
-      _usuarioEsAdm = esAdminValue.toLowerCase() == 'true';
-    } else {
-      _usuarioEsAdm = false; // Valor por defecto si no está definido
-    }
-  });
-  _cargarViaticos();
-}
-
+      dynamic esAdminValue = prefs.get('EsAdmin');
+      if (esAdminValue is bool) {
+        _usuarioEsAdm = esAdminValue;
+      } else if (esAdminValue is String) {
+        _usuarioEsAdm = esAdminValue.toLowerCase() == 'true';
+      } else {
+        _usuarioEsAdm = false;
+      }
+    });
+    _cargarViaticos();
+  }
 
   void _cargarViaticos() {
     setState(() {
@@ -148,7 +118,7 @@ Future<void> _loadNotifications() async {
     );
 
     if (result == true) {
-      _cargarViaticos(); // Refrescar la lista si se retornó `true`
+      _cargarViaticos();
     }
   }
 
@@ -163,8 +133,8 @@ Future<void> _loadNotifications() async {
               return AlertDialog(
                 backgroundColor: Color(0xFF171717),
                 content: Container(
-                  width: double.minPositive, // Asegura que el modal no se estire mucho
-                  height: 100, // Establece una altura fija mientras se carga
+                  width: double.minPositive,
+                  height: 100,
                   child: Center(
                     child: SpinKitCircle(color: Color(0xFFFFF0C6)),
                   ),
@@ -194,14 +164,15 @@ Future<void> _loadNotifications() async {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildDetailRow('No.', viatico.vienId?.toString() ?? 'N/A'),
-                    _buildDetailRow('Monto Estimado', '$_abreviaturaMoneda ${formatNumber(viatico.vienMontoEstimado?.toInt() ?? 0)}'),
-                    _buildDetailRow('Total Gastado', '$_abreviaturaMoneda ${formatNumber(viatico.vienTotalGastado?.toInt() ?? 0)}'),                  SizedBox(height: 16),
+                    _buildDetailRow('Monto Estimado', 'LPS ${viatico.vienMontoEstimado?.toStringAsFixed(2) ?? 'N/A'}'),
+                    _buildDetailRow('Total Gastado', 'LPS ${viatico.vienTotalGastado?.toStringAsFixed(2) ?? 'N/A'}'),
+                    SizedBox(height: 16),
                     _buildDetailRow('Fecha Emisión', viatico.vienFechaEmicion != null ? DateFormat('yyyy-MM-dd').format(viatico.vienFechaEmicion!) : 'N/A'),
                     _buildDetailRow('Colaborador', viatico.empleado ?? 'N/A'),
                     _buildDetailRow('Proyecto', viatico.proyecto ?? 'N/A'),
                     SizedBox(height: 16),
-                    _buildDetailRow('Total Reconocido', '$_abreviaturaMoneda ${formatNumber(viatico.vienTotalReconocido?.toInt() ?? 0)}'),
-                                      ],
+                    _buildDetailRow('Total Reconocido', 'LPS ${viatico.vienTotalReconocido?.toStringAsFixed(2) ?? 'N/A'}'),
+                  ],
                 ),
                 actions: [
                   TextButton(
@@ -243,108 +214,107 @@ Future<void> _loadNotifications() async {
   }
 
   TableRow _buildViaticoRow(ViaticoEncViewModel viatico, int index) {
-  return TableRow(
-    children: [
-      TableCell(
-        child: Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: PopupMenuButton<int>(
-            color: Colors.black,
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (int result) {
-              if (result == 0) {
-                _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
-              } else if (result == 1) {
-                _showDetailModal(context, viatico.vienId!);
-              } else if (_usuarioEsAdm) {
-                if (result == 2) {
-                  _navigateAndRefresh(context, EditarViatico(viaticoId: viatico.vienId!));
-                } else if (result == 3) {
-                  _modalEliminar(context, viatico);
-                } else if (result == 4) {
-                  _modalFinalizar(context, viatico);
+    return TableRow(
+      children: [
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: PopupMenuButton<int>(
+              color: Colors.black,
+              icon: Icon(Icons.more_vert, color: Colors.white),
+              onSelected: (int result) {
+                if (result == 0) {
+                  _navigateAndRefresh(context, AgregarFactura(viaticoId: viatico.vienId!));
+                } else if (result == 1) {
+                  _showDetailModal(context, viatico.vienId!);
+                } else if (_usuarioEsAdm) {
+                  if (result == 2) {
+                    _navigateAndRefresh(context, EditarViatico(viaticoId: viatico.vienId!));
+                  } else if (result == 3) {
+                    _modalEliminar(context, viatico);
+                  } else if (result == 4) {
+                    _modalFinalizar(context, viatico);
+                  }
                 }
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              List<PopupMenuEntry<int>> menuItems = [];
+              },
+              itemBuilder: (BuildContext context) {
+                List<PopupMenuEntry<int>> menuItems = [];
 
-              menuItems.add(const PopupMenuItem<int>(
-                value: 0,
-                child: Text(
-                  'Agregar Facturas',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
-                ),
-              ));
-
-              menuItems.add(const PopupMenuItem<int>(
-                value: 1,
-                child: Text(
-                  'Detalle',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
-                ),
-              ));
-
-              if (_usuarioEsAdm && viatico.vienEstadoFacturas == true) {
                 menuItems.add(const PopupMenuItem<int>(
-                  value: 2,
+                  value: 0,
                   child: Text(
-                    'Editar Viáticos',
+                    'Agregar Facturas',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ));
+
                 menuItems.add(const PopupMenuItem<int>(
-                  value: 3,
+                  value: 1,
                   child: Text(
-                    'Eliminar',
+                    'Detalle',
                     style: TextStyle(color: Color(0xFFFFF0C6)),
                   ),
                 ));
-                menuItems.add(const PopupMenuItem<int>(
-                  value: 4,
-                  child: Text(
-                    'Finalizar',
-                    style: TextStyle(color: Color(0xFFFFF0C6)),
-                  ),
-                ));
-              }
 
-              return menuItems;
-            },
-          ),
-        ),
-      ),
-      TableCell(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            (index + 1).toString(),
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ),
-      TableCell(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            viatico.proyecto ?? 'N/A',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ),
-      TableCell(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            viatico.vienEstadoFacturas == false ? Icons.adjust : Icons.adjust,
-            color: viatico.vienEstadoFacturas == false ? Colors.red : Colors.green,
-          ),
-        ),
-      ),
-    ],
-  );
-}
+                if (_usuarioEsAdm && viatico.vienEstadoFacturas == true) {
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 2,
+                    child: Text(
+                      'Editar Viáticos',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 3,
+                    child: Text(
+                      'Eliminar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                  menuItems.add(const PopupMenuItem<int>(
+                    value: 4,
+                    child: Text(
+                      'Finalizar',
+                      style: TextStyle(color: Color(0xFFFFF0C6)),
+                    ),
+                  ));
+                }
 
+                return menuItems;
+              },
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              (index + 1).toString(),
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              viatico.proyecto ?? 'N/A',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              viatico.vienEstadoFacturas == false ? Icons.adjust : Icons.adjust,
+              color: viatico.vienEstadoFacturas == false ? Colors.red : Colors.green,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   void _modalEliminar(BuildContext context, ViaticoEncViewModel viatico) {
     showDialog(
@@ -409,21 +379,14 @@ Future<void> _loadNotifications() async {
               child: Text('Aceptar', style: TextStyle(color: Color(0xFFFFF0C6))),
               onPressed: () async {
                 try {
-                  // Llamar al servicio para finalizar el viático
                   await ViaticosEncService.finalizarViatico(viatico.vienId!);
 
-                  // Cerrar el modal
                   Navigator.of(context).pop();
-
-                  // Mostrar mensaje de éxito
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Viático finalizado con éxito')),
                   );
-
-                  // Recargar la lista de viáticos
                   _cargarViaticos();
                 } catch (e) {
-                  // Manejo de errores
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error al finalizar el registro')),
@@ -445,7 +408,7 @@ Future<void> _loadNotifications() async {
 
   Widget _buildListaViaticos() {
     return Scaffold(
-      backgroundColor: Colors.black, // Establece el fondo negro para la pantalla
+      backgroundColor: Colors.black,
       body: Container(
         color: Colors.black,
         padding: const EdgeInsets.all(20.0),
@@ -506,15 +469,10 @@ Future<void> _loadNotifications() async {
                       ),
                     );
                   } else {
-                    _filteredViaticos = _searchController.text.isEmpty
-                        ? snapshot.data!
-                        : _filteredViaticos;
+                    _filteredViaticos = _searchController.text.isEmpty ? snapshot.data! : _filteredViaticos;
                     final int totalRecords = _filteredViaticos.length;
                     final int startIndex = _currentPage * _rowsPerPage;
-                    final int endIndex =
-                        (startIndex + _rowsPerPage > totalRecords)
-                            ? totalRecords
-                            : startIndex + _rowsPerPage;
+                    final int endIndex = (startIndex + _rowsPerPage > totalRecords) ? totalRecords : startIndex + _rowsPerPage;
 
                     return Column(
                       children: [
@@ -575,15 +533,10 @@ Future<void> _loadNotifications() async {
                                     ),
                                   ],
                                 ),
-                                ..._filteredViaticos
-                                    .sublist(startIndex, endIndex)
-                                    .asMap()
-                                    .entries
-                                    .map((entry) {
+                                ..._filteredViaticos.sublist(startIndex, endIndex).asMap().entries.map((entry) {
                                   final index = entry.key;
                                   final viatico = entry.value;
-                                  return _buildViaticoRow(
-                                      viatico, startIndex + index);
+                                  return _buildViaticoRow(viatico, startIndex + index);
                                 }).toList(),
                               ],
                             ),
@@ -625,7 +578,7 @@ Future<void> _loadNotifications() async {
               child: Icon(Icons.add, color: Colors.black),
               shape: CircleBorder(),
             )
-          : null, // Si no es admin, no mostrar el botón flotante
+          : null,
     );
   }
 
@@ -634,10 +587,59 @@ Future<void> _loadNotifications() async {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
-        appBar: CustomAppBar(
-  unreadCount: _unreadCount,
-  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
-),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(40.0),
+          child: Column(
+            children: [
+              Text(
+                'Viáticos',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 4.0),
+              Container(
+                height: 2.0,
+                color: Color(0xFFFFF0C6),
+              ),
+            ],
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.notifications, color: Color(0xFFFFF0C6)),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.person, color: Color(0xFFFFF0C6)),
+            onPressed: () {},
+          ),
+        ],
+      ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
