@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import '../.././services/apiservice.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -42,7 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _cargo = prefs.userCargo;
 
     String imageUrl2 = prefs.userImagenEmpleado;
-  String baseUrl = "https://backendsigesproc-production.up.railway.app/api/Empleado";
+    final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
+  // String baseUrl = "https://backendsigesproc-production.up.railway.app/api/Empleado";
     String imageUrl = "$baseUrl/$imageUrl2";  
     if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
       _profileImage = NetworkImage(imageUrl);

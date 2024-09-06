@@ -104,7 +104,7 @@ class _DashboardVentaTerrenoState extends State<DashboardVentaTerreno> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  '${data.cantidadVendida}',
+                  '${data.cantidadVendidosMes}',
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
