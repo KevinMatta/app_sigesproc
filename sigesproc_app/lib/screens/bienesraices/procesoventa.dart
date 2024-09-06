@@ -118,12 +118,14 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 
   String formatNumber(double value) {
     // Para asegurarse de que las comas estén en miles y el punto sea decimal
-    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US'); // Formato correcto para comas en miles y punto en decimales
+    final NumberFormat formatter = NumberFormat('#,##0.00',
+        'en_US'); // Formato correcto para comas en miles y punto en decimales
     return formatter.format(value);
   }
 
   Future<void> _loadData() async {
-    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    _abreviaturaMoneda =
+        (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
     setState(() {}); // Refresca el widget para reflejar los nuevos datos
   }
 
@@ -140,8 +142,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       });
     }
   }
-
-  
 
   void _onItemTapped(int index) {
     setState(() {
@@ -748,12 +748,26 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         ),
         bottom: _selectedVenta != null
             ? PreferredSize(
-                preferredSize: Size.fromHeight(60.0),
+                preferredSize: Size.fromHeight(90.0),
                 child: Column(
                   children: [
+                    Text(
+                      'Detalle Bien Raíz',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                    SizedBox(height: 5),
                     Row(
                       children: [
-                        SizedBox(width: 5.0), // Espacio a la izquierda
+                        SizedBox(width: 5.0),
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -762,8 +776,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                             });
                           },
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                                top: 10.0), // Margen superior
+                            padding: const EdgeInsets.only(top: 10.0),
                             child: Row(
                               children: [
                                 Icon(
@@ -785,11 +798,29 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20.0),
+                    SizedBox(height: 15.0),
                   ],
                 ),
-              )
-            : null,
+              ) :  PreferredSize(
+                preferredSize: Size.fromHeight(40.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Bienes Raices',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                  ],
+                ),
+              ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
@@ -915,7 +946,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+                      child:
+                          CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.hasError) {
                     print('Error: ${snapshot.error}');

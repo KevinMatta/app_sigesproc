@@ -103,7 +103,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
       _selectedIndex = index;
     });
   }
-Future<void> _loadUserId() async {
+
+  Future<void> _loadUserId() async {
     var prefs = PreferenciasUsuario();
     userId = int.tryParse(prefs.userId) ?? 0;
 
@@ -400,60 +401,60 @@ Future<void> _loadUserId() async {
             ),
           ],
         ),
-         bottom: PreferredSize(
-        preferredSize: Size.fromHeight(70.0),
-        child: Column(
-          children: [
-            Text(
-              'Detalle Flete',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(70.0),
+          child: Column(
+            children: [
+              Text(
+                'Detalle Flete',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: 4.0),
-            Container(
-              height: 2.0,
-              color: Color(0xFFFFF0C6),
-            ),
-            SizedBox(height: 5),
-            if (!estaCargando)
-              Row(
-                children: [
-                  SizedBox(width: 5.0),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top: 10.0), // Padding superior de 10 píxeles
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: Color(0xFFFFF0C6),
-                          ),
-                          SizedBox(width: 3.0),
-                          Text(
-                            'Regresar',
-                            style: TextStyle(
+              SizedBox(height: 4.0),
+              Container(
+                height: 2.0,
+                color: Color(0xFFFFF0C6),
+              ),
+              SizedBox(height: 5),
+              if (!estaCargando)
+                Row(
+                  children: [
+                    SizedBox(width: 5.0),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            top: 10.0), // Padding superior de 10 píxeles
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.arrow_back,
                               color: Color(0xFFFFF0C6),
-                              fontSize: 15.0,
-                              decoration: TextDecoration.underline,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 3.0),
+                            Text(
+                              'Regresar',
+                              style: TextStyle(
+                                color: Color(0xFFFFF0C6),
+                                fontSize: 15.0,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               SizedBox(height: 20.0),
-          ],
+            ],
+          ),
         ),
-      ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(

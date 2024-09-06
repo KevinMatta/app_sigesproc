@@ -325,25 +325,36 @@ class _CotizacionState extends State<Cotizacion> {
         ),
         bottom: _mostrarArticulos
             ? PreferredSize(
-                preferredSize: Size.fromHeight(60.0),
+                preferredSize: Size.fromHeight(70.0),
                 child: Column(
                   children: [
+                    Text(
+                      'Artículos',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                    SizedBox(height: 5),
                     Row(
                       children: [
-                        SizedBox(width: 5.0), // Espacio a la izquierda
+                        SizedBox(width: 5.0),
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              // Reiniciar algunos estados cuando se presiona "Regresar"
                               _selectedCotiId = null;
-                              _reiniciarCotizacionesFiltros(); // Lógica de reinicio
-                              _mostrarArticulos =
-                                  false; // Ocultar los artículos
+                              _reiniciarCotizacionesFiltros();
+                              _mostrarArticulos = false;
                             });
                           },
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                                top: 10.0), // Margen superior
+                            padding: const EdgeInsets.only(top: 10.0),
                             child: Row(
                               children: [
                                 Icon(
@@ -365,11 +376,30 @@ class _CotizacionState extends State<Cotizacion> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20.0),
+                    SizedBox(height: 15.0),
                   ],
                 ),
               )
-            : null,
+            : PreferredSize(
+                preferredSize: Size.fromHeight(30.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Cotizaciones',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                  ],
+                ),
+              ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
