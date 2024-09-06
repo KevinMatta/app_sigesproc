@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/articuloviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/cotizacionviewmodel.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 import 'package:sigesproc_app/services/insumos/articuloservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/insumos/cotizacionservice.dart';
@@ -32,6 +34,7 @@ class _CotizacionState extends State<Cotizacion> {
   int _rowsPerPage = 10;
   int _unreadCount = 0;
   int? userId;
+  String _abreviaturaMoneda = "L";
 
   @override
   void initState() {
@@ -46,6 +49,19 @@ class _CotizacionState extends State<Cotizacion> {
       });
     });
     _searchController.addListener(_filterCotizaciones);
+  }
+
+  String formatNumber(double value) {
+    // Para asegurarse de que las comas estén en miles y el punto sea decimal
+    final NumberFormat formatter = NumberFormat('#,##0.00',
+        'en_US'); // Formato correcto para comas en miles y punto en decimales
+    return formatter.format(value);
+  }
+
+  Future<void> _loadData() async {
+    _abreviaturaMoneda =
+        (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar los nuevos datos
   }
 
   Future<void> _loadUserId() async {
@@ -108,16 +124,22 @@ class _CotizacionState extends State<Cotizacion> {
   void _filterCotizaciones() {
     final query = _searchController.text.toLowerCase();
     setState(() {
+      // Filtrar las cotizaciones
       _cotizacionesFiltrados = _cotizacionesFiltrados.where((cotizacion) {
         final salida = cotizacion.provDescripcion?.toLowerCase() ?? '';
         return salida.contains(query);
       }).toList();
 
+      // Calcular el número total de registros y páginas
       final totalRecords = _cotizacionesFiltrados.length;
       final maxPages = (totalRecords / _rowsPerPage).ceil();
 
+      // Si no hay registros, mostrar un mensaje o manejar el caso de la lista vacía
+      if (totalRecords == 0) {}
+
+      // Evitar que _currentPage sea negativo
       if (_currentPage >= maxPages) {
-        _currentPage = maxPages - 1;
+        _currentPage = maxPages > 0 ? maxPages - 1 : 0;
       }
     });
   }
@@ -231,17 +253,47 @@ class _CotizacionState extends State<Cotizacion> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Primer bloque con precio y cantidad
-          Text(
-            'Precio: ${articulo.precio}    Cantidad: ${articulo.cantidad}',
-            style: TextStyle(color: Colors.white70),
-            softWrap: true, // Permite el ajuste del texto a varias líneas
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Precio: $_abreviaturaMoneda ${formatNumber(double.parse(articulo.precio.replaceAll(",", "")))}',
+                  style: TextStyle(color: Colors.white70),
+                  softWrap: true,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Cantidad: ${articulo.cantidad}',
+                  style: TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.end, // Alineado al final
+                  softWrap: true,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 4.0),
           // Segundo bloque con impuesto y total
-          Text(
-            'Impuesto: ${articulo.impuesto}    Total: ${articulo.total}',
-            style: TextStyle(color: Colors.white70),
-            softWrap: true, // Permite el ajuste del texto a varias líneas
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Impuesto: $_abreviaturaMoneda ${formatNumber(double.parse(articulo.impuesto.replaceAll(",", "")))}',
+                  style: TextStyle(color: Colors.white70),
+                  softWrap: true,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Total: $_abreviaturaMoneda ${formatNumber(double.parse(articulo.total.replaceAll(",", "")))}',
+                  style: TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.end, // Alineado al final
+                  softWrap: true,
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -16,6 +16,7 @@ import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,6 +36,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   List<ProcesoVentaViewModel>? _selectedVenta;
   int _unreadCount = 0;
   int? userId;
+  String _abreviaturaMoneda = "L";
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -114,6 +116,17 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     super.dispose();
   }
 
+  String formatNumber(double value) {
+    // Para asegurarse de que las comas estén en miles y el punto sea decimal
+    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US'); // Formato correcto para comas en miles y punto en decimales
+    return formatter.format(value);
+  }
+
+  Future<void> _loadData() async {
+    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar los nuevos datos
+  }
+
   void _filtradoProcesosVenta() {
     final query = _searchController.text.toLowerCase();
     if (_procesosventaFuture != null) {
@@ -127,6 +140,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       });
     }
   }
+
+  
 
   void _onItemTapped(int index) {
     setState(() {
@@ -615,12 +630,12 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Valor Inicial: L. ${venta.btrpPrecioVentaInicio?.toStringAsFixed(2) ?? 'N/A'}',
+                                    'Valor Inicial: $_abreviaturaMoneda ${formatNumber(venta.btrpPrecioVentaInicio!.toDouble())}',
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   if (venta.btrpIdentificador == false)
                                     Text(
-                                      'Vendido por: L. ${venta.btrpPrecioVentaFinal?.toStringAsFixed(2) ?? 'N/A'}\nFecha Vendida: ${venta.btrpFechaVendida != null ? DateFormat('EEE d MMM, hh:mm a').format(venta.btrpFechaVendida!) : 'N/A'}',
+                                      'Vendido por: $_abreviaturaMoneda ${formatNumber(venta.btrpPrecioVentaFinal!.toDouble())}\nFecha Vendida: ${venta.btrpFechaVendida != null ? DateFormat('EEE d MMM, hh:mm a').format(venta.btrpFechaVendida!) : 'N/A'}',
                                       style: TextStyle(color: Colors.black),
                                     ),
                                 ],
