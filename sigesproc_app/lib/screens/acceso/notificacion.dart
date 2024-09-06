@@ -39,19 +39,19 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
     }
   }
 
-  void _showOverlayMessage(String message) {
+ void _showOverlayMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.black), 
+          style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Color(0xFFFFF0C6), 
         duration: Duration(seconds: 3),
-        shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-        ),
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
       ),
     );
   }
@@ -70,15 +70,20 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       var prefs = PreferenciasUsuario();
       final success = await NotificationServices.EliminarNotificacion(napuId);
       if (success) {
-        _showOverlayMessage('Eliminada con Éxito.');
+        ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Eliminada con Éxito.')),
+                            );
         _loadNotifications(); 
         String title = "Notificación Eliminada";
         String body = "Se ha eliminado una notificación con Id: $napuId";
         // await NotificationServices.EnviarNotificacionAAdministradores(title, body);
       } else {
-        _showOverlayMessage('Error al eliminar la notificación.');
+          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error al eliminar la notificación.')),
+                            );
       }
     } catch (e) {
+      
       print('Error al eliminar la notificación: $e');
     }
   }
@@ -100,7 +105,7 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
             ),
           ),
           content: Text(
-            '¿Estás seguro de que quieres eliminar esta notificación?',
+            '¿Estás seguro de querer eliminar esta notificación?',
             style: TextStyle(color: Colors.white, fontSize: 16),
           ),
           actions: [
