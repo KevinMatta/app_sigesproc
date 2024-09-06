@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/bienesraices/terrenos.dart';
 import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,7 +34,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
   List<ProcesoVentaViewModel>? _selectedVenta;
   int _unreadCount = 0;
-  late int userId;
+  int? userId;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -43,23 +49,61 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   @override
   void initState() {
     super.initState();
+    _loadUserId();
+
+    _loadUserProfileData();
+    _cargarProcesosVenta();
+    _searchController.addListener(_filtradoProcesosVenta);
+  }
+
+  Future<void> _loadUserId() async {
     var prefs = PreferenciasUsuario();
     userId = int.tryParse(prefs.userId) ?? 0;
 
+    _insertarToken();
+
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
     _loadNotifications();
-    _cargarProcesosVenta();
-    _searchController.addListener(_filtradoProcesosVenta);
+  }
+
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(userId!, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
   }
 
   Future<void> _loadNotifications() async {
     try {
       final notifications =
-          await NotificationServices.BuscarNotificacion(userId);
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
       print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -221,7 +265,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-              // child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+              // child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
               );
         } else if (snapshot.hasError) {
           return Card(
@@ -628,38 +672,38 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
             ),
           ),
         ),
-        Container(
-          color: Colors.black,
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            children: [
-              Spacer(),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF171717),
-                  padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _selectedVenta = null;
-                    _reiniciarProcesosVentaFiltros();
-                  });
-                },
-                child: Text(
-                  'Regresar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        // Container(
+        //   color: Colors.black,
+        //   padding: const EdgeInsets.all(10.0),
+        //   child: Row(
+        //     children: [
+        //       Spacer(),
+        //       ElevatedButton(
+        //         style: ElevatedButton.styleFrom(
+        //           backgroundColor: Color(0xFF171717),
+        //           padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+        //           shape: RoundedRectangleBorder(
+        //             borderRadius: BorderRadius.circular(12),
+        //           ),
+        //         ),
+        //         onPressed: () {
+        //           setState(() {
+        //             _selectedVenta = null;
+        //             _reiniciarProcesosVentaFiltros();
+        //           });
+        //         },
+        //         child: Text(
+        //           'Regresar',
+        //           style: TextStyle(
+        //             color: Colors.white,
+        //             fontSize: 15,
+        //             decoration: TextDecoration.underline,
+        //           ),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }
@@ -667,9 +711,123 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        unreadCount: _unreadCount,
-        onNotificationsUpdated: _loadNotifications,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+        bottom: _selectedVenta != null
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(60.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(width: 5.0), // Espacio a la izquierda
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedVenta = null;
+                              _reiniciarProcesosVentaFiltros();
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                top: 10.0), // Margen superior
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFFFFF0C6),
+                                ),
+                                SizedBox(width: 3.0),
+                                Text(
+                                  'Regresar',
+                                  style: TextStyle(
+                                    color: Color(0xFFFFF0C6),
+                                    fontSize: 15.0,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20.0),
+                  ],
+                ),
+              )
+            : null,
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       drawer: MenuLateral(
           selectedIndex: _selectedIndex, onItemSelected: _onItemTapped),
@@ -742,7 +900,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.hasError) {
                     print('Error: ${snapshot.error}');

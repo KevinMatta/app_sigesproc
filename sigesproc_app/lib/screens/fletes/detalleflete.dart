@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,13 +9,19 @@ import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/consts.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/bodegaviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/proyectoviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/fletes/fletehubservice.dart';
@@ -48,15 +55,15 @@ class _DetalleFleteState extends State<DetalleFlete> {
   bool esFletero = false;
   bool estaCargando = true;
   int _unreadCount = 0;
-late int userId;
+  int? userId;
+  int _selectedIndex = 2;
 
   @override
   void initState() {
     super.initState();
-    var prefs = PreferenciasUsuario();
-  userId = int.tryParse(prefs.userId) ?? 0;
+    _loadUserId();
 
-  _loadNotifications();
+    _loadUserProfileData();
     _loadEmplId();
     _fleteHubService.startConnection().then((_) {
       _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
@@ -91,22 +98,67 @@ late int userId;
     super.dispose();
   }
 
-  Future<void> _loadNotifications() async {
-  try {
-    final notifications = await NotificationServices.BuscarNotificacion(userId);
+  void _onItemTapped(int index) {
     setState(() {
-      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      _selectedIndex = index;
     });
-  } catch (e) {
-    print('Error al cargar notificaciones: $e');
   }
-}
+Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0;
+
+    _insertarToken();
+
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
+  }
+
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(userId!, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
+    }
+  }
 
   Future<void> _loadEmplId() async {
     final pref = await SharedPreferences.getInstance();
     setState(() {
-      // emplId = int.tryParse(pref.getString('emplId') ?? '');
-      emplId = 91;
+      emplId = int.tryParse(pref.getString('emplId') ?? '');
+      // emplId = 91;
     });
   }
 
@@ -182,7 +234,13 @@ late int userId;
 
       esFletero = flete.emtrId == emplId;
       print(
-          'Empleado es fletero: $esFletero, EmplId: $emplId, EmtrId: ${flete.emtrId}');
+          'Empleado es fletero: $esFletero, EmplId: $emplId, EmtrId: ${flete.emtrId}, flenEstado: ${flete.flenEstado}');
+
+      // Si flenEstado es true, ya no seguimos rastreando
+      if (flete.flenEstado == true) {
+        print(
+            'El flete ha sido recibido, no se sigue rastreando la ubicación.');
+      }
 
       if (esFletero) {
         print('Obteniendo la ubicación actual para el fletero...');
@@ -193,17 +251,27 @@ late int userId;
         }
         print("Ubicación obtenida: $ubicacionactual");
 
+        // Cargar la ubicación inicial desde SharedPreferences
+        final pref = await SharedPreferences.getInstance();
+        final latitudInicial = pref.getDouble('latitudInicial');
+        final longitudInicial = pref.getDouble('longitudInicial');
+
+        if (latitudInicial != null && longitudInicial != null) {
+          ubicacionInicial = LatLng(latitudInicial, longitudInicial);
+          print(
+              'Ubicación inicial cargada desde SharedPreferences: $ubicacionInicial');
+        }
+
         // Guardar la ubicación inicial solo si no ha sido almacenada previamente
-        print('hay ubicacion inicial guardada $ubicacionInicial');
         if (ubicacionInicial == null) {
           ubicacionInicial = ubicacionactual;
-          print('toamdno la inicial $ubicacionInicial');
-          final pref = await SharedPreferences.getInstance();
+          print('Guardando la ubicación inicial: $ubicacionInicial');
           await pref.setDouble('latitudInicial', ubicacionInicial!.latitude);
           await pref.setDouble('longitudInicial', ubicacionInicial!.longitude);
         }
 
-        if (_fleteHubService.connection.state == signalR.ConnectionState.connected) {
+        if (_fleteHubService.connection.state ==
+            signalR.ConnectionState.connected) {
           print('Actualizando ubicación inicial en SignalR...');
           await _fleteHubService.actualizarUbicacion(emplId!, ubicacionactual!);
         } else {
@@ -211,11 +279,15 @@ late int userId;
         }
 
         print('Iniciando el seguimiento de la ubicación en tiempo real...');
-        locationSubscription = ubicacionController.onLocationChanged.listen((LocationData currentLocation) async {
-          if (currentLocation.latitude != null && currentLocation.longitude != null) {
-            LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        locationSubscription = ubicacionController.onLocationChanged
+            .listen((LocationData currentLocation) async {
+          if (currentLocation.latitude != null &&
+              currentLocation.longitude != null) {
+            LatLng nuevaUbicacion =
+                LatLng(currentLocation.latitude!, currentLocation.longitude!);
             await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
-            await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
+            await _actualizarPolyline(
+                ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
             setState(() {
               ubicacionactual = nuevaUbicacion;
             });
@@ -253,14 +325,23 @@ late int userId;
     }
   }
 
-  void onReceiveUbicacion(int emplId, double lat, double lng) {
+  void onReceiveUbicacion(int emplId, double lat, double lng) async {
+    final flete =
+        await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+
+    if (flete == null || flete.flenEstado == true) {
+      print(
+          'El flete ya ha sido recibido, deteniendo la actualización de la polyline.');
+      // Detenemos el rastreo en tiempo real si el flete ya fue recibido
+      locationSubscription?.cancel();
+      return;
+    }
+
     LatLng nuevaUbicacion = LatLng(lat, lng);
     print("Ubicación recibida: EmplId: $emplId, Lat: $lat, Lng: $lng");
 
     setState(() {
       if (emplId != this.emplId) {
-        // Es otro usuario viendo al fletero
-        print('es otro usuario');
         polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
       }
       ubicacionactual = nuevaUbicacion;
@@ -298,7 +379,139 @@ late int userId;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(  unreadCount: _unreadCount,  onNotificationsUpdated: _loadNotifications),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+         bottom: PreferredSize(
+        preferredSize: Size.fromHeight(70.0),
+        child: Column(
+          children: [
+            Text(
+              'Detalle Flete',
+              style: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 4.0),
+            Container(
+              height: 2.0,
+              color: Color(0xFFFFF0C6),
+            ),
+            SizedBox(height: 5),
+            if (!estaCargando)
+              Row(
+                children: [
+                  SizedBox(width: 5.0),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          top: 10.0), // Padding superior de 10 píxeles
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.arrow_back,
+                            color: Color(0xFFFFF0C6),
+                          ),
+                          SizedBox(width: 3.0),
+                          Text(
+                            'Regresar',
+                            style: TextStyle(
+                              color: Color(0xFFFFF0C6),
+                              fontSize: 15.0,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.0),
+          ],
+        ),
+      ),
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
+      ),
       body: estaCargando
           ? Container(
               color: Colors.black,
@@ -412,7 +625,8 @@ late int userId;
                                     snapshot.data!.isEmpty) {
                                   return Center(
                                     child: CircularProgressIndicator(
-                                      color: ui.Color.fromARGB(255, 232, 232, 231),
+                                      color:
+                                          ui.Color.fromARGB(255, 232, 232, 231),
                                     ),
                                   );
                                 } else {
@@ -495,12 +709,28 @@ late int userId;
                                 setState(() => expandido = expanding),
                             children: [
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(15.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       'Encargado: ${flete.encargado}',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      'Supervisor Salida: ${flete.supervisorSalida}',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      'Supervisor Llegada: ${flete.supervisorLlegada}',
                                       style: TextStyle(
                                           color: Colors.black,
                                           fontSize: 13,

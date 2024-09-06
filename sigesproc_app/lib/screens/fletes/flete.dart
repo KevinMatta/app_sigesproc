@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
@@ -35,21 +36,19 @@ class _FleteState extends State<Flete> {
   int? _flenIdSeleccionado;
   int _unreadCount = 0;
   late int userId;
+  int? emplId;
+  bool? EsAdmin;
+  bool esFletero = false;
+  bool esSupervisorSalida = false;
+  bool esSupervisorLlegada = false;
 
   @override
   void initState() {
     super.initState();
+    _cargarEmpleado();
     var prefs = PreferenciasUsuario();
     userId = int.tryParse(prefs.userId) ?? 0;
     _loadNotifications();
-    _fletesFuture = FleteEncabezadoService.listarFletesEncabezado();
-    _fletesFuture!.then((fletes) {
-      setState(() {
-        _allFletes = fletes;
-        _filteredFletes = fletes;
-      });
-    });
-
     _searchController.addListener(_filterFletes);
   }
 
@@ -69,6 +68,62 @@ class _FleteState extends State<Flete> {
       });
     } catch (e) {
       print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  Future<void> _cargarEmpleado() async {
+    final pref = await SharedPreferences.getInstance();
+    setState(() {
+      emplId = int.tryParse(pref.getString('emplId') ?? '');
+      EsAdmin = bool.tryParse(pref.getString('EsAdmin') ?? 'false');
+      print('Empleado cargado - emplId: $emplId, EsAdmin: $EsAdmin');
+    });
+
+    // Cargar los fletes solo después de que emplId y EsAdmin estén cargados
+    _cargarFletes();
+  }
+
+  Future<void> _cargarFletes() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final fletes = await FleteEncabezadoService.listarFletesEncabezado();
+
+      setState(() {
+        // Verificamos que emplId y EsAdmin no sean nulos antes de continuar
+        if (emplId != null && EsAdmin != null) {
+          // Si el usuario no es admin, filtrar por emplId
+          if (EsAdmin == false) {
+            _allFletes = fletes.where((flete) {
+              print(
+                  'Filtrando fletes para emplId $emplId: emtrId ${flete.emtrId}, emssId ${flete.emssId}, emslId ${flete.emslId}');
+              return flete.emtrId == emplId ||
+                  flete.emssId == emplId ||
+                  flete.emslId == emplId;
+            }).toList();
+            print('all $_allFletes');
+
+            print("Fletes filtrados: ${_allFletes.length}");
+          } else {
+            print('Usuario es admin, mostrando todos los fletes');
+            _allFletes = fletes;
+          }
+
+          // Actualizamos los fletes filtrados
+          _filteredFletes = _allFletes;
+          print("Fletes mostrados en la tabla: ${_filteredFletes.length}");
+        } else {
+          print('emplId o EsAdmin no cargado correctamente');
+        }
+      });
+    } catch (e) {
+      print('Error al cargar fletes: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -112,6 +167,11 @@ class _FleteState extends State<Flete> {
   }
 
   TableRow _buildFleteRow(FleteEncabezadoViewModel flete, int index) {
+    // Estas variables deben calcularse por cada registro
+    bool esFletero = flete.emtrId == emplId;
+    bool esSupervisorSalida = flete.emssId == emplId;
+    bool esSupervisorLlegada = flete.emslId == emplId;
+
     return TableRow(
       children: [
         TableCell(
@@ -155,60 +215,8 @@ class _FleteState extends State<Flete> {
                   );
                 }
               },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
-                if (flete.flenEstado == true) ...[
-                  const PopupMenuItem<int>(
-                    value: 0,
-                    child: Text(
-                      'Detalle',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 1,
-                    child: Text(
-                      'Ver Verificación',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 2,
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                ] else ...[
-                  const PopupMenuItem<int>(
-                    value: 0,
-                    child: Text(
-                      'Detalle',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 3,
-                    child: Text(
-                      'Editar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 4,
-                    child: Text(
-                      'Verificar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                  const PopupMenuItem<int>(
-                    value: 2,
-                    child: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Color(0xFFFFF0C6)),
-                    ),
-                  ),
-                ],
-              ],
+              itemBuilder: (BuildContext context) => _buildMenuOptions(
+                  flete, esFletero, esSupervisorSalida, esSupervisorLlegada),
             ),
           ),
         ),
@@ -243,21 +251,141 @@ class _FleteState extends State<Flete> {
     );
   }
 
+  List<PopupMenuEntry<int>> _buildMenuOptions(FleteEncabezadoViewModel flete,
+      bool esFletero, bool esSupervisorSalida, bool esSupervisorLlegada) {
+    List<PopupMenuEntry<int>> menuOptions = [];
+
+    // Opción "Detalle" (siempre disponible)
+    menuOptions.add(
+      const PopupMenuItem<int>(
+        value: 0,
+        child: Text(
+          'Detalle',
+          style: TextStyle(color: Color(0xFFFFF0C6)),
+        ),
+      ),
+    );
+
+    // Si el flete está activo
+    if (flete.flenEstado == true) {
+      if (EsAdmin!) {
+        // Opciones adicionales para administradores
+        menuOptions.addAll([
+          const PopupMenuItem<int>(
+            value: 1,
+            child: Text(
+              'Verificación',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+          const PopupMenuItem<int>(
+            value: 2,
+            child: Text(
+              'Eliminar',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+        ]);
+      }
+
+      if (esSupervisorSalida) {
+        menuOptions.add(
+          const PopupMenuItem<int>(
+            value: 1,
+            child: Text(
+              'Verificación',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+        );
+      }
+
+      if (esSupervisorLlegada) {
+        menuOptions.add(
+          const PopupMenuItem<int>(
+            value: 1,
+            child: Text(
+              'Verificación',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+        );
+      }
+    } else {
+      // Si el flete no está activo
+      if (EsAdmin!) {
+        menuOptions.addAll([
+          const PopupMenuItem<int>(
+            value: 3,
+            child: Text(
+              'Editar',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+          const PopupMenuItem<int>(
+            value: 4,
+            child: Text(
+              'Verificar',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+          const PopupMenuItem<int>(
+            value: 2,
+            child: Text(
+              'Eliminar',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+        ]);
+      }
+
+      if (esSupervisorSalida) {
+        menuOptions.add(
+          const PopupMenuItem<int>(
+            value: 3,
+            child: Text(
+              'Editar',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+        );
+      }
+
+      if (esSupervisorLlegada) {
+        menuOptions.add(
+          const PopupMenuItem<int>(
+            value: 4,
+            child: Text(
+              'Verificar',
+              style: TextStyle(color: Color(0xFFFFF0C6)),
+            ),
+          ),
+        );
+      }
+    }
+
+    return menuOptions;
+  }
+
   void _modalEliminar(BuildContext context, FleteEncabezadoViewModel flete) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Eliminar Flete', style: TextStyle(color: Colors.white)),
+          title: Text(
+            'Confirmación',
+            style: TextStyle(
+              color: Color(0xFFFFF0C6),
+              fontSize: 20,
+            ),
+          ),
           content: Text(
-            '¿Está seguro de querer eliminar el flete hacia ${flete.destino}?',
+            '¿Está seguro de que quieres eliminar el flete hacia ${flete.destino}?',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: Color(0xFF171717),
           actions: [
-            TextButton(
-              child:
-                  Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            ElevatedButton(
               onPressed: () async {
                 try {
                   await FleteEncabezadoService.Eliminar(flete.flenId!);
@@ -278,13 +406,30 @@ class _FleteState extends State<Flete> {
                   );
                 } finally {}
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: Text('Eliminar', style: TextStyle(color: Colors.black)),
             ),
-            TextButton(
-              child:
-                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child:
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
             ),
           ],
         );
@@ -530,8 +675,7 @@ class _FleteState extends State<Flete> {
 
   Widget _buildListaFletes() {
     return Scaffold(
-      backgroundColor:
-          Colors.black, // Establece el fondo negro para la pantalla
+      backgroundColor: Colors.black,
       body: Container(
         color: Colors.black,
         padding: const EdgeInsets.all(20.0),
@@ -566,141 +710,131 @@ class _FleteState extends State<Flete> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: FutureBuilder<List<FleteEncabezadoViewModel>>(
-                future: _fletesFuture,
-                builder: (context, snapshot) {
-                  if (_isLoading) {
-                    return Center(
+              child: _isLoading
+                  ? Center(
                       child:
                           CircularProgressIndicator(color: Color(0xFFFFF0C6)),
-                    );
-                  } else if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return Center(
-                      child:
-                          CircularProgressIndicator(color: Color(0xFFFFF0C6)),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error al cargar los datos',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    );
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No hay datos disponibles',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  } else {
-                    _filteredFletes = _searchController.text.isEmpty
-                        ? snapshot.data!
-                        : _filteredFletes;
-                    final int totalRecords = _filteredFletes.length;
-                    final int startIndex = _currentPage * _rowsPerPage;
-                    final int endIndex =
-                        (startIndex + _rowsPerPage > totalRecords)
-                            ? totalRecords
-                            : startIndex + _rowsPerPage;
-
-                    return Column(
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Table(
-                              columnWidths: {
-                                0: FlexColumnWidth(2),
-                                1: FlexColumnWidth(1),
-                                2: FlexColumnWidth(3),
-                                3: FlexColumnWidth(2),
-                              },
-                              children: [
-                                TableRow(
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFF171717),
-                                  ),
+                    )
+                  : _filteredFletes.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No hay datos disponibles',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Table(
+                                  columnWidths: {
+                                    0: FlexColumnWidth(2),
+                                    1: FlexColumnWidth(1),
+                                    2: FlexColumnWidth(3),
+                                    3: FlexColumnWidth(2),
+                                  },
                                   children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Acciones',
-                                        style: TextStyle(
-                                          color: Color(0xFFFFF0C6),
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    TableRow(
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF171717),
                                       ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'No.',
-                                        style: TextStyle(
-                                          color: Color(0xFFFFF0C6),
-                                          fontWeight: FontWeight.bold,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Acciones',
+                                            style: TextStyle(
+                                              color: Color(0xFFFFF0C6),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Salida',
-                                        style: TextStyle(
-                                          color: Color(0xFFFFF0C6),
-                                          fontWeight: FontWeight.bold,
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'No.',
+                                            style: TextStyle(
+                                              color: Color(0xFFFFF0C6),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Estado',
-                                        style: TextStyle(
-                                          color: Color(0xFFFFF0C6),
-                                          fontWeight: FontWeight.bold,
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Salida',
+                                            style: TextStyle(
+                                              color: Color(0xFFFFF0C6),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Estado',
+                                            style: TextStyle(
+                                              color: Color(0xFFFFF0C6),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
+                                    ..._filteredFletes
+                                        .sublist(
+                                            _currentPage * _rowsPerPage,
+                                            (_currentPage * _rowsPerPage +
+                                                        _rowsPerPage >
+                                                    _filteredFletes.length)
+                                                ? _filteredFletes.length
+                                                : _currentPage * _rowsPerPage +
+                                                    _rowsPerPage)
+                                        .asMap()
+                                        .entries
+                                        .map((entry) {
+                                      final index = entry.key;
+                                      final flete = entry.value;
+                                      return _buildFleteRow(flete,
+                                          _currentPage * _rowsPerPage + index);
+                                    }).toList(),
                                   ],
                                 ),
-                                ..._filteredFletes
-                                    .sublist(startIndex, endIndex)
-                                    .asMap()
-                                    .entries
-                                    .map((entry) {
-                                  final index = entry.key;
-                                  final flete = entry.value;
-                                  return _buildFleteRow(
-                                      flete, startIndex + index);
-                                }).toList(),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Mostrando ${_currentPage * _rowsPerPage + 1} al ${(_currentPage * _rowsPerPage + _rowsPerPage > _filteredFletes.length) ? _filteredFletes.length : _currentPage * _rowsPerPage + _rowsPerPage} de ${_filteredFletes.length} entradas',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.arrow_back),
+                                  onPressed: _currentPage > 0
+                                      ? () {
+                                          setState(() {
+                                            _currentPage--;
+                                          });
+                                        }
+                                      : null,
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.arrow_forward),
+                                  onPressed: (_currentPage + 1) * _rowsPerPage <
+                                          _filteredFletes.length
+                                      ? () {
+                                          setState(() {
+                                            _currentPage++;
+                                          });
+                                        }
+                                      : null,
+                                ),
                               ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Mostrando ${startIndex + 1} al ${endIndex} de $totalRecords entradas',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.arrow_back),
-                              onPressed: _previousPage,
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.arrow_forward),
-                              onPressed: _nextPage,
                             ),
                           ],
                         ),
-                      ],
-                    );
-                  }
-                },
-              ),
             ),
           ],
         ),

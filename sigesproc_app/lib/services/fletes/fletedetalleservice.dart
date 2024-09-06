@@ -26,7 +26,6 @@ class FleteDetalleService {
 
   static Future<List<EquipoPorProveedorViewModel>>
       listarEquiposdeSeguridadPorBodega(int bodeId) async {
-    print('id $bodeId');
     final url = Uri.parse(
         '${ApiService.apiUrl}/EquipoSeguridad/BuscarEquipoPorProveedor/$bodeId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
@@ -35,6 +34,44 @@ class FleteDetalleService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => EquipoPorProveedorViewModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<InsumoPorProveedorViewModel>>
+      listarInsumosPorProveedorPorActividadEtapa(int acetId) async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/FleteDetalle/BuscarInsumosPorActividadEtapa/$acetId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+    print('Response acet insumos: ${response.statusCode}');
+    print('Response acet nsumos: ${response.body}');
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      print('data insumos $data');
+      return data
+          .map((json) => InsumoPorProveedorViewModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<EquipoPorProveedorViewModel>>
+      listarEquiposdeSeguridadPorActividadEtapa(int acetId) async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/FleteDetalle/BuscarEquiposPorActividadEtapa/$acetId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+    print('Response acet equios: ${response.statusCode}');
+    print('Response acet equipos: ${response.body}');
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      print('data $data');
       return data
           .map((json) => EquipoPorProveedorViewModel.fromJson(json))
           .toList();
@@ -58,39 +95,39 @@ class FleteDetalleService {
       body: body,
     );
 
-    print('Response body: ${response.body}');
+    print('Response insertar lete detalle: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Error al insertar el detalle del flete');
     }
   }
 
-  static Future<Map<String, dynamic>> insertarFleteDetalle2(FleteDetalleViewModel detalle) async {
-  final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Insertar');
-  final body = jsonEncode(detalle.toJson());
-  final headers = {
-    'Content-Type': 'application/json',
-    'XApiKey': ApiService.apiKey,
-  };
+  static Future<Map<String, dynamic>> insertarFleteDetalle2(
+      FleteDetalleViewModel detalle) async {
+    final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Insertar');
+    final body = jsonEncode(detalle.toJson());
+    final headers = {
+      'Content-Type': 'application/json',
+      'XApiKey': ApiService.apiKey,
+    };
 
-  final response = await http.post(
-    url,
-    headers: headers,
-    body: body,
-  );
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: body,
+    );
 
-  print(' body insertar fletedet2: ${response.body}');
+    print(' body insertar fletedet2: ${response.body}');
 
-  if (response.statusCode != 200) {
-    throw Exception('Error al insertar el detalle del flete');
+    if (response.statusCode != 200) {
+      throw Exception('Error al insertar el detalle del flete');
+    }
+
+    // Decodificar el body y devolverlo como Map
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  // Decodificar el body y devolverlo como Map
-  return jsonDecode(response.body) as Map<String, dynamic>;
-}
-
-  static Future<void> editarFleteDetalle(
-      FleteDetalleViewModel detalle) async {
+  static Future<void> editarFleteDetalle(FleteDetalleViewModel detalle) async {
     final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Actualizar');
     final body = jsonEncode(detalle.toJson());
     final headers = {
@@ -128,7 +165,8 @@ class FleteDetalleService {
 
   static Future<List<FleteDetalleViewModel>> listarDetallesdeFlete(
       int flenId) async {
-    final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarDetalles/$flenId');
+    final url =
+        Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarDetalles/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
