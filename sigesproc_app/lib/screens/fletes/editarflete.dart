@@ -1088,9 +1088,11 @@ class _EditarFleteState extends State<EditarFlete>
             setState(() {
               if (label == '¿Salida de Proyecto?') {
                 esProyectosalida = newValue;
+                flete.boasId = null;
                 salidaController.clear();
               } else {
                 esProyecto = newValue;
+                flete.boatId = null;
                 llegadaController.clear();
               }
             });
@@ -1490,6 +1492,7 @@ class _EditarFleteState extends State<EditarFlete>
           selectedCantidades[i] = 1;
           hayCantidadesInvalidas = true;
         } else if (cantidad > stock!) {
+          _isLoading = false;
           print(
               'Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(

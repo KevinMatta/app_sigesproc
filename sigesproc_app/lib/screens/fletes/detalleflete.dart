@@ -48,15 +48,15 @@ class _DetalleFleteState extends State<DetalleFlete> {
   bool esFletero = false;
   bool estaCargando = true;
   int _unreadCount = 0;
-late int userId;
+  late int userId;
 
   @override
   void initState() {
     super.initState();
     var prefs = PreferenciasUsuario();
-  userId = int.tryParse(prefs.userId) ?? 0;
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-  _loadNotifications();
+    _loadNotifications();
     _loadEmplId();
     _fleteHubService.startConnection().then((_) {
       _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
@@ -92,21 +92,22 @@ late int userId;
   }
 
   Future<void> _loadNotifications() async {
-  try {
-    final notifications = await NotificationServices.BuscarNotificacion(userId);
-    setState(() {
-      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
-    });
-  } catch (e) {
-    print('Error al cargar notificaciones: $e');
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
-}
 
   Future<void> _loadEmplId() async {
     final pref = await SharedPreferences.getInstance();
     setState(() {
-      // emplId = int.tryParse(pref.getString('emplId') ?? '');
-      emplId = 91;
+      emplId = int.tryParse(pref.getString('emplId') ?? '');
+      // emplId = 91;
     });
   }
 
@@ -182,7 +183,15 @@ late int userId;
 
       esFletero = flete.emtrId == emplId;
       print(
-          'Empleado es fletero: $esFletero, EmplId: $emplId, EmtrId: ${flete.emtrId}');
+          'Empleado es fletero: $esFletero, EmplId: $emplId, EmtrId: ${flete.emtrId}, flenEstado: ${flete.flenEstado}');
+
+      // Si flenEstado es true, ya no seguimos rastreando
+      if (flete.flenEstado == true) {
+        print(
+            'El flete ha sido recibido, no se sigue rastreando la ubicación.');
+        // Aquí podrías detener cualquier operación adicional relacionada con la ubicación
+        return;
+      }
 
       if (esFletero) {
         print('Obteniendo la ubicación actual para el fletero...');
@@ -193,17 +202,27 @@ late int userId;
         }
         print("Ubicación obtenida: $ubicacionactual");
 
+        // Cargar la ubicación inicial desde SharedPreferences
+        final pref = await SharedPreferences.getInstance();
+        final latitudInicial = pref.getDouble('latitudInicial');
+        final longitudInicial = pref.getDouble('longitudInicial');
+
+        if (latitudInicial != null && longitudInicial != null) {
+          ubicacionInicial = LatLng(latitudInicial, longitudInicial);
+          print(
+              'Ubicación inicial cargada desde SharedPreferences: $ubicacionInicial');
+        }
+
         // Guardar la ubicación inicial solo si no ha sido almacenada previamente
-        print('hay ubicacion inicial guardada $ubicacionInicial');
         if (ubicacionInicial == null) {
           ubicacionInicial = ubicacionactual;
-          print('toamdno la inicial $ubicacionInicial');
-          final pref = await SharedPreferences.getInstance();
+          print('Guardando la ubicación inicial: $ubicacionInicial');
           await pref.setDouble('latitudInicial', ubicacionInicial!.latitude);
           await pref.setDouble('longitudInicial', ubicacionInicial!.longitude);
         }
 
-        if (_fleteHubService.connection.state == signalR.ConnectionState.connected) {
+        if (_fleteHubService.connection.state ==
+            signalR.ConnectionState.connected) {
           print('Actualizando ubicación inicial en SignalR...');
           await _fleteHubService.actualizarUbicacion(emplId!, ubicacionactual!);
         } else {
@@ -211,11 +230,15 @@ late int userId;
         }
 
         print('Iniciando el seguimiento de la ubicación en tiempo real...');
-        locationSubscription = ubicacionController.onLocationChanged.listen((LocationData currentLocation) async {
-          if (currentLocation.latitude != null && currentLocation.longitude != null) {
-            LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        locationSubscription = ubicacionController.onLocationChanged
+            .listen((LocationData currentLocation) async {
+          if (currentLocation.latitude != null &&
+              currentLocation.longitude != null) {
+            LatLng nuevaUbicacion =
+                LatLng(currentLocation.latitude!, currentLocation.longitude!);
             await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
-            await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
+            await _actualizarPolyline(
+                ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
             setState(() {
               ubicacionactual = nuevaUbicacion;
             });
@@ -253,14 +276,23 @@ late int userId;
     }
   }
 
-  void onReceiveUbicacion(int emplId, double lat, double lng) {
+  void onReceiveUbicacion(int emplId, double lat, double lng) async {
+    final flete =
+        await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+
+    if (flete == null || flete.flenEstado == true) {
+      print(
+          'El flete ya ha sido recibido, deteniendo la actualización de la polyline.');
+      // Detenemos el rastreo en tiempo real si el flete ya fue recibido
+      locationSubscription?.cancel();
+      return;
+    }
+
     LatLng nuevaUbicacion = LatLng(lat, lng);
     print("Ubicación recibida: EmplId: $emplId, Lat: $lat, Lng: $lng");
 
     setState(() {
       if (emplId != this.emplId) {
-        // Es otro usuario viendo al fletero
-        print('es otro usuario');
         polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
       }
       ubicacionactual = nuevaUbicacion;
@@ -298,7 +330,9 @@ late int userId;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(  unreadCount: _unreadCount,  onNotificationsUpdated: _loadNotifications),
+      appBar: CustomAppBar(
+          unreadCount: _unreadCount,
+          onNotificationsUpdated: _loadNotifications),
       body: estaCargando
           ? Container(
               color: Colors.black,
@@ -412,7 +446,8 @@ late int userId;
                                     snapshot.data!.isEmpty) {
                                   return Center(
                                     child: CircularProgressIndicator(
-                                      color: ui.Color.fromARGB(255, 232, 232, 231),
+                                      color:
+                                          ui.Color.fromARGB(255, 232, 232, 231),
                                     ),
                                   );
                                 } else {

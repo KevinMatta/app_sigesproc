@@ -1,4 +1,4 @@
-class InsumoPorProveedorViewModel {
+class InsumoActividadEtapaViewModel {
   int? inppId;
   int? insuId;
   int? provId;
@@ -25,7 +25,7 @@ class InsumoPorProveedorViewModel {
   String? cantidadError;
   int? stockRestante;
 
-  InsumoPorProveedorViewModel({
+  InsumoActividadEtapaViewModel({
     this.inppId,
     this.insuId,
     this.provId,
@@ -53,8 +53,8 @@ class InsumoPorProveedorViewModel {
     this.stockRestante,
   });
 
-  factory InsumoPorProveedorViewModel.fromJson(Map<String, dynamic> json) {
-    return InsumoPorProveedorViewModel(
+  factory InsumoActividadEtapaViewModel.fromJson(Map<String, dynamic> json) {
+    return InsumoActividadEtapaViewModel(
       inppId: json['inpp_Id'],
       insuId: json['insu_Id'],
       provId: json['prov_Id'],

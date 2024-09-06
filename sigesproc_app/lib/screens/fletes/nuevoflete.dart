@@ -374,6 +374,42 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       print('Error al cargar los equipos de seguridad: $e');
     }
   }
+  Future<void> _cargarInsumosPorActividadEtapa(int acetId) async {
+    try {
+      List<InsumoPorProveedorViewModel> insumosList =
+          await FleteDetalleService.listarInsumosPorProveedorPorBodega(acetId);
+      print('insuacet $insumosList');
+      setState(() {
+        insumos = insumosList;
+        // Inicializar controladores para cada insumo cargado
+        quantityControllers = List.generate(
+            insumos.length, (index) => TextEditingController(text: '1'));
+        selectedCantidades = List.generate(insumos.length, (index) => 1);
+      });
+    } catch (e) {
+      print('Error al cargar los insumos: $e');
+    }
+  }
+
+  Future<void> _cargarEquiposDeSeguridadPorActividadEtapa(int acetId) async {
+    try {
+      print('entra a equi');
+
+      List<EquipoPorProveedorViewModel> equiposList =
+          await FleteDetalleService.listarEquiposdeSeguridadPorBodega(acetId);
+      print('equilis $equiposList');
+
+      setState(() {
+        equiposdeSeguridad = equiposList;
+        equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
+            (index) => TextEditingController(text: '1'));
+        selectedCantidadesequipos =
+            List.generate(equiposdeSeguridad.length, (index) => 1);
+      });
+    } catch (e) {
+      print('Error al cargar los equipos de seguridad: $e');
+    }
+  }
 
   Widget _buildBodegaAutocomplete(
       String label, TextEditingController controller) {
@@ -817,6 +853,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
           if (tipo == 'Salida') {
             flete.boasId = selection.acetId;
+            _cargarInsumosPorActividadEtapa(flete.boasId!);
+            _cargarEquiposDeSeguridadPorActividadEtapa(flete.boasId!);
           } else {
             flete.boatId = selection.acetId;
           }
@@ -841,9 +879,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             setState(() {
               if (label == '¿Salida de Proyecto?') {
                 esProyectosalida = newValue;
+                flete.boasId = null;
                 salidaController.clear();
               } else {
                 esProyecto = newValue;
+                flete.boatId = null;
                 llegadaController.clear();
               }
             });
