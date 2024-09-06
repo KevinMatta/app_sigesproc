@@ -194,13 +194,13 @@ Future<void> _loadNotifications() async {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildDetailRow('No.', viatico.vienId?.toString() ?? 'N/A'),
-                    _buildDetailRow('Monto Estimado','$_abreviaturaMoneda ${formatNumber(viatico.vienMontoEstimado ?? 0)}',),
-                    _buildDetailRow('Total Gastado','$_abreviaturaMoneda ${formatNumber(viatico.vienTotalGastado ?? 0)}',),                    SizedBox(height: 16),
+                    _buildDetailRow('Monto Estimado', '$_abreviaturaMoneda ${formatNumber(viatico.vienMontoEstimado?.toInt() ?? 0)}'),
+                    _buildDetailRow('Total Gastado', '$_abreviaturaMoneda ${formatNumber(viatico.vienTotalGastado?.toInt() ?? 0)}'),                  SizedBox(height: 16),
                     _buildDetailRow('Fecha Emisión', viatico.vienFechaEmicion != null ? DateFormat('yyyy-MM-dd').format(viatico.vienFechaEmicion!) : 'N/A'),
                     _buildDetailRow('Colaborador', viatico.empleado ?? 'N/A'),
                     _buildDetailRow('Proyecto', viatico.proyecto ?? 'N/A'),
                     SizedBox(height: 16),
-                    _buildDetailRow('Total Reconocido','$_abreviaturaMoneda ${formatNumber(viatico.vienTotalReconocido ?? 0)}',),
+                    _buildDetailRow('Total Reconocido', '$_abreviaturaMoneda ${formatNumber(viatico.vienTotalReconocido?.toInt() ?? 0)}'),
                                       ],
                 ),
                 actions: [
