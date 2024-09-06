@@ -14,6 +14,8 @@ class TerrenosMap extends StatefulWidget {
 class _TerrenosMapState extends State<TerrenosMap> {
   late Future<List<TerrenosViewModel>> _terrenosFuture;
   List<Marker> _markers = [];
+  int _unreadCount = 0;
+  int? userId;
   late GoogleMapController _mapController;
 
   @override
@@ -24,7 +26,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
 
   Future<List<TerrenosViewModel>> _fetchTerrenos() async {
     try {
-      List<TerrenosViewModel> terrenos = await ProcesoVentaService.listarTerrenos();
+      List<TerrenosViewModel> terrenos =
+          await ProcesoVentaService.listarTerrenos();
       return terrenos;
     } catch (e) {
       print('Error fetching terrenos: $e');
@@ -55,7 +58,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
 
     for (var i = 0; i < firstFiveTerrenos.length; i++) {
       final terreno = firstFiveTerrenos[i];
-      final coordinates = await _obtenerCoordenadasDeEnlace(terreno.terrLinkUbicacion);
+      final coordinates =
+          await _obtenerCoordenadasDeEnlace(terreno.terrLinkUbicacion);
       if (coordinates != null) {
         final color = terreno.terrEstado == true ? colors[0] : colors[1];
         _addMarker(coordinates, color, terreno);
@@ -76,7 +80,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
     _markers.add(marker);
   }
 
-  void _showDetailsPopup(BuildContext context, LatLng coordinates, TerrenosViewModel details) {
+  void _showDetailsPopup(
+      BuildContext context, LatLng coordinates, TerrenosViewModel details) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -191,7 +196,9 @@ class _TerrenosMapState extends State<TerrenosMap> {
                   color: Color(0xFFFFF0C6),
                 ),
               );
-            } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+            } else if (snapshot.hasError ||
+                !snapshot.hasData ||
+                snapshot.data!.isEmpty) {
               return Center(
                 child: Text(
                   'Error al cargar terrenos',
@@ -203,7 +210,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
               _addDynamicMarkers(terrenos);
               return GoogleMap(
                 initialCameraPosition: CameraPosition(
-                  target: LatLng(15.2, -86.6), // Centra el mapa en América Central
+                  target:
+                      LatLng(15.2, -86.6), // Centra el mapa en América Central
                   zoom: 7, // zoom centrado en Honduras
                 ),
                 markers: Set<Marker>.of(_markers),

@@ -2,13 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/equipoporproveedorviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/actividadesporetapaviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/fletes/flete.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import 'package:sigesproc_app/services/fletes/fleteencabezadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/actividadesporetapaservice.dart';
@@ -89,6 +97,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   TabController? _tabController;
   late StreamSubscription<bool> keyboardSubscription;
   bool _isKeyboardVisible = false;
+  bool _cargando = false;
+  int _unreadCount = 0;
+  int? userId;
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
       primary: Color(0xFFFFF0C6),
@@ -121,16 +132,15 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+    _loadUserId(); // Cargamos el userId desde las preferencias.
+    _loadUserProfileData();
     _tabController = TabController(length: 2, vsync: this); // 2 tabs
-
     _cargarEmpleados();
     _cargarBodegas();
     _cargarProyectos();
     var keyboardVisibilityController = KeyboardVisibilityController();
     // Query
     _isKeyboardVisible = keyboardVisibilityController.isVisible;
-
     // Subscribe
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((bool visible) {
@@ -172,6 +182,57 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0;
+
+    _insertarToken();
+
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
+  }
+
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(userId!, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
+    }
   }
 
   Future<void> _cargarEmpleados() async {
@@ -333,16 +394,24 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<BodegaViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
+            List<BodegaViewModel> filteredBodegas;
+
             if (textEditingValue.text.isEmpty) {
-              return bodegas.isNotEmpty
-                  ? bodegas
-                  : []; // Mostrar todas las opciones cuando el campo está vacío
+              filteredBodegas = List.from(bodegas);
+            } else {
+              filteredBodegas = bodegas.where((BodegaViewModel option) {
+                return option.bodeDescripcion!
+                    .toLowerCase()
+                    .contains(textEditingValue.text.toLowerCase());
+              }).toList();
             }
-            return bodegas.where((BodegaViewModel option) {
-              return option.bodeDescripcion!
-                  .toLowerCase()
-                  .contains(textEditingValue.text.toLowerCase());
-            });
+
+            // Ordenar la lista alfabéticamente por bodeDescripcion
+            filteredBodegas.sort((a, b) => a.bodeDescripcion!
+                .toLowerCase()
+                .compareTo(b.bodeDescripcion!.toLowerCase()));
+
+            return filteredBodegas;
           },
           displayStringForOption: (BodegaViewModel option) =>
               option.bodeDescripcion!,
@@ -358,20 +427,18 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               decoration: InputDecoration(
                 labelText: label,
                 border: OutlineInputBorder(),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red, width: 1.0),
+                ),
                 filled: true,
                 fillColor: Colors.black,
                 labelStyle: TextStyle(color: Colors.white),
                 errorText: isError ? errorMessage : null,
                 errorMaxLines: 3,
-                errorStyle: TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
-                ),
+                errorStyle:
+                    TextStyle(color: Colors.red, fontSize: 12, height: 1.0),
                 focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                  borderSide: BorderSide(color: Colors.red, width: 1.0),
                 ),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -477,14 +544,24 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Autocomplete<ProyectoViewModel>(
         optionsBuilder: (TextEditingValue textEditingValue) {
+          List<ProyectoViewModel> filteredProyectos;
+
           if (textEditingValue.text.isEmpty) {
-            return proyectos.isNotEmpty ? proyectos : [];
+            filteredProyectos = List.from(proyectos);
+          } else {
+            filteredProyectos = proyectos.where((ProyectoViewModel option) {
+              return option.proyNombre!
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            }).toList();
           }
-          return proyectos.where((ProyectoViewModel option) {
-            return option.proyNombre!
-                .toLowerCase()
-                .contains(textEditingValue.text.toLowerCase());
-          });
+
+          // Ordenar la lista alfabéticamente por la propiedad proyNombre
+          filteredProyectos.sort((a, b) => a.proyNombre!
+              .toLowerCase()
+              .compareTo(b.proyNombre!.toLowerCase()));
+
+          return filteredProyectos;
         },
         displayStringForOption: (ProyectoViewModel option) =>
             option.proyNombre!,
@@ -504,9 +581,21 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               fillColor: Colors.black,
               labelStyle: TextStyle(color: Colors.white),
               errorText: isError ? errorMessage : null,
+              errorBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Colors.red,
+                    width: 1.0), // Borde rojo en caso de error
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Colors.red,
+                    width: 1.0), // Borde rojo cuando está enfocado y hay error
+              ),
+              errorMaxLines: 3,
               errorStyle: TextStyle(
                 color: Colors.red,
                 fontSize: 12,
+                height: 1.0, // Controla el espaciado entre líneas
               ),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -609,134 +698,134 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
   }
 
   Widget _buildActividadAutocomplete(
-    TextEditingController controller, String tipo) {
-  FocusNode focusNode = FocusNode();
-  List<ActividadPorEtapaViewModel> actividades =
-      tipo == 'Salida' ? actividadesSalida : actividadesLlegada;
+      TextEditingController controller, String tipo) {
+    FocusNode focusNode = FocusNode();
+    List<ActividadPorEtapaViewModel> actividades =
+        tipo == 'Salida' ? actividadesSalida : actividadesLlegada;
 
-  return Autocomplete<ActividadPorEtapaViewModel>(
-    optionsBuilder: (TextEditingValue textEditingValue) {
-      if (textEditingValue.text.isEmpty) {
-        return actividades.isNotEmpty ? actividades : [];
-      }
-      return actividades.where((ActividadPorEtapaViewModel option) {
-        return option.etapDescripcion!
-            .toLowerCase()
-            .contains(textEditingValue.text.toLowerCase());
-      });
-    },
-    displayStringForOption: (ActividadPorEtapaViewModel option) =>
-        option.etapDescripcion! + ' - ' + option.actiDescripcion!,
-    fieldViewBuilder: (BuildContext context,
-        TextEditingController textEditingController,
-        FocusNode fieldFocusNode,
-        VoidCallback onFieldSubmitted) {
-      focusNode = fieldFocusNode;
-      textEditingController.text = controller.text;
-      return TextField(
-        controller: textEditingController,
-        focusNode: fieldFocusNode,
-        decoration: InputDecoration(
-          labelText: 'Actividad - Etapa',
-          border: OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.black,
-          labelStyle: TextStyle(color: Colors.white),
-          errorText: _actividadError ? _actividadErrorMessage : null,
-          errorStyle: TextStyle(
-            color: Colors.red,
-            fontSize: 12,
-          ),
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (controller.text.isNotEmpty)
-                IconButton(
-                  icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
-                  onPressed: () {
-                    setState(() {
-                      controller.clear();
-                      if (tipo == 'Salida') {
-                        flete.boasId = null;
-                      } else {
-                        flete.boatId = null;
-                      }
-                    });
-                  },
-                ),
-              IconButton(
-                icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-                onPressed: () {
-                  if (focusNode.hasFocus) {
-                    focusNode.unfocus();
-                  } else {
-                    focusNode.requestFocus();
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        style: TextStyle(color: Colors.white),
-      );
-    },
-    optionsViewBuilder: (BuildContext context,
-        AutocompleteOnSelected<ActividadPorEtapaViewModel> onSelected,
-        Iterable<ActividadPorEtapaViewModel> options) {
-      return Align(
-        alignment: Alignment.topLeft,
-        child: Material(
-          elevation: 4.0,
-          child: Container(
-            width: MediaQuery.of(context).size.width - 73, // Asegura que el ancho sea igual al del input
-            color: Colors.black,
-            child: options.isEmpty
-                ? ListTile(
-                    title: Text('No hay coincidencias',
-                        style: TextStyle(color: Colors.white)),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      final ActividadPorEtapaViewModel option =
-                          options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: ListTile(
-                          title: Text(
-                            option.etapDescripcion! +
-                                ' - ' +
-                                option.actiDescripcion!,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      );
+    return Autocomplete<ActividadPorEtapaViewModel>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.isEmpty) {
+          return actividades.isNotEmpty ? actividades : [];
+        }
+        return actividades.where((ActividadPorEtapaViewModel option) {
+          return option.etapDescripcion!
+              .toLowerCase()
+              .contains(textEditingValue.text.toLowerCase());
+        });
+      },
+      displayStringForOption: (ActividadPorEtapaViewModel option) =>
+          option.etapDescripcion! + ' - ' + option.actiDescripcion!,
+      fieldViewBuilder: (BuildContext context,
+          TextEditingController textEditingController,
+          FocusNode fieldFocusNode,
+          VoidCallback onFieldSubmitted) {
+        focusNode = fieldFocusNode;
+        textEditingController.text = controller.text;
+        return TextField(
+          controller: textEditingController,
+          focusNode: fieldFocusNode,
+          decoration: InputDecoration(
+            labelText: 'Actividad - Etapa',
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.black,
+            labelStyle: TextStyle(color: Colors.white),
+            errorText: _actividadError ? _actividadErrorMessage : null,
+            errorStyle: TextStyle(
+              color: Colors.red,
+              fontSize: 12,
+            ),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (controller.text.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.clear, color: Color(0xFFFFF0C6)),
+                    onPressed: () {
+                      setState(() {
+                        controller.clear();
+                        if (tipo == 'Salida') {
+                          flete.boasId = null;
+                        } else {
+                          flete.boatId = null;
+                        }
+                      });
                     },
                   ),
+                IconButton(
+                  icon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
+                  onPressed: () {
+                    if (focusNode.hasFocus) {
+                      focusNode.unfocus();
+                    } else {
+                      focusNode.requestFocus();
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-    onSelected: (ActividadPorEtapaViewModel selection) {
-      setState(() {
-        controller.text = selection.etapDescripcion! +
-            ' - ' +
-            selection.actiDescripcion!;
-        if (tipo == 'Salida') {
-          flete.boasId = selection.acetId;
-        } else {
-          flete.boatId = selection.acetId;
-        }
-        _actividadError = false;
-        _actividadErrorMessage = '';
-      });
-    },
-  );
-}
+          style: TextStyle(color: Colors.white),
+        );
+      },
+      optionsViewBuilder: (BuildContext context,
+          AutocompleteOnSelected<ActividadPorEtapaViewModel> onSelected,
+          Iterable<ActividadPorEtapaViewModel> options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            child: Container(
+              width: MediaQuery.of(context).size.width -
+                  73, // Asegura que el ancho sea igual al del input
+              color: Colors.black,
+              child: options.isEmpty
+                  ? ListTile(
+                      title: Text('No hay coincidencias',
+                          style: TextStyle(color: Colors.white)),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.all(8.0),
+                      itemCount: options.length,
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int index) {
+                        final ActividadPorEtapaViewModel option =
+                            options.elementAt(index);
+                        return GestureDetector(
+                          onTap: () {
+                            onSelected(option);
+                          },
+                          child: ListTile(
+                            title: Text(
+                              option.etapDescripcion! +
+                                  ' - ' +
+                                  option.actiDescripcion!,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        );
+      },
+      onSelected: (ActividadPorEtapaViewModel selection) {
+        setState(() {
+          controller.text =
+              selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
+          if (tipo == 'Salida') {
+            flete.boasId = selection.acetId;
+          } else {
+            flete.boatId = selection.acetId;
+          }
+          _actividadError = false;
+          _actividadErrorMessage = '';
+        });
+      },
+    );
+  }
 
   Widget _switch(String label, bool value, Function(bool) onChanged) {
     return Row(
@@ -812,8 +901,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       // Validar Fecha y Hora Establecida de Llegada
       if (flete.flenFechaHoraEstablecidaDeLlegada == null) {
         _fechaHoraEstablecidaError = true;
-        _fechaHoraEstablecidaErrorMessage =
-            'El campo es requerido.';
+        _fechaHoraEstablecidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       } else if (flete.flenFechaHoraSalida != null &&
           flete.flenFechaHoraSalida!
@@ -840,14 +928,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       }
       if (flete.emssId == null) {
         _isSupervisorSalidaError = true;
-        _supervisorSalidaErrorMessage =
-            'El campo es requerido.';
+        _supervisorSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emslId == null) {
         _isSupervisorLlegadaError = true;
-        _supervisorLlegadaErrorMessage =
-            'El campo es requerido.';
+        _supervisorLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.emtrId == flete.emssId && flete.emtrId != null) {
@@ -881,26 +967,22 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       // Validar Ubicaciones
       if (flete.boasId == null && esProyectosalida == false) {
         _ubicacionSalidaError = true;
-        _ubicacionSalidaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == null && esProyectosalida) {
         _ubicacionSalidaError = true;
-        _ubicacionSalidaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto) {
         _ubicacionLlegadaError = true;
-        _ubicacionLlegadaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boatId == null && esProyecto == false) {
         _ubicacionLlegadaError = true;
-        _ubicacionLlegadaErrorMessage =
-            'El campo es requerido.';
+        _ubicacionLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
       if (flete.boasId == flete.boatId &&
@@ -917,20 +999,28 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             'Las ubicaciones de salida y llegada no pueden ser la misma.';
         hayErrores = true;
       }
+      if (flete.boasId == flete.boatId && !esProyectosalida && !esProyecto) {
+        _ubicacionLlegadaError = true;
+        _ubicacionLlegadaErrorMessage =
+            'Las ubicaciones de salida y llegada no pueden ser la misma.';
+        hayErrores = true;
+      }
 
       // Validar Actividad por Etapa
-      if (esProyectosalida && actividadesSalida.isNotEmpty && flete.boasId == null) {
-      _actividadError = true;
-      _actividadErrorMessage = 'El campo es requerido.';
-      hayErrores = true;
-    }
+      if (esProyectosalida &&
+          actividadesSalida.isNotEmpty &&
+          flete.boasId == null) {
+        _actividadError = true;
+        _actividadErrorMessage = 'El campo es requerido.';
+        hayErrores = true;
+      }
 
-    print('$esProyecto, ${actividadesLlegada.isNotEmpty}, ${flete.boatId}');
+      print('$esProyecto, ${actividadesLlegada.isNotEmpty}, ${flete.boatId}');
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
-      _actividadError = true;
-      _actividadErrorMessage = 'El campo es requerido.';
-      hayErrores = true;
-    }
+        _actividadError = true;
+        _actividadErrorMessage = 'El campo es requerido.';
+        hayErrores = true;
+      }
 
       if (esProyectosalida &&
           _noActividadesErrorsalida &&
@@ -1017,12 +1107,54 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -1030,171 +1162,193 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
       ),
-      body: Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
-        child: _mostrarInsumos ? _buildTabsView() : _buildFleteView(),
-      ),
+      body: _cargando
+          ? Container(
+              color: Colors.black,
+              child: Center(
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+              ),
+            )
+          : Container(
+              color: Colors.black,
+              padding: const EdgeInsets.all(16.0),
+              child: _mostrarInsumos ? _buildTabsView() : _buildFleteView(),
+            ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
             bottom: _isKeyboardVisible
                 ? MediaQuery.of(context).viewInsets.bottom
                 : 0),
-        child: _botonDebajo(),
+        child: _cargando ? SizedBox.shrink() : _botonDebajo(),
       ),
     );
   }
 
   Future<void> guardarFlete() async {
-    final pref = await SharedPreferences.getInstance();
-    flete.usuaCreacion = int.tryParse(pref.getString('usuaId') ?? '');
-    flete.flenEstado = false;
-    flete.flenSalidaProyecto = esProyectosalida;
-    flete.flenDestinoProyecto = esProyecto;
-
-    // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
-    bool hayCantidadesInvalidas = false;
-    bool hayCantidadesInvalidase = false;
-
-    // Filtrar insumos con cantidades inválidas o nulas
-    selectedInsumos.removeWhere((insumo) {
-      int? cantidad = int.tryParse(
-          quantityControllers[selectedInsumos.indexOf(insumo)].text);
-      if (cantidad == null || cantidad <= 0) {
-        print(
-            'Eliminando insumo ${insumo.insuDescripcion} con cantidad nula o inválida.');
-        return true; // Eliminar el insumo del arreglo
-      }
-      return false;
+    setState(() {
+      _cargando = true;
     });
+    try {
+      final pref = await SharedPreferences.getInstance();
+      flete.usuaCreacion = int.tryParse(pref.getString('usuaId') ?? '');
+      flete.flenEstado = false;
+      flete.flenSalidaProyecto = esProyectosalida;
+      flete.flenDestinoProyecto = esProyecto;
 
-    // Verificar cantidades restantes en insumos
-    for (int i = 0; i < selectedInsumos.length; i++) {
-      int? stock = selectedInsumos[i].bopiStock;
-      int? cantidad = int.tryParse(quantityControllers[i].text);
+      // Verificar que no haya insumos seleccionados con cantidad 0 o vacía
+      bool hayCantidadesInvalidas = false;
+      bool hayCantidadesInvalidase = false;
 
-      if (cantidad! <= 0) {
-        print(
-            'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
-        quantityControllers[i].text = '1';
-        selectedCantidades[i] = 1;
-        hayCantidadesInvalidas = true;
-      } else if (cantidad == null) {
-      } else if (cantidad > stock!) {
-        print(
-            'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
-        quantityControllers[i].text = stock.toString();
-        selectedCantidades[i] = stock;
-        hayCantidadesInvalidas = true;
-      } else {
-        selectedCantidades[i] = cantidad;
-      }
-    }
+      // Filtrar insumos con cantidades inválidas o nulas
+      selectedInsumos.removeWhere((insumo) {
+        int? cantidad = int.tryParse(
+            quantityControllers[selectedInsumos.indexOf(insumo)].text);
+        if (cantidad == null || cantidad <= 0) {
+          print(
+              'Eliminando insumo ${insumo.insuDescripcion} con cantidad nula o inválida.');
+          return true; // Eliminar el insumo del arreglo
+        }
+        return false;
+      });
 
-    // Filtrar equipos con cantidades inválidas o nulas
-    selectedEquipos.removeWhere((equipo) {
-      int? cantidad = int.tryParse(
-          equipoQuantityControllers[selectedEquipos.indexOf(equipo)].text);
-      if (cantidad == null || cantidad <= 0) {
-        print(
-            'Eliminando equipo ${equipo.equsNombre} con cantidad nula o inválida.');
-        return true; // Eliminar el equipo del arreglo
-      }
-      return false;
-    });
-
-    // Verificar cantidades restantes en equipos
-    for (int i = 0; i < selectedEquipos.length; i++) {
-      int? stocke = selectedEquipos[i].bopiStock;
-      int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
-
-      if (cantidade! <= 0) {
-        print(
-            'Cantidad inválida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
-        equipoQuantityControllers[i].text = '1';
-        selectedCantidadesequipos[i] = 1;
-        hayCantidadesInvalidase = true;
-      } else if (cantidade == null) {
-      } else if (cantidade > stocke!) {
-        print(
-            'Cantidad excedida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
-        equipoQuantityControllers[i].text = stocke.toString();
-        selectedCantidadesequipos[i] = stocke;
-        hayCantidadesInvalidase = true;
-      } else {
-        selectedCantidadesequipos[i] = cantidade;
-      }
-    }
-
-    if (hayCantidadesInvalidas) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Cantidades ajustadas de Insumos. Por favor, revise las cantidades.')),
-      );
-      return;
-    }
-
-    if (hayCantidadesInvalidase) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Cantidades ajustadas de Equipos. Por favor, revise las cantidades.')),
-      );
-      return;
-    }
-
-    // Cambiar la condición para verificar si ambos están vacíos
-    if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
-      print('insumos vacio $selectedInsumos');
-      print('equipos vacio $selectedEquipos');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Debe seleccionar al menos un insumo o equipo de seguridad.')),
-      );
-      return;
-    }
-
-    print('fleteaa $flete');
-
-    final int? flenIdNuevo = await FleteEncabezadoService.insertarFlete(flete);
-    print('guardo e id $flenIdNuevo');
-    if (flenIdNuevo != null) {
+      // Verificar cantidades restantes en insumos
       for (int i = 0; i < selectedInsumos.length; i++) {
-        final detalle = FleteDetalleViewModel(
-          fldeCantidad: selectedCantidades[i],
-          fldeTipodeCarga: true,
-          flenId: flenIdNuevo,
-          inppId: selectedInsumos[i].inppId,
-          usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
-        );
-        print('Detalle data: ${detalle.toJson()}');
-        await FleteDetalleService.insertarFleteDetalle(detalle);
+        int? stock = selectedInsumos[i].bopiStock;
+        int? cantidad = int.tryParse(quantityControllers[i].text);
+
+        if (cantidad! <= 0) {
+          print(
+              'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+          quantityControllers[i].text = '1';
+          selectedCantidades[i] = 1;
+          hayCantidadesInvalidas = true;
+        } else if (cantidad == null) {
+        } else if (cantidad > stock!) {
+          print(
+              'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+          quantityControllers[i].text = stock.toString();
+          selectedCantidades[i] = stock;
+          hayCantidadesInvalidas = true;
+        } else {
+          selectedCantidades[i] = cantidad;
+        }
       }
+
+      // Filtrar equipos con cantidades inválidas o nulas
+      selectedEquipos.removeWhere((equipo) {
+        int? cantidad = int.tryParse(
+            equipoQuantityControllers[selectedEquipos.indexOf(equipo)].text);
+        if (cantidad == null || cantidad <= 0) {
+          print(
+              'Eliminando equipo ${equipo.equsNombre} con cantidad nula o inválida.');
+          return true; // Eliminar el equipo del arreglo
+        }
+        return false;
+      });
+
+      // Verificar cantidades restantes en equipos
       for (int i = 0; i < selectedEquipos.length; i++) {
-        final detalle = FleteDetalleViewModel(
-          fldeCantidad: selectedCantidadesequipos[i],
-          fldeTipodeCarga: false,
-          flenId: flenIdNuevo,
-          inppId: selectedEquipos[i].eqppId,
-          usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
-        );
-        print('Detalle eq: ${detalle.toJson()}');
-        await FleteDetalleService.insertarFleteDetalle(detalle);
+        int? stocke = selectedEquipos[i].bopiStock;
+        int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
+
+        if (cantidade! <= 0) {
+          print(
+              'Cantidad inválida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
+          equipoQuantityControllers[i].text = '1';
+          selectedCantidadesequipos[i] = 1;
+          hayCantidadesInvalidase = true;
+        } else if (cantidade == null) {
+        } else if (cantidade > stocke!) {
+          print(
+              'Cantidad excedida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
+          equipoQuantityControllers[i].text = stocke.toString();
+          selectedCantidadesequipos[i] = stocke;
+          hayCantidadesInvalidase = true;
+        } else {
+          selectedCantidadesequipos[i] = cantidade;
+        }
       }
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Flete(),
-        ),
-      );
+
+      if (hayCantidadesInvalidas) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Cantidades ajustadas de Insumos. Por favor, revise las cantidades.')),
+        );
+        _cargando = false;
+        return;
+      }
+
+      if (hayCantidadesInvalidase) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Cantidades ajustadas de Equipos. Por favor, revise las cantidades.')),
+        );
+        _cargando = false;
+        return;
+      }
+
+      // Cambiar la condición para verificar si ambos están vacíos
+      if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
+        print('insumos vacio $selectedInsumos');
+        print('equipos vacio $selectedEquipos');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Debe seleccionar al menos un insumo o equipo de seguridad.')),
+        );
+        return;
+      }
+
+      print('fleteaa $flete');
+
+      final int? flenIdNuevo =
+          await FleteEncabezadoService.insertarFlete(flete);
+      print('guardo e id $flenIdNuevo');
+      if (flenIdNuevo != null) {
+        for (int i = 0; i < selectedInsumos.length; i++) {
+          final detalle = FleteDetalleViewModel(
+            fldeCantidad: selectedCantidades[i],
+            fldeTipodeCarga: true,
+            flenId: flenIdNuevo,
+            inppId: selectedInsumos[i].inppId,
+            usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
+          );
+          print('Detalle data: ${detalle.toJson()}');
+          await FleteDetalleService.insertarFleteDetalle(detalle);
+        }
+        for (int i = 0; i < selectedEquipos.length; i++) {
+          final detalle = FleteDetalleViewModel(
+            fldeCantidad: selectedCantidadesequipos[i],
+            fldeTipodeCarga: false,
+            flenId: flenIdNuevo,
+            inppId: selectedEquipos[i].eqppId,
+            usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
+          );
+          print('Detalle eq: ${detalle.toJson()}');
+          await FleteDetalleService.insertarFleteDetalle(detalle);
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Flete(),
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Insertado con Éxito.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Algo salió mal. Comuníquese con un Administrador.')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Insertado con Éxito.')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Algo salió mal. Comuníquese con un Administrador.')),
+        SnackBar(
+            content: Text('Algo salió mal. Comuníquese con un Administrador.')),
       );
     }
   }
@@ -1426,7 +1580,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
               backgroundColor: Color(0xFF171717), // Color de fondo
               foregroundColor: Color(0xFFFFF0C6), // Color del icono
               buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-              shape: CircleBorder(), 
+              shape: CircleBorder(),
               childrenButtonSize: Size(56.0, 56.0),
               spaceBetweenChildren:
                   10.0, // Espacio entre los botones secundarios
@@ -1436,7 +1590,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   child: Icon(Icons.arrow_back),
                   backgroundColor: Color(0xFFFFF0C6),
                   foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(), 
+                  shape: CircleBorder(),
                   labelBackgroundColor: Color(0xFFFFF0C6),
                   labelStyle: TextStyle(color: Color(0xFF171717)),
                   onTap: () {
@@ -1452,7 +1606,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                   child: Icon(Icons.add),
                   backgroundColor: Color(0xFFFFF0C6),
                   foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(), 
+                  shape: CircleBorder(),
                   labelBackgroundColor: Color(0xFF171717),
                   labelStyle: TextStyle(color: Colors.white),
                   onTap: _validarCamposYMostrarInsumos,
@@ -1470,37 +1624,39 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       color: Colors.black,
       padding: const EdgeInsets.all(16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-           ElevatedButton(
+          ElevatedButton.icon(
             onPressed: guardarFlete,
+            icon: Icon(Icons.save, color: Colors.black),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
+            label: Text(
               'Guardar',
               style: TextStyle(color: Colors.black, fontSize: 15),
             ),
           ),
-          ElevatedButton(
+          SizedBox(width: 18),
+          ElevatedButton.icon(
             onPressed: _hideInsumosView,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+              backgroundColor: Color(0xFF222222),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
-              'Regresar',
+            icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+            label: Text(
+              'Cancelar',
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
             ),
           ),
-         
         ],
       ),
     );
@@ -1588,10 +1744,19 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         labelStyle: TextStyle(color: Colors.white),
         errorText: _fechaSalidaError ? _fechaSalidaErrorMessage : null,
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: Colors.red, width: 1.0), // Borde rojo en caso de error
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: const Color.fromARGB(255, 117, 102, 100),
+              width: 1.0), // Borde rojo cuando está enfocado y hay error
+        ),
+        errorMaxLines: 3,
+        errorStyle: TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
         ),
       ),
       style: TextStyle(color: Colors.white),
@@ -1627,10 +1792,19 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             ? _fechaHoraEstablecidaErrorMessage
             : null,
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: Colors.red, width: 1.0), // Borde rojo en caso de error
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+          borderSide: BorderSide(
+              color: Colors.red,
+              width: 1.0), // Borde rojo cuando está enfocado y hay error
+        ),
+        errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
+        errorStyle: TextStyle(
+          color: Colors.red,
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
         ),
       ),
       style: TextStyle(color: Colors.white),
@@ -1663,17 +1837,25 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       builder: (BuildContext context, BoxConstraints constraints) {
         return Autocomplete<EmpleadoViewModel>(
           optionsBuilder: (TextEditingValue textEditingValue) {
+            List<EmpleadoViewModel> filteredEmpleados;
+
             if (textEditingValue.text.isEmpty) {
-              return empleados.isNotEmpty ? empleados : [];
+              filteredEmpleados = List.from(empleados);
+            } else {
+              filteredEmpleados = empleados.where((EmpleadoViewModel option) {
+                return option.empleado!
+                        .toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase()) ||
+                    option.emplDNI!
+                        .toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase());
+              }).toList();
             }
-            return empleados.where((EmpleadoViewModel option) {
-              return option.empleado!
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase()) ||
-                  option.emplDNI!
-                      .toLowerCase()
-                      .contains(textEditingValue.text.toLowerCase());
-            });
+
+            filteredEmpleados.sort((a, b) =>
+                a.empleado!.toLowerCase().compareTo(b.empleado!.toLowerCase()));
+
+            return filteredEmpleados;
           },
           displayStringForOption: (EmpleadoViewModel option) =>
               option.empleado!,
@@ -1697,12 +1879,18 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                 errorStyle: TextStyle(
                   color: Colors.red,
                   fontSize: 12,
+                  height: 1.0, // Controla el espaciado entre líneas
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                  borderSide: BorderSide(
+                      color: Colors.red,
+                      width: 1.0), // Borde rojo en caso de error
                 ),
                 focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFFF0C6)),
+                  borderSide: BorderSide(
+                      color: Colors.red,
+                      width:
+                          1.0), // Borde rojo cuando está enfocado y hay error
                 ),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,

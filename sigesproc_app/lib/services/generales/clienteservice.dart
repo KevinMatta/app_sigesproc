@@ -10,6 +10,7 @@ class ClienteService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
+    print('lisclie $data');
       return data.map((json) => ClienteViewModel.fromJson(json)).toList();
     } else {
       throw Exception('Error al cargar los datos');
@@ -38,7 +39,7 @@ class ClienteService {
       'XApiKey': ApiService.apiKey,
     };
 
-    // print('Body: $body');
+    print('Body clienteeeee: $body');
 
     final response = await http.post(
       url,
