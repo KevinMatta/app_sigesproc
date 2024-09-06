@@ -42,6 +42,41 @@ class FleteDetalleService {
       throw Exception('Error al cargar los datos');
     }
   }
+  static Future<List<InsumoPorProveedorViewModel>>
+      listarInsumosPorProveedorPorActividadEtapa(int acetId) async {
+    final url =
+        Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarInsumosPorActividadEtapa/$acetId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+    print('Response acet insumos: ${response.statusCode}');
+    print('Response acet nsumos: ${response.body}');
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => InsumoPorProveedorViewModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<EquipoPorProveedorViewModel>>
+      listarEquiposdeSeguridadPorActividadEtapa(int acetId) async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/FleteDetalle/BuscarEquiposPorActividadEtapa/$acetId');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+    print('Response acet equios: ${response.statusCode}');
+    print('Response acet equipos: ${response.body}');
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => EquipoPorProveedorViewModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
 
   static Future<void> insertarFleteDetalle(
       FleteDetalleViewModel detalle) async {
