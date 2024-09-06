@@ -132,8 +132,10 @@ class _VerificarState extends State<Verificar> {
                                         ),
                                         SizedBox(height: 20),
                                         usuariotextb(),                                        
-                                        SizedBox(height: 20),
-                                        botonVerificar()
+                                        SizedBox(height: 22),
+                                        botonVerificar(),
+                                        botonCancelar()
+
                                       ],
                                     ),
                                   ),
@@ -180,7 +182,7 @@ class _VerificarState extends State<Verificar> {
       controller: codigoController,
       decoration: InputDecoration(
         prefixIcon: Icon(
-          Icons.key,
+          Icons.code,
           color: Colors.black,
         ),
         labelText: 'Código',
@@ -245,7 +247,7 @@ class _VerificarState extends State<Verificar> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
-        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -255,8 +257,31 @@ class _VerificarState extends State<Verificar> {
         'Verificar Código',
         style: TextStyle(
           color: Colors.white,
-          fontSize: 16,
+          fontSize: 15,
           decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+
+
+  Widget botonCancelar() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color.fromARGB(255, 224, 223, 223),
+        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      onPressed: () {
+      Navigator.pop(context);
+      },
+      child: Text(
+        'Cancelar',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 14,
         ),
       ),
     );
