@@ -28,7 +28,7 @@ class _DashboardVentaTerrenoState extends State<DashboardVentaTerreno> {
   }
 
   // Método para formatear el número con comas y puntos
- String formatNumber(double value) {
+  String formatNumber(double value) {
     // Para asegurarse de que las comas estén en miles y el punto sea decimal
     final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US'); // Formato correcto para comas en miles y punto en decimales
     return formatter.format(value);
@@ -79,61 +79,51 @@ class _DashboardVentaTerrenoState extends State<DashboardVentaTerreno> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.map, color: Colors.white, size: 24), // Ícono de mapa para terrenos
+            Icon(Icons.map, color: const Color(0xFFFFF0C6), size: 20), // Ícono de mapa para terrenos
             SizedBox(width: 8),
             Text(
-              'Venta de Terrenos',
-              style: TextStyle(color: Colors.white, fontSize: 18), // Tamaño igual a Bienes Raíces
+              'Terrenos',
+              style: TextStyle(color: const Color(0xFFFFF0C6), fontSize: 20), // Tamaño igual a Bienes Raíces
             ),
           ],
         ),
         SizedBox(height: 15),
 
-        // Mostrar la cantidad de terrenos vendidos
+        // Mostrar la cantidad de terrenos vendidos (Ícono a la izquierda y texto "Cantidad Vendida")
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.terrain, color: Colors.greenAccent, size: 24), // Ícono de terreno
+            Icon(Icons.terrain, color: Colors.greenAccent, size: 16), // Ícono de terreno
             SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
-              children: [
-                Text(
-                  'Cantidad Vendida:',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '${data.cantidadVendidosMes}',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Text(
+              'Cantidad Vendida',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ],
         ),
+        SizedBox(height: 4),
+        Text(
+          '${data.cantidadVendidosMes}',
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         SizedBox(height: 15),
 
-        // Mostrar el total de ventas con formato de moneda
+        // Mostrar el total de ventas con formato de moneda (Ícono a la izquierda y texto "Total Ventas")
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.attach_money, color: Colors.yellowAccent, size: 24), // Ícono de dólar
+            Icon(Icons.attach_money, color: Colors.yellowAccent, size: 16), // Ícono de dólar
             SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
-              children: [
-                Text(
-                  'Total Ventas:',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '$_abreviaturaMoneda ${formatNumber(data.totalVentasMes ?? 0.0)}',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Text(
+              'Total Ventas',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ],
+        ),
+        SizedBox(height: 4),
+        Text(
+          '$_abreviaturaMoneda ${formatNumber(data.totalVentasMes ?? 0.0)}',
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
     );

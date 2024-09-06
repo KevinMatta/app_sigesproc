@@ -28,7 +28,7 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
   }
 
   // Método para formatear el número con comas y puntos
- String formatNumber(double value) {
+  String formatNumber(double value) {
     // Para asegurarse de que las comas estén en miles y el punto sea decimal
     final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US'); // Formato correcto para comas en miles y punto en decimales
     return formatter.format(value);
@@ -79,61 +79,51 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.real_estate_agent, color: Colors.white, size: 20), // Icono más pequeño
+            Icon(Icons.real_estate_agent, color: const Color(0xFFFFF0C6), size: 20), // Icono más pequeño
             SizedBox(width: 8),
             Text(
               'Bienes Raíces',
-              style: TextStyle(color: Colors.white, fontSize: 18), // Título más pequeño
+              style: TextStyle(color: const Color(0xFFFFF0C6), fontSize: 20), // Título más pequeño
             ),
           ],
         ),
         SizedBox(height: 15),
 
-        // Mostrar la cantidad de bienes vendidos
+        // Icono de casa al lado de "Cantidad Vendida" y dato abajo
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.home, color: Colors.greenAccent, size: 24), // Icono más pequeño
+            Icon(Icons.home, color: const Color.fromARGB(255, 105, 152, 240), size: 16), // Icono de casa
             SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
-              children: [
-                Text(
-                  'Cantidad Vendida:',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '${data.cantidadVendidosMes}',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Text(
+              'Cantidad Vendida',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ],
         ),
+        SizedBox(height: 4),
+        Text(
+          '${data.cantidadVendidosMes}',
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         SizedBox(height: 15),
 
-        // Mostrar el total de ventas con formato de moneda
+        // Icono de dólar al lado de "Total Ventas" y dato abajo
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.attach_money, color: Colors.yellowAccent, size: 24), // Icono más pequeño
+            Icon(Icons.attach_money, color: Colors.yellowAccent, size: 16), // Icono de dólar
             SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
-              children: [
-                Text(
-                  'Total Ventas:',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '$_abreviaturaMoneda ${formatNumber(data.totalVentasMes ?? 0.0)}',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Text(
+              'Total Ventas',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ],
+        ),
+        SizedBox(height: 4),
+        Text(
+          '$_abreviaturaMoneda ${formatNumber(data.totalVentasMes ?? 0.0)}',
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
     );

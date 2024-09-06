@@ -74,7 +74,7 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
             title: ChartTitle(
               text: 'Top 5 Proveedores más Cotizados',
               textStyle: TextStyle(
-                  color: Colors.white, fontSize: 10), // Reducir tamaño del título
+                  color: const Color(0xFFFFF0C6), fontSize: 10), // Reducir tamaño del título
             ),
             tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <CircularSeries>[

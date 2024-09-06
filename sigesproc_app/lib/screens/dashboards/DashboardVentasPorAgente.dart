@@ -74,7 +74,7 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
             title: ChartTitle(
               text: 'Ventas por Agente',
               textStyle: TextStyle(
-                  color: Colors.white, fontSize: 10), // Reducir tamaño del título
+                  color: const Color(0xFFFFF0C6), fontSize: 14), // Reducir tamaño del título
             ),
             tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <CircularSeries>[
@@ -129,14 +129,14 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                     Icon(
                       Icons.pie_chart, // Icono de gráfico de pastel
                       color: _selectedSections[index] ? _getBarColor(index) : Colors.grey,
-                      size: 12, // Tamaño más pequeño del ícono
+                      size: 14, // Tamaño más pequeño del ícono
                     ),
                     SizedBox(width: 4),
                     Text(
                       data[index].agen_NombreCompleto ?? '',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 14,
                       ),
                     ),
                   ],

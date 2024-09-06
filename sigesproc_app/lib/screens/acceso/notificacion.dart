@@ -167,13 +167,10 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
             ],
           ),
         ),
-        title: Text(
-          'Notificaciones',
-          style: TextStyle(color: Color(0xFFFFF0C6)),
-        ),
-        iconTheme: IconThemeData(
-          color: Color(0xFFFFF0C6), 
-        ),
+          title: Text('Notificaciones', style: TextStyle(color: Color(0xFFFFF0C6))),
+          centerTitle: true, // Centrar el título
+          iconTheme: IconThemeData(color: Color(0xFFFFF0C6)),
+      
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())

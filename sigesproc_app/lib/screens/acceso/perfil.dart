@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String imageUrl2 = prefs.userImagenEmpleado;
     final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
   // String baseUrl = "https://backendsigesproc-production.up.railway.app/api/Empleado";
-    String imageUrl = "$baseUrl/$imageUrl2";  
+    String imageUrl = "$baseUrl$imageUrl2";  
     if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
       _profileImage = NetworkImage(imageUrl);
     } else {

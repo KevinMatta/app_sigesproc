@@ -220,10 +220,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   }
 
   Widget _buildCotizacionesTab() {
-    var prefs = PreferenciasUsuario();
-    String token = prefs.token;
-
-    return SingleChildScrollView(
+  
+    return Container(
       child: Container(
         color: Colors.black,
         padding: const EdgeInsets.all(16.0),
@@ -235,7 +233,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     padding: const EdgeInsets.all(1.0),
     child: DashboardCompraMesActual(), // Componente nuevo para compras del mes
   ),
-),
+   ),
 
             SizedBox(height: 10),
             Card(
@@ -253,12 +251,12 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
             Card(
               color: Color(0xFF171717),
               child: Container(
-                height: 200,
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
+                height: 230,
+                padding: const EdgeInsets.all(
+                      8.0),
                   child:
                       TopProveedoresDashboard(), // Gráfico de los top 5 proveedores
-                ),
+              
               ),
             ),
           ],
@@ -404,6 +402,8 @@ Widget _buildBienesTab() {
                 color: Color(0xFF171717),
                 child: Container(
                   height: 200,
+                    padding: const EdgeInsets.all(
+                      8.0), 
                   child: DashboardVentaBienRaiz(), // Dashboard de Bienes Raíces
                 ),
               ),
@@ -414,6 +414,8 @@ Widget _buildBienesTab() {
                 color: Color(0xFF171717),
                 child: Container(
                   height: 200,
+                    padding: const EdgeInsets.all(
+                      8.0), 
                   child: DashboardVentaTerreno(), // Nuevo Dashboard de Terrenos
                 ),
               ),
@@ -425,7 +427,9 @@ Widget _buildBienesTab() {
           child: Card(
             color: Color(0xFF171717),
             child: Container(
-              height: 200, // Ajusta la altura si es necesario
+              height: 200,
+                padding: const EdgeInsets.all(
+                      8.0),  // Ajusta la altura si es necesario
               child: DashboardVentasPorAgente(), // Dashboard de Ventas por Agente (nuevo gráfico circular)
             ),
           ),

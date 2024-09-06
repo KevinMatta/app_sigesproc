@@ -86,7 +86,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
             title: ChartTitle(
               text: 'Top 5 Artículos más Comprados',
               textStyle: TextStyle(
-                  color: Colors.white, fontSize: 10), // Reducir tamaño del título
+                  color: const Color(0xFFFFF0C6), fontSize: 10), // Reducir tamaño del título
             ),
             primaryXAxis: CategoryAxis(
               labelStyle: TextStyle(color: Colors.white, fontSize: 0), // Ocultar etiquetas del eje X

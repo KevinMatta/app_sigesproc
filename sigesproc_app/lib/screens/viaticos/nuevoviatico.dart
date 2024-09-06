@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/generales/empleadoservice.dart';
 import 'package:sigesproc_app/services/proyectos/proyectoservice.dart';
 import 'package:sigesproc_app/models/generales/empleadoviewmodel.dart';
@@ -25,7 +28,8 @@ class _NuevoViaticoState extends State<NuevoViatico> {
 
   List<EmpleadoViewModel> _empleados = [];
   List<ProyectoViewModel> _proyectos = [];
-
+int _unreadCount = 0;
+late int userId;
   // Variables para mostrar mensajes de error
   String? _empleadoError;
   String? _proyectoError;
@@ -38,6 +42,10 @@ class _NuevoViaticoState extends State<NuevoViatico> {
     _loadUserData(); // Cargar datos del usuario
     _cargarEmpleados();
     _cargarProyectos();
+    var prefs = PreferenciasUsuario();
+  userId = int.tryParse(prefs.userId) ?? 0;
+
+  _loadNotifications();
   }
 
   Future<void> _loadUserData() async {
@@ -46,7 +54,16 @@ class _NuevoViaticoState extends State<NuevoViatico> {
       _usuarioCreacion = int.tryParse(prefs.getString('usuaId') ?? ''); // Obtener el ID del usuario desde SharedPreferences
     });
   }
-
+Future<void> _loadNotifications() async {
+  try {
+    final notifications = await NotificationServices.BuscarNotificacion(userId);
+    setState(() {
+      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+    });
+  } catch (e) {
+    print('Error al cargar notificaciones: $e');
+  }
+}
   Future<void> _cargarEmpleados() async {
     try {
       List<EmpleadoViewModel> empleadosList = await EmpleadoService.listarEmpleados();
@@ -123,59 +140,10 @@ class _NuevoViaticoState extends State<NuevoViatico> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            Image.asset(
-              'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
-            ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
-            Expanded(
-              child: Text(
-                'SIGESPROC',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.start, // Alinea el texto a la izquierda
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                'Nuevo Viático',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
-      ),
+       appBar: CustomAppBar(
+  unreadCount: _unreadCount,
+  onNotificationsUpdated: _loadNotifications, // Llamada para actualizar las notificaciones
+),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
