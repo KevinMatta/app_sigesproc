@@ -57,7 +57,7 @@ String imageUrl2 = prefs.userImagenEmpleado;
     final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
     
     // Verificar si imageUrl2 viene vacío o no es válida
-    if (imageUrl2.isNotEmpty && imageUrl2.startsWith('http')) {
+    if (imageUrl2.isNotEmpty ) {
       String imageUrl = "$baseUrl$imageUrl2";  
       _profileImage = NetworkImage(imageUrl);
     } else {

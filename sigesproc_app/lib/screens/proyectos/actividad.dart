@@ -4,7 +4,11 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/proyectos/actividadporetapaviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/controlcalidadporactividadviewmodel.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/proyectos/controlcalidad.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/proyectos/controlcalidadporactividadservice.dart';
 import '../menu.dart';
 
@@ -28,10 +32,15 @@ class _ActividadState extends State<Actividad> {
   ScrollController _scrollController = ScrollController();
   double _savedScrollPosition = 0.0; // Guardar la posición del scroll
   int _savedCurrentPage = 0; // Variable para almacenar la página actual
-
+  int _unreadCount = 0;
+  late int userId;
   @override
   void initState() {
     super.initState();
+      var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; // Obtener el userId desde las preferencias
+
+    _loadNotifications();
     etapaName = widget.etapaNombre ?? "";
     _actividadesFiltradas = widget.actividades;
     _searchController.addListener(_actividadFiltrada);
@@ -42,6 +51,19 @@ class _ActividadState extends State<Actividad> {
     _searchController.removeListener(_actividadFiltrada);
     _searchController.dispose();
     super.dispose();
+  }
+
+
+ Future<void> _loadNotifications() async {
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
 
   void _actividadFiltrada() {
@@ -297,15 +319,57 @@ Future<void> _refreshControls(int acetId) async {
             ],
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+     iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
