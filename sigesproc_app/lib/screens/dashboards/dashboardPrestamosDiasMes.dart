@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
-import 'package:intl/intl.dart';
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
+import 'package:intl/intl.dart'; // Para manejar formato de números y monedas
 
 class PrestamosViaticosDashboard extends StatefulWidget {
   @override
@@ -13,12 +14,26 @@ class PrestamosViaticosDashboard extends StatefulWidget {
 class _PrestamosViaticosDashboardState
     extends State<PrestamosViaticosDashboard> {
   late Future<List<DashboardViewModel>> _dashboardData;
+  String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
   TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true);
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  // Función asincrónica para cargar los datos
+  Future<void> _loadData() async {
     _dashboardData = DashboardService.listarPrestamosMesDias();
+    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar la abreviatura de moneda
+  }
+
+  // Función para formatear los números con comas y punto decimal
+  String formatNumber(double value) {
+    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US');
+    return formatter.format(value);
   }
 
   String obtenerNombreMes(int mes) {
@@ -72,7 +87,7 @@ class _PrestamosViaticosDashboardState
 
   Widget _buildLineChart(
       List<DashboardViewModel> data, BoxConstraints constraints) {
-    // Aquí agregamos el print para ver lo que trae 'data' filtrado por el mes actual
+    // Mostrar datos filtrados
     data.forEach((item) {
       print(
           'Día: ${item.dia}, Mes: ${item.mes}, Año: ${item.anio}, Total Monto Prestado: ${item.totalMontoPrestado}');
@@ -87,32 +102,24 @@ class _PrestamosViaticosDashboardState
           final screenWidth = MediaQuery.of(context).size.width;
 
           return Container(
-            height: screenHeight *
-                0.5, // Ajustar la altura en función del tamaño de la pantalla
-            width: screenWidth *
-                0.95, // Ajustar el ancho en función del tamaño de la pantalla
+            height: screenHeight * 0.5, // Ajustar la altura en función de la pantalla
+            width: screenWidth * 0.95,  // Ajustar el ancho en función de la pantalla
             padding: EdgeInsets.symmetric(
               horizontal: screenWidth * 0.02, // Ajustar márgenes laterales
-              vertical:
-                  screenHeight * 0.02, // Ajustar márgenes superior e inferior
+              vertical: screenHeight * 0.02, // Ajustar márgenes superior e inferior
             ),
             child: SfCartesianChart(
-              margin: EdgeInsets.all(
-                  screenWidth * 0.00), // Márgenes alrededor del gráfico
+              margin: EdgeInsets.all(screenWidth * 0.00), // Márgenes alrededor del gráfico
               title: ChartTitle(
-                text: 'Prestamos Viáticos - $nombreMesActual',
+                text: 'Total Prestamos - $nombreMesActual',
                 textStyle: TextStyle(
                   color: Color(0xFFFFF0C6),
-                  fontSize: screenWidth < 600
-                      ? 11
-                      : 16, // Ajustar el tamaño del texto según el ancho
+                  fontSize: screenWidth < 600 ? 11 : 16, // Ajustar el tamaño del texto según el ancho
                 ),
               ),
               primaryXAxis: CategoryAxis(
                 labelStyle: TextStyle(
-                  fontSize: screenWidth < 600
-                      ? 8
-                      : 12, // Tamaño de las etiquetas del eje X
+                  fontSize: screenWidth < 600 ? 8 : 12, // Tamaño de las etiquetas del eje X
                   color: Colors.white,
                 ),
                 labelIntersectAction: AxisLabelIntersectAction.wrap,
@@ -120,27 +127,21 @@ class _PrestamosViaticosDashboardState
                   text: 'Días del Mes',
                   textStyle: TextStyle(
                     color: Colors.white,
-                    fontSize: screenWidth < 600
-                        ? 10
-                        : 14, // Ajustar el tamaño del texto según el ancho
+                    fontSize: screenWidth < 600 ? 10 : 14, // Ajustar el tamaño del texto según el ancho
                   ),
                 ),
               ),
               primaryYAxis: NumericAxis(
                 minimum: 0,
                 labelStyle: TextStyle(
-                  fontSize: screenWidth < 600
-                      ? 8
-                      : 12, // Tamaño de las etiquetas del eje Y
+                  fontSize: screenWidth < 600 ? 8 : 12, // Tamaño de las etiquetas del eje Y
                   color: Colors.white,
                 ),
                 title: AxisTitle(
-                  text: 'Monto Prestado',
+                  text: 'Monto Prestado ($_abreviaturaMoneda)', // Mostrar abreviatura de la moneda
                   textStyle: TextStyle(
                     color: Colors.white,
-                    fontSize: screenWidth < 600
-                        ? 10
-                        : 14, // Ajustar el tamaño del texto según el ancho
+                    fontSize: screenWidth < 600 ? 10 : 14, // Ajustar el tamaño del texto según el ancho
                   ),
                 ),
                 majorGridLines: MajorGridLines(width: 0),
@@ -157,11 +158,14 @@ class _PrestamosViaticosDashboardState
                     isVisible: true,
                     textStyle: TextStyle(
                       color: Colors.white,
-                      fontSize: screenWidth < 600
-                          ? 8
-                          : 10, // Ajustar el tamaño de las etiquetas de datos
+                      fontSize: screenWidth < 600 ? 8 : 10, // Ajustar el tamaño de las etiquetas de datos
                     ),
+                    // Mostrar el valor de `totalMontoPrestado` formateado con la abreviatura de moneda
+                    labelAlignment: ChartDataLabelAlignment.middle,
                   ),
+                  dataLabelMapper: (DashboardViewModel item, _) {
+                    return '$_abreviaturaMoneda ${formatNumber(item.totalMontoPrestado ?? 0.0)}';
+                  },
                   color: Colors.blueAccent,
                 ),
               ],

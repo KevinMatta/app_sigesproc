@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
+import 'package:intl/intl.dart'; // Para manejar el formato de números
 
 class DashboardViaticosMesActual extends StatefulWidget {
   @override
@@ -12,12 +14,26 @@ class DashboardViaticosMesActual extends StatefulWidget {
 class _DashboardViaticosMesActualState
     extends State<DashboardViaticosMesActual> {
   late Future<List<DashboardViewModel>> _dashboardDataViaticosMesActual;
+  String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  // Función asincrónica para cargar la abreviatura de moneda
+  Future<void> _loadData() async {
     _dashboardDataViaticosMesActual =
         DashboardService.listarPrestamosViaticosMes();
+    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar la nueva abreviatura
+  }
+
+  // Función para formatear los números con comas y punto decimal
+  String formatNumber(double value) {
+    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US');
+    return formatter.format(value);
   }
 
   // Función para obtener el nombre del mes
@@ -110,19 +126,19 @@ class _DashboardViaticosMesActualState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Total gastado del mes con espacio entre "L" y el número
+                          // Total gastado del mes formateado con la abreviatura de moneda
                           RichText(
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: 'Gastado: L ',
+                                  text: 'Gastado: $_abreviaturaMoneda ',
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 TextSpan(
-                                  text: totalGastadoMes.toStringAsFixed(2),
+                                  text: formatNumber(totalGastadoMes),
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -132,17 +148,17 @@ class _DashboardViaticosMesActualState
                             ),
                           ),
                           SizedBox(height: 4),
-                          // Monto estimado del mes
+                          // Monto estimado del mes formateado con la abreviatura de moneda
                           RichText(
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: 'Estimado: L ',
+                                  text: 'Estimado: $_abreviaturaMoneda ',
                                   style: TextStyle(
                                       color: Colors.white70, fontSize: 14),
                                 ),
                                 TextSpan(
-                                  text: montoEstimadoMes.toStringAsFixed(2),
+                                  text: formatNumber(montoEstimadoMes),
                                   style: TextStyle(
                                       color: Colors.white70, fontSize: 14),
                                 ),
