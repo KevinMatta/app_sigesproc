@@ -359,8 +359,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
   Future<void> _cargarEquiposDeSeguridadPorBodega(int bodeId) async {
     try {
-      print('entra a equi');
-
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorBodega(bodeId);
       setState(() {
@@ -374,11 +372,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       print('Error al cargar los equipos de seguridad: $e');
     }
   }
+
   Future<void> _cargarInsumosPorActividadEtapa(int acetId) async {
     try {
       List<InsumoPorProveedorViewModel> insumosList =
-          await FleteDetalleService.listarInsumosPorProveedorPorBodega(acetId);
-      print('insuacet $insumosList');
+          await FleteDetalleService.listarInsumosPorProveedorPorActividadEtapa(
+              acetId);
       setState(() {
         insumos = insumosList;
         // Inicializar controladores para cada insumo cargado
@@ -393,11 +392,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
   Future<void> _cargarEquiposDeSeguridadPorActividadEtapa(int acetId) async {
     try {
-      print('entra a equi');
-
       List<EquipoPorProveedorViewModel> equiposList =
-          await FleteDetalleService.listarEquiposdeSeguridadPorBodega(acetId);
-      print('equilis $equiposList');
+          await FleteDetalleService.listarEquiposdeSeguridadPorActividadEtapa(
+              acetId);
 
       setState(() {
         equiposdeSeguridad = equiposList;
@@ -1372,13 +1369,14 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Flete(),
+            builder: (context) => Flete(),   
           ),
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Insertado con Éxito.')),
         );
       } else {
+        _cargando = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content:
@@ -1386,6 +1384,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
+      // Imprimir la excepción en la consola
+      print('Error: $e'); // Esto mostrará el error en la consola
+      // O usar debugPrint si prefieres para evitar truncar mensajes largos
+      debugPrint('Error: $e');
+
+      // Mostrar mensaje en el SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Algo salió mal. Comuníquese con un Administrador.')),
@@ -1513,6 +1517,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             ? selectedCantidadesequipos[selectedEquipos.indexOf(equipo)]
             : 0;
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
+        print('todo equi $equipo');
 
         return ListTile(
           title: Text(
