@@ -455,6 +455,7 @@ Widget _buildBienesTab() {
               child: DashboardVentasPorAgente(), // Dashboard de Ventas por Agente (nuevo gráfico circular)
             ),
           ),
+        ),
         ],
       ),
     );
