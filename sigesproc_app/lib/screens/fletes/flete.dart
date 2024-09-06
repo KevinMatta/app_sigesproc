@@ -372,16 +372,20 @@ class _FleteState extends State<Flete> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Eliminar Flete', style: TextStyle(color: Colors.white)),
+          title: Text(
+            'Confirmación',
+            style: TextStyle(
+              color: Color(0xFFFFF0C6),
+              fontSize: 20,
+            ),
+          ),
           content: Text(
-            '¿Está seguro de querer eliminar el flete hacia ${flete.destino}?',
+            '¿Está seguro de que quieres eliminar el flete hacia ${flete.destino}?',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: Color(0xFF171717),
           actions: [
-            TextButton(
-              child:
-                  Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            ElevatedButton(
               onPressed: () async {
                 try {
                   await FleteEncabezadoService.Eliminar(flete.flenId!);
@@ -402,13 +406,30 @@ class _FleteState extends State<Flete> {
                   );
                 } finally {}
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: Text('Eliminar', style: TextStyle(color: Colors.black)),
             ),
-            TextButton(
-              child:
-                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child:
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
             ),
           ],
         );

@@ -75,6 +75,9 @@ class _VentaState extends State<Venta> {
   late StreamSubscription<bool> keyboardSubscription;
   bool _isKeyboardVisible = false;
 
+  String? dniErrorMessage;
+  String? correoErrorMessage;
+
   bool _mostrarFormularioCliente = false;
   String sexo = 'Femenino';
   String tipoCliente = 'Bien Raiz';
@@ -276,26 +279,80 @@ class _VentaState extends State<Venta> {
             ),
           ],
         ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
-          child: Column(
-            children: [
-              Text(
-                _mostrarFormularioCliente ? 'Cliente' : 'Vender Propiedad',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        bottom: _mostrarFormularioCliente
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(70.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Cliente',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                    Row(
+                      children: [
+                        SizedBox(width: 5.0), // Espacio a la izquierda
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              Navigator.pop(context);
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                top: 10.0), // Margen superior
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFFFFF0C6),
+                                ),
+                                SizedBox(width: 3.0),
+                                Text(
+                                  'Regresar',
+                                  style: TextStyle(
+                                    color: Color(0xFFFFF0C6),
+                                    fontSize: 15.0,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              )
+            : PreferredSize(
+                preferredSize: Size.fromHeight(40.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Vender Propiedad',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
-          ),
-        ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
@@ -378,10 +435,14 @@ class _VentaState extends State<Venta> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _campoDeTextoCliente('DNI', dniController, 'Ingrese el DNI',
-                      isNumeric: true,
-                      showError: _mostrarErrores && dniController.text.isEmpty,
-                      errorMessage: 'El campo es requerido.'),
+                  _campoDeTextoCliente(
+                    'DNI',
+                    dniController,
+                    'Ingrese el DNI',
+                    isNumeric: true,
+                    showError: _mostrarErrores && dniErrorMessage != null,
+                    errorMessage: dniErrorMessage ?? 'El campo es requerido.',
+                  ),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Nombre', nombreclientecontroller, 'Ingrese el nombre',
@@ -402,13 +463,9 @@ class _VentaState extends State<Venta> {
                     correoController,
                     'Ingrese el correo',
                     isEmail: true,
-                    showError: _mostrarErrores &&
-                        (correoController.text.isEmpty ||
-                            !RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-                                .hasMatch(correoController.text)),
-                    errorMessage: correoController.text.isEmpty
-                        ? 'El campo es requerido.'
-                        : 'Ingrese un correo válido.',
+                    showError: _mostrarErrores && correoErrorMessage != null,
+                    errorMessage:
+                        correoErrorMessage ?? 'Ingrese un correo válido.',
                   ),
                   SizedBox(height: 10),
                   _campoDeTextoCliente('Teléfono', telefonoclienteController,
@@ -485,7 +542,8 @@ class _VentaState extends State<Venta> {
         filled: true,
         fillColor: Colors.black,
         border: OutlineInputBorder(),
-        errorText: showError ? errorMessage : null,
+        errorText:
+            showError ? errorMessage : null, // Mostrar el error si corresponde
       ),
       style: TextStyle(color: Colors.white),
       keyboardType: isNumeric
@@ -1395,7 +1453,7 @@ class _VentaState extends State<Venta> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+            icon: Icon(Icons.save, color: Colors.black),
             label: Text(
               'Guardar',
               style: TextStyle(color: Colors.black, fontSize: 15),
@@ -1441,6 +1499,8 @@ class _VentaState extends State<Venta> {
 
   bool _isClienteFormValid() {
     final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+
+    // Validaciones de campos
     final dniValid =
         dniController.text.isNotEmpty && dniController.text.length >= 8;
     final nombreValid = nombreclientecontroller.text.isNotEmpty &&
@@ -1456,6 +1516,39 @@ class _VentaState extends State<Venta> {
     final ciudadValid = ciudadSeleccionada != null;
     final estadoCivilValid = estadoCivilSeleccionado != null;
 
+    // Validación de DNI duplicado
+    final dniDuplicado =
+        clientes.any((cliente) => cliente.clieDNI == dniController.text);
+
+    // Validación de correo duplicado
+    final correoDuplicado = clientes.any(
+        (cliente) => cliente.clieCorreoElectronico == correoController.text);
+
+    setState(() {
+      if (dniDuplicado) {
+        _mostrarErrores = true;
+        dniController.clear(); // Limpiar el campo de texto si ya existe el DNI
+        dniErrorMessage = 'Ya existe un cliente con esa identidad.';
+      } else {
+        dniErrorMessage = null; // No hay error, limpiar el mensaje de error
+      }
+
+      if (correoDuplicado) {
+        _mostrarErrores = true;
+        correoController
+            .clear(); // Limpiar el campo de texto si ya existe el correo
+        correoErrorMessage = 'Ya existe un cliente con ese correo.';
+      } else {
+        correoErrorMessage = null; // No hay error, limpiar el mensaje de error
+      }
+    });
+
+    // Si hay errores de duplicados, no permitimos avanzar
+    if (dniDuplicado || correoDuplicado) {
+      return false;
+    }
+
+    // Si todas las validaciones son correctas, retorna true
     return dniValid &&
         nombreValid &&
         apellidoValid &&
@@ -1474,6 +1567,27 @@ class _VentaState extends State<Venta> {
     } catch (e) {
       return false;
     }
+  }
+
+  void _mostrarMensajeDeError(String mensaje) {
+    // Mostrar el mensaje de error en un diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(mensaje),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
 // Future<void> _notificarVentaCompletada() async {

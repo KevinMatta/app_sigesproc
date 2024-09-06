@@ -375,102 +375,207 @@ class _EditarFleteState extends State<EditarFlete>
         }
 
         if (flete.boasId != null) {
-          print('Cargando insumos para la bodega de salida');
+          if (esProyectosalida) {
+            print('Cargando insumos para la bodega de salida');
 
-          // Cargar la lista de insumos disponibles en la bodega
-          List<InsumoPorProveedorViewModel> insumosList =
-              await FleteDetalleService.listarInsumosPorProveedorPorBodega(
-                  flete.boasId!);
-          print('Insumos cargados: $insumosList');
+            // Cargar la lista de insumos disponibles en la bodega
+            List<InsumoPorProveedorViewModel> insumosList =
+                await FleteDetalleService
+                    .listarInsumosPorProveedorPorActividadEtapa(flete.boasId!);
+            print('Insumos cargados: $insumosList');
 
-          // Cargar los detalles de insumos ya seleccionados en el flete
-          List<FleteDetalleViewModel> detallesCargados =
-              await FleteDetalleService.Buscar(flete.flenId!);
-          print('Detalles de insumos cargados: $detallesCargados');
+            // Cargar los detalles de insumos ya seleccionados en el flete
+            List<FleteDetalleViewModel> detallesCargados =
+                await FleteDetalleService.Buscar(flete.flenId!);
+            print('Detalles de insumos cargados: $detallesCargados');
 
-          // Filtrar los detalles solo para insumos
-          List<FleteDetalleViewModel> detallesInsumosCargados = detallesCargados
-              .where((detalle) => detalle.fldeTipodeCarga == true)
-              .toList();
-          print('Detalles filtrados de insumos: $detallesInsumosCargados');
+            // Filtrar los detalles solo para insumos
+            List<FleteDetalleViewModel> detallesInsumosCargados =
+                detallesCargados
+                    .where((detalle) => detalle.fldeTipodeCarga == true)
+                    .toList();
+            print('Detalles filtrados de insumos: $detallesInsumosCargados');
 
-          setState(() {
-            selectedCantidades = [];
-            quantityControllers = [];
-            selectedInsumos = [];
+            setState(() {
+              selectedCantidades = [];
+              quantityControllers = [];
+              selectedInsumos = [];
 
-            for (var detalle in detallesInsumosCargados) {
-              var insumo = insumosList.firstWhere(
-                  (insumo) => insumo.inppId == detalle.inppId,
-                  orElse: () => InsumoPorProveedorViewModel());
+              for (var detalle in detallesInsumosCargados) {
+                var insumo = insumosList.firstWhere(
+                    (insumo) => insumo.inppId == detalle.inppId,
+                    orElse: () => InsumoPorProveedorViewModel());
 
-              print('que prueba c $insumo');
+                print('que prueba c $insumo');
 
-              if (insumo != null) {
-                selectedInsumos.add(insumo);
-                selectedCantidades.add(detalle.fldeCantidad!);
-                quantityControllers.add(TextEditingController(
-                    text: detalle.fldeCantidad.toString()));
-                print(
-                    'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+                if (insumo != null) {
+                  selectedInsumos.add(insumo);
+                  selectedCantidades.add(detalle.fldeCantidad!);
+                  quantityControllers.add(TextEditingController(
+                      text: detalle.fldeCantidad.toString()));
+                  print(
+                      'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+                }
               }
-            }
 
-            // Asegurarse de que la lista de insumos contenga todos los insumos, no solo los seleccionados
-            for (var insumo in insumosList) {
-              if (!selectedInsumos.contains(insumo)) {
-                quantityControllers.add(TextEditingController(text: '1'));
-                selectedCantidades.add(1);
+              // Asegurarse de que la lista de insumos contenga todos los insumos, no solo los seleccionados
+              for (var insumo in insumosList) {
+                if (!selectedInsumos.contains(insumo)) {
+                  quantityControllers.add(TextEditingController(text: '1'));
+                  selectedCantidades.add(1);
+                }
               }
-            }
 
-            insumos = insumosList;
-          });
+              insumos = insumosList;
+            });
 
-          print('Cargando equipos de seguridad para la bodega de salida');
+            print('Cargando equipos de seguridad para la bodega de salida');
 
-          // Cargar la lista de equipos disponibles en la bodega
-          List<EquipoPorProveedorViewModel> equiposList =
-              await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
-                  flete.boasId!);
-          print('Equipos cargados: $equiposList');
+            // Cargar la lista de equipos disponibles en la bodega
+            List<EquipoPorProveedorViewModel> equiposList =
+                await FleteDetalleService
+                    .listarEquiposdeSeguridadPorActividadEtapa(flete.boasId!);
+            print('Equipos cargados: $equiposList');
 
-          // Filtrar los detalles solo para equipos
-          List<FleteDetalleViewModel> detallesEquiposCargados = detallesCargados
-              .where((detalle) => detalle.fldeTipodeCarga == false)
-              .toList();
-          print('Detalles filtrados de equipos: $detallesEquiposCargados');
+            // Filtrar los detalles solo para equipos
+            List<FleteDetalleViewModel> detallesEquiposCargados =
+                detallesCargados
+                    .where((detalle) => detalle.fldeTipodeCarga == false)
+                    .toList();
+            print('Detalles filtrados de equipos: $detallesEquiposCargados');
 
-          setState(() {
-            selectedCantidadesequipos = [];
-            equipoQuantityControllers = [];
-            selectedEquipos = [];
+            setState(() {
+              selectedCantidadesequipos = [];
+              equipoQuantityControllers = [];
+              selectedEquipos = [];
 
-            for (var detalle in detallesEquiposCargados) {
-              var equipo = equiposList.firstWhere(
-                  (equipo) => equipo.eqppId == detalle.inppId,
-                  orElse: () => EquipoPorProveedorViewModel());
+              for (var detalle in detallesEquiposCargados) {
+                var equipo = equiposList.firstWhere(
+                    (equipo) => equipo.eqppId == detalle.inppId,
+                    orElse: () => EquipoPorProveedorViewModel());
 
-              if (equipo != null) {
-                selectedEquipos.add(equipo);
-                selectedCantidadesequipos.add(detalle.fldeCantidad!);
-                equipoQuantityControllers.add(TextEditingController(
-                    text: detalle.fldeCantidad.toString()));
-                print(
-                    'Cantidad seleccionada para equipo ${equipo.equsNombre}: ${detalle.fldeCantidad}');
+                if (equipo != null) {
+                  selectedEquipos.add(equipo);
+                  selectedCantidadesequipos.add(detalle.fldeCantidad!);
+                  equipoQuantityControllers.add(TextEditingController(
+                      text: detalle.fldeCantidad.toString()));
+                  print(
+                      'Cantidad seleccionada para equipo ${equipo.equsNombre}: ${detalle.fldeCantidad}');
+                }
               }
-            }
 
-            // Asegurarse de que la lista de equipos contenga todos los equipos, no solo los seleccionados
-            for (var equipo in equiposList) {
-              if (!selectedEquipos.contains(equipo)) {
-                equipoQuantityControllers.add(TextEditingController(text: '1'));
-                selectedCantidadesequipos.add(1);
+              // Asegurarse de que la lista de equipos contenga todos los equipos, no solo los seleccionados
+              for (var equipo in equiposList) {
+                if (!selectedEquipos.contains(equipo)) {
+                  equipoQuantityControllers
+                      .add(TextEditingController(text: '1'));
+                  selectedCantidadesequipos.add(1);
+                }
               }
-            }
 
-            equiposdeSeguridad = equiposList;
-          });
+              equiposdeSeguridad = equiposList;
+            });
+          } else {
+            print('Cargando insumos para la bodega de salida');
+
+            // Cargar la lista de insumos disponibles en la bodega
+            List<InsumoPorProveedorViewModel> insumosList =
+                await FleteDetalleService.listarInsumosPorProveedorPorBodega(
+                    flete.boasId!);
+            print('Insumos cargados: $insumosList');
+
+            // Cargar los detalles de insumos ya seleccionados en el flete
+            List<FleteDetalleViewModel> detallesCargados =
+                await FleteDetalleService.Buscar(flete.flenId!);
+            print('Detalles de insumos cargados: $detallesCargados');
+
+            // Filtrar los detalles solo para insumos
+            List<FleteDetalleViewModel> detallesInsumosCargados =
+                detallesCargados
+                    .where((detalle) => detalle.fldeTipodeCarga == true)
+                    .toList();
+            print('Detalles filtrados de insumos: $detallesInsumosCargados');
+
+            setState(() {
+              selectedCantidades = [];
+              quantityControllers = [];
+              selectedInsumos = [];
+
+              for (var detalle in detallesInsumosCargados) {
+                var insumo = insumosList.firstWhere(
+                    (insumo) => insumo.inppId == detalle.inppId,
+                    orElse: () => InsumoPorProveedorViewModel());
+
+                print('que prueba c $insumo');
+
+                if (insumo != null) {
+                  selectedInsumos.add(insumo);
+                  selectedCantidades.add(detalle.fldeCantidad!);
+                  quantityControllers.add(TextEditingController(
+                      text: detalle.fldeCantidad.toString()));
+                  print(
+                      'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+                }
+              }
+
+              // Asegurarse de que la lista de insumos contenga todos los insumos, no solo los seleccionados
+              for (var insumo in insumosList) {
+                if (!selectedInsumos.contains(insumo)) {
+                  quantityControllers.add(TextEditingController(text: '1'));
+                  selectedCantidades.add(1);
+                }
+              }
+
+              insumos = insumosList;
+            });
+
+            print('Cargando equipos de seguridad para la bodega de salida');
+
+            // Cargar la lista de equipos disponibles en la bodega
+            List<EquipoPorProveedorViewModel> equiposList =
+                await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
+                    flete.boasId!);
+            print('Equipos cargados: $equiposList');
+
+            // Filtrar los detalles solo para equipos
+            List<FleteDetalleViewModel> detallesEquiposCargados =
+                detallesCargados
+                    .where((detalle) => detalle.fldeTipodeCarga == false)
+                    .toList();
+            print('Detalles filtrados de equipos: $detallesEquiposCargados');
+
+            setState(() {
+              selectedCantidadesequipos = [];
+              equipoQuantityControllers = [];
+              selectedEquipos = [];
+
+              for (var detalle in detallesEquiposCargados) {
+                var equipo = equiposList.firstWhere(
+                    (equipo) => equipo.eqppId == detalle.inppId,
+                    orElse: () => EquipoPorProveedorViewModel());
+
+                if (equipo != null) {
+                  selectedEquipos.add(equipo);
+                  selectedCantidadesequipos.add(detalle.fldeCantidad!);
+                  equipoQuantityControllers.add(TextEditingController(
+                      text: detalle.fldeCantidad.toString()));
+                  print(
+                      'Cantidad seleccionada para equipo ${equipo.equsNombre}: ${detalle.fldeCantidad}');
+                }
+              }
+
+              // Asegurarse de que la lista de equipos contenga todos los equipos, no solo los seleccionados
+              for (var equipo in equiposList) {
+                if (!selectedEquipos.contains(equipo)) {
+                  equipoQuantityControllers
+                      .add(TextEditingController(text: '1'));
+                  selectedCantidadesequipos.add(1);
+                }
+              }
+
+              equiposdeSeguridad = equiposList;
+            });
+          }
         }
       }
     } catch (e) {
@@ -944,6 +1049,41 @@ class _EditarFleteState extends State<EditarFlete>
     ]);
   }
 
+  Future<void> _cargarInsumosPorActividadEtapa(int acetId) async {
+    try {
+      List<InsumoPorProveedorViewModel> insumosList =
+          await FleteDetalleService.listarInsumosPorProveedorPorActividadEtapa(
+              acetId);
+      setState(() {
+        insumos = insumosList;
+        // Inicializar controladores para cada insumo cargado
+        quantityControllers = List.generate(
+            insumos.length, (index) => TextEditingController(text: '1'));
+        selectedCantidades = List.generate(insumos.length, (index) => 1);
+      });
+    } catch (e) {
+      print('Error al cargar los insumos: $e');
+    }
+  }
+
+  Future<void> _cargarEquiposDeSeguridadPorActividadEtapa(int acetId) async {
+    try {
+      List<EquipoPorProveedorViewModel> equiposList =
+          await FleteDetalleService.listarEquiposdeSeguridadPorActividadEtapa(
+              acetId);
+
+      setState(() {
+        equiposdeSeguridad = equiposList;
+        equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
+            (index) => TextEditingController(text: '1'));
+        selectedCantidadesequipos =
+            List.generate(equiposdeSeguridad.length, (index) => 1);
+      });
+    } catch (e) {
+      print('Error al cargar los equipos de seguridad: $e');
+    }
+  }
+
   Widget _buildActividadAutocomplete(
       TextEditingController controller, String tipo) {
     FocusNode focusNode = FocusNode();
@@ -1064,6 +1204,8 @@ class _EditarFleteState extends State<EditarFlete>
               selection.etapDescripcion! + ' - ' + selection.actiDescripcion!;
           if (tipo == 'Salida') {
             flete.boasId = selection.acetId;
+            _cargarInsumosPorActividadEtapa(flete.boasId!);
+            _cargarEquiposDeSeguridadPorActividadEtapa(flete.boasId!);
           } else {
             flete.boatId = selection.acetId;
           }
@@ -1316,22 +1458,61 @@ class _EditarFleteState extends State<EditarFlete>
           ],
         ),
         bottom: _showInsumos
-            ? TabBar(
-                controller: _tabController,
-                tabs: [
-                  Tab(text: 'Insumos'),
-                  Tab(text: 'Equipos de Seguridad'),
-                ],
-                labelColor: Color(0xFFFFF0C6),
-                unselectedLabelColor: Colors.white,
-                indicatorColor: Color(0xFFFFF0C6),
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(100.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!_isLoading)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.arrow_back,
+                                color: Color(0xFFFFF0C6),
+                              ),
+                              SizedBox(width: 5.0),
+                              Text(
+                                'Regresar',
+                                style: TextStyle(
+                                  color: Color(0xFFFFF0C6),
+                                  fontSize: 15.0,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Espacio adicional entre el botón y la TabBar
+                    SizedBox(height: 10.0),
+
+                    // TabBar
+                    TabBar(
+                      controller: _tabController,
+                      tabs: [
+                        Tab(text: 'Insumos'),
+                        Tab(text: 'Equipos de Seguridad'),
+                      ],
+                      labelColor: Color(0xFFFFF0C6),
+                      unselectedLabelColor: Colors.white,
+                      indicatorColor: Color(0xFFFFF0C6),
+                    ),
+                  ],
+                ),
               )
             : PreferredSize(
-                preferredSize: Size.fromHeight(40.0),
+                preferredSize: Size.fromHeight(70.0),
                 child: Column(
                   children: [
                     Text(
-                      'Editar Flete',
+                      'Nuevo Flete',
                       style: TextStyle(
                         color: Color(0xFFFFF0C6),
                         fontSize: 18,
@@ -1343,6 +1524,40 @@ class _EditarFleteState extends State<EditarFlete>
                       height: 2.0,
                       color: Color(0xFFFFF0C6),
                     ),
+                    SizedBox(height: 5),
+                    if (!_isLoading)
+                      Row(
+                        children: [
+                          SizedBox(width: 5.0),
+                          GestureDetector(
+                            onTap: () {
+                              // Acción para el botón de "Regresar"
+                              Navigator.pop(context);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 10.0), // Padding superior de 10 píxeles
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Color(0xFFFFF0C6),
+                                  ),
+                                  SizedBox(width: 3.0),
+                                  Text(
+                                    'Regresar',
+                                    style: TextStyle(
+                                      color: Color(0xFFFFF0C6),
+                                      fontSize: 15.0,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -1421,7 +1636,7 @@ class _EditarFleteState extends State<EditarFlete>
             bottom: _isKeyboardVisible
                 ? MediaQuery.of(context).viewInsets.bottom
                 : 0),
-        child:_isLoading ? SizedBox.shrink() : _buildBottomBar(),
+        child: _isLoading ? SizedBox.shrink() : _buildBottomBar(),
       ),
     );
   }

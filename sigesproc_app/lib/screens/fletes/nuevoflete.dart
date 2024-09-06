@@ -1111,18 +1111,57 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           ],
         ),
         bottom: _mostrarInsumos
-            ? TabBar(
-                controller: _tabController,
-                tabs: [
-                  Tab(text: 'Insumos'),
-                  Tab(text: 'Equipos de Seguridad'),
-                ],
-                labelColor: Color(0xFFFFF0C6),
-                unselectedLabelColor: Colors.white,
-                indicatorColor: Color(0xFFFFF0C6),
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(100.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!_cargando)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 10.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.arrow_back,
+                                color: Color(0xFFFFF0C6),
+                              ),
+                              SizedBox(width: 5.0),
+                              Text(
+                                'Regresar',
+                                style: TextStyle(
+                                  color: Color(0xFFFFF0C6),
+                                  fontSize: 15.0,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Espacio adicional entre el botón y la TabBar
+                    SizedBox(height: 10.0),
+
+                    // TabBar
+                    TabBar(
+                      controller: _tabController,
+                      tabs: [
+                        Tab(text: 'Insumos'),
+                        Tab(text: 'Equipos de Seguridad'),
+                      ],
+                      labelColor: Color(0xFFFFF0C6),
+                      unselectedLabelColor: Colors.white,
+                      indicatorColor: Color(0xFFFFF0C6),
+                    ),
+                  ],
+                ),
               )
             : PreferredSize(
-                preferredSize: Size.fromHeight(40.0),
+                preferredSize: Size.fromHeight(70.0),
                 child: Column(
                   children: [
                     Text(
@@ -1138,6 +1177,39 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                       height: 2.0,
                       color: Color(0xFFFFF0C6),
                     ),
+                    SizedBox(height: 5),
+                    if (!_cargando)
+                      Row(
+                        children: [
+                          SizedBox(width: 5.0),
+                          GestureDetector(
+                            onTap: () {
+                              // Acción para el botón de "Regresar"
+                              Navigator.pop(context);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Color(0xFFFFF0C6),
+                                  ),
+                                  SizedBox(width: 3.0),
+                                  Text(
+                                    'Regresar',
+                                    style: TextStyle(
+                                      color: Color(0xFFFFF0C6),
+                                      fontSize: 15.0,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -1369,7 +1441,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Flete(),   
+            builder: (context) => Flete(),
           ),
         );
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1619,44 +1691,15 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.only(
                 bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
-            child: SpeedDial(
-              icon: Icons.arrow_downward, // Icono inicial
-              activeIcon: Icons.close, // Icono cuando se despliega
-              backgroundColor: Color(0xFF171717), // Color de fondo
+            child: FloatingActionButton(
+              onPressed: _validarCamposYMostrarInsumos,
+              backgroundColor:
+                  Color(0xFF171717), // Color de fondo similar al SpeedDial
               foregroundColor: Color(0xFFFFF0C6), // Color del icono
-              buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-              shape: CircleBorder(),
-              childrenButtonSize: Size(56.0, 56.0),
-              spaceBetweenChildren:
-                  10.0, // Espacio entre los botones secundarios
-              overlayColor: Colors.transparent,
-              children: [
-                SpeedDialChild(
-                  child: Icon(Icons.arrow_back),
-                  backgroundColor: Color(0xFFFFF0C6),
-                  foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(),
-                  labelBackgroundColor: Color(0xFFFFF0C6),
-                  labelStyle: TextStyle(color: Color(0xFF171717)),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Flete(),
-                      ),
-                    );
-                  },
-                ),
-                SpeedDialChild(
-                  child: Icon(Icons.add),
-                  backgroundColor: Color(0xFFFFF0C6),
-                  foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(),
-                  labelBackgroundColor: Color(0xFF171717),
-                  labelStyle: TextStyle(color: Colors.white),
-                  onTap: _validarCamposYMostrarInsumos,
-                ),
-              ],
+              child:
+                  Icon(Icons.add, color: Color(0xFFFFF0C6)), // Color del ícono
+              shape: CircleBorder(), // Mantener la forma circular
+              elevation: 2.0, // Ajusta la elevación si es necesario
             ),
           ),
         ],

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/articuloviewmodel.dart';
 import 'package:sigesproc_app/models/insumos/cotizacionviewmodel.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/insumos/articuloservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/insumos/cotizacionservice.dart';
@@ -27,16 +31,14 @@ class _CotizacionState extends State<Cotizacion> {
   int _currentPage = 0;
   int _rowsPerPage = 10;
   int _unreadCount = 0;
-  late int userId; // Definimos el userId aquí, para obtenerlo de las preferencias.
+  int? userId;
 
   @override
   void initState() {
     super.initState();
+    _loadUserId();
 
-    var prefs = PreferenciasUsuario();
-    userId = int.tryParse(prefs.userId) ?? 0; // Obtener el userId desde las preferencias
-
-    _loadNotifications();
+    _loadUserProfileData();
     _cotizacionesFuture = CotizacionService.listarCotizaciones();
     _cotizacionesFuture!.then((cotizaciones) {
       setState(() {
@@ -46,14 +48,54 @@ class _CotizacionState extends State<Cotizacion> {
     _searchController.addListener(_filterCotizaciones);
   }
 
+  Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0;
+
+    _insertarToken();
+
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
+  }
+
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(userId!, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
+  }
+
   Future<void> _loadNotifications() async {
     try {
-      final notifications = await NotificationServices.BuscarNotificacion(userId);
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
       print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  // Nueva función para cargar datos del usuario
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -182,35 +224,24 @@ class _CotizacionState extends State<Cotizacion> {
       title: Text(
         articulo.articulo,
         style: TextStyle(color: Colors.white),
+        maxLines: 2, // Limitar a 2 líneas si es necesario
+        overflow: TextOverflow.ellipsis, // Para manejar textos muy largos
       ),
-      subtitle: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Precio: ${articulo.precio}',
-                style: TextStyle(color: Colors.white70),
-              ),
-              Text(
-                'Cantidad: ${articulo.cantidad}',
-                style: TextStyle(color: Colors.white70),
-              ),
-            ],
+          // Primer bloque con precio y cantidad
+          Text(
+            'Precio: ${articulo.precio}    Cantidad: ${articulo.cantidad}',
+            style: TextStyle(color: Colors.white70),
+            softWrap: true, // Permite el ajuste del texto a varias líneas
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'Impuesto: ${articulo.impuesto}',
-                style: TextStyle(color: Colors.white70),
-              ),
-              Text(
-                'Total: ${articulo.total}',
-                style: TextStyle(color: Colors.white70),
-              ),
-            ],
+          SizedBox(height: 4.0),
+          // Segundo bloque con impuesto y total
+          Text(
+            'Impuesto: ${articulo.impuesto}    Total: ${articulo.total}',
+            style: TextStyle(color: Colors.white70),
+            softWrap: true, // Permite el ajuste del texto a varias líneas
           ),
         ],
       ),
@@ -220,9 +251,126 @@ class _CotizacionState extends State<Cotizacion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-         appBar: CustomAppBar(
-        unreadCount: _unreadCount,
-        onNotificationsUpdated: _loadNotifications, // Pasar la función aquí
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+        bottom: _mostrarArticulos
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(60.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(width: 5.0), // Espacio a la izquierda
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              // Reiniciar algunos estados cuando se presiona "Regresar"
+                              _selectedCotiId = null;
+                              _reiniciarCotizacionesFiltros(); // Lógica de reinicio
+                              _mostrarArticulos =
+                                  false; // Ocultar los artículos
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                top: 10.0), // Margen superior
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFFFFF0C6),
+                                ),
+                                SizedBox(width: 3.0),
+                                Text(
+                                  'Regresar',
+                                  style: TextStyle(
+                                    color: Color(0xFFFFF0C6),
+                                    fontSize: 15.0,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20.0),
+                  ],
+                ),
+              )
+            : null,
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
@@ -266,9 +414,11 @@ class _CotizacionState extends State<Cotizacion> {
                   ? FutureBuilder<List<ArticuloViewModel>>(
                       future: _articulosFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return Center(
-                            child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+                            child: CircularProgressIndicator(
+                                color: Color(0xFFFFF0C6)),
                           );
                         } else if (snapshot.hasError) {
                           return Center(
@@ -277,7 +427,8 @@ class _CotizacionState extends State<Cotizacion> {
                               style: TextStyle(color: Colors.red),
                             ),
                           );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               'No hay datos disponibles',
@@ -298,9 +449,11 @@ class _CotizacionState extends State<Cotizacion> {
                   : FutureBuilder<List<CotizacionViewModel>>(
                       future: _cotizacionesFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return Center(
-                            child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+                            child: CircularProgressIndicator(
+                                color: Color(0xFFFFF0C6)),
                           );
                         } else if (snapshot.hasError) {
                           print('tiene error $snapshot');
@@ -310,7 +463,8 @@ class _CotizacionState extends State<Cotizacion> {
                               style: TextStyle(color: Colors.red),
                             ),
                           );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               'No hay datos disponibles',
@@ -318,14 +472,17 @@ class _CotizacionState extends State<Cotizacion> {
                             ),
                           );
                         } else {
-                          _cotizacionesFiltrados = _searchController.text.isEmpty
-                              ? snapshot.data!
-                              : _cotizacionesFiltrados;
-                          final int totalRecords = _cotizacionesFiltrados.length;
+                          _cotizacionesFiltrados =
+                              _searchController.text.isEmpty
+                                  ? snapshot.data!
+                                  : _cotizacionesFiltrados;
+                          final int totalRecords =
+                              _cotizacionesFiltrados.length;
                           final int startIndex = _currentPage * _rowsPerPage;
-                          final int endIndex = (startIndex + _rowsPerPage > totalRecords)
-                              ? totalRecords
-                              : startIndex + _rowsPerPage;
+                          final int endIndex =
+                              (startIndex + _rowsPerPage > totalRecords)
+                                  ? totalRecords
+                                  : startIndex + _rowsPerPage;
 
                           return Column(
                             children: [
@@ -393,7 +550,8 @@ class _CotizacionState extends State<Cotizacion> {
                                           .map((entry) {
                                         final index = entry.key;
                                         final cotizacion = entry.value;
-                                        return _buildCotizacionRow(cotizacion, startIndex + index);
+                                        return _buildCotizacionRow(
+                                            cotizacion, startIndex + index);
                                       }).toList(),
                                     ],
                                   ),
@@ -423,42 +581,42 @@ class _CotizacionState extends State<Cotizacion> {
                       },
                     ),
             ),
-            Visibility(
-              visible: _mostrarArticulos,
-              child: Container(
-                color: Colors.black,
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  children: [
-                    Spacer(),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF171717),
-                        padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _selectedCotiId = null;
-                          _reiniciarCotizacionesFiltros();
-                          _mostrarArticulos = false;
-                        });
-                      },
-                      child: Text(
-                        'Regresar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Visibility(
+            //   visible: _mostrarArticulos,
+            //   child: Container(
+            //     color: Colors.black,
+            //     padding: const EdgeInsets.all(10.0),
+            //     child: Row(
+            //       children: [
+            //         Spacer(),
+            //         ElevatedButton(
+            //           style: ElevatedButton.styleFrom(
+            //             backgroundColor: Color(0xFF171717),
+            //             padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+            //             shape: RoundedRectangleBorder(
+            //               borderRadius: BorderRadius.circular(12),
+            //             ),
+            //           ),
+            //           onPressed: () {
+            //             setState(() {
+            //               _selectedCotiId = null;
+            //               _reiniciarCotizacionesFiltros();
+            //               _mostrarArticulos = false;
+            //             });
+            //           },
+            //           child: Text(
+            //             'Regresar',
+            //             style: TextStyle(
+            //               color: Colors.white,
+            //               fontSize: 15,
+            //               decoration: TextDecoration.underline,
+            //             ),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

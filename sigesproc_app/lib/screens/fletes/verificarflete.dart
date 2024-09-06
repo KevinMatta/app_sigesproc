@@ -294,7 +294,8 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ? EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom)
                 : EdgeInsets.zero,
-            child: _isLoading ? SizedBox.shrink() : _buildBottomButtons(),
+            // child: _isLoading ? SizedBox.shrink() : _buildBottomButtons(),
+            child: _buildBottomButtons(),
           ),
           drawer: MenuLateral(
             selectedIndex: _selectedIndex,
@@ -328,7 +329,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         ],
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
+        preferredSize: Size.fromHeight(70.0),
         child: Column(
           children: [
             Text(
@@ -344,6 +345,39 @@ class _VerificarFleteState extends State<VerificarFlete>
               height: 2.0,
               color: Color(0xFFFFF0C6),
             ),
+            SizedBox(height: 5),
+            if (!_isLoading)
+              Row(
+                children: [
+                  SizedBox(width: 5.0),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          top: 10.0), // Padding superior de 10 píxeles
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.arrow_back,
+                            color: Color(0xFFFFF0C6),
+                          ),
+                          SizedBox(width: 3.0),
+                          Text(
+                            'Regresar',
+                            style: TextStyle(
+                              color: Color(0xFFFFF0C6),
+                              fontSize: 15.0,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -656,6 +690,10 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ElevatedButton.icon(
                   onPressed: () async {
                     await _guardarFleteEIncidencia();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Flete()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFFF0C6),
@@ -664,8 +702,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  icon:
-                      Icon(Icons.save, color: Colors.black),
+                  icon: Icon(Icons.save, color: Colors.black),
                   label: Text(
                     'Guardar',
                     style: TextStyle(color: Colors.black, fontSize: 15),
@@ -680,17 +717,14 @@ class _VerificarFleteState extends State<VerificarFlete>
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  icon: Icon(Icons.close,
+                  icon: Icon(Icons.delete,
                       color: Colors.white), // Icono de Cancelar
                   label: Text(
-                    'Cancelar',
+                    'Limpiar',
                     style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Flete()),
-                    );
+                  onPressed: () async {
+                    await _guardarFleteEIncidencia();
                   },
                 ),
               ],
@@ -1372,10 +1406,6 @@ class _VerificarFleteState extends State<VerificarFlete>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al procesar la verificación del flete.')),
       );
-    } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
     }
   }
 
@@ -1505,8 +1535,9 @@ class _VerificarFleteState extends State<VerificarFlete>
 
       print('fleetevenviando $flete');
       bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
+      await FleteEncabezadoService.editarFlete(flete);
+
       if (hayNoVerificados) {
-        await FleteEncabezadoService.editarFlete(flete);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Verificado con Éxito.')),
         );
@@ -1627,56 +1658,52 @@ class _VerificarFleteState extends State<VerificarFlete>
           if (_mostrarFormularioIncidencia)
             ...[]
           else ...[
-            if(_isLoading)...[
+            if (!_isLoading) ...[
               ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFFF0C6),
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFFF0C6),
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ),
-              icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
-              label: Text(
-                'Guardar',
-                style: TextStyle(color: Colors.black, fontSize: 15),
-              ),
-              onPressed: () async {
-                if (!_isLoading) {
-                  print('carg $_isLoading');
-                  setState(() {
-                    _isLoading = true; // Inicia la carga
-                    _mostrarErrores = true;
-                  });
-                  await _verificarFlete();
-                  setState(() {
-                    _isLoading = false; // Finaliza la carga
-                  });
-                }
-              },
-            ),
-            SizedBox(width: 18),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF222222),
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+                label: Text(
+                  'Guardar',
+                  style: TextStyle(color: Colors.black, fontSize: 15),
                 ),
+                onPressed: () async {
+                  if (!_isLoading) {
+                    print('carg $_isLoading');
+                    setState(() {
+                      _isLoading = true;
+                      _mostrarErrores = true;
+                    });
+                    await _verificarFlete();
+                  }
+                },
               ),
-              icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
-              label: Text(
-                'Cancelar',
-                style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+              SizedBox(width: 18),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF222222),
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon:
+                    Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+                label: Text(
+                  'Cancelar',
+                  style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            ] else... [
-              SizedBox.shrink(),
-            ]
-            
+            ] else
+              ...[]
           ],
         ],
       ),
