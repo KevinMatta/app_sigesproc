@@ -78,7 +78,7 @@ class IncidenceCostDashboardCard extends StatelessWidget {
                 Flexible(
                   // Wrap Text in Flexible
                   child: Text(
-                    'Costo: \$${costoIncidencia}',
+                    'Costo: \LPS ${costoIncidencia}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12, // Smaller text

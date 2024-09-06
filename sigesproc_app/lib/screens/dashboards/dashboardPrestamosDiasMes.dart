@@ -85,94 +85,113 @@ class _PrestamosViaticosDashboardState
     );
   }
 
-  Widget _buildLineChart(
-      List<DashboardViewModel> data, BoxConstraints constraints) {
-    // Mostrar datos filtrados
-    data.forEach((item) {
-      print(
-          'Día: ${item.dia}, Mes: ${item.mes}, Año: ${item.anio}, Total Monto Prestado: ${item.totalMontoPrestado}');
-    });
-    final mesActual = DateTime.now().month;
-    final nombreMesActual = obtenerNombreMes(mesActual);
 
-    return Center(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final screenHeight = MediaQuery.of(context).size.height;
-          final screenWidth = MediaQuery.of(context).size.width;
 
-          return Container(
-            height: screenHeight * 0.5, // Ajustar la altura en función de la pantalla
-            width: screenWidth * 0.95,  // Ajustar el ancho en función de la pantalla
-            padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.02, // Ajustar márgenes laterales
-              vertical: screenHeight * 0.02, // Ajustar márgenes superior e inferior
+
+
+
+
+
+
+
+Widget _buildLineChart(List<DashboardViewModel> data, BoxConstraints constraints) {
+  // Mostrar datos filtrados
+  data.forEach((item) {
+    print(
+        'Día: ${item.dia}, Mes: ${item.mes}, Año: ${item.anio}, Total Monto Prestado: ${item.totalMontoPrestado}');
+  });
+  final mesActual = DateTime.now().month;
+  final nombreMesActual = obtenerNombreMes(mesActual);
+
+  return Center(
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        final screenWidth = MediaQuery.of(context).size.width;
+
+        return Container(
+          height: screenHeight * 0.6, // Ajustar la altura en función de la pantalla
+          width: screenWidth * 0.95, // Ajustar el ancho en función de la pantalla
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.04, // Añadir más margen lateral
+            vertical: screenHeight * 0.04, // Añadir más margen superior e inferior
+          ),
+          child: SfCartesianChart(
+            margin: EdgeInsets.only(
+              top: screenHeight * 0.02, // Espacio superior entre el gráfico y el borde
+              bottom: screenHeight * 0.05, // Espacio entre el gráfico y las etiquetas
+              left: screenWidth * 0.02,
+              right: screenWidth * 0.02,
             ),
-            child: SfCartesianChart(
-              margin: EdgeInsets.all(screenWidth * 0.00), // Márgenes alrededor del gráfico
-              title: ChartTitle(
-                text: 'Total Prestamos - $nombreMesActual',
+            title: ChartTitle(
+              text: 'Total Prestamos - $nombreMesActual',
+              textStyle: TextStyle(
+                color: Color(0xFFFFF0C6),
+                fontSize: screenWidth < 600 ? 12 : 18, // Ajustar el tamaño del texto según el ancho
+              ),
+            ),
+            primaryXAxis: CategoryAxis(
+              labelStyle: TextStyle(
+                fontSize: screenWidth < 600 ? 10 : 14, // Tamaño de las etiquetas del eje X
+                color: Colors.white,
+              ),
+              labelIntersectAction: AxisLabelIntersectAction.wrap,
+              title: AxisTitle(
+                text: 'Días del Mes',
                 textStyle: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: screenWidth < 600 ? 11 : 16, // Ajustar el tamaño del texto según el ancho
-                ),
-              ),
-              primaryXAxis: CategoryAxis(
-                labelStyle: TextStyle(
-                  fontSize: screenWidth < 600 ? 8 : 12, // Tamaño de las etiquetas del eje X
                   color: Colors.white,
-                ),
-                labelIntersectAction: AxisLabelIntersectAction.wrap,
-                title: AxisTitle(
-                  text: 'Días del Mes',
-                  textStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: screenWidth < 600 ? 10 : 14, // Ajustar el tamaño del texto según el ancho
-                  ),
+                  fontSize: screenWidth < 600 ? 12 : 16, // Ajustar el tamaño del texto según el ancho
                 ),
               ),
-              primaryYAxis: NumericAxis(
-                minimum: 0,
-                labelStyle: TextStyle(
-                  fontSize: screenWidth < 600 ? 8 : 12, // Tamaño de las etiquetas del eje Y
-                  color: Colors.white,
-                ),
-                title: AxisTitle(
-                  text: 'Monto Prestado ($_abreviaturaMoneda)', // Mostrar abreviatura de la moneda
-                  textStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: screenWidth < 600 ? 10 : 14, // Ajustar el tamaño del texto según el ancho
-                  ),
-                ),
-                majorGridLines: MajorGridLines(width: 0),
-              ),
-              tooltipBehavior: _tooltipBehavior,
-              series: <ChartSeries>[
-                LineSeries<DashboardViewModel, int>(
-                  dataSource: data,
-                  xValueMapper: (DashboardViewModel item, _) => item.dia ?? 0,
-                  yValueMapper: (DashboardViewModel item, _) =>
-                      item.totalMontoPrestado ?? 0,
-                  markerSettings: MarkerSettings(isVisible: true),
-                  dataLabelSettings: DataLabelSettings(
-                    isVisible: true,
-                    textStyle: TextStyle(
-                      color: Colors.white,
-                      fontSize: screenWidth < 600 ? 8 : 10, // Ajustar el tamaño de las etiquetas de datos
-                    ),
-                    // Mostrar el valor de `totalMontoPrestado` formateado con la abreviatura de moneda
-                    labelAlignment: ChartDataLabelAlignment.middle,
-                  ),
-                  dataLabelMapper: (DashboardViewModel item, _) {
-                    return '$_abreviaturaMoneda ${formatNumber(item.totalMontoPrestado ?? 0.0)}';
-                  },
-                  color: Colors.blueAccent,
-                ),
-              ],
             ),
-          );
-        },
-      ),
-    );
-  }
+            primaryYAxis: NumericAxis(
+              minimum: 0,
+              labelStyle: TextStyle(
+                fontSize: screenWidth < 600 ? 10 : 14, // Tamaño de las etiquetas del eje Y
+                color: Colors.white,
+              ),
+              title: AxisTitle(
+                text: 'Monto Prestado ($_abreviaturaMoneda)', // Mostrar abreviatura de la moneda
+                textStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: screenWidth < 600 ? 12 : 16, // Ajustar el tamaño del texto según el ancho
+                ),
+              ),
+              majorGridLines: MajorGridLines(width: 0),
+            ),
+            tooltipBehavior: _tooltipBehavior,
+            series: <ChartSeries>[
+              LineSeries<DashboardViewModel, int>(
+                dataSource: data,
+                xValueMapper: (DashboardViewModel item, _) => item.dia ?? 0,
+                yValueMapper: (DashboardViewModel item, _) =>
+                    item.totalMontoPrestado ?? 0,
+                markerSettings: MarkerSettings(isVisible: true),
+                dataLabelSettings: DataLabelSettings(
+                  isVisible: true,
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: screenWidth < 600 ? 10 : 12, // Ajustar el tamaño de las etiquetas de datos
+                  ),
+                  // Añadir más espacio entre las etiquetas y las líneas
+                  labelAlignment: ChartDataLabelAlignment.bottom,
+                  offset: Offset(0, 10), // Desplazar hacia abajo las etiquetas
+                ),
+                dataLabelMapper: (DashboardViewModel item, _) {
+                  return '$_abreviaturaMoneda ${formatNumber(item.totalMontoPrestado ?? 0.0)}';
+                },
+                color: Colors.blueAccent,
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
+
+
+
 }

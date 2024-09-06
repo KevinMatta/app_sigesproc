@@ -76,7 +76,7 @@ class ProjectCostDashboardCard extends StatelessWidget {
                 const SizedBox(width: 5), // Reduced spacing
                 Flexible(
                   child: Text(
-                    'Total Gastado: \$${totalGastado}',
+                    'Total Gastado: \LPS${totalGastado}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12, // Smaller text
