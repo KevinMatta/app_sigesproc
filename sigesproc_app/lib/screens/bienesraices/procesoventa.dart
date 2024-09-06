@@ -16,7 +16,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 
-
 class ProcesoVenta extends StatefulWidget {
   @override
   _ProcesoVentaState createState() => _ProcesoVentaState();
@@ -27,9 +26,9 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   Future<List<ProcesoVentaViewModel>>? _procesosventaFuture;
   TextEditingController _searchController = TextEditingController();
   List<ProcesoVentaViewModel> _filteredProcesosVenta = [];
-  List<ProcesoVentaViewModel>? _selectedVenta; 
-int _unreadCount = 0;
-late int userId;
+  List<ProcesoVentaViewModel>? _selectedVenta;
+  int _unreadCount = 0;
+  late int userId;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -43,25 +42,26 @@ late int userId;
 
   @override
   void initState() {
-
     super.initState();
     var prefs = PreferenciasUsuario();
-  userId = int.tryParse(prefs.userId) ?? 0;
+    userId = int.tryParse(prefs.userId) ?? 0;
 
-  _loadNotifications();
+    _loadNotifications();
     _cargarProcesosVenta();
     _searchController.addListener(_filtradoProcesosVenta);
   }
-Future<void> _loadNotifications() async {
-  try {
-    final notifications = await NotificationServices.BuscarNotificacion(userId);
-    setState(() {
-      _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
-    });
-  } catch (e) {
-    print('Error al cargar notificaciones: $e');
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
-}
 
   @override
   void dispose() {
@@ -211,7 +211,6 @@ Future<void> _loadNotifications() async {
     }
   }
 
-
   Widget ProcesoVentaRegistro(ProcesoVentaViewModel procesoventa) {
     return FutureBuilder<List<String>>(
       future: ProcesoVentaService.Buscar(
@@ -244,20 +243,19 @@ Future<void> _loadNotifications() async {
                             icon: Icon(Icons.sell, color: Colors.white),
                             onPressed: () {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Venta(
-                                        btrpId: procesoventa.btrpId,
-                                        btrpTerrenoOBienRaizId:
-                                            procesoventa.btrpTerrenoOBienRaizId!
-                                                ? 1
-                                                : 0,
-                                        btrpBienoterrenoId:
-                                            procesoventa.btrpBienoterrenoId!),
-                                  ),
-                                );
-                            }
-                            ),
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Venta(
+                                      btrpId: procesoventa.btrpId,
+                                      btrpTerrenoOBienRaizId:
+                                          procesoventa.btrpTerrenoOBienRaizId!
+                                              ? 1
+                                              : 0,
+                                      btrpBienoterrenoId:
+                                          procesoventa.btrpBienoterrenoId!),
+                                ),
+                              );
+                            }),
                       IconButton(
                         icon: Icon(Icons.info_outline, color: Colors.white),
                         onPressed: () => _verDetalles(
@@ -341,21 +339,20 @@ Future<void> _loadNotifications() async {
                             IconButton(
                                 icon: Icon(Icons.sell, color: Colors.white),
                                 onPressed: () {
-                             Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Venta(
-                                        btrpId: procesoventa.btrpId,
-                                        btrpTerrenoOBienRaizId:
-                                            procesoventa.btrpTerrenoOBienRaizId!
-                                                ? 1
-                                                : 0,
-                                        btrpBienoterrenoId:
-                                            procesoventa.btrpBienoterrenoId!),
-                                  ),
-                                );
-                            }
-                            ),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Venta(
+                                          btrpId: procesoventa.btrpId,
+                                          btrpTerrenoOBienRaizId: procesoventa
+                                                  .btrpTerrenoOBienRaizId!
+                                              ? 1
+                                              : 0,
+                                          btrpBienoterrenoId:
+                                              procesoventa.btrpBienoterrenoId!),
+                                    ),
+                                  );
+                                }),
                           IconButton(
                             icon: Icon(Icons.info_outline, color: Colors.white),
                             onPressed: () => _verDetalles(
@@ -499,7 +496,6 @@ Future<void> _loadNotifications() async {
                       ),
 
                       SizedBox(height: 2.0),
-                      
 
                       Text(
                         'Cliente: ${venta.clieNombreCompleto ?? 'N/A'}',
@@ -529,7 +525,8 @@ Future<void> _loadNotifications() async {
                       ),
                       SizedBox(height: 8.0),
                       Divider(
-                          color: Color.fromARGB(179, 255, 255, 255)), // Línea de separación
+                          color: Color.fromARGB(
+                              179, 255, 255, 255)), // Línea de separación
                       SizedBox(height: 8.0),
 
                       Text(
@@ -587,23 +584,22 @@ Future<void> _loadNotifications() async {
                             ),
                             GestureDetector(
                               onTap: () {
-                                 if (venta.btrpIdentificador == true) {
-                                //   _modalVender(context, venta);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Venta(
-                                        btrpId: venta.btrpId,
-                                        btrpTerrenoOBienRaizId:
-                                            venta.btrpTerrenoOBienRaizId!
-                                                ? 1
-                                                : 0,
-                                        btrpBienoterrenoId:
-                                            venta.btrpBienoterrenoId!),
-                                  ),
-                                );
-                                 }
-                                
+                                if (venta.btrpIdentificador == true) {
+                                  //   _modalVender(context, venta);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Venta(
+                                          btrpId: venta.btrpId,
+                                          btrpTerrenoOBienRaizId:
+                                              venta.btrpTerrenoOBienRaizId!
+                                                  ? 1
+                                                  : 0,
+                                          btrpBienoterrenoId:
+                                              venta.btrpBienoterrenoId!),
+                                    ),
+                                  );
+                                }
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -672,9 +668,9 @@ Future<void> _loadNotifications() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-      unreadCount: _unreadCount,
-      onNotificationsUpdated: _loadNotifications, 
-    ),
+        unreadCount: _unreadCount,
+        onNotificationsUpdated: _loadNotifications,
+      ),
       drawer: MenuLateral(
           selectedIndex: _selectedIndex, onItemSelected: _onItemTapped),
       body: Container(
@@ -707,6 +703,35 @@ Future<void> _loadNotifications() async {
                           onPressed: () {}),
                     ],
                   ),
+                ),
+              ),
+              SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TerrenosMap(),
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: Color(0xFFFFF0C6),
+                      size: 20,
+                    ),
+                    SizedBox(width: 4), // Espacio entre el ícono y el texto
+                    Text(
+                      'Ver todos los terrenos',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: 10),
@@ -744,48 +769,16 @@ Future<void> _loadNotifications() async {
                               _filteredProcesosVenta.isEmpty
                                   ? snapshot.data![index]
                                   : _filteredProcesosVenta[index]);
-                      },
-                    );
+                        },
+                      );
+                    }
                   }
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    floatingActionButton: SpeedDial(
-      icon: Icons.location_on, // Icono de ubicación
-      activeIcon: Icons.close,
-      backgroundColor: Color(0xFF171717),
-      foregroundColor: Color(0xFFFFF0C6),
-      buttonSize: Size(56.0, 56.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      childrenButtonSize: Size(56.0, 56.0),
-      spaceBetweenChildren: 10.0,
-      overlayColor: Colors.transparent,
-      children: [
-        SpeedDialChild(
-          child: Icon(Icons.location_on),
-          backgroundColor: Color(0xFFFFF0C6),
-          foregroundColor: Color(0xFF171717),
-          shape: CircleBorder(),
-          labelBackgroundColor: Color(0xFFFFF0C6),
-          labelStyle: TextStyle(color: Color(0xFF171717)),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TerrenosMap(),
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 }

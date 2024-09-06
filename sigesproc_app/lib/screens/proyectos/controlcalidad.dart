@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/proyectos/controlcalidadporactividadviewmodel.dart';
 import 'package:sigesproc_app/models/proyectos/imagenporcontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/services/proyectos/controlcalidadporactividadservice.dart';
@@ -125,8 +126,16 @@ Future<void> obtenerTotalCantidadTrabajada() async {
   ControlDeCalidadesPorActividadesViewModel controlDeCalidadesViewModel,
   List<PlatformFile> uploadedImages,
 ) async {
+  int usuarioLogueado;
+
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+              String idParse = pref.getString('usuaId')!;
+        usuarioLogueado = int.parse(idParse);
   try {
-    // Guardar el control de calidad
+
+    if(uploadedImages.length > 0)
+    {
+          // Guardar el control de calidad
     final respuesta = await ControlDeCalidadesPorActividadesService.insertarControlCalidad(controlDeCalidadesViewModel);
 
     // Accede a codeStatus desde respuesta.data
@@ -134,8 +143,6 @@ Future<void> obtenerTotalCantidadTrabajada() async {
 
     if (respuesta.success == true && idScope != null) {
 
-      if(uploadedImages.length > 0)
-      {
       // Subir las imágenes una por una
       for (var imagen in uploadedImages) {
         print('Subiendo imagen: ${imagen.name}');
@@ -152,7 +159,7 @@ Future<void> obtenerTotalCantidadTrabajada() async {
                 final imagenPorControlCalidad = ImagenPorControlCalidadViewModel(
                   iccaImagen: uniqueFileName,  // La URL de la imagen subida
                   cocaId: idScope!,  // El ID del control de calidad guardado
-                  usuaCreacion: 3,
+                  usuaCreacion: usuarioLogueado,
                   iccaFechaCreacion: DateTime.now(),
                 );
 
@@ -180,14 +187,6 @@ Future<void> obtenerTotalCantidadTrabajada() async {
         content: Text("Insertado con Éxito."),
       ));
       Navigator.of(context).pop();
-      } else {
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insertado con Éxito"),
-      ));
-      Navigator.of(context).pop();
-
-      }
     } else {
           obtenerTotalCantidadTrabajada();
           double? n = idScope!.abs().toDouble();
@@ -197,6 +196,13 @@ Future<void> obtenerTotalCantidadTrabajada() async {
         ));
       // throw Exception("Error al guardar el control de calidad.");
     }
+  } else {
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Imágenes Requeridas"),
+      ));
+
+      }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Error: $e."),
@@ -226,33 +232,78 @@ Widget build(BuildContext context) {
           ),
         ],
       ),
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(60.0),
-        child: Column(
+     bottom: PreferredSize(
+  preferredSize: Size.fromHeight(90.0),
+  child: Container(
+    decoration: BoxDecoration(
+      border: Border(
+        bottom: BorderSide(
+          color: Colors.black, // Color del borde negro
+          width: 2.0, // Grosor del borde
+        ),
+      ),
+    ),
+    child: Column(
+      children: [
+        Text(
+          'Actividad: $actividad',
+          style: TextStyle(
+            color: Color(0xFFFFF0C6),
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 4.0),
+        Container(
+          height: 2.0,
+          color: Color(0xFFFFF0C6),
+        ),
+        SizedBox(height: 5),
+        Row(
           children: [
-            Text(
-              'Actividad: $actividad',
-              style: TextStyle(
-                color: Color(0xFFFFF0C6),
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+            SizedBox(width: 5.0),
+            GestureDetector(
+              onTap: () {
+                // Acción para el botón de "Regresar"
+                Navigator.pop(context);
+              },
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.arrow_back,
+                    color: Color(0xFFFFF0C6),
+                  ),
+                  SizedBox(width: 3.0),
+                  Text(
+                    'Regresar',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 15.0,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 4.0),
-            Container(
-              height: 2.0,
-              color: Color(0xFFFFF0C6),
-            ),SizedBox(height: 5),
-              Text(
-                'Nuevo Control de Calidad:',
+            SizedBox(width: 20), // Espacio entre el botón y el texto
+            Padding(
+              padding: const EdgeInsets.only(top: 30.0), // Padding superior
+              child: Text(
+                'Nuevo Control de Calidad',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 16,
                 ),
               ),
+            ),
           ],
         ),
-      ),
+      ],
+    ),
+  ),
+),
+
+
       iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
       actions: <Widget>[
         IconButton(
@@ -448,20 +499,21 @@ Widget build(BuildContext context) {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFFFF0C6),
-                            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFFFF0C6),
+                              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          onPressed: _selectImages,
-                          child: Text(
-                            'Subir Imágenes',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
+                            onPressed: _selectImages,
+                            icon: Icon(Icons.upload_file, color: Colors.black), // Icono de subir archivo
+                            label: Text(
+                              'Subir Imágenes',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          )
                       ],
                     ),
                     SizedBox(height: 20),
@@ -531,10 +583,10 @@ Widget build(BuildContext context) {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-                           ElevatedButton(
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFFFF0C6),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -562,22 +614,22 @@ Widget build(BuildContext context) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Error: $e"),
-                          
                         ),
                       );
                     }
                   }
                 },
-                child: Text(
+                icon: Icon(Icons.save, color: Colors.black), // Icono de Guardar
+                label: Text(
                   'Guardar',
                   style: TextStyle(color: Colors.black, fontSize: 15),
                 ),
               ),
-              SizedBox(width: 20),              
-              ElevatedButton(
+              SizedBox(width: 18),
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF222222),
-                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -585,13 +637,21 @@ Widget build(BuildContext context) {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text(
+                icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+                label: Text(
                   'Cancelar',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
                 ),
-              ), 
+              ),
             ],
           ),
+
+
+
+
+
+
+          
           SizedBox(height: 10),
         ],
       ),

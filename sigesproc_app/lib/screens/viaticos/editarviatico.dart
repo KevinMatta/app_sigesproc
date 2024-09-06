@@ -213,6 +213,39 @@ class _EditarViaticoState extends State<EditarViatico> {
                 height: 2.0,
                 color: Color(0xFFFFF0C6),
               ),
+              SizedBox(height: 5),
+      Row(
+        children: [
+          SizedBox(width: 5.0),
+          GestureDetector(
+            onTap: () {
+              // Acción para el botón de "Regresar"
+              Navigator.pop(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10.0), // Padding superior de 10 píxeles
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.arrow_back,
+                    color: Color(0xFFFFF0C6),
+                  ),
+                  SizedBox(width: 3.0),
+                  Text(
+                    'Regresar',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontSize: 15.0,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+
             ],
           ),
         ),
@@ -303,55 +336,74 @@ class _EditarViaticoState extends State<EditarViatico> {
     );
   }
 
-  Widget _buildBottomButtons() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
-        children: [
-          ElevatedButton(
+
+
+
+Widget _buildBottomButtons() {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
+      children: [
+        Flexible(
+          child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             onPressed: () {
-              _guardarViatico(); // Llamada a la función de guardar viático
+              _guardarViatico();
             },
-            child: Text(
+            icon: Icon(Icons.save, color: Colors.black),
+            label: Text(
               'Guardar',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 14, // Reduce el tamaño del texto
+                fontSize: 14, // Tamaño de texto más pequeño
               ),
             ),
           ),
-          SizedBox(width: 10), // Espacio entre los botones
-          ElevatedButton(
+        ),
+        SizedBox(width: 10),
+        Flexible(
+          child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Reduce el tamaño del padding para hacer los botones más delgados
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8), // Ajusta el borde a un radio más pequeño si lo prefieres
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text(
+            icon: Icon(Icons.close, color: Colors.white),
+            label: Text(
               'Cancelar',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 14, // Reduce el tamaño del texto
+                color: Color(0xFFFFF0C6),
+                fontSize: 14, // Tamaño de texto más pequeño
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
+
+
+
+
+
+
 
   Widget _buildDropdownEmpleado() {
     return TypeAheadFormField<EmpleadoViewModel>(
