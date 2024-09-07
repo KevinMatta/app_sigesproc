@@ -13,7 +13,7 @@ class DashboardViaticosMesActual extends StatefulWidget {
 
 class _DashboardViaticosMesActualState
     extends State<DashboardViaticosMesActual> {
-  late Future<List<DashboardViewModel>> _dashboardDataViaticosMesActual;
+  late Future<List<ViaticosMesActualViewModel>> _dashboardDataViaticosMesActual;
   String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
 
   @override
@@ -57,7 +57,7 @@ class _DashboardViaticosMesActualState
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<DashboardViewModel>>(
+    return FutureBuilder<List<ViaticosMesActualViewModel>>(
       future: _dashboardDataViaticosMesActual,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

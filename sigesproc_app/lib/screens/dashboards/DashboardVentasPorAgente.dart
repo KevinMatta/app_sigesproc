@@ -9,7 +9,7 @@ class DashboardVentasPorAgente extends StatefulWidget {
 }
 
 class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<VentasPorAgenteViewModel>> _dashboardData;
   TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true); // Habilitar tooltip
   List<bool> _selectedSections = [true, true, true, true, true]; // Control de las secciones activadas/desactivadas
 
@@ -27,7 +27,7 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
           child: Container(
             color: const Color(0xFF171717),
             padding: EdgeInsets.all(8.0),
-            child: FutureBuilder<List<DashboardViewModel>>(
+            child: FutureBuilder<List<VentasPorAgenteViewModel>>(
               future: _dashboardData,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -61,7 +61,7 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
   }
 
   Widget _buildPieChart(
-      List<DashboardViewModel> data, BoxConstraints constraints) {
+      List<VentasPorAgenteViewModel> data, BoxConstraints constraints) {
     // Calcular el total de ventas
     int totalVentas = data.fold(0, (sum, item) => sum + (item.cantidadVendida ?? 0));
 
@@ -78,12 +78,12 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
             ),
             tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <CircularSeries>[
-              PieSeries<DashboardViewModel, String>(
+              PieSeries<VentasPorAgenteViewModel, String>(
                 dataSource: data,
-                xValueMapper: (DashboardViewModel item, index) => item.agen_NombreCompleto ?? '',
-                yValueMapper: (DashboardViewModel item, index) =>
+                xValueMapper: (VentasPorAgenteViewModel item, index) => item.agen_NombreCompleto ?? '',
+                yValueMapper: (VentasPorAgenteViewModel item, index) =>
                     _selectedSections[index] ? item.cantidadVendida ?? 0 : 0, // Mostrar solo las secciones seleccionadas
-                dataLabelMapper: (DashboardViewModel item, _) {
+                dataLabelMapper: (VentasPorAgenteViewModel item, _) {
                   double percentage = ((item.cantidadVendida ?? 0) / totalVentas) * 100;
                   return '${percentage.toStringAsFixed(2)}%'; // Mostrar porcentaje
                 },
@@ -93,7 +93,7 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                   textStyle: TextStyle(
                       color: Colors.white, fontSize: 8), // Texto más pequeño
                 ),
-                pointColorMapper: (DashboardViewModel item, index) {
+                pointColorMapper: (VentasPorAgenteViewModel item, index) {
                   List<Color> barColors = [
                     Colors.blue.withOpacity(0.7),
                     Colors.green.withOpacity(0.7),

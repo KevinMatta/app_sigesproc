@@ -9,7 +9,7 @@ class TopWarehousesDashboard extends StatefulWidget {
 }
 
 class _TopWarehousesDashboardState extends State<TopWarehousesDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<TopNumeroDestinosFletesViewModel>> _dashboardData;
 
   @override
   void initState() {
@@ -22,7 +22,7 @@ class _TopWarehousesDashboardState extends State<TopWarehousesDashboard> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF171717),
-      child: FutureBuilder<List<DashboardViewModel>>(
+      child: FutureBuilder<List<TopNumeroDestinosFletesViewModel>>(
         future: _dashboardData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -55,7 +55,7 @@ class _TopWarehousesDashboardState extends State<TopWarehousesDashboard> {
     );
   }
 
-  Widget _buildVerticalBarChart(List<DashboardViewModel> data) {
+  Widget _buildVerticalBarChart(List<TopNumeroDestinosFletesViewModel> data) {
     return SingleChildScrollView(
       // This allows scrolling to avoid overflow issues
       child: Padding(
@@ -105,14 +105,14 @@ class _TopWarehousesDashboardState extends State<TopWarehousesDashboard> {
                       ),
                     ),
                     series: <ChartSeries>[
-                      ColumnSeries<DashboardViewModel, String>(
+                      ColumnSeries<TopNumeroDestinosFletesViewModel, String>(
                         name: 'Número de Fletes',
                         dataSource: data,
-                        xValueMapper: (DashboardViewModel item, _) =>
+                        xValueMapper: (TopNumeroDestinosFletesViewModel item, _) =>
                             item.destino ?? '',
-                        yValueMapper: (DashboardViewModel item, _) =>
+                        yValueMapper: (TopNumeroDestinosFletesViewModel item, _) =>
                             item.numeroFletes ?? 0,
-                        pointColorMapper: (DashboardViewModel item, _) {
+                        pointColorMapper: (TopNumeroDestinosFletesViewModel item, _) {
                           // Assign different colors to each bar
                           return _getBarColor(item);
                         },
@@ -139,7 +139,7 @@ class _TopWarehousesDashboardState extends State<TopWarehousesDashboard> {
   }
 
 // Function to assign different colors to each bar
-  Color _getBarColor(DashboardViewModel item) {
+  Color _getBarColor(TopNumeroDestinosFletesViewModel item) {
     List<Color> colors = [
       Colors.redAccent,
       Colors.greenAccent,

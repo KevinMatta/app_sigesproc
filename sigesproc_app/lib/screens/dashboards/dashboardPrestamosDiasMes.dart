@@ -13,7 +13,7 @@ class PrestamosViaticosDashboard extends StatefulWidget {
 
 class _PrestamosViaticosDashboardState
     extends State<PrestamosViaticosDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<DashboardPrestamoDiasMesViewModel>> _dashboardData;
   String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
   TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true);
 
@@ -50,7 +50,7 @@ class _PrestamosViaticosDashboardState
         return Container(
           color: const Color(0xFF171717),
           padding: EdgeInsets.all(16.0),
-          child: FutureBuilder<List<DashboardViewModel>>(
+          child: FutureBuilder<List<DashboardPrestamoDiasMesViewModel>>(
             future: _dashboardData,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -94,7 +94,7 @@ class _PrestamosViaticosDashboardState
 
 
 
-Widget _buildLineChart(List<DashboardViewModel> data, BoxConstraints constraints) {
+Widget _buildLineChart(List<DashboardPrestamoDiasMesViewModel> data, BoxConstraints constraints) {
   // Mostrar datos filtrados
   data.forEach((item) {
     print(
@@ -161,10 +161,10 @@ Widget _buildLineChart(List<DashboardViewModel> data, BoxConstraints constraints
             ),
             tooltipBehavior: _tooltipBehavior,
             series: <ChartSeries>[
-              LineSeries<DashboardViewModel, int>(
+              LineSeries<DashboardPrestamoDiasMesViewModel, int>(
                 dataSource: data,
-                xValueMapper: (DashboardViewModel item, _) => item.dia ?? 0,
-                yValueMapper: (DashboardViewModel item, _) =>
+                xValueMapper: (DashboardPrestamoDiasMesViewModel item, _) => item.dia ?? 0,
+                yValueMapper: (DashboardPrestamoDiasMesViewModel item, _) =>
                     item.totalMontoPrestado ?? 0,
                 markerSettings: MarkerSettings(isVisible: true),
                 dataLabelSettings: DataLabelSettings(
@@ -177,7 +177,7 @@ Widget _buildLineChart(List<DashboardViewModel> data, BoxConstraints constraints
                   labelAlignment: ChartDataLabelAlignment.bottom,
                   offset: Offset(0, 10), // Desplazar hacia abajo las etiquetas
                 ),
-                dataLabelMapper: (DashboardViewModel item, _) {
+                dataLabelMapper: (DashboardPrestamoDiasMesViewModel item, _) {
                   return '$_abreviaturaMoneda ${formatNumber(item.totalMontoPrestado ?? 0.0)}';
                 },
                 color: Colors.blueAccent,

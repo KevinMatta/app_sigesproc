@@ -13,7 +13,7 @@ class TopProjectsBudgetDashboard extends StatefulWidget {
 
 class _TopProjectsBudgetDashboardState
     extends State<TopProjectsBudgetDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<DashboardProyectoViewModel>> _dashboardData;
   String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
 
   @override
@@ -39,7 +39,7 @@ class _TopProjectsBudgetDashboardState
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF171717),
-      child: FutureBuilder<List<DashboardViewModel>>(
+      child: FutureBuilder<List<DashboardProyectoViewModel>>(
         future: _dashboardData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -61,7 +61,7 @@ class _TopProjectsBudgetDashboardState
     );
   }
 
-  Widget _buildComparisonBarChartContainer(List<DashboardViewModel> data) {
+  Widget _buildComparisonBarChartContainer(List<DashboardProyectoViewModel> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -101,14 +101,14 @@ class _TopProjectsBudgetDashboardState
                     ),
                     legend: Legend(isVisible: true),
                     series: <ChartSeries>[
-                      BarSeries<DashboardViewModel, String>(
+                      BarSeries<DashboardProyectoViewModel, String>(
                         name: ' ',
                         dataSource: data,
-                        xValueMapper: (DashboardViewModel item, _) =>
+                        xValueMapper: (DashboardProyectoViewModel item, _) =>
                             item.proy_Nombre ?? '',
-                        yValueMapper: (DashboardViewModel item, _) =>
+                        yValueMapper: (DashboardProyectoViewModel item, _) =>
                             item.presupuestoTotal ?? 0.0,
-                        pointColorMapper: (DashboardViewModel item, index) {
+                        pointColorMapper: (DashboardProyectoViewModel item, index) {
                           // Asignar diferentes colores a cada barra
                           List<Color> barColors = [
                             Colors.blueAccent,
@@ -126,7 +126,7 @@ class _TopProjectsBudgetDashboardState
                           // Muestra el valor con la abreviatura de moneda y formato adecuado
                           labelAlignment: ChartDataLabelAlignment.middle,
                         ),
-                        dataLabelMapper: (DashboardViewModel item, _) {
+                        dataLabelMapper: (DashboardProyectoViewModel item, _) {
                           // Formatear y mostrar el presupuesto con la abreviatura de moneda
                           return '$_abreviaturaMoneda ${formatNumber(item.presupuestoTotal ?? 0.0)}';
                         },

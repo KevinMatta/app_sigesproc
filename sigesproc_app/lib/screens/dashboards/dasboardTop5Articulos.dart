@@ -11,7 +11,7 @@ class TopArticlesDashboard extends StatefulWidget {
 }
 
 class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<DashboardArticulosViewModel>> _dashboardData;
   TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true); // Habilitar tooltip
   List<bool> _selectedBars = [true, true, true, true, true]; // Control de las barras activadas/desactivadas
 
@@ -38,7 +38,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
       builder: (context, constraints) {
         return Container(
           padding: EdgeInsets.all(8.0), // Reducir padding
-          child: FutureBuilder<List<DashboardViewModel>>(
+          child: FutureBuilder<List<DashboardArticulosViewModel>>(
             future: _dashboardData,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -73,7 +73,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
   }
 
   Widget _buildVerticalBarChart(
-      List<DashboardViewModel> data, BoxConstraints constraints) {
+      List<DashboardArticulosViewModel> data, BoxConstraints constraints) {
     // Calcular el total de compras
     int totalCompras = data.fold(0, (sum, item) => sum + (item.numeroCompras ?? 0));
 
@@ -103,17 +103,17 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
             ),
             tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <ChartSeries>[
-              ColumnSeries<DashboardViewModel, String>(
+              ColumnSeries<DashboardArticulosViewModel, String>(
                 dataSource: data,
-                xValueMapper: (DashboardViewModel item, index) => item.articulo ?? '',
-                yValueMapper: (DashboardViewModel item, index) =>
+                xValueMapper: (DashboardArticulosViewModel item, index) => item.articulo ?? '',
+                yValueMapper: (DashboardArticulosViewModel item, index) =>
                     _selectedBars[index] ? item.numeroCompras ?? 0 : null, // Mostrar solo las barras seleccionadas
                 dataLabelSettings: DataLabelSettings(
                   isVisible: true,
                   textStyle: TextStyle(color: Colors.white, fontSize: 8),
                   // Mostrar porcentaje en la barra
                   builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
-                    final DashboardViewModel item = data;
+                    final DashboardArticulosViewModel item = data;
                     return Text(
                       '${calculatePercentage(item.numeroCompras ?? 0, totalCompras)}',
                       style: TextStyle(color: Colors.white, fontSize: 8),
@@ -121,7 +121,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                   },
                 ),
                 // Colores personalizados para cada barra
-                pointColorMapper: (DashboardViewModel item, index) {
+                pointColorMapper: (DashboardArticulosViewModel item, index) {
                   List<Color> barColors = [
                     Colors.blue,
                     Colors.green,

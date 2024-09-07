@@ -9,7 +9,7 @@ class TopEstadosDashboard extends StatefulWidget {
 }
 
 class _TopEstadosDashboardState extends State<TopEstadosDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<DepartamentoViewModel>> _dashboardData;
 
   @override
   void initState() {
@@ -22,7 +22,7 @@ class _TopEstadosDashboardState extends State<TopEstadosDashboard> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF171717),
-      child: FutureBuilder<List<DashboardViewModel>>(
+      child: FutureBuilder<List<DepartamentoViewModel>>(
         future: _dashboardData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -51,7 +51,7 @@ class _TopEstadosDashboardState extends State<TopEstadosDashboard> {
     );
   }
 
-  Widget _buildVerticalBarChart(List<DashboardViewModel> data) {
+  Widget _buildVerticalBarChart(List<DepartamentoViewModel> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -100,16 +100,16 @@ class _TopEstadosDashboardState extends State<TopEstadosDashboard> {
                       ),
                     ),
                     series: <ChartSeries>[
-                      ColumnSeries<DashboardViewModel, String>(
+                      ColumnSeries<DepartamentoViewModel, String>(
                         name: 'Cantidad de Proyectos',
                         dataSource: data,
-                        xValueMapper: (DashboardViewModel item, _) =>
+                        xValueMapper: (DepartamentoViewModel item, _) =>
                             item.esta_Nombre ??
                             '', // Etiqueta con el nombre del estado
-                        yValueMapper: (DashboardViewModel item, _) =>
+                        yValueMapper: (DepartamentoViewModel item, _) =>
                             item.cantidad_Proyectos ??
                             0, // Valor de la cantidad de proyectos
-                        pointColorMapper: (DashboardViewModel item, _) {
+                        pointColorMapper: (DepartamentoViewModel item, _) {
                           // Asignar colores diferentes a cada barra
                           return _getBarColor(item);
                         },
@@ -136,7 +136,7 @@ class _TopEstadosDashboardState extends State<TopEstadosDashboard> {
   }
 
   // Función para asignar diferentes colores a cada barra
-  Color _getBarColor(DashboardViewModel item) {
+  Color _getBarColor(DepartamentoViewModel item) {
     List<Color> colors = [
       Colors.purpleAccent,
       Colors.blueAccent,
