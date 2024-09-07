@@ -351,10 +351,34 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
   Future<void> _actualizarPolyline(
       LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
-    final List<LatLng> polylineCoordenadas = [inicio, nuevaUbicacion];
-    print(
-        'en actualizar polyline las coordenadas a fgenerar $polylineCoordenadas');
-    await generarPolylineporPuntos(polylineCoordenadas, color, id);
+    final polylineId = PolylineId(id);
+
+    // Usar la API de Polyline para obtener los puntos intermedios entre inicio y nuevaUbicacion
+    final polylinePoints = PolylinePoints();
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      gmak, // Tu API key de Google
+      PointLatLng(inicio.latitude, inicio.longitude),
+      PointLatLng(nuevaUbicacion.latitude, nuevaUbicacion.longitude),
+      travelMode: TravelMode.driving,
+    );
+
+    // Si se obtuvieron puntos intermedios, los usamos para actualizar la Polyline
+    if (result.points.isNotEmpty) {
+      List<LatLng> polylineCoordinates = result.points
+          .map((point) => LatLng(point.latitude, point.longitude))
+          .toList();
+
+      setState(() {
+        polylines[polylineId] = Polyline(
+          polylineId: polylineId,
+          color: color,
+          points: polylineCoordinates, // Usar la lista de puntos obtenidos
+          width: 5,
+        );
+      });
+    } else {
+      print("Error obteniendo ruta entre puntos: ${result.errorMessage}");
+    }
   }
 
   Future<LatLng?> _obtenerOrigen() async {

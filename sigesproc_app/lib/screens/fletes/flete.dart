@@ -182,8 +182,10 @@ class _FleteState extends State<Flete> {
       final totalRecords = _filteredFletes.length;
       final maxPages = (totalRecords / _rowsPerPage).ceil();
 
+      if (totalRecords == 0) {}
+
       if (_currentPage >= maxPages) {
-        _currentPage = maxPages - 1;
+        _currentPage = maxPages > 0 ? maxPages - 1 : 0;
       }
     });
   }
@@ -1129,8 +1131,8 @@ class _FleteState extends State<Flete> {
       ),
       body:
           _viendoVerificacion ? _buildVerificacionFlete() : _buildListaFletes(),
-      floatingActionButton: _viendoVerificacion
-          ? null // No mostrar el botón si está en la vista de verificación
+      floatingActionButton: (_viendoVerificacion || !EsAdmin!)
+          ? null // No mostrar el botón si está en la vista de verificación o si no es admin
           : FloatingActionButton(
               onPressed: () {
                 Navigator.push(
