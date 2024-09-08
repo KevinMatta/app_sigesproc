@@ -19,6 +19,10 @@ import 'package:sigesproc_app/screens/dashboards/dashboardFleteIncidenciasMes.da
 import 'package:sigesproc_app/screens/dashboards/dasboardTop5Articulos.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardFletesTop5Bodegas.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardMaximoPresupuestoMes.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardViaticosPrestados.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardPrestamosDiasMes.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardTop5Bancos.dart';
+import 'package:sigesproc_app/screens/dashboards/dashboardProyectosPorDepartamento.dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardVentaBienRaiz .dart';
 import 'package:sigesproc_app/screens/dashboards/dashboardVentaTerreno.dart';
 
@@ -36,7 +40,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
 
     _loadUserId();
 
@@ -197,6 +201,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
             Tab(text: 'Fletes'),
             Tab(text: 'Proyectos'),
             Tab(text: 'Bienes'),
+            Tab(text: 'Planilla'),
           ],
           labelColor: Color(0xFFFFF0C6),
           unselectedLabelColor: Colors.white,
@@ -214,6 +219,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
           _buildFletesTab(),
           _buildProyectosTab(),
           _buildBienesTab(),
+          _buildBienesPlanilla(),
         ],
       ),
     );
@@ -268,20 +274,18 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   Widget _buildFletesTab() {
     return Container(
       color: Colors.black,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(14.0),
       child: Column(
         children: [
-          SizedBox(height: 10),
+          SizedBox(height: 8),
           Expanded(
             child: Card(
               color: Color(0xFF171717),
               child: Container(
-                height: 250, // Aumenta la altura del contenedor
+                height: 250,
                 child: Padding(
-                  padding: const EdgeInsets.all(
-                      8.0), // Añade padding si es necesario
-                  child:
-                      IncidenceDashboardCard(), // Call IncidenceDashboardCard here
+                  padding: const EdgeInsets.all(8.0),
+                  child: IncidenceDashboardCard(),
                 ),
               ),
             ),
@@ -293,8 +297,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
               child: Container(
                 height: 250, // Aumenta la altura del contenedor
                 child: Padding(
-                  padding: const EdgeInsets.all(
-                      8.0), // Añade padding si es necesario
+                  padding: const EdgeInsets.all(8.0),
                   child:
                       TopWarehousesDashboard(), // Call TopArticlesDashboard in Dashboard 1
                 ),
@@ -306,7 +309,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
             child: Card(
               color: Color(0xFF171717),
               child: Container(
-                height: 250, // Aumenta la altura del contenedor
+                height: 180, // Aumenta la altura del contenedor
                 child: Padding(
                   padding: const EdgeInsets.all(
                       8.0), // Añade padding si es necesario
@@ -335,7 +338,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   child: Card(
                     color: Color(0xFF171717),
                     child: Container(
-                      height: 300, // Reduced height for the container
+                      height: 280, // Reduced height for the container
                       child: Padding(
                         padding: const EdgeInsets.all(
                             8.0), // Add padding if necessary
@@ -356,7 +359,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   child: Card(
                     color: Color(0xFF171717),
                     child: Container(
-                      height: 130, // Reduced height for the container
+                      height: 115, // Reduced height for the container
                       child: Padding(
                         padding: const EdgeInsets.all(
                             8.0), // Add padding if necessary
@@ -371,7 +374,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                   child: Card(
                     color: Color(0xFF171717),
                     child: Container(
-                      height: 130, // Reduced height for the container
+                      height: 115, // Reduced height for the container
                       child: Padding(
                         padding: const EdgeInsets.all(
                             8.0), // Add padding if necessary
@@ -381,6 +384,25 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
+              ],
+            ),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: 300, // Reduced height for the container
+                      child: Padding(
+                        padding: const EdgeInsets.all(
+                            8.0), // Add padding if necessary
+                        child:
+                            TopEstadosDashboard(), // Call the updated dashboard here
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
           ],
@@ -438,5 +460,55 @@ Widget _buildBienesTab() {
     ),
   );
 }
-
+  Widget _buildBienesPlanilla() {
+    return Container(
+      color: Colors.black,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Card(
+            color: Color(0xFF171717),
+            child: Container(
+              height: 150,
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child:
+                    DashboardViaticosMesActual(), // Componente nuevo para compras del mes
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          Expanded(
+            child: Card(
+              color: Color(0xFF171717),
+              child: Container(
+                height: 130, // Reduced height for the container
+                child: Padding(
+                  padding:
+                      const EdgeInsets.all(8.0), // Add padding if necessary
+                  child:
+                      PrestamosViaticosDashboard(), // Call the updated dashboard here
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          Expanded(
+            child: Card(
+              color: Color(0xFF171717),
+              child: Container(
+                height: 130,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.all(8.0), // Add padding if necessary
+                  child:
+                      Top5BancosDashboard(), // Call the updated dashboard here
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

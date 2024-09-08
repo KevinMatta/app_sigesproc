@@ -7,11 +7,12 @@ import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 
 class DashboardCompraMesActual extends StatefulWidget {
   @override
-  _DashboardCompraMesActualState createState() => _DashboardCompraMesActualState();
+  _DashboardCompraMesActualState createState() =>
+      _DashboardCompraMesActualState();
 }
 
 class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
-  late Future<List<DashboardViewModel>> _dashboardDataMesActual;
+  late Future<List<ComprasMesViewModel>> _dashboardDataMesActual;
   String _abreviaturaMoneda = "L"; // Valor predeterminado
 
   @override
@@ -44,7 +45,7 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<DashboardViewModel>>(
+    return FutureBuilder<List<ComprasMesViewModel>>(
       future: _dashboardDataMesActual,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -58,7 +59,8 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
         } else if (snapshot.hasData) {
           // Filtrar los datos para mostrar solo el mes actual
           final mesActual = DateTime.now().month;
-          final comprasMesActual = snapshot.data!.where((item) => item.mes == mesActual).toList();
+          final comprasMesActual =
+              snapshot.data!.where((item) => item.mes == mesActual).toList();
 
           // Calcular el total gastado y el número de compras del mes
           double totalCompraMes = comprasMesActual.fold(0, (sum, item) => sum + (item.totalCompraMes ?? 0));

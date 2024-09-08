@@ -392,34 +392,41 @@ class _EditarViaticoState extends State<EditarViatico> {
     );
   }
 
-  Widget _buildBottomButtons() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          ElevatedButton(
+
+Widget _buildBottomButtons() {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
+      children: [
+        Flexible(
+          child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFFFF0C6),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: _guardarViatico,
-            child: Text(
+            onPressed: () {
+              _guardarViatico();
+            },
+            icon: Icon(Icons.save, color: Colors.black),
+            label: Text(
               'Guardar',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 14,
+                fontSize: 14, // Tamaño de texto más pequeño
               ),
             ),
           ),
-          SizedBox(width: 10),
-          ElevatedButton(
+        ),
+        SizedBox(width: 10),
+        Flexible(
+          child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFF171717),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10), // Reduce el padding horizontal
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -427,19 +434,20 @@ class _EditarViaticoState extends State<EditarViatico> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text(
+            icon: Icon(Icons.close, color: Colors.white),
+            label: Text(
               'Cancelar',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
+                color: Color(0xFFFFF0C6),
+                fontSize: 14, // Tamaño de texto más pequeño
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildDropdownEmpleado() {
     return TypeAheadFormField<EmpleadoViewModel>(
       textFieldConfiguration: TextFieldConfiguration(

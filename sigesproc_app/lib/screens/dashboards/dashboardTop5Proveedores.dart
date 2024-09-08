@@ -9,7 +9,7 @@ class TopProveedoresDashboard extends StatefulWidget {
 }
 
 class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<ProveedorViewModel>> _dashboardData;
   TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true);
   List<bool> _selectedSections = [true, true, true, true, true]; // Control de las secciones activadas/desactivadas
 
@@ -27,7 +27,7 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
           child: Container(
             color: const Color(0xFF171717),
             padding: EdgeInsets.all(8.0),
-            child: FutureBuilder<List<DashboardViewModel>>(
+            child: FutureBuilder<List<ProveedorViewModel>>(
               future: _dashboardData,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -61,7 +61,7 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
   }
 
   Widget _buildPieChart(
-      List<DashboardViewModel> data, BoxConstraints constraints) {
+      List<ProveedorViewModel> data, BoxConstraints constraints) {
     // Calcular el total de cotizaciones
     int totalCotizaciones = data.fold(0, (sum, item) => sum + (item.numeroDeCotizaciones ?? 0));
 
@@ -78,12 +78,12 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
             ),
             tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <CircularSeries>[
-              PieSeries<DashboardViewModel, String>(
+              PieSeries<ProveedorViewModel, String>(
                 dataSource: data,
-                xValueMapper: (DashboardViewModel item, index) => item.provDescripcion ?? '',
-                yValueMapper: (DashboardViewModel item, index) =>
+                xValueMapper: (ProveedorViewModel item, index) => item.provDescripcion ?? '',
+                yValueMapper: (ProveedorViewModel item, index) =>
                     _selectedSections[index] ? item.numeroDeCotizaciones ?? 0 : 0, // Mostrar solo las secciones seleccionadas
-                dataLabelMapper: (DashboardViewModel item, _) {
+                dataLabelMapper: (ProveedorViewModel item, _) {
                   double percentage = ((item.numeroDeCotizaciones ?? 0) / totalCotizaciones) * 100;
                   return '${percentage.toStringAsFixed(2)}%'; // Mostrar porcentaje
                 },
@@ -93,7 +93,7 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
                   textStyle: TextStyle(
                       color: Colors.white, fontSize: 8), // Texto más pequeño
                 ),
-                pointColorMapper: (DashboardViewModel item, index) {
+                pointColorMapper: (ProveedorViewModel item, index) {
                   List<Color> barColors = [
                     Colors.blue.withOpacity(0.7),
                     Colors.green.withOpacity(0.7),

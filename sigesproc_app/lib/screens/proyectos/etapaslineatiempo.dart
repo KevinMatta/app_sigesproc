@@ -2,13 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:sigesproc_app/models/proyectos/etapaporproyectoviewmodel.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import '../menu.dart';
+import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 
-class LineaDeTiempo extends StatelessWidget {
+class LineaDeTiempo extends StatefulWidget {
   final List<EtapaPorProyectoViewModel> etapas;
   final String proyectoNombre;
 
   const LineaDeTiempo({Key? key, required this.etapas, required this.proyectoNombre}) : super(key: key);
+
+  @override
+  _LineaDeTiempoState createState() => _LineaDeTiempoState();
+}
+
+class _LineaDeTiempoState extends State<LineaDeTiempo> {
+  int _unreadCount = 0;
+  late int userId;
+
+  @override
+  void initState() {
+    super.initState();
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0; // Obtener el userId desde las preferencias
+
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications =
+          await NotificationServices.BuscarNotificacion(userId!);
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
+  }
+
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Fecha no disponible';
@@ -47,7 +81,7 @@ class LineaDeTiempo extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'Proyecto: $proyectoNombre',
+                'Proyecto: ${widget.proyectoNombre}',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 15,
@@ -70,15 +104,57 @@ class LineaDeTiempo extends StatelessWidget {
             ],
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
           ),
           IconButton(
             icon: Icon(Icons.person),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -96,7 +172,7 @@ class LineaDeTiempo extends StatelessWidget {
             SizedBox(height: 20),
             Expanded(
               child: Stack(
-              children: [
+                children: [
                   // Posicionar el círculo al inicio de la línea central
                   Positioned(
                     left: MediaQuery.of(context).size.width / 2 - 30,
@@ -130,11 +206,11 @@ class LineaDeTiempo extends StatelessWidget {
                       size: 30,
                     ),
                   ),
-                // Lista de etapas
+                  // Lista de etapas
                   ListView.builder(
-                    itemCount: etapas.length,
+                    itemCount: widget.etapas.length,
                     itemBuilder: (context, index) {
-                      final etapa = etapas[index];
+                      final etapa = widget.etapas[index];
                       final bool isLeftAligned = index % 2 == 0;
 
                       return Padding(
@@ -229,8 +305,7 @@ class LineaDeTiempo extends StatelessWidget {
             child: Icon(Icons.arrow_back),
             backgroundColor: Color(0xFFFFF0C6),
             foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(), 
-
+            shape: CircleBorder(),
             labelBackgroundColor: Color(0xFFFFF0C6),
             labelStyle: TextStyle(color: Color(0xFF171717)),
             onTap: () {

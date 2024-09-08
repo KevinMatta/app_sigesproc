@@ -127,15 +127,17 @@ class _ReestablecerState extends State<Reestablecer> {
                                         Text(
                                           'Reestablecer Contraseña',
                                           style: TextStyle(
-                                            fontSize: 24,
+                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black,
                                           ),
                                         ),
                                         SizedBox(height: 20),
                                         usuariotextb(),                                        
-                                        SizedBox(height: 20),
-                                        botonReestablecer()
+                                        SizedBox(height: 22),
+                                        botonReestablecer(),
+                                        botonCancelar()
+
                                       ],
                                     ),
                                   ),
@@ -305,7 +307,7 @@ class _ReestablecerState extends State<Reestablecer> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
-        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -315,8 +317,31 @@ class _ReestablecerState extends State<Reestablecer> {
         'Enviar Código',
         style: TextStyle(
           color: Colors.white,
-          fontSize: 16,
+          fontSize: 15,
           decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+
+
+  Widget botonCancelar() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color.fromARGB(255, 224, 223, 223),
+        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      onPressed: () {
+      Navigator.pop(context);
+      },
+      child: Text(
+        'Cancelar',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 14,
         ),
       ),
     );

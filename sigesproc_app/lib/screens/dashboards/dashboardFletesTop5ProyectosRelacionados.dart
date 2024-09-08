@@ -9,7 +9,7 @@ class TopProjectsDashboard extends StatefulWidget {
 }
 
 class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<TopProyectosRelacionadosViewModel>> _dashboardData;
 
   @override
   void initState() {
@@ -22,7 +22,7 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF171717),
-      child: FutureBuilder<List<DashboardViewModel>>(
+      child: FutureBuilder<List<TopProyectosRelacionadosViewModel>>(
         future: _dashboardData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -54,7 +54,7 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
     );
   }
 
-  Widget _buildPieChart(List<DashboardViewModel> data) {
+  Widget _buildPieChart(List<TopProyectosRelacionadosViewModel> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -70,7 +70,7 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
                   'Top 5 Proyectos con más Fletes Recibidos',
                   style: TextStyle(
                     color: const Color(0xFFFFF0C6),
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -84,13 +84,13 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
                       textStyle: TextStyle(color: Colors.white, fontSize: 8),
                     ),
                     series: <CircularSeries>[
-                      PieSeries<DashboardViewModel, String>(
+                      PieSeries<TopProyectosRelacionadosViewModel, String>(
                         dataSource: data,
-                        xValueMapper: (DashboardViewModel item, _) =>
+                        xValueMapper: (TopProyectosRelacionadosViewModel item, _) =>
                             item.proy_Nombre ?? '',
-                        yValueMapper: (DashboardViewModel item, _) =>
+                        yValueMapper: (TopProyectosRelacionadosViewModel item, _) =>
                             item.totalFletesDestinoProyecto ?? 0.0,
-                        dataLabelMapper: (DashboardViewModel item, _) =>
+                        dataLabelMapper: (TopProyectosRelacionadosViewModel item, _) =>
                             '${item.proy_Nombre} (${item.totalFletesDestinoProyecto} fletes)',
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
@@ -99,7 +99,7 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
                           labelPosition: ChartDataLabelPosition
                               .outside, // Ensure labels are outside
                         ),
-                        pointColorMapper: (DashboardViewModel item, _) {
+                        pointColorMapper: (TopProyectosRelacionadosViewModel item, _) {
                           List<Color> colors = [
                             Colors.redAccent,
                             Colors.greenAccent,

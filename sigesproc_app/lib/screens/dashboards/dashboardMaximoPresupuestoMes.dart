@@ -53,7 +53,7 @@ class ProjectCostDashboardCard extends StatelessWidget {
                   child: Text(
                     'Presupuesto Mayor - ${getMonthName(hardcodedMonth)}',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFFFFF0C6),
                       fontSize: 9, // Smaller text
                       fontWeight: FontWeight.bold,
                     ),
@@ -76,7 +76,7 @@ class ProjectCostDashboardCard extends StatelessWidget {
                 const SizedBox(width: 5), // Reduced spacing
                 Flexible(
                   child: Text(
-                    'Total Gastado: \$${totalGastado}',
+                    'Total Gastado: \LPS${totalGastado}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12, // Smaller text

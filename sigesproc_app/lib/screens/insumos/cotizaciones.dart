@@ -300,6 +300,14 @@ class _CotizacionState extends State<Cotizacion> {
     );
   }
 
+
+
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -311,6 +319,7 @@ class _CotizacionState extends State<Cotizacion> {
               'lib/assets/logo-sigesproc.png',
               height: 50,
             ),
+            SizedBox(width: 2),
             Expanded(
               child: Text(
                 'SIGESPROC',
@@ -704,4 +713,12 @@ class _CotizacionState extends State<Cotizacion> {
       ),
     );
   }
+
+
+
+
+
+
+
+
 }

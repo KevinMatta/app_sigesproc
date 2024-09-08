@@ -11,7 +11,7 @@ class DashboardVentaBienRaiz extends StatefulWidget {
 }
 
 class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
-  late Future<List<DashboardViewModel>> _dashboardData; // Lista de datos
+  late Future<List<DashboardBienRaizViewModel>> _dashboardData; // Lista de datos
   String _abreviaturaMoneda = "L"; // Abreviatura de moneda por defecto
 
   @override
@@ -41,7 +41,7 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
         return Container(
           color: const Color(0xFF171717),
           padding: EdgeInsets.all(8.0),
-          child: FutureBuilder<List<DashboardViewModel>>(
+          child: FutureBuilder<List<DashboardBienRaizViewModel>>(
             future: _dashboardData,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -71,7 +71,7 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
   }
 
   Widget _buildDashboardContent(
-      DashboardViewModel data, BoxConstraints constraints) {
+      DashboardBienRaizViewModel data, BoxConstraints constraints) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

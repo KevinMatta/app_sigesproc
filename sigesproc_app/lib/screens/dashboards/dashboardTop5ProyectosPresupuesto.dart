@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
+import 'package:intl/intl.dart'; // Para manejar formato de números y monedas
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 
 class TopProjectsBudgetDashboard extends StatefulWidget {
   @override
@@ -11,19 +13,33 @@ class TopProjectsBudgetDashboard extends StatefulWidget {
 
 class _TopProjectsBudgetDashboardState
     extends State<TopProjectsBudgetDashboard> {
-  late Future<List<DashboardViewModel>> _dashboardData;
+  late Future<List<DashboardProyectoViewModel>> _dashboardData;
+  String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  // Función asincrónica para cargar la abreviatura de moneda
+  Future<void> _loadData() async {
     _dashboardData = DashboardService.listarTop5ProyectosMayorPresupuesto();
+    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar la nueva abreviatura
+  }
+
+  // Función para formatear los números con comas y punto decimal
+  String formatNumber(double value) {
+    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US');
+    return formatter.format(value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF171717),
-      child: FutureBuilder<List<DashboardViewModel>>(
+      child: FutureBuilder<List<DashboardProyectoViewModel>>(
         future: _dashboardData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -45,7 +61,7 @@ class _TopProjectsBudgetDashboardState
     );
   }
 
-  Widget _buildComparisonBarChartContainer(List<DashboardViewModel> data) {
+  Widget _buildComparisonBarChartContainer(List<DashboardProyectoViewModel> data) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -61,7 +77,7 @@ class _TopProjectsBudgetDashboardState
                   'Top 5 Proyectos con Mayor Presupuesto',
                   style: TextStyle(
                     color: const Color(0xFFFFF0C6),
-                    fontSize: 12, // Reduced font size
+                    fontSize: 11, // Reduced font size
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -82,23 +98,38 @@ class _TopProjectsBudgetDashboardState
                     primaryYAxis: NumericAxis(
                       labelStyle: const TextStyle(
                           color: Colors.white, fontSize: 8), // Smaller text
-                      // Removed the 'Presupuesto Total' title here to avoid compression
                     ),
                     legend: Legend(isVisible: true),
                     series: <ChartSeries>[
-                      BarSeries<DashboardViewModel, String>(
+                      BarSeries<DashboardProyectoViewModel, String>(
                         name: ' ',
                         dataSource: data,
-                        xValueMapper: (DashboardViewModel item, _) =>
+                        xValueMapper: (DashboardProyectoViewModel item, _) =>
                             item.proy_Nombre ?? '',
-                        yValueMapper: (DashboardViewModel item, _) =>
+                        yValueMapper: (DashboardProyectoViewModel item, _) =>
                             item.presupuestoTotal ?? 0.0,
-                        color: Colors.blueAccent, // Adjust the color to blue
+                        pointColorMapper: (DashboardProyectoViewModel item, index) {
+                          // Asignar diferentes colores a cada barra
+                          List<Color> barColors = [
+                            Colors.blueAccent,
+                            Colors.redAccent,
+                            Colors.greenAccent,
+                            Colors.orangeAccent,
+                            Colors.purpleAccent
+                          ];
+                          return barColors[index % barColors.length];
+                        },
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
                           textStyle: const TextStyle(
-                              color: Colors.white, fontSize: 8), // Smaller text
+                              color: Colors.white, fontSize: 8),
+                          // Muestra el valor con la abreviatura de moneda y formato adecuado
+                          labelAlignment: ChartDataLabelAlignment.middle,
                         ),
+                        dataLabelMapper: (DashboardProyectoViewModel item, _) {
+                          // Formatear y mostrar el presupuesto con la abreviatura de moneda
+                          return '$_abreviaturaMoneda ${formatNumber(item.presupuestoTotal ?? 0.0)}';
+                        },
                       ),
                     ],
                   ),
