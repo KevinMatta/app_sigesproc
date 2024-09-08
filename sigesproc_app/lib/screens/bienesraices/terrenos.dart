@@ -8,6 +8,7 @@ import 'package:sigesproc_app/models/bienesraices/terrenoviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/apiservice.dart';
@@ -25,6 +26,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
   int _unreadCount = 0;
   int? userId;
   late GoogleMapController _mapController;
+    int _selectedIndex = 2;
+
 
   @override
   void initState() {
@@ -33,6 +36,12 @@ class _TerrenosMapState extends State<TerrenosMap> {
 
     _loadUserProfileData();
     _terrenosFuture = _fetchTerrenos();
+  }
+
+   void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
    Future<void> _loadUserId() async {
@@ -213,11 +222,11 @@ class _TerrenosMapState extends State<TerrenosMap> {
           ],
         ),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40.0),
+          preferredSize: Size.fromHeight(80.0),
           child: Column(
             children: [
               Text(
-                'Ubicación de Terrenos',
+                'Ubicación de Bienes Raíces',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 18,
@@ -229,6 +238,39 @@ class _TerrenosMapState extends State<TerrenosMap> {
                 height: 2.0,
                 color: Color(0xFFFFF0C6),
               ),
+              SizedBox(height: 5),
+                Row(
+                  children: [
+                    SizedBox(width: 5.0),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            top: 10.0), 
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.arrow_back,
+                              color: Color(0xFFFFF0C6),
+                            ),
+                            SizedBox(width: 3.0),
+                            Text(
+                              'Regresar',
+                              style: TextStyle(
+                                color: Color(0xFFFFF0C6),
+                                fontSize: 15.0,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              SizedBox(height: 20.0),
             ],
           ),
         ),
@@ -286,6 +328,10 @@ class _TerrenosMapState extends State<TerrenosMap> {
           ),
         ],
       ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
+      ),
       body: Container(
         color: Colors.black,
         child: FutureBuilder<List<TerrenosViewModel>>(
@@ -312,8 +358,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
               return GoogleMap(
                 initialCameraPosition: CameraPosition(
                   target:
-                      LatLng(15.2, -86.6), // Centra el mapa en América Central
-                  zoom: 7, // zoom centrado en Honduras
+                      LatLng(14.52, -86.64), 
+                  zoom: 7, 
                 ),
                 markers: Set<Marker>.of(_markers),
                 onMapCreated: (GoogleMapController controller) {
