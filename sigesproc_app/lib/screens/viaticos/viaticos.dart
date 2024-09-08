@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
@@ -7,7 +6,10 @@ import 'package:sigesproc_app/screens/viaticos/agregarfactura.dart';
 import 'package:sigesproc_app/screens/viaticos/editarviatico.dart';
 import 'package:sigesproc_app/screens/viaticos/nuevoviatico.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
+import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import '../menu.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 
 class Viatico extends StatefulWidget {
   @override
@@ -25,12 +27,14 @@ class _ViaticoState extends State<Viatico> {
   bool _isLoading = false;
   bool _usuarioEsAdm = false;
   String? _usuaId;
+  int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _searchController.addListener(_filterViaticos);
+    _loadNotifications();
   }
 
   Future<void> _loadUserData() async {
@@ -48,6 +52,17 @@ class _ViaticoState extends State<Viatico> {
       }
     });
     _cargarViaticos();
+  }
+
+  Future<void> _loadNotifications() async {
+    try {
+      final notifications = await NotificationServices.BuscarNotificacion(int.parse(_usuaId!));
+      setState(() {
+        _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
+      });
+    } catch (e) {
+      print('Error al cargar notificaciones: $e');
+    }
   }
 
   void _cargarViaticos() {
@@ -136,7 +151,9 @@ class _ViaticoState extends State<Viatico> {
                   width: double.minPositive,
                   height: 100,
                   child: Center(
-                    child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFF0C6)),
+                    ),
                   ),
                 ),
               );
@@ -448,11 +465,15 @@ class _ViaticoState extends State<Viatico> {
                 builder: (context, snapshot) {
                   if (_isLoading) {
                     return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFF0C6)),
+                      ),
                     );
                   } else if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: SpinKitCircle(color: Color(0xFFFFF0C6)),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFF0C6)),
+                      ),
                     );
                   } else if (snapshot.hasError) {
                     return Center(
@@ -631,12 +652,56 @@ class _ViaticoState extends State<Viatico> {
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications, color: Color(0xFFFFF0C6)),
-            onPressed: () {},
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications, color: Color(0xFFFFF0C6)),
+                if (_unreadCount > 0) // Mostrar el indicador solo si hay notificaciones no leídas
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              if (result != null) {
+                _loadNotifications();
+              }
+            },
           ),
           IconButton(
             icon: Icon(Icons.person, color: Color(0xFFFFF0C6)),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -644,24 +709,7 @@ class _ViaticoState extends State<Viatico> {
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
       ),
-      body: Stack(
-        children: [
-          _buildListaViaticos(),
-          if (_usuarioEsAdm)
-            Positioned(
-              bottom: 20,
-              right: 20,
-              child: FloatingActionButton(
-                onPressed: () {
-                  _navigateAndRefresh(context, NuevoViatico());
-                },
-                backgroundColor: Color(0xFFFFF0C6),
-                child: Icon(Icons.add, color: Colors.black),
-                shape: CircleBorder(),
-              ),
-            ),
-        ],
-      ),
+      body: _buildListaViaticos(),
     );
   }
 }
