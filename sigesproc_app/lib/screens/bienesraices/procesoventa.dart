@@ -15,6 +15,7 @@ import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/apiservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 import '../menu.dart';
@@ -370,7 +371,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 return Container(
                                   color: Color(0xFF171717),
                                   child: Image.network(
-                                    'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net$imagePath',
+                                    '${ApiService.hubUrl}$imagePath',
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width,
                                     errorBuilder: (context, error, stackTrace) {
@@ -481,7 +482,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           return Container(
                             color: Color(0xFF171717),
                             child: Image.network(
-                              'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net$imagePath',
+                              '${ApiService.hubUrl}$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
                               errorBuilder: (context, error, stackTrace) {

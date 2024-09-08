@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
@@ -10,7 +9,6 @@ import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
-import 'package:sigesproc_app/screens/appBar.dart';
 import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import 'package:sigesproc_app/screens/fletes/verificarflete.dart';
@@ -30,7 +28,6 @@ class Flete extends StatefulWidget {
 
 class _FleteState extends State<Flete> {
   int _selectedIndex = 2;
-  Future<List<FleteEncabezadoViewModel>>? _fletesFuture;
   late Future<List<FleteControlCalidadViewModel>> _incidenciasFuture;
   TextEditingController _searchController = TextEditingController();
   List<FleteEncabezadoViewModel> _filteredFletes = [];
