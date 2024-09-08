@@ -216,7 +216,7 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
-                child: SpinKitCircle(
+                child: CircularProgressIndicator(
                   color: Color(0xFFFFF0C6),
                 ),
               );

@@ -53,8 +53,8 @@ class FleteEncabezadoService {
       body: body,
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    print('Response insertar enca: ${response.statusCode}');
+    print('Response body enca: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);

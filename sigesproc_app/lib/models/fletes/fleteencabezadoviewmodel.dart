@@ -162,6 +162,6 @@ class FleteEncabezadoViewModel {
 
   @override
   String toString() {
-    return 'FleteEncabezadoViewModel(flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, flencomprobantellegada: $flenComprobanteLLegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
+    return 'FleteEncabezadoViewModel(cdifo:$codigo, flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, flencomprobantellegada: $flenComprobanteLLegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
   }
 }

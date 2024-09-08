@@ -1,4 +1,4 @@
-class InsumoPorProveedorViewModel {
+class InsumoActividadEtapaViewModel {
   int? inppId;
   int? insuId;
   int? provId;
@@ -25,7 +25,7 @@ class InsumoPorProveedorViewModel {
   String? cantidadError;
   int? stockRestante;
 
-  InsumoPorProveedorViewModel({
+  InsumoActividadEtapaViewModel({
     this.inppId,
     this.insuId,
     this.provId,
@@ -53,31 +53,29 @@ class InsumoPorProveedorViewModel {
     this.stockRestante,
   });
 
-  factory InsumoPorProveedorViewModel.fromJson(Map<String, dynamic> json) {
-    return InsumoPorProveedorViewModel(
+  factory InsumoActividadEtapaViewModel.fromJson(Map<String, dynamic> json) {
+    return InsumoActividadEtapaViewModel(
       inppId: json['inpp_Id'],
       insuId: json['insu_Id'],
       provId: json['prov_Id'],
       inppPreciocompra: json['inpp_Preciocompra']?.toDouble(),
       usuaCreacion: json['usua_Creacion'],
-      inppFechaCreacion: json['inpp_FechaCreacion'] != null
-          ? DateTime.parse(json['inpp_FechaCreacion'])
-          : null,
+      inppFechaCreacion: DateTime.parse(json['inpp_FechaCreacion']),
       usuaModificacion: json['usua_Modificacion'],
       inppFechaModificacion: json['inpp_FechaModificacion'] != null
           ? DateTime.parse(json['inpp_FechaModificacion'])
           : null,
       codigo: json['codigo'],
-      mateDescripcion: json['mate_Descripcion'] ?? '',
-      insuDescripcion: json['insu_Descripcion'] ?? '',
-      provDescripcion: json['prov_Descripcion'] ?? '',
-      unmeNombre: json['unme_Nombre'] ?? '',
+      mateDescripcion: json['mate_Descripcion'],
+      insuDescripcion: json['insu_Descripcion'],
+      provDescripcion: json['prov_Descripcion'],
+      unmeNombre: json['unme_Nombre'],
       unmeId: json['unme_Id'],
-      unmeNomenclatura: json['unme_Nomenclatura'] ?? '',
-      usuaCreacionNombre: json['usuaCreacion'] ?? '',
-      usuaModificacionNombre: json['usuaModificacion'] ?? '',
+      unmeNomenclatura: json['unme_Nomenclatura'],
+      usuaCreacionNombre: json['usuaCreacion'],
+      usuaModificacionNombre: json['usuaModificacion'],
       bodeId: json['bode_Id'],
-      bodeDescripcion: json['bode_Descripcion'] ?? '',
+      bodeDescripcion: json['bode_Descripcion'],
       bopiStock: json['bopi_Stock'],
       // inppObservacion: json['inpp_Observacion'],
       fldeLlegada: json['flde_llegada'],
