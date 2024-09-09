@@ -1399,6 +1399,7 @@ class _VerificarFleteState extends State<VerificarFlete>
 
       // Si hay insumos o equipos no recibidos, solo mostrar el formulario de incidencia
       setState(() {
+        _isLoading = false;
         _mostrarFormularioIncidencia = true;
       });
     } catch (e) {

@@ -2,9 +2,7 @@ class ApiService {
 
   static const String apiUrl = 'https://backendsigesproc-production.up.railway.app/api';
 
-  static const String hubUrl = 'https://backendsigesproc-production-6031.up.railway.app';
-
-  static const String imagenUrl = 'https://backendsigesproc-production-6031.up.railway.app';
+  static const String url = 'https://backendsigesproc-production-6031.up.railway.app';
   
   static const String googleApiKey = 'AIzaSyAOiZCVZgs7nw1PHRUFhEMm995sK4nlsD4';
 

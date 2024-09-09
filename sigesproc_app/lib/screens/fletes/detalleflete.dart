@@ -59,38 +59,46 @@ class _DetalleFleteState extends State<DetalleFlete> {
   int _selectedIndex = 2;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUserId();
+void initState() {
+  super.initState();
+  _loadUserId();
+  _loadUserProfileData();
+  _loadEmplId();
 
-    _loadUserProfileData();
-    _loadEmplId();
-    _fleteHubService.startConnection().then((_) {
-      _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
-        setState(() {
-          LatLng nuevaUbicacion = LatLng(lat, lng);
-          if (emplId != this.emplId) {
-            if (ubicacionactual != null) {
-              polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
-              _actualizarPolyline(
-                  ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
-            }
-            ubicacionactual = nuevaUbicacion;
+  // Conectar todos los usuarios al servicio SignalR para recibir la ubicación
+  _fleteHubService.startConnection().then((_) {
+    _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
+      setState(() {
+        LatLng nuevaUbicacion = LatLng(lat, lng);
+
+        // Todos los usuarios deben ver la actualización en tiempo real, excepto el propio fletero
+        if (emplId != this.emplId) {
+          if (ubicacionactual != null) {
+            _actualizarPolyline(
+              ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
           }
-        });
+
+          // Actualizar la ubicación del fletero en tiempo real
+          ubicacionactual = nuevaUbicacion;
+        }
       });
     });
+  });
 
-    _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
-    _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
-    _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
-    _destinoFuture = _fetchDestino(widget.flenId);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      carritoIcono = await createBitmapDescriptorFromIcon(
-          Icons.directions_car, Colors.red, 80);
-      await iniciarMapa();
-    });
-  }
+  // Cargar detalles del flete
+  _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+  _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
+  _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
+  _destinoFuture = _fetchDestino(widget.flenId);
+
+  // Preparar el mapa y el ícono del carrito
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    carritoIcono = await createBitmapDescriptorFromIcon(
+      Icons.directions_car, Colors.red, 80);
+    await iniciarMapa();
+  });
+}
+
 
   @override
   void dispose() {
@@ -225,92 +233,91 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> iniciarMapa() async {
-  try {
-    print('Cargando detalles del flete...');
-    final FleteEncabezadoViewModel? flete = await _fleteFuture;
-    if (flete == null) {
-      print('No se encontró el flete');
-      setState(() {
-        estaCargando = false;
-      });
-      return;
-    }
-
-    esFletero = flete.emtrId == emplId;
-
-    // Obtener la Polyline roja almacenada desde el servidor
-    List<LatLng>? polylineAlmacenada =
-        await _fleteHubService.obtenerPolyline(flete.emtrId!); // Cambia a flete.emtrId para cargar la polyline del fletero
-
-    if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
-      print('Polyline almacenada obtenida.');
-      setState(() {
-        polylines[PolylineId('realPolyline')] = Polyline(
-          polylineId: PolylineId('realPolyline'),
-          color: Colors.red,
-          points: polylineAlmacenada,
-          width: 5,
-        );
-      });
-    } else {
-      print('No se recibieron coordenadas para la Polyline.');
-    }
-
-    // Si es fletero, seguir obteniendo la ubicación en tiempo real y actualizando la polyline
-    if (esFletero && flete.flenEstado == false) {
-      print('Obteniendo la ubicación actual para el fletero...');
-      bool ubicacionObtenida = await ubicacionActualizada();
-      if (!ubicacionObtenida) {
-        print("No se pudo obtener la ubicación actual.");
+    try {
+      final FleteEncabezadoViewModel? flete = await _fleteFuture;
+      if (flete == null) {
+        print('No se encontró el flete');
         setState(() {
           estaCargando = false;
         });
         return;
       }
-      print("Ubicación obtenida: $ubicacionactual");
-      final pref = await SharedPreferences.getInstance();
+
+      esFletero = flete.emtrId == emplId;
+
+      // Cargar la polyline del fletero desde el servidor
+      List<LatLng>? polylineAlmacenada =
+          await _fleteHubService.obtenerPolyline(flete.emtrId!);
+
+      if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
+        print('Polyline almacenada obtenida.');
+        setState(() {
+          polylines[PolylineId('realPolyline')] = Polyline(
+            polylineId: PolylineId('realPolyline'),
+            color: Colors.red,
+            points: polylineAlmacenada,
+            width: 5,
+          );
+        });
+      } else {
+        print('No se recibieron coordenadas para la Polyline.');
+      }
+
+      // Si es el fletero, inicia el rastreo en tiempo real
+      if (esFletero && flete.flenEstado == false) {
+        print('Obteniendo la ubicación actual para el fletero...');
+        bool ubicacionObtenida = await ubicacionActualizada();
+        if (!ubicacionObtenida) {
+          print("No se pudo obtener la ubicación actual.");
+          setState(() {
+            estaCargando = false;
+          });
+          return;
+        }
+
+        print("Ubicación obtenida: $ubicacionactual");
+
+        // Guardar la ubicación inicial si es necesario
+        final pref = await SharedPreferences.getInstance();
         final latitudInicial = pref.getDouble('latitudInicial');
         final longitudInicial = pref.getDouble('longitudInicial');
 
         if (latitudInicial != null && longitudInicial != null) {
           ubicacionInicial = LatLng(latitudInicial, longitudInicial);
-          print(
-              'Ubicación inicial cargada desde SharedPreferences: $ubicacionInicial');
-        }
-
-        // Guardar la ubicación inicial solo si no ha sido almacenada previamente
-        if (ubicacionInicial == null) {
+        } else {
           ubicacionInicial = ubicacionactual;
-          print('Guardando la ubicación inicial: $ubicacionInicial');
           await pref.setDouble('latitudInicial', ubicacionInicial!.latitude);
           await pref.setDouble('longitudInicial', ubicacionInicial!.longitude);
         }
 
-      // Actualizar la polyline en tiempo real
-      locationSubscription = ubicacionController.onLocationChanged.listen((LocationData currentLocation) async {
-        if (currentLocation.latitude != null && currentLocation.longitude != null) {
-          LatLng nuevaUbicacion = LatLng(currentLocation.latitude!, currentLocation.longitude!);
-          print('Nueva ubicación recibida: $nuevaUbicacion');
-          await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
-          setState(() {
-            ubicacionactual = nuevaUbicacion;
-          });
-        }
+        // Actualizar la ubicación en tiempo real
+        locationSubscription = ubicacionController.onLocationChanged
+            .listen((LocationData currentLocation) async {
+          if (currentLocation.latitude != null &&
+              currentLocation.longitude != null) {
+            LatLng nuevaUbicacion =
+                LatLng(currentLocation.latitude!, currentLocation.longitude!);
+            await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
+            await _actualizarPolyline(
+                ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
+            setState(() {
+              ubicacionactual = nuevaUbicacion;
+            });
+          }
+        });
+      }
+
+      await _generarRutas(flete);
+      setState(() {
+        estaCargando = false;
+      });
+    } catch (e) {
+      print('Error en iniciarMapa: $e');
+      setState(() {
+        estaCargando = false;
       });
     }
-
-    // Cuando todo haya cargado correctamente, detener el spinner
-    setState(() {
-      estaCargando = false;
-    });
-  } catch (e) {
-    print('Error en iniciarMapa: $e');
-    setState(() {
-      estaCargando = false;
-    });
   }
-}
-
 
   Future<void> _generarRutas(FleteEncabezadoViewModel flete) async {
     print('Obteniendo origen y destino...');
@@ -352,55 +359,41 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> _actualizarPolyline(
-      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
-    final polylineId = PolylineId(id);
+    LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
+  final polylineId = PolylineId(id);
 
-    // Usar la API de Polyline para obtener los puntos intermedios entre inicio y nuevaUbicacion
-    final polylinePoints = PolylinePoints();
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      gmak, // Tu API key de Google
-      PointLatLng(inicio.latitude, inicio.longitude),
-      PointLatLng(nuevaUbicacion.latitude, nuevaUbicacion.longitude),
-      travelMode: TravelMode.driving,
-    );
+  // Obtener la polyline existente o crear una nueva si no existe
+  Polyline polylineExistente = polylines[polylineId] ?? Polyline(
+    polylineId: polylineId,
+    color: color,
+    points: [inicio],  // Inicializar con el punto inicial si no existe
+    width: 5,
+  );
 
-    print(
-        'Intentando actualizar Polyline con inicio: $inicio, nuevaUbicacion: $nuevaUbicacion');
+  // Añadir el nuevo punto a la polyline existente
+  List<LatLng> puntosActualizados = List.from(polylineExistente.points)
+    ..add(nuevaUbicacion);
 
-    // Si se obtuvieron puntos intermedios, los usamos para actualizar la Polyline
-    if (result.points.isNotEmpty) {
-      List<LatLng> polylineCoordinates = result.points
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
+  // Crear una nueva polyline con los puntos actualizados
+  Polyline polylineActualizada = polylineExistente.copyWith(
+    pointsParam: puntosActualizados,  // Actualizamos solo los puntos
+  );
 
-      print(
-          'Polyline actualizada con puntos: $polylineCoordinates'); // Añade este print
+  // Actualizar el estado con la nueva polyline
+  setState(() {
+    polylines[polylineId] = polylineActualizada;
+  });
 
-      setState(() {
-        polylines[polylineId] = Polyline(
-          polylineId: polylineId,
-          color: color,
-          points: polylineCoordinates, // Usar la lista de puntos obtenidos
-          width: 5,
-        );
-      });
+  // Convertir las coordenadas a dos listas de latitudes y longitudes
+  List<double> latitudes =
+      puntosActualizados.map((point) => point.latitude).toList();
+  List<double> longitudes =
+      puntosActualizados.map((point) => point.longitude).toList();
 
-      // Convertir las coordenadas a dos listas de latitudes y longitudes
-      List<double> latitudes =
-          polylineCoordinates.map((point) => point.latitude).toList();
-      List<double> longitudes =
-          polylineCoordinates.map((point) => point.longitude).toList();
+  // Enviar las listas de coordenadas al servidor para su almacenamiento
+  await _fleteHubService.actualizarPolyline(emplId!, latitudes, longitudes);
+}
 
-      // Enviar las listas de coordenadas al servidor
-      await _fleteHubService.actualizarPolyline(emplId!, latitudes, longitudes);
-    } else {
-      print("Error obteniendo ruta entre puntos: ${result.errorMessage}");
-      setState(() {
-        estaCargando =
-            false; // Detén el spinner si hay error en la obtención de puntos
-      });
-    }
-  }
 
   Future<LatLng?> _obtenerOrigen() async {
     final origenData = await _bodegaOrigenFuture;
@@ -585,139 +578,62 @@ class _DetalleFleteState extends State<DetalleFlete> {
                     );
                   } else {
                     final flete = snapshot.data!;
-                    return Stack(
+                    return Column(
                       children: [
-                        Positioned(
-                          child: Container(
-                            height: 640,
-                            child: FutureBuilder(
-                              future: Future.wait(
-                                  [_bodegaOrigenFuture, _destinoFuture]),
-                              builder: (context,
-                                  AsyncSnapshot<List<dynamic>> snapshot) {
-                                if (ubicacionactual == null && !esFletero) {
-                                  // Aseguramos que snapshot tiene datos válidos antes de proceder
-                                  if (!snapshot.hasData ||
-                                      snapshot.data == null ||
-                                      snapshot.data!.isEmpty) {
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        color: Color(0xFFFFF0C6),
-                                      ),
-                                    );
-                                  }
-
-                                  final bodegaOrigen =
-                                      snapshot.data![0] as BodegaViewModel?;
-                                  final destinoData = snapshot.data![1];
-
-                                  if (bodegaOrigen == null ||
-                                      destinoData == null) {
-                                    return Center(
-                                      child: Text(
-                                        'No se encontraron ubicaciones válidas',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    );
-                                  }
-
-                                  LatLng inicio = obtenerCoordenadasDeEnlace(
-                                          bodegaOrigen.bodeLinkUbicacion!) ??
-                                      LatLng(0, 0);
-                                  LatLng? destino;
-
-                                  if (destinoData is ProyectoViewModel) {
-                                    destino = obtenerCoordenadasDeEnlace(
-                                        destinoData.proyLinkUbicacion);
-                                  } else if (destinoData is BodegaViewModel) {
-                                    destino = obtenerCoordenadasDeEnlace(
-                                        destinoData.bodeLinkUbicacion);
-                                  } else {
-                                    destino = LatLng(0, 0);
-                                  }
-                                  return Center(
-                                    child: GoogleMap(
-                                      initialCameraPosition: CameraPosition(
-                                        target: inicio,
-                                        zoom: 13,
-                                      ),
-                                      markers: {
-                                        Marker(
-                                          markerId:
-                                              const MarkerId('sourceLocation'),
-                                          icon: BitmapDescriptor.defaultMarker,
-                                          position: inicio!,
-                                        ),
-                                        Marker(
-                                          markerId: const MarkerId(
-                                              'destinationLocation'),
-                                          icon: BitmapDescriptor.defaultMarker,
-                                          position: destino!,
-                                        )
-                                      },
-                                      polylines:
-                                          Set<Polyline>.of(polylines.values),
-                                    ),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: Text(
-                                      'Error al cargar ubicaciones',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  );
-                                } else if (!snapshot.hasData ||
+                        // El mapa ocupará el espacio disponible ajustándose dinámicamente
+                        Expanded(
+                          child: FutureBuilder(
+                            future: Future.wait(
+                                [_bodegaOrigenFuture, _destinoFuture]),
+                            builder: (context,
+                                AsyncSnapshot<List<dynamic>> snapshot) {
+                              if (ubicacionactual == null && !esFletero) {
+                                if (!snapshot.hasData ||
                                     snapshot.data == null ||
                                     snapshot.data!.isEmpty) {
                                   return Center(
                                     child: CircularProgressIndicator(
-                                      color:
-                                          ui.Color.fromARGB(255, 232, 232, 231),
+                                      color: Color(0xFFFFF0C6),
                                     ),
                                   );
+                                }
+
+                                final bodegaOrigen =
+                                    snapshot.data![0] as BodegaViewModel?;
+                                final destinoData = snapshot.data![1];
+
+                                if (bodegaOrigen == null ||
+                                    destinoData == null) {
+                                  return Center(
+                                    child: Text(
+                                      'No se encontraron ubicaciones válidas',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  );
+                                }
+
+                                LatLng inicio = obtenerCoordenadasDeEnlace(
+                                        bodegaOrigen.bodeLinkUbicacion!) ??
+                                    LatLng(0, 0);
+                                LatLng? destino;
+
+                                if (destinoData is ProyectoViewModel) {
+                                  destino = obtenerCoordenadasDeEnlace(
+                                      destinoData.proyLinkUbicacion);
+                                } else if (destinoData is BodegaViewModel) {
+                                  destino = obtenerCoordenadasDeEnlace(
+                                      destinoData.bodeLinkUbicacion);
                                 } else {
-                                  final bodegaOrigen =
-                                      snapshot.data![0] as BodegaViewModel?;
-                                  final destinoData = snapshot.data![1];
+                                  destino = LatLng(0, 0);
+                                }
 
-                                  if (bodegaOrigen == null ||
-                                      destinoData == null) {
-                                    return Center(
-                                      child: Text(
-                                        'No se encontraron ubicaciones válidas',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    );
-                                  }
-
-                                  LatLng? inicio = obtenerCoordenadasDeEnlace(
-                                      bodegaOrigen.bodeLinkUbicacion!);
-                                  LatLng? destino;
-
-                                  if (destinoData is ProyectoViewModel) {
-                                    destino = obtenerCoordenadasDeEnlace(
-                                        destinoData.proyLinkUbicacion);
-                                  } else if (destinoData is BodegaViewModel) {
-                                    destino = obtenerCoordenadasDeEnlace(
-                                        destinoData.bodeLinkUbicacion);
-                                  } else {
-                                    destino = LatLng(0, 0);
-                                  }
-
-                                  return GoogleMap(
+                                return Center(
+                                  child: GoogleMap(
                                     initialCameraPosition: CameraPosition(
-                                      target: ubicacionactual ?? inicio!,
+                                      target: inicio,
                                       zoom: 13,
                                     ),
                                     markers: {
-                                      if (ubicacionactual != null)
-                                        Marker(
-                                          markerId:
-                                              const MarkerId('currentLocation'),
-                                          icon: carritoIcono ??
-                                              BitmapDescriptor.defaultMarker,
-                                          position: ubicacionactual!,
-                                        ),
                                       Marker(
                                         markerId:
                                             const MarkerId('sourceLocation'),
@@ -733,12 +649,87 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                     },
                                     polylines:
                                         Set<Polyline>.of(polylines.values),
+                                  ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                  child: Text(
+                                    'Error al cargar ubicaciones',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                );
+                              } else if (!snapshot.hasData ||
+                                  snapshot.data == null ||
+                                  snapshot.data!.isEmpty) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    color:
+                                        ui.Color.fromARGB(255, 232, 232, 231),
+                                  ),
+                                );
+                              } else {
+                                final bodegaOrigen =
+                                    snapshot.data![0] as BodegaViewModel?;
+                                final destinoData = snapshot.data![1];
+
+                                if (bodegaOrigen == null ||
+                                    destinoData == null) {
+                                  return Center(
+                                    child: Text(
+                                      'No se encontraron ubicaciones válidas',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                   );
                                 }
-                              },
-                            ),
+
+                                LatLng? inicio = obtenerCoordenadasDeEnlace(
+                                    bodegaOrigen.bodeLinkUbicacion!);
+                                LatLng? destino;
+
+                                if (destinoData is ProyectoViewModel) {
+                                  destino = obtenerCoordenadasDeEnlace(
+                                      destinoData.proyLinkUbicacion);
+                                } else if (destinoData is BodegaViewModel) {
+                                  destino = obtenerCoordenadasDeEnlace(
+                                      destinoData.bodeLinkUbicacion);
+                                } else {
+                                  destino = LatLng(0, 0);
+                                }
+
+                                return GoogleMap(
+                                  initialCameraPosition: CameraPosition(
+                                    target: ubicacionactual ?? inicio!,
+                                    zoom: 13,
+                                  ),
+                                  markers: {
+                                    if (ubicacionactual != null)
+                                      Marker(
+                                        markerId:
+                                            const MarkerId('currentLocation'),
+                                        icon: carritoIcono ??
+                                            BitmapDescriptor.defaultMarker,
+                                        position: ubicacionactual!,
+                                      ),
+                                    Marker(
+                                      markerId:
+                                          const MarkerId('sourceLocation'),
+                                      icon: BitmapDescriptor.defaultMarker,
+                                      position: inicio!,
+                                    ),
+                                    Marker(
+                                      markerId:
+                                          const MarkerId('destinationLocation'),
+                                      icon: BitmapDescriptor.defaultMarker,
+                                      position: destino!,
+                                    )
+                                  },
+                                  polylines: Set<Polyline>.of(polylines.values),
+                                );
+                              }
+                            },
                           ),
                         ),
+                        // Colapsable de detalles
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: ExpansionTile(

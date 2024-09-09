@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class FleteHubService {
-  static const String hubUrl = '${ApiService.hubUrl}/fleteHub';
+  static const String hubUrl = '${ApiService.url}/fleteHub';
 
   // Crea una instancia del HubConnection
   final HubConnection connection =

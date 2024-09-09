@@ -371,7 +371,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 return Container(
                                   color: Color(0xFF171717),
                                   child: Image.network(
-                                    '${ApiService.hubUrl}$imagePath',
+                                    '${ApiService.url}$imagePath',
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width,
                                     errorBuilder: (context, error, stackTrace) {
@@ -482,7 +482,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           return Container(
                             color: Color(0xFF171717),
                             child: Image.network(
-                              '${ApiService.hubUrl}$imagePath',
+                              '${ApiService.url}$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
                               errorBuilder: (context, error, stackTrace) {
@@ -928,9 +928,9 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       color: Color(0xFFFFF0C6),
                       size: 20,
                     ),
-                    SizedBox(width: 4), // Espacio entre el ícono y el texto
+                    SizedBox(width: 4), 
                     Text(
-                      'Ver todos los terrenos',
+                      'Ver todas las ubicaciones',
                       style: TextStyle(
                         color: Color(0xFFFFF0C6),
                         fontSize: 12,
