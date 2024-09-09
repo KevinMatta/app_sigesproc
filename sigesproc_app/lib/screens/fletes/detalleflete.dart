@@ -59,38 +59,46 @@ class _DetalleFleteState extends State<DetalleFlete> {
   int _selectedIndex = 2;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUserId();
+void initState() {
+  super.initState();
+  _loadUserId();
+  _loadUserProfileData();
+  _loadEmplId();
 
-    _loadUserProfileData();
-    _loadEmplId();
-    _fleteHubService.startConnection().then((_) {
-      _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
-        setState(() {
-          LatLng nuevaUbicacion = LatLng(lat, lng);
-          if (emplId != this.emplId) {
-            if (ubicacionactual != null) {
-              polylines[PolylineId('realPolyline')]?.points.add(nuevaUbicacion);
-              _actualizarPolyline(
-                  ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
-            }
-            ubicacionactual = nuevaUbicacion;
+  // Conectar todos los usuarios al servicio SignalR para recibir la ubicación
+  _fleteHubService.startConnection().then((_) {
+    _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
+      setState(() {
+        LatLng nuevaUbicacion = LatLng(lat, lng);
+
+        // Todos los usuarios deben ver la actualización en tiempo real, excepto el propio fletero
+        if (emplId != this.emplId) {
+          if (ubicacionactual != null) {
+            _actualizarPolyline(
+              ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
           }
-        });
+
+          // Actualizar la ubicación del fletero en tiempo real
+          ubicacionactual = nuevaUbicacion;
+        }
       });
     });
+  });
 
-    _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
-    _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
-    _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
-    _destinoFuture = _fetchDestino(widget.flenId);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      carritoIcono = await createBitmapDescriptorFromIcon(
-          Icons.directions_car, Colors.red, 80);
-      await iniciarMapa();
-    });
-  }
+  // Cargar detalles del flete
+  _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+  _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
+  _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
+  _destinoFuture = _fetchDestino(widget.flenId);
+
+  // Preparar el mapa y el ícono del carrito
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    carritoIcono = await createBitmapDescriptorFromIcon(
+      Icons.directions_car, Colors.red, 80);
+    await iniciarMapa();
+  });
+}
+
 
   @override
   void dispose() {
@@ -226,7 +234,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
   Future<void> iniciarMapa() async {
     try {
-      print('Cargando detalles del flete...');
       final FleteEncabezadoViewModel? flete = await _fleteFuture;
       if (flete == null) {
         print('No se encontró el flete');
@@ -238,10 +245,9 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
       esFletero = flete.emtrId == emplId;
 
-      // Obtener la Polyline roja almacenada desde el servidor
-      List<LatLng>? polylineAlmacenada = await _fleteHubService.obtenerPolyline(
-          flete
-              .emtrId!); // Cambia a flete.emtrId para cargar la polyline del fletero
+      // Cargar la polyline del fletero desde el servidor
+      List<LatLng>? polylineAlmacenada =
+          await _fleteHubService.obtenerPolyline(flete.emtrId!);
 
       if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
         print('Polyline almacenada obtenida.');
@@ -257,7 +263,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         print('No se recibieron coordenadas para la Polyline.');
       }
 
-      // Si es fletero, seguir obteniendo la ubicación en tiempo real y actualizando la polyline
+      // Si es el fletero, inicia el rastreo en tiempo real
       if (esFletero && flete.flenEstado == false) {
         print('Obteniendo la ubicación actual para el fletero...');
         bool ubicacionObtenida = await ubicacionActualizada();
@@ -268,33 +274,30 @@ class _DetalleFleteState extends State<DetalleFlete> {
           });
           return;
         }
+
         print("Ubicación obtenida: $ubicacionactual");
+
+        // Guardar la ubicación inicial si es necesario
         final pref = await SharedPreferences.getInstance();
         final latitudInicial = pref.getDouble('latitudInicial');
         final longitudInicial = pref.getDouble('longitudInicial');
 
         if (latitudInicial != null && longitudInicial != null) {
           ubicacionInicial = LatLng(latitudInicial, longitudInicial);
-          print(
-              'Ubicación inicial cargada desde SharedPreferences: $ubicacionInicial');
-        }
-
-        // Guardar la ubicación inicial solo si no ha sido almacenada previamente
-        if (ubicacionInicial == null) {
+        } else {
           ubicacionInicial = ubicacionactual;
-          print('Guardando la ubicación inicial: $ubicacionInicial');
           await pref.setDouble('latitudInicial', ubicacionInicial!.latitude);
           await pref.setDouble('longitudInicial', ubicacionInicial!.longitude);
         }
 
-        // Actualizar la polyline en tiempo real
+        // Actualizar la ubicación en tiempo real
         locationSubscription = ubicacionController.onLocationChanged
             .listen((LocationData currentLocation) async {
           if (currentLocation.latitude != null &&
               currentLocation.longitude != null) {
             LatLng nuevaUbicacion =
                 LatLng(currentLocation.latitude!, currentLocation.longitude!);
-            print('Nueva ubicación recibida: $nuevaUbicacion');
+            await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
             await _actualizarPolyline(
                 ubicacionInicial!, nuevaUbicacion, Colors.red, 'realPolyline');
             setState(() {
@@ -305,7 +308,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
       }
 
       await _generarRutas(flete);
-
       setState(() {
         estaCargando = false;
       });
@@ -357,55 +359,41 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> _actualizarPolyline(
-      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
-    final polylineId = PolylineId(id);
+    LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
+  final polylineId = PolylineId(id);
 
-    // Usar la API de Polyline para obtener los puntos intermedios entre inicio y nuevaUbicacion
-    final polylinePoints = PolylinePoints();
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      gmak, // Tu API key de Google
-      PointLatLng(inicio.latitude, inicio.longitude),
-      PointLatLng(nuevaUbicacion.latitude, nuevaUbicacion.longitude),
-      travelMode: TravelMode.driving,
-    );
+  // Obtener la polyline existente o crear una nueva si no existe
+  Polyline polylineExistente = polylines[polylineId] ?? Polyline(
+    polylineId: polylineId,
+    color: color,
+    points: [inicio],  // Inicializar con el punto inicial si no existe
+    width: 5,
+  );
 
-    print(
-        'Intentando actualizar Polyline con inicio: $inicio, nuevaUbicacion: $nuevaUbicacion');
+  // Añadir el nuevo punto a la polyline existente
+  List<LatLng> puntosActualizados = List.from(polylineExistente.points)
+    ..add(nuevaUbicacion);
 
-    // Si se obtuvieron puntos intermedios, los usamos para actualizar la Polyline
-    if (result.points.isNotEmpty) {
-      List<LatLng> polylineCoordinates = result.points
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
+  // Crear una nueva polyline con los puntos actualizados
+  Polyline polylineActualizada = polylineExistente.copyWith(
+    pointsParam: puntosActualizados,  // Actualizamos solo los puntos
+  );
 
-      print(
-          'Polyline actualizada con puntos: $polylineCoordinates'); // Añade este print
+  // Actualizar el estado con la nueva polyline
+  setState(() {
+    polylines[polylineId] = polylineActualizada;
+  });
 
-      setState(() {
-        polylines[polylineId] = Polyline(
-          polylineId: polylineId,
-          color: color,
-          points: polylineCoordinates, // Usar la lista de puntos obtenidos
-          width: 5,
-        );
-      });
+  // Convertir las coordenadas a dos listas de latitudes y longitudes
+  List<double> latitudes =
+      puntosActualizados.map((point) => point.latitude).toList();
+  List<double> longitudes =
+      puntosActualizados.map((point) => point.longitude).toList();
 
-      // Convertir las coordenadas a dos listas de latitudes y longitudes
-      List<double> latitudes =
-          polylineCoordinates.map((point) => point.latitude).toList();
-      List<double> longitudes =
-          polylineCoordinates.map((point) => point.longitude).toList();
+  // Enviar las listas de coordenadas al servidor para su almacenamiento
+  await _fleteHubService.actualizarPolyline(emplId!, latitudes, longitudes);
+}
 
-      // Enviar las listas de coordenadas al servidor
-      await _fleteHubService.actualizarPolyline(emplId!, latitudes, longitudes);
-    } else {
-      print("Error obteniendo ruta entre puntos: ${result.errorMessage}");
-      setState(() {
-        estaCargando =
-            false; // Detén el spinner si hay error en la obtención de puntos
-      });
-    }
-  }
 
   Future<LatLng?> _obtenerOrigen() async {
     final origenData = await _bodegaOrigenFuture;
