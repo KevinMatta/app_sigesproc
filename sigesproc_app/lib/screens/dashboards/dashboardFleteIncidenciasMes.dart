@@ -10,7 +10,7 @@ class IncidenceDashboardCard extends StatefulWidget {
 }
 
 class _IncidenceDashboardCardState extends State<IncidenceDashboardCard> {
-  late Future<List<DashboardViewModel>> _dashboardData; // Datos de incidencias
+  late Future<List<IncidenceDashboardViewModel>> _dashboardData; // Datos de incidencias
   String _abreviaturaMoneda = "L"; // Moneda por defecto
   int currentMonth = DateTime.now().month; // Mes actual
 
@@ -58,7 +58,7 @@ class _IncidenceDashboardCardState extends State<IncidenceDashboardCard> {
       elevation: 4,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder<List<DashboardViewModel>>(
+        child: FutureBuilder<List<IncidenceDashboardViewModel>>(
           future: _dashboardData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -69,8 +69,10 @@ class _IncidenceDashboardCardState extends State<IncidenceDashboardCard> {
               );
             } else if (snapshot.hasError) {
               return Center(
-                child: Text('Error al cargar los datos',
-                    style: TextStyle(color: Colors.white)),
+                child: Text(
+      'Error: ${snapshot.error}', // Muestra el error en pantalla
+      style: TextStyle(color: Colors.white),
+    ),
               );
             } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
               // Filtramos los datos para el mes actual
@@ -79,7 +81,7 @@ class _IncidenceDashboardCardState extends State<IncidenceDashboardCard> {
                   .toList();
 
               if (filteredData.isNotEmpty) {
-                final DashboardViewModel data =
+                final IncidenceDashboardViewModel data =
                     filteredData.first; // Usamos el primer dato filtrado
                 return _buildContent(data);
               } else {
@@ -101,7 +103,7 @@ class _IncidenceDashboardCardState extends State<IncidenceDashboardCard> {
   }
 
   // Método que construye el contenido basado en los datos reales
-  Widget _buildContent(DashboardViewModel data) {
+  Widget _buildContent(IncidenceDashboardViewModel data) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,

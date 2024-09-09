@@ -109,7 +109,7 @@ class DashboardService {
   }
 
   // Method to get freight incidence rates
-  static Future<List<DashboardViewModel>> listarFletesTasaIncidencias() async {
+  static Future<List<IncidenceDashboardViewModel>> listarFletesTasaIncidencias() async {
     final url = Uri.parse(
         '${ApiService.apiUrl}/Dashboard/DashboardFletesTasaIncidencias');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
@@ -117,7 +117,7 @@ class DashboardService {
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       print('Datos recibidos del servicio fletessss: $data');
-      return data.map((json) => DashboardViewModel.fromJson(json)).toList();
+      return data.map((json) => IncidenceDashboardViewModel.fromJson(json)).toList();
     } else {
       print('Error al cargar los datos, código: ${response.statusCode}');
       throw Exception('Error al cargar los datos');

@@ -238,6 +238,56 @@ class DashboardViewModel {
   }
 }
 
+class IncidenceDashboardViewModel {
+  int? incidenciasTotales;
+  int? numeroFletesMensuales;
+  int? mes;
+
+  IncidenceDashboardViewModel({
+    this.incidenciasTotales,
+    this.numeroFletesMensuales,
+    this.mes,
+  });
+
+  // Método para obtener el nombre del mes basado en un número
+  String getNombreMes(int mesNumero) {
+    List<String> meses = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre'
+    ];
+    return meses[mesNumero - 1]; // Ajuste para que el índice coincida con el mes
+  }
+
+  // Factory para construir el modelo desde JSON
+  factory IncidenceDashboardViewModel.fromJson(Map<String, dynamic> json) {
+    return IncidenceDashboardViewModel(
+      incidenciasTotales: json['incidenciasTotales'] ?? 0,
+      numeroFletesMensuales: json['numeroFletesMensuales'] ?? 0,
+      mes: json['mes'] as int?, // Mes actual como string
+    );
+  }
+
+  // Método para convertir el modelo a JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'incidenciasTotales': incidenciasTotales,
+      'numeroFletesMensuales': numeroFletesMensuales,
+      'mes': mes,
+    };
+  }
+}
+
+
 class TopProyectosRelacionadosViewModel {
   String? proy_Nombre; // Nombre del proyecto
   double?
