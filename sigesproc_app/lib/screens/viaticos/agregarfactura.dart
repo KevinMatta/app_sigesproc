@@ -8,6 +8,7 @@ import 'package:sigesproc_app/models/viaticos/viaticoDetViewModel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoDetservice.dart';
 import 'package:sigesproc_app/services/viaticos/viaticoservice.dart';
@@ -323,6 +324,11 @@ class _AgregarFacturaState extends State<AgregarFactura> {
       ],
     );
   }
+    void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -404,7 +410,7 @@ class _AgregarFacturaState extends State<AgregarFactura> {
           Stack(
             children: [
               IconButton(
-                icon: Icon(Icons.notifications),
+                icon: Icon(Icons.notifications, color: Color(0xFFFFF0C6)),
                 onPressed: () async {
                   final result = await Navigator.push(
                     context,
@@ -444,7 +450,7 @@ class _AgregarFacturaState extends State<AgregarFactura> {
             ],
           ),
           IconButton(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person, color: Color(0xFFFFF0C6)),
             onPressed: () {
               Navigator.push(
                 context,
@@ -455,6 +461,11 @@ class _AgregarFacturaState extends State<AgregarFactura> {
             },
           ),
         ],
+        iconTheme: IconThemeData(color: Color(0xFFFFF0C6)),
+      ),
+        drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
       ),
       body: SingleChildScrollView(
         child: Container(

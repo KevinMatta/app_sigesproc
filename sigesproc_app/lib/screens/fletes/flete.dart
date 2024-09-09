@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletecontrolcalidadviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fletedetalleviewmodel.dart';
 import 'package:sigesproc_app/models/fletes/fleteencabezadoviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
-import 'package:sigesproc_app/screens/appBar.dart';
+import 'package:sigesproc_app/screens/acceso/notificacion.dart';
+import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/fletes/editarflete.dart';
 import 'package:sigesproc_app/screens/fletes/nuevoflete.dart';
 import 'package:sigesproc_app/screens/fletes/verificarflete.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
+import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
 import 'package:sigesproc_app/services/fletes/fletecontrolcalidadservice.dart';
 import 'package:sigesproc_app/services/fletes/fletedetalleservice.dart';
 import '../menu.dart';
@@ -24,7 +28,6 @@ class Flete extends StatefulWidget {
 
 class _FleteState extends State<Flete> {
   int _selectedIndex = 2;
-  Future<List<FleteEncabezadoViewModel>>? _fletesFuture;
   late Future<List<FleteControlCalidadViewModel>> _incidenciasFuture;
   TextEditingController _searchController = TextEditingController();
   List<FleteEncabezadoViewModel> _filteredFletes = [];
@@ -35,7 +38,7 @@ class _FleteState extends State<Flete> {
   bool _viendoVerificacion = false;
   int? _flenIdSeleccionado;
   int _unreadCount = 0;
-  late int userId;
+  int? userId;
   int? emplId;
   bool? EsAdmin;
   bool esFletero = false;
@@ -46,9 +49,9 @@ class _FleteState extends State<Flete> {
   void initState() {
     super.initState();
     _cargarEmpleado();
-    var prefs = PreferenciasUsuario();
-    userId = int.tryParse(prefs.userId) ?? 0;
-    _loadNotifications();
+    _loadUserId();
+
+    _loadUserProfileData();
     _searchController.addListener(_filterFletes);
   }
 
@@ -59,15 +62,53 @@ class _FleteState extends State<Flete> {
     super.dispose();
   }
 
+  Future<void> _loadUserId() async {
+    var prefs = PreferenciasUsuario();
+    userId = int.tryParse(prefs.userId) ?? 0;
+
+    _insertarToken();
+
+    context
+        .read<NotificationsBloc>()
+        .add(InitializeNotificationsEvent(userId: userId!));
+
+    _loadNotifications();
+  }
+
+  Future<void> _insertarToken() async {
+    var prefs = PreferenciasUsuario();
+    String? token = prefs.token;
+
+    if (token != null && token.isNotEmpty) {
+      await NotificationServices.insertarToken(userId!, token);
+      print('Token insertado después del inicio de sesión: $token');
+    } else {
+      print('No se encontró token en las preferencias.');
+    }
+  }
+
   Future<void> _loadNotifications() async {
     try {
       final notifications =
-          await NotificationServices.BuscarNotificacion(userId);
+          await NotificationServices.BuscarNotificacion(userId!);
       setState(() {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
       print('Error al cargar notificaciones: $e');
+    }
+  }
+
+  Future<void> _loadUserProfileData() async {
+    var prefs = PreferenciasUsuario();
+    int usua_Id = int.tryParse(prefs.userId) ?? 0;
+
+    try {
+      UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
+      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
+    } catch (e) {
+      print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -138,8 +179,10 @@ class _FleteState extends State<Flete> {
       final totalRecords = _filteredFletes.length;
       final maxPages = (totalRecords / _rowsPerPage).ceil();
 
+      if (totalRecords == 0) {}
+
       if (_currentPage >= maxPages) {
-        _currentPage = maxPages - 1;
+        _currentPage = maxPages > 0 ? maxPages - 1 : 0;
       }
     });
   }
@@ -913,48 +956,6 @@ class _FleteState extends State<Flete> {
                           ],
                         ),
                       ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          color: Colors
-                              .black, // Fondo negro para el área del botón
-                          padding: const EdgeInsets.all(10.0),
-                          child: Row(
-                            children: [
-                              Spacer(),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: 10.0, right: 10.0),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF171717),
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 35, vertical: 15),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _viendoVerificacion = false;
-                                    });
-                                  },
-                                  child: Text(
-                                    'Regresar',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   );
                 }
@@ -971,17 +972,164 @@ class _FleteState extends State<Flete> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
-      appBar: CustomAppBar(
-          unreadCount: _unreadCount,
-          onNotificationsUpdated: _loadNotifications),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          children: [
+            Image.asset(
+              'lib/assets/logo-sigesproc.png',
+              height: 50,
+            ),
+            SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                'SIGESPROC',
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ),
+          ],
+        ),
+        bottom: _viendoVerificacion
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(70.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Verificación Flete',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                    SizedBox(height: 5),
+                    if (!_isLoading)
+                      Row(
+                        children: [
+                          SizedBox(width: 5.0),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _viendoVerificacion = false;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Color(0xFFFFF0C6),
+                                  ),
+                                  SizedBox(width: 3.0),
+                                  Text(
+                                    'Regresar',
+                                    style: TextStyle(
+                                      color: Color(0xFFFFF0C6),
+                                      fontSize: 15.0,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              )
+            : PreferredSize(
+                preferredSize: Size.fromHeight(30.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Fletes',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                  ],
+                ),
+              ),
+        iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
+        actions: <Widget>[
+          IconButton(
+            icon: Stack(
+              children: [
+                Icon(Icons.notifications),
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                      child: Text(
+                        '$_unreadCount',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificacionesScreen(),
+                ),
+              );
+              _loadNotifications();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
         onItemSelected: _onItemTapped,
       ),
       body:
           _viendoVerificacion ? _buildVerificacionFlete() : _buildListaFletes(),
-      floatingActionButton: _viendoVerificacion
-          ? null // No mostrar el botón si está en la vista de verificación
+      floatingActionButton: (_viendoVerificacion || !EsAdmin!)
+          ? null // No mostrar el botón si está en la vista de verificación o si no es admin
           : FloatingActionButton(
               onPressed: () {
                 Navigator.push(

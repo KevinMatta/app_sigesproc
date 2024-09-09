@@ -15,7 +15,9 @@ import 'package:sigesproc_app/screens/bienesraices/ubicacion.dart';
 import 'package:sigesproc_app/screens/bienesraices/venta.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
+import 'package:sigesproc_app/services/apiservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
+import 'package:sigesproc_app/services/generales/monedaglobalservice.dart';
 import '../menu.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,6 +37,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
   List<ProcesoVentaViewModel>? _selectedVenta;
   int _unreadCount = 0;
   int? userId;
+  String _abreviaturaMoneda = "L";
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -112,6 +115,19 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     _searchController.removeListener(_filtradoProcesosVenta);
     _searchController.dispose();
     super.dispose();
+  }
+
+  String formatNumber(double value) {
+    // Para asegurarse de que las comas estén en miles y el punto sea decimal
+    final NumberFormat formatter = NumberFormat('#,##0.00',
+        'en_US'); // Formato correcto para comas en miles y punto en decimales
+    return formatter.format(value);
+  }
+
+  Future<void> _loadData() async {
+    _abreviaturaMoneda =
+        (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {}); // Refresca el widget para reflejar los nuevos datos
   }
 
   void _filtradoProcesosVenta() {
@@ -355,7 +371,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 return Container(
                                   color: Color(0xFF171717),
                                   child: Image.network(
-                                    'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net$imagePath',
+                                    '${ApiService.hubUrl}$imagePath',
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width,
                                     errorBuilder: (context, error, stackTrace) {
@@ -466,7 +482,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           return Container(
                             color: Color(0xFF171717),
                             child: Image.network(
-                              'https://azureapisigesproc-hafzeraacxavbmd7.mexicocentral-01.azurewebsites.net$imagePath',
+                              '${ApiService.hubUrl}$imagePath',
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width,
                               errorBuilder: (context, error, stackTrace) {
@@ -615,12 +631,12 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Valor Inicial: L. ${venta.btrpPrecioVentaInicio?.toStringAsFixed(2) ?? 'N/A'}',
+                                    'Valor Inicial: $_abreviaturaMoneda ${formatNumber(venta.btrpPrecioVentaInicio!.toDouble())}',
                                     style: TextStyle(color: Colors.black),
                                   ),
                                   if (venta.btrpIdentificador == false)
                                     Text(
-                                      'Vendido por: L. ${venta.btrpPrecioVentaFinal?.toStringAsFixed(2) ?? 'N/A'}\nFecha Vendida: ${venta.btrpFechaVendida != null ? DateFormat('EEE d MMM, hh:mm a').format(venta.btrpFechaVendida!) : 'N/A'}',
+                                      'Vendido por: $_abreviaturaMoneda ${formatNumber(venta.btrpPrecioVentaFinal!.toDouble())}\nFecha Vendida: ${venta.btrpFechaVendida != null ? DateFormat('EEE d MMM, hh:mm a').format(venta.btrpFechaVendida!) : 'N/A'}',
                                       style: TextStyle(color: Colors.black),
                                     ),
                                 ],
@@ -733,12 +749,26 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         ),
         bottom: _selectedVenta != null
             ? PreferredSize(
-                preferredSize: Size.fromHeight(60.0),
+                preferredSize: Size.fromHeight(90.0),
                 child: Column(
                   children: [
+                    Text(
+                      'Detalle Bien Raíz',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                    SizedBox(height: 5),
                     Row(
                       children: [
-                        SizedBox(width: 5.0), // Espacio a la izquierda
+                        SizedBox(width: 5.0),
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -747,8 +777,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                             });
                           },
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                                top: 10.0), // Margen superior
+                            padding: const EdgeInsets.only(top: 10.0),
                             child: Row(
                               children: [
                                 Icon(
@@ -770,11 +799,29 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20.0),
+                    SizedBox(height: 15.0),
                   ],
                 ),
-              )
-            : null,
+              ) :  PreferredSize(
+                preferredSize: Size.fromHeight(40.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Bienes Raices',
+                      style: TextStyle(
+                        color: Color(0xFFFFF0C6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+                    Container(
+                      height: 2.0,
+                      color: Color(0xFFFFF0C6),
+                    ),
+                  ],
+                ),
+              ),
         iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
           IconButton(
@@ -900,7 +947,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                      child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+                      child:
+                          CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.hasError) {
                     print('Error: ${snapshot.error}');
