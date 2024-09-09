@@ -24,23 +24,31 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
   // Función asincrónica para cargar los datos
   Future<void> _loadData() async {
     _dashboardDataMesActual = DashboardService.listarTotalesComprasMensuales();
-    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    _abreviaturaMoneda =
+        (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
     setState(() {}); // Refresca el widget para reflejar los nuevos datos
   }
 
   // Función para formatear los números con comas y punto decimal
   String formatNumber(double value) {
     // Para asegurarse de que las comas estén en miles y el punto sea decimal
-    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US'); // Formato correcto para comas en miles y punto en decimales
+    final NumberFormat formatter = NumberFormat('#,##0.00',
+        'en_US'); // Formato correcto para comas en miles y punto en decimales
     return formatter.format(value);
   }
 
   // Función para obtener el nombre del mes
   String obtenerNombreMes(int mes) {
     final DateTime now = DateTime.now();
-    final DateFormat formatter = DateFormat.MMMM('es'); // Nombres de los meses en español
-    final DateTime fecha = DateTime(now.year, mes); // Crear una fecha con el mes dado
-    return formatter.format(fecha).toUpperCase(); // Devolver el nombre del mes en mayúsculas
+    final DateFormat formatter =
+        DateFormat.MMMM('es'); // Nombres de los meses en español
+    final DateTime fecha =
+        DateTime(now.year, mes); // Crear una fecha con el mes dado
+    String mesFormateado = formatter
+        .format(fecha)
+        .toLowerCase(); // Convertir el nombre del mes a minúsculas
+    return mesFormateado[0].toUpperCase() +
+        mesFormateado.substring(1); // Capitalizar la primera letra
   }
 
   @override
@@ -63,8 +71,10 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
               snapshot.data!.where((item) => item.mes == mesActual).toList();
 
           // Calcular el total gastado y el número de compras del mes
-          double totalCompraMes = comprasMesActual.fold(0, (sum, item) => sum + (item.totalCompraMes ?? 0));
-          int numeroComprasMes = comprasMesActual.fold(0, (sum, item) => sum + (item.numeroCompras ?? 0));
+          double totalCompraMes = comprasMesActual.fold(
+              0, (sum, item) => sum + (item.totalCompraMes ?? 0));
+          int numeroComprasMes = comprasMesActual.fold(
+              0, (sum, item) => sum + (item.numeroCompras ?? 0));
 
           return Column(
             children: [
@@ -72,17 +82,24 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
               Card(
                 color: const Color(0xFF1F1F1F),
                 elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0), // Reducción de padding
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 4.0), // Reducción de padding
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(FontAwesomeIcons.calendar, color: Colors.yellowAccent, size: 16), // Ícono más pequeño
+                      Icon(FontAwesomeIcons.calendar,
+                          color: Colors.yellowAccent,
+                          size: 16), // Ícono más pequeño
                       SizedBox(width: 8),
                       Text(
                         obtenerNombreMes(mesActual),
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -98,20 +115,26 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
                     child: Card(
                       color: const Color(0xFF1F1F1F),
                       elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0), // Ajuste de padding para reducir espacios
+                        padding: const EdgeInsets.symmetric(
+                            vertical:
+                                8.0), // Ajuste de padding para reducir espacios
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(FontAwesomeIcons.moneyBillWave, color: Colors.greenAccent, size: 16), // Ícono más pequeño
+                                Icon(FontAwesomeIcons.moneyBillWave,
+                                    color: Colors.greenAccent,
+                                    size: 16), // Ícono más pequeño
                                 SizedBox(width: 8),
                                 Text(
                                   'Total Gastado',
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: TextStyle(
+                                      color: Colors.white70, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -119,7 +142,11 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
                             // Total gastado formateado con comas en miles y punto en decimales
                             Text(
                               '$_abreviaturaMoneda ${formatNumber(totalCompraMes)}',
-                              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold), // Tamaño ajustado
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight:
+                                      FontWeight.bold), // Tamaño ajustado
                             ),
                           ],
                         ),
@@ -132,20 +159,26 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
                     child: Card(
                       color: const Color(0xFF1F1F1F),
                       elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0), // Ajuste de padding para reducir espacios
+                        padding: const EdgeInsets.symmetric(
+                            vertical:
+                                8.0), // Ajuste de padding para reducir espacios
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(FontAwesomeIcons.shoppingCart, color: Colors.blueAccent, size: 16), // Ícono más pequeño
+                                Icon(FontAwesomeIcons.shoppingCart,
+                                    color: Colors.blueAccent,
+                                    size: 16), // Ícono más pequeño
                                 SizedBox(width: 8),
                                 Text(
                                   'Total Compras',
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: TextStyle(
+                                      color: Colors.white70, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -153,7 +186,11 @@ class _DashboardCompraMesActualState extends State<DashboardCompraMesActual> {
                             // Número de compras
                             Text(
                               '$numeroComprasMes Compras',
-                              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold), // Tamaño ajustado
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight:
+                                      FontWeight.bold), // Tamaño ajustado
                             ),
                           ],
                         ),

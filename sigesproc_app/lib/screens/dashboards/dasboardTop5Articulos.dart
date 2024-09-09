@@ -12,8 +12,15 @@ class TopArticlesDashboard extends StatefulWidget {
 
 class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
   late Future<List<DashboardArticulosViewModel>> _dashboardData;
-  TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true); // Habilitar tooltip
-  List<bool> _selectedBars = [true, true, true, true, true]; // Control de las barras activadas/desactivadas
+  TooltipBehavior _tooltipBehavior =
+      TooltipBehavior(enable: true); // Habilitar tooltip
+  List<bool> _selectedBars = [
+    true,
+    true,
+    true,
+    true,
+    true
+  ]; // Control de las barras activadas/desactivadas
 
   @override
   void initState() {
@@ -75,21 +82,26 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
   Widget _buildVerticalBarChart(
       List<DashboardArticulosViewModel> data, BoxConstraints constraints) {
     // Calcular el total de compras
-    int totalCompras = data.fold(0, (sum, item) => sum + (item.numeroCompras ?? 0));
+    int totalCompras =
+        data.fold(0, (sum, item) => sum + (item.numeroCompras ?? 0));
 
     return Column(
       children: [
         Container(
-          height: constraints.maxHeight * 0.70, // Reducir la altura del gráfico para evitar desbordamiento
+          height: constraints.maxHeight *
+              0.70, // Reducir la altura del gráfico para evitar desbordamiento
           width: constraints.maxWidth * 0.95,
           child: SfCartesianChart(
             title: ChartTitle(
               text: 'Top 5 Artículos más Comprados',
               textStyle: TextStyle(
-                  color: const Color(0xFFFFF0C6), fontSize: 10), // Reducir tamaño del título
+                  color: const Color(0xFFFFF0C6),
+                  fontSize: 10), // Reducir tamaño del título
             ),
             primaryXAxis: CategoryAxis(
-              labelStyle: TextStyle(color: Colors.white, fontSize: 0), // Ocultar etiquetas del eje X
+              labelStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 0), // Ocultar etiquetas del eje X
               labelRotation: 0,
               title: AxisTitle(
                   text: '', // Remover título del eje X
@@ -101,18 +113,23 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                   textStyle: TextStyle(color: Colors.white, fontSize: 8)),
               labelStyle: TextStyle(color: Colors.white, fontSize: 8),
             ),
-            tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
+            tooltipBehavior:
+                _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <ChartSeries>[
               ColumnSeries<DashboardArticulosViewModel, String>(
                 dataSource: data,
-                xValueMapper: (DashboardArticulosViewModel item, index) => item.articulo ?? '',
+                xValueMapper: (DashboardArticulosViewModel item, index) =>
+                    item.articulo ?? '',
                 yValueMapper: (DashboardArticulosViewModel item, index) =>
-                    _selectedBars[index] ? item.numeroCompras ?? 0 : null, // Mostrar solo las barras seleccionadas
+                    _selectedBars[index]
+                        ? item.numeroCompras ?? 0
+                        : null, // Mostrar solo las barras seleccionadas
                 dataLabelSettings: DataLabelSettings(
                   isVisible: true,
                   textStyle: TextStyle(color: Colors.white, fontSize: 8),
                   // Mostrar porcentaje en la barra
-                  builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
+                  builder: (dynamic data, dynamic point, dynamic series,
+                      int pointIndex, int seriesIndex) {
                     final DashboardArticulosViewModel item = data;
                     return Text(
                       '${calculatePercentage(item.numeroCompras ?? 0, totalCompras)}',
@@ -131,8 +148,10 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                   ];
                   return barColors[index % barColors.length];
                 },
-                enableTooltip: true, // Mostrar cantidad en el tooltip cuando se toca la barra
-                name: 'Artículos', // Añadir el nombre al gráfico para mostrar en la leyenda
+                enableTooltip:
+                    true, // Mostrar cantidad en el tooltip cuando se toca la barra
+                name:
+                    'Artículos', // Añadir el nombre al gráfico para mostrar en la leyenda
               ),
             ],
           ),
@@ -142,7 +161,8 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
         Wrap(
           children: List<Widget>.generate(data.length, (int index) {
             return Padding(
-              padding: const EdgeInsets.all(4.0), // Reducir padding de las leyendas
+              padding:
+                  const EdgeInsets.all(4.0), // Reducir padding de las leyendas
               child: InkWell(
                 onTap: () {
                   setState(() {
@@ -154,7 +174,9 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                   children: [
                     Icon(
                       Icons.bar_chart,
-                      color: _selectedBars[index] ? _getBarColor(index) : Colors.grey, // Color de la barra
+                      color: _selectedBars[index]
+                          ? _getBarColor(index)
+                          : Colors.grey, // Color de la barra
                       size: 12, // Tamaño reducido del ícono
                     ),
                     SizedBox(width: 2),

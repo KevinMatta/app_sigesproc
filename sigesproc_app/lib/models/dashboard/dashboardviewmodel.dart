@@ -18,11 +18,10 @@ class DashboardViewModel {
 
   //Bienes Raices
   double? totalVentasMes;
-    int? cantidadVendidosMes;
-   int? agen_Id ;
-    int? cantidadVendida ;
-    String? agen_NombreCompleto ;
-
+  int? cantidadVendidosMes;
+  int? agen_Id;
+  int? cantidadVendida;
+  String? agen_NombreCompleto;
 
   // Campos para el top 5 de proveedores más cotizados
   int? provId;
@@ -35,7 +34,7 @@ class DashboardViewModel {
   double? presupuestoTotal; // Changed to double
   double? totalFletesDestinoProyecto; // Changed to double
 
-  // Freight Incidences (New)
+  // Fletes tasa Incidences
   int? incidenciasTotales;
 
   int? numeroFletesMensuales;
@@ -67,8 +66,14 @@ class DashboardViewModel {
   int? cantidad_Proyectos;
   String? esta_Nombre;
 
+  //total incidenciasMensuales
+  int? totalIncidencias;
+  double? totalCostoIncidencias;
+
   DashboardViewModel({
     this.esta_Nombre,
+    this.totalCostoIncidencias,
+    this.totalIncidencias,
     this.cantidad_Proyectos,
     this.articulo,
     this.totalCompra,
@@ -133,64 +138,63 @@ class DashboardViewModel {
 
   factory DashboardViewModel.fromJson(Map<String, dynamic> json) {
     return DashboardViewModel(
-      prov_Descripcion:
-          json['prov_Descripcion'] ?? '', // Use empty string if null
+        prov_Descripcion:
+            json['prov_Descripcion'] ?? '', // Use empty string if null
 
-      prov_Id: json['prov_Id'] ?? 0, // Default to 0 if null
-      cantidad_Proyectos:
-          json['cantidad_Proyectos'] ?? 0, // Default to 0 if null
+        prov_Id: json['prov_Id'] ?? 0, // Default to 0 if null
+        cantidad_Proyectos:
+            json['cantidad_Proyectos'] ?? 0, // Default to 0 if null
 
-      destino: json['destino'] ?? '', // Use empty string if null
-      esta_Nombre: json['esta_Nombre'] ?? '', // Use empty string if null
-      numeroFletes: json['numeroFletes'] ?? 0, // Default to 0 if null
-      proy_Id: json['proy_Id'] ?? 0,
-      proy_Nombre: json['proy_Nombre'] ?? '',
-      presupuestoTotal: json['presupuestoTotal']?.toDouble() ?? 0.0,
-      totalFletesDestinoProyecto:
-          json['totalFletesDestinoProyecto']?.toDouble() ?? 0.0,
-      incidenciasTotales: json['incidenciasTotales'] ?? 0,
-
-      numeroFletesMensuales: json['numeroFletesMensuales'] ?? 0,
-      articulo: json['articulo'] as String?,
-      totalCompra: json['totalCompra'] != null
-          ? double.tryParse(json['totalCompra'].toString()) ?? 0.0
-          : 0.0,
-      tipoArticulo: json['tipoArticulo'] as String?,
-      anhio: json['anhio'] as int?,
-      mes: json['mes'] as int?,
-      totalCompraMes: json['totalCompraMes'] != null
-          ? double.tryParse(json['totalCompraMes'].toString()) ?? 0.0
-          : 0.0,
-      numeroCompras: json['numeroCompras'] as int?,
-      anio: json['anio'] as int?,
-      // Campos para proveedores
-      provId: json['prov_Id'] as int?,
-      provDescripcion: json['prov_Descripcion'] as String?,
-      numeroDeCotizaciones: json['numeroDeCotizaciones'] as int?,
-      banco: json['banco'] as String?,
-      numeroAcreditaciones: json['numeroAcreditaciones'] != null
-          ? (json['numeroAcreditaciones'] as num).toDouble()
-          : 0.00, 
-      totalGastado: json['totalGastado'] as double?,
-      montoEstimado: json['montoEstimado'] as double?,
-      cantidadViaticos: json['cantidadViaticos'] as int?,
-      dia: json['dia'] as int?,
-      totalPrestamos: json['totalPrestamos'] as int?,
-      totalMontoPrestado: json['totalMontoPrestado'] as double?,
-      totalSaldoRestante: json['totalSaldoRestante'] as double?,
-
+        destino: json['destino'] ?? '', // Use empty string if null
+        esta_Nombre: json['esta_Nombre'] ?? '', // Use empty string if null
+        numeroFletes: json['numeroFletes'] ?? 0, // Default to 0 if null
+        proy_Id: json['proy_Id'] ?? 0,
+        proy_Nombre: json['proy_Nombre'] ?? '',
+        presupuestoTotal: json['presupuestoTotal']?.toDouble() ?? 0.0,
+        totalFletesDestinoProyecto:
+            json['totalFletesDestinoProyecto']?.toDouble() ?? 0.0,
+        incidenciasTotales: json['incidenciasTotales'] ?? 0,
+        totalIncidencias: json['proy_Id'] ?? 0,
+        totalCostoIncidencias: json['presupuestoTotal']?.toDouble() ?? 0.0,
+        numeroFletesMensuales: json['numeroFletesMensuales'] ?? 0,
+        articulo: json['articulo'] as String?,
+        totalCompra: json['totalCompra'] != null
+            ? double.tryParse(json['totalCompra'].toString()) ?? 0.0
+            : 0.0,
+        tipoArticulo: json['tipoArticulo'] as String?,
+        anhio: json['anhio'] as int?,
+        mes: json['mes'] as int?,
+        totalCompraMes: json['totalCompraMes'] != null
+            ? double.tryParse(json['totalCompraMes'].toString()) ?? 0.0
+            : 0.0,
+        numeroCompras: json['numeroCompras'] as int?,
+        anio: json['anio'] as int?,
+        // Campos para proveedores
+        provId: json['prov_Id'] as int?,
+        provDescripcion: json['prov_Descripcion'] as String?,
+        numeroDeCotizaciones: json['numeroDeCotizaciones'] as int?,
+        banco: json['banco'] as String?,
+        numeroAcreditaciones: json['numeroAcreditaciones'] != null
+            ? (json['numeroAcreditaciones'] as num).toDouble()
+            : 0.00,
+        totalGastado: json['totalGastado'] as double?,
+        montoEstimado: json['montoEstimado'] as double?,
+        cantidadViaticos: json['cantidadViaticos'] as int?,
+        dia: json['dia'] as int?,
+        totalPrestamos: json['totalPrestamos'] as int?,
+        totalMontoPrestado: json['totalMontoPrestado'] as double?,
+        totalSaldoRestante: json['totalSaldoRestante'] as double?,
 
 //BIENES RAICES
 //ventas mensuales
-    totalVentasMes: json['totalVentasMes'] != null? double.tryParse(json['totalVentasMes'].toString()) ?? 0.0: 0.0,
-      cantidadVendidosMes: json['cantidadVendidosMes'] as int?,
-      //agentes
-               agen_Id: json['agen_Id'] as int?,
-
-         cantidadVendida: json['cantidadVendida'] as int?,
-      agen_NombreCompleto: json['agen_NombreCompleto'] as String?
-    );
-
+        totalVentasMes: json['totalVentasMes'] != null
+            ? double.tryParse(json['totalVentasMes'].toString()) ?? 0.0
+            : 0.0,
+        cantidadVendidosMes: json['cantidadVendidosMes'] as int?,
+        //agentes
+        agen_Id: json['agen_Id'] as int?,
+        cantidadVendida: json['cantidadVendida'] as int?,
+        agen_NombreCompleto: json['agen_NombreCompleto'] as String?);
   }
 
   Map<String, dynamic> toJson() {
@@ -225,34 +229,32 @@ class DashboardViewModel {
       'totalMontoPrestado': totalMontoPrestado,
       'totalSaldoRestante': totalSaldoRestante,
       'anio': anio,
-            'agen_Id': agen_Id,
-
+      'agen_Id': agen_Id,
       'cantidadVendida': cantidadVendida,
-
       'agen_NombreCompleto': agen_NombreCompleto,
-
       'cantidadVendidosMes': cantidadVendidosMes,
-
       'totalVentasMes': totalVentasMes,
-
     };
   }
 }
 
 class TopProyectosRelacionadosViewModel {
   String? proy_Nombre; // Nombre del proyecto
-  double? totalFletesDestinoProyecto; // Total de fletes recibidos por el proyecto
+  double?
+      totalFletesDestinoProyecto; // Total de fletes recibidos por el proyecto
 
   TopProyectosRelacionadosViewModel({
     this.proy_Nombre,
     this.totalFletesDestinoProyecto,
   });
 
-  factory TopProyectosRelacionadosViewModel.fromJson(Map<String, dynamic> json) {
+  factory TopProyectosRelacionadosViewModel.fromJson(
+      Map<String, dynamic> json) {
     return TopProyectosRelacionadosViewModel(
       proy_Nombre: json['proy_Nombre'] ?? '', // Asigna el nombre del proyecto
       totalFletesDestinoProyecto: json['totalFletesDestinoProyecto'] != null
-          ? double.tryParse(json['totalFletesDestinoProyecto'].toString()) ?? 0.0
+          ? double.tryParse(json['totalFletesDestinoProyecto'].toString()) ??
+              0.0
           : 0.0, // Asigna el total de fletes
     );
   }
@@ -289,6 +291,35 @@ class TopNumeroDestinosFletesViewModel {
   }
 }
 
+// AQUIIIIIII
+
+class IncidenciasMensulaesProyectoViewmodel {
+  double? totalCostoIncidencias; // Nombre de la bodega
+  int? totalIncidencias; // Número de fletes
+
+  IncidenciasMensulaesProyectoViewmodel({
+    this.totalCostoIncidencias,
+    this.totalIncidencias,
+  });
+
+  factory IncidenciasMensulaesProyectoViewmodel.fromJson(
+      Map<String, dynamic> json) {
+    return IncidenciasMensulaesProyectoViewmodel(
+      totalCostoIncidencias:
+          json['totalCostoIncidencias'] ?? 0, // Asigna el costo
+      totalIncidencias:
+          json['totalIncidencias'] ?? 0.0, // Asigna el número de incidencias
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'totalCostoIncidencias': totalCostoIncidencias,
+      'totalIncidencias': totalIncidencias,
+    };
+  }
+}
+
 class ComprasMesViewModel {
   int? mes;
   double? totalCompraMes;
@@ -316,7 +347,9 @@ class ComprasMesViewModel {
       'Noviembre',
       'Diciembre'
     ];
-    return meses[mes != null ? mes! - 1 : 0]; // Ajuste para que el índice coincida con el número de mes
+    return meses[mes != null
+        ? mes! - 1
+        : 0]; // Ajuste para que el índice coincida con el número de mes
   }
 
   factory ComprasMesViewModel.fromJson(Map<String, dynamic> json) {
@@ -350,8 +383,10 @@ class DashboardArticulosViewModel {
   // Método para transformar el modelo desde JSON
   factory DashboardArticulosViewModel.fromJson(Map<String, dynamic> json) {
     return DashboardArticulosViewModel(
-      articulo: json['articulo'] ?? '', // Nombre del artículo, valor por defecto si es nulo
-      numeroCompras: json['numeroCompras'] ?? 0, // Número de compras, valor por defecto si es nulo
+      articulo: json['articulo'] ??
+          '', // Nombre del artículo, valor por defecto si es nulo
+      numeroCompras: json['numeroCompras'] ??
+          0, // Número de compras, valor por defecto si es nulo
     );
   }
 
@@ -377,7 +412,8 @@ class DashboardPrestamoDiasMesViewModel {
     this.totalMontoPrestado,
   });
 
-  factory DashboardPrestamoDiasMesViewModel.fromJson(Map<String, dynamic> json) {
+  factory DashboardPrestamoDiasMesViewModel.fromJson(
+      Map<String, dynamic> json) {
     return DashboardPrestamoDiasMesViewModel(
       dia: json['dia'] ?? 0, // Asegurarse de que siempre haya un valor
       mes: json['mes'] ?? 0,
@@ -409,8 +445,10 @@ class DepartamentoViewModel {
 
   factory DepartamentoViewModel.fromJson(Map<String, dynamic> json) {
     return DepartamentoViewModel(
-      esta_Nombre: json['esta_Nombre'] ?? '', // Nombre del estado o departamento
-      cantidad_Proyectos: json['cantidad_Proyectos'] ?? 0, // Cantidad de proyectos
+      esta_Nombre:
+          json['esta_Nombre'] ?? '', // Nombre del estado o departamento
+      cantidad_Proyectos:
+          json['cantidad_Proyectos'] ?? 0, // Cantidad de proyectos
     );
   }
 
@@ -433,8 +471,8 @@ class ProveedorViewModel {
 
   factory ProveedorViewModel.fromJson(Map<String, dynamic> json) {
     return ProveedorViewModel(
-      provDescripcion: json['prov_Descripcion'] ?? '', 
-      numeroDeCotizaciones: json['numeroDeCotizaciones'] ?? 0, 
+      provDescripcion: json['prov_Descripcion'] ?? '',
+      numeroDeCotizaciones: json['numeroDeCotizaciones'] ?? 0,
     );
   }
 
@@ -597,7 +635,6 @@ class ViaticosMesActualViewModel {
 }
 
 class BancoAcreditacionesViewModel {
-
   String? banco;
   int? numeroAcreditaciones; // Mantener como int
 

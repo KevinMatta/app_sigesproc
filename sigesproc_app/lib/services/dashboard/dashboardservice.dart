@@ -32,14 +32,17 @@ class DashboardService {
     }
   }
 
-  static Future<List<DashboardArticulosViewModel>> listarTop5ArticulosComprados() async {
+  static Future<List<DashboardArticulosViewModel>>
+      listarTop5ArticulosComprados() async {
     final url = Uri.parse(
         '${ApiService.apiUrl}/Dashboard/DashboardTop5ArticulosCompradoss');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => DashboardArticulosViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => DashboardArticulosViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
@@ -73,28 +76,34 @@ class DashboardService {
   }
 
   // Method to list related projects
-  static Future<List<TopProyectosRelacionadosViewModel>> listarProyectosRelacionados() async {
+  static Future<List<TopProyectosRelacionadosViewModel>>
+      listarProyectosRelacionados() async {
     final url = Uri.parse(
         '${ApiService.apiUrl}/Dashboard/DashboardProyectosRelacionados');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => TopProyectosRelacionadosViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => TopProyectosRelacionadosViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
   }
 
   // Method to list top 5 destination warehouses
-  static Future<List<TopNumeroDestinosFletesViewModel>> listarTop5BodegasDestino() async {
+  static Future<List<TopNumeroDestinosFletesViewModel>>
+      listarTop5BodegasDestino() async {
     final url =
         Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5BodegasDestino');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => TopNumeroDestinosFletesViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => TopNumeroDestinosFletesViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
@@ -108,8 +117,10 @@ class DashboardService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
+      print('Datos recibidos del servicio fletessss: $data');
       return data.map((json) => DashboardViewModel.fromJson(json)).toList();
     } else {
+      print('Error al cargar los datos, código: ${response.statusCode}');
       throw Exception('Error al cargar los datos');
     }
   }
@@ -122,30 +133,32 @@ class DashboardService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => VentasPorAgenteViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => VentasPorAgenteViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
   }
 
-
   static Future<List<DashboardBienRaizViewModel>> ventamensualbienraiz() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardVentaMensualBienRaiz');
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardVentaMensualBienRaiz');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => DashboardBienRaizViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => DashboardBienRaizViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
   }
 
-
-
-
-    static Future<List<VentaTerrenoViewModel>> ventamensualterreno() async {
-    final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardVentaMensualTerreno');
+  static Future<List<VentaTerrenoViewModel>> ventamensualterreno() async {
+    final url = Uri.parse(
+        '${ApiService.apiUrl}/Dashboard/DashboardVentaMensualTerreno');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
@@ -155,7 +168,6 @@ class DashboardService {
       throw Exception('Error al cargar los datos');
     }
   }
-
 
   // Method to list lands by month
   static Future<List<DashboardViewModel>> listarTerrenosPorMees() async {
@@ -180,7 +192,9 @@ class DashboardService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => DashboardProyectoViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => DashboardProyectoViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
@@ -217,35 +231,43 @@ class DashboardService {
     final url = Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5Bancos');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
-   if (response.statusCode == 200) {
-  List<dynamic> data = json.decode(response.body);
-  return data.map((json) => BancoAcreditacionesViewModel.fromJson(json)).toList();
-} else {
-  throw Exception('Error al cargar los datos');
-}
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => BancoAcreditacionesViewModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
   }
 
-  static Future<List<ViaticosMesActualViewModel>> listarPrestamosViaticosMes() async {
+  static Future<List<ViaticosMesActualViewModel>>
+      listarPrestamosViaticosMes() async {
     final url = Uri.parse(
         '${ApiService.apiUrl}/Dashboard/DashboardPrestamoViaticosMes');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => ViaticosMesActualViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => ViaticosMesActualViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
   }
 
-  static Future<List<DashboardPrestamoDiasMesViewModel>> listarPrestamosMesDias() async {
+  static Future<List<DashboardPrestamoDiasMesViewModel>>
+      listarPrestamosMesDias() async {
     final url =
         Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardPrestamoMes');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.map((json) => DashboardPrestamoDiasMesViewModel.fromJson(json)).toList();
+      return data
+          .map((json) => DashboardPrestamoDiasMesViewModel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }
@@ -259,6 +281,22 @@ class DashboardService {
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => DepartamentoViewModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al cargar los datos');
+    }
+  }
+
+  static Future<List<IncidenciasMensulaesProyectoViewmodel>>
+      proyectosTotalIncidenciasMes() async {
+    final url =
+        Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardIncidenciasPorMes');
+    final response = await http.get(url, headers: ApiService.getHttpHeaders());
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data
+          .map((json) => IncidenciasMensulaesProyectoViewmodel.fromJson(json))
+          .toList();
     } else {
       throw Exception('Error al cargar los datos');
     }

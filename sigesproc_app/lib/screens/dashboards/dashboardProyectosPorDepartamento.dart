@@ -10,143 +10,170 @@ class TopEstadosDashboard extends StatefulWidget {
 
 class _TopEstadosDashboardState extends State<TopEstadosDashboard> {
   late Future<List<DepartamentoViewModel>> _dashboardData;
+  TooltipBehavior _tooltipBehavior =
+      TooltipBehavior(enable: true); // Habilitar tooltip
 
   @override
   void initState() {
     super.initState();
-    // Llamada para obtener los datos
     _dashboardData = DashboardService.ProyectosPorDepartamento();
+  }
+
+  // Función para formatear los números
+  String formatNumber(int value) {
+    return value.toString();
+  }
+
+  // Función para calcular el porcentaje
+  String calculatePercentage(int value, int total) {
+    return ((value / total) * 100).toStringAsFixed(2) + "%";
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF171717),
-      child: FutureBuilder<List<DepartamentoViewModel>>(
-        future: _dashboardData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: CircularProgressIndicator(color: Color(0xFFFFE645)));
-          } else if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
-            return Center(
-                child: Text('Error al cargar los datos',
-                    style: TextStyle(color: Colors.white, fontSize: 10)));
-          } else if (snapshot.hasData) {
-            // Aquí ponemos el console.log (print en Dart)
-            snapshot.data!.forEach((item) {
-              print(
-                  'esta_Nombre: ${item.esta_Nombre}, esta_Codigo: ${item.esta_Nombre}, cantidad_Proyectos: ${item.cantidad_Proyectos}');
-            });
-
-            return _buildVerticalBarChart(snapshot.data!);
-          } else {
-            return Center(
-                child: Text('No hay datos disponibles',
-                    style: TextStyle(color: Colors.white, fontSize: 10)));
-          }
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          padding: EdgeInsets.all(8.0),
+          color: const Color(0xFF171717),
+          child: FutureBuilder<List<DepartamentoViewModel>>(
+            future: _dashboardData,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFFFE645),
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text('Error al cargar los datos',
+                      style: TextStyle(color: Colors.white)),
+                );
+              } else if (snapshot.hasData) {
+                return _buildVerticalBarChart(snapshot.data!, constraints);
+              } else {
+                return Center(
+                  child: Text('No hay datos disponibles',
+                      style: TextStyle(color: Colors.white)),
+                );
+              }
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildVerticalBarChart(List<DepartamentoViewModel> data) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Card(
-          color: const Color(0xFF171717),
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'Top Departamentos por Proyectos',
-                  style: TextStyle(
-                    color: const Color(0xFFFFF0C6),
-                    fontSize: 11, // Tamaño de la fuente del título
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4.0),
-                Container(
-                  height: 200, // Ajusta la altura del gráfico
-                  child: SfCartesianChart(
-                    primaryXAxis: CategoryAxis(
-                      labelStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize:
-                              8), // Tamaño de texto para nombres de estados
-                      title: AxisTitle(
-                        text: 'Estado',
-                        textStyle: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10), // Tamaño del título del eje X
-                      ),
-                    ),
-                    primaryYAxis: NumericAxis(
-                      labelStyle: const TextStyle(
-                          color: Colors.white,
-                          fontSize:
-                              8), // Tamaño de texto para los valores del eje Y
-                      title: AxisTitle(
-                        text: 'Cantidad de Proyectos',
-                        textStyle: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10), // Tamaño del título del eje Y
-                      ),
-                    ),
-                    series: <ChartSeries>[
-                      ColumnSeries<DepartamentoViewModel, String>(
-                        name: 'Cantidad de Proyectos',
-                        dataSource: data,
-                        xValueMapper: (DepartamentoViewModel item, _) =>
-                            item.esta_Nombre ??
-                            '', // Etiqueta con el nombre del estado
-                        yValueMapper: (DepartamentoViewModel item, _) =>
-                            item.cantidad_Proyectos ??
-                            0, // Valor de la cantidad de proyectos
-                        pointColorMapper: (DepartamentoViewModel item, _) {
-                          // Asignar colores diferentes a cada barra
-                          return _getBarColor(item);
-                        },
-                        dataLabelSettings: DataLabelSettings(
-                          isVisible: true,
-                          textStyle: const TextStyle(
-                              color: Colors.white,
-                              fontSize:
-                                  8), // Tamaño de las etiquetas en las barras
-                        ),
-                      ),
-                    ],
-                    legend: Legend(
-                      isVisible: false, // Ocultar la leyenda
-                    ),
-                  ),
-                ),
-              ],
+  Widget _buildVerticalBarChart(
+      List<DepartamentoViewModel> data, BoxConstraints constraints) {
+    int totalProyectos =
+        data.fold(0, (sum, item) => sum + (item.cantidad_Proyectos ?? 0));
+
+    return Column(
+      children: [
+        Container(
+          height: constraints.maxHeight * 0.70,
+          width: constraints.maxWidth * 0.95,
+          child: SfCartesianChart(
+            title: ChartTitle(
+              text: 'Cantidad de Proyectos por Departamento',
+              textStyle: TextStyle(
+                color: const Color(0xFFFFF0C6),
+                fontSize: 11,
+              ),
             ),
+            primaryXAxis: CategoryAxis(
+              labelStyle: TextStyle(color: Colors.white, fontSize: 8),
+              title: AxisTitle(
+                  text: 'Estado',
+                  textStyle: TextStyle(color: Colors.white, fontSize: 10)),
+            ),
+            primaryYAxis: NumericAxis(
+              title: AxisTitle(
+                  text: 'Cantidad de Proyectos',
+                  textStyle: TextStyle(color: Colors.white, fontSize: 8)),
+              labelStyle: TextStyle(color: Colors.white, fontSize: 8),
+              majorGridLines: MajorGridLines(
+                width: 1, // Asegura que las líneas de fondo sean visibles
+                color: Colors.grey
+                    .withOpacity(0.5), // Color y opacidad de las líneas
+              ),
+            ),
+            tooltipBehavior: _tooltipBehavior, // Tooltip para mostrar cantidad
+            series: <ChartSeries>[
+              ColumnSeries<DepartamentoViewModel, String>(
+                dataSource: data,
+                xValueMapper: (DepartamentoViewModel item, index) =>
+                    item.esta_Nombre ?? '',
+                yValueMapper: (DepartamentoViewModel item, index) =>
+                    item.cantidad_Proyectos ?? 0,
+                dataLabelSettings: DataLabelSettings(
+                  isVisible: true,
+                  textStyle: TextStyle(color: Colors.white, fontSize: 8),
+                  builder: (dynamic data, dynamic point, dynamic series,
+                      int pointIndex, int seriesIndex) {
+                    final DepartamentoViewModel item = data;
+                    return Text(
+                      '${calculatePercentage(item.cantidad_Proyectos ?? 0, totalProyectos)}',
+                      style: TextStyle(color: Colors.white, fontSize: 8),
+                    );
+                  },
+                ),
+                pointColorMapper: (DepartamentoViewModel item, index) {
+                  List<Color> barColors = [
+                    Colors.blue,
+                    Colors.green,
+                    Colors.red,
+                    Colors.purple,
+                    Colors.orange,
+                  ];
+                  return barColors[index % barColors.length];
+                },
+                enableTooltip: true,
+              ),
+            ],
           ),
         ),
-      ),
+        SizedBox(height: 5),
+        Wrap(
+          children: List<Widget>.generate(data.length, (int index) {
+            return Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.bar_chart,
+                    color: _getBarColor(index),
+                    size: 12,
+                  ),
+                  SizedBox(width: 2),
+                  Text(
+                    data[index].esta_Nombre ?? '',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        )
+      ],
     );
   }
 
   // Función para asignar diferentes colores a cada barra
-  Color _getBarColor(DepartamentoViewModel item) {
+  Color _getBarColor(int index) {
     List<Color> colors = [
-      Colors.purpleAccent,
-      Colors.blueAccent,
-      Colors.orangeAccent,
-      Colors.redAccent,
-      Colors.greenAccent,
+      Colors.blue.withOpacity(0.7),
+      Colors.green.withOpacity(0.7),
+      Colors.red.withOpacity(0.7),
+      Colors.purple.withOpacity(0.7),
+      Colors.orange.withOpacity(0.7),
     ];
-
-    // Asignar colores basados en el hash del nombre del estado
-    int index = item.esta_Nombre.hashCode % colors.length;
-    return colors[index];
+    return colors[index % colors.length];
   }
 }

@@ -10,12 +10,19 @@ class TopProjectsDashboard extends StatefulWidget {
 
 class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
   late Future<List<TopProyectosRelacionadosViewModel>> _dashboardData;
+  TooltipBehavior _tooltipBehavior =
+      TooltipBehavior(enable: true); // Habilitar tooltip
 
   @override
   void initState() {
     super.initState();
     // Fetch the dynamic data for the top 5 projects with the most fletes
     _dashboardData = DashboardService.listarProyectosRelacionados();
+  }
+
+  // Función para calcular el porcentaje
+  String calculatePercentage(int value, int total) {
+    return ((value / total) * 100).toStringAsFixed(2) + "%";
   }
 
   @override
@@ -34,16 +41,13 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
                 child: Text('Error al cargar los datos',
                     style: TextStyle(color: Colors.white, fontSize: 10)));
           } else if (snapshot.hasData) {
-            // Log the data in console
-            print('Data fetched: ${snapshot.data}');
+            // Calcular el total de fletes y asegurar que el valor sea entero
+            int totalFletes = snapshot.data!.fold(
+                0,
+                (int sum, item) =>
+                    sum + (item.totalFletesDestinoProyecto?.toInt() ?? 0));
 
-            // Log individual elements for better visibility
-            snapshot.data!.forEach((item) {
-              print(
-                  'Proyecto: ${item.proy_Nombre}, Fletes: ${item.totalFletesDestinoProyecto}');
-            });
-
-            return _buildPieChart(snapshot.data!);
+            return _buildPieChart(snapshot.data!, totalFletes);
           } else {
             return Center(
                 child: Text('No hay datos disponibles',
@@ -54,7 +58,8 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
     );
   }
 
-  Widget _buildPieChart(List<TopProyectosRelacionadosViewModel> data) {
+  Widget _buildPieChart(
+      List<TopProyectosRelacionadosViewModel> data, int totalFletes) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -83,36 +88,44 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
                       position: LegendPosition.bottom,
                       textStyle: TextStyle(color: Colors.white, fontSize: 8),
                     ),
+                    tooltipBehavior: _tooltipBehavior, // Activar tooltip
                     series: <CircularSeries>[
                       PieSeries<TopProyectosRelacionadosViewModel, String>(
                         dataSource: data,
-                        xValueMapper: (TopProyectosRelacionadosViewModel item, _) =>
-                            item.proy_Nombre ?? '',
-                        yValueMapper: (TopProyectosRelacionadosViewModel item, _) =>
-                            item.totalFletesDestinoProyecto ?? 0.0,
-                        dataLabelMapper: (TopProyectosRelacionadosViewModel item, _) =>
-                            '${item.proy_Nombre} (${item.totalFletesDestinoProyecto} fletes)',
+                        xValueMapper:
+                            (TopProyectosRelacionadosViewModel item, _) =>
+                                item.proy_Nombre ?? '',
+                        yValueMapper: (TopProyectosRelacionadosViewModel item,
+                                _) =>
+                            item.totalFletesDestinoProyecto?.toInt() ??
+                            0, // Convertir a int
+                        dataLabelMapper:
+                            (TopProyectosRelacionadosViewModel item, _) {
+                          final porcentaje = calculatePercentage(
+                              item.totalFletesDestinoProyecto?.toInt() ?? 0,
+                              totalFletes);
+                          return '${item.proy_Nombre} ($porcentaje)'; // Mostrar el porcentaje en el label
+                        },
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
                           textStyle:
                               TextStyle(color: Colors.white, fontSize: 8),
-                          labelPosition: ChartDataLabelPosition
-                              .outside, // Ensure labels are outside
+                          labelPosition: ChartDataLabelPosition.outside,
                         ),
-                        pointColorMapper: (TopProyectosRelacionadosViewModel item, _) {
+                        pointColorMapper:
+                            (TopProyectosRelacionadosViewModel item, _) {
                           List<Color> colors = [
-                            Colors.redAccent,
-                            Colors.greenAccent,
-                            Colors.blueAccent,
-                            Colors.orangeAccent,
-                            Colors.purpleAccent,
+                            Colors.blue,
+                            Colors.green,
+                            Colors.red,
+                            Colors.purple,
+                            Colors.orange,
                           ];
                           int index = item.proy_Nombre.hashCode % colors.length;
                           return colors[index];
                         },
-                        explode: true, // This enables the exploding effect
-                        explodeIndex:
-                            0, // You can choose which slice to explode or explode all
+                        explode: true,
+                        explodeIndex: 0,
                       ),
                     ],
                   ),

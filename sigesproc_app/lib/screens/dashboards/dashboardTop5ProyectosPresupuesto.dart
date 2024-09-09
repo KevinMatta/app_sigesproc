@@ -15,6 +15,8 @@ class _TopProjectsBudgetDashboardState
     extends State<TopProjectsBudgetDashboard> {
   late Future<List<DashboardProyectoViewModel>> _dashboardData;
   String _abreviaturaMoneda = "L"; // Valor predeterminado de moneda
+  TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true); // Tooltip
+  List<bool> _selectedBars = [true, true, true, true, true]; // Filtro de items
 
   @override
   void initState() {
@@ -25,14 +27,20 @@ class _TopProjectsBudgetDashboardState
   // Función asincrónica para cargar la abreviatura de moneda
   Future<void> _loadData() async {
     _dashboardData = DashboardService.listarTop5ProyectosMayorPresupuesto();
-    _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
-    setState(() {}); // Refresca el widget para reflejar la nueva abreviatura
+    _abreviaturaMoneda =
+        (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
+    setState(() {});
   }
 
   // Función para formatear los números con comas y punto decimal
   String formatNumber(double value) {
     final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US');
     return formatter.format(value);
+  }
+
+  // Función para calcular porcentaje
+  String calculatePercentage(double value, double total) {
+    return ((value / total) * 100).toStringAsFixed(2) + "%";
   }
 
   @override
@@ -61,7 +69,12 @@ class _TopProjectsBudgetDashboardState
     );
   }
 
-  Widget _buildComparisonBarChartContainer(List<DashboardProyectoViewModel> data) {
+  Widget _buildComparisonBarChartContainer(
+      List<DashboardProyectoViewModel> data) {
+    // Calcular el presupuesto total de todos los proyectos
+    double totalPresupuesto =
+        data.fold(0.0, (sum, item) => sum + (item.presupuestoTotal ?? 0.0));
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -83,8 +96,8 @@ class _TopProjectsBudgetDashboardState
                 ),
                 const SizedBox(height: 8.0), // Reduced spacing
                 Container(
-                  width: double.infinity, // Make sure it fills the width
-                  height: 200, // Adjusted height for the comparison chart
+                  width: double.infinity,
+                  height: 200, // Ajustar altura
                   child: SfCartesianChart(
                     primaryXAxis: CategoryAxis(
                       labelStyle: const TextStyle(
@@ -99,46 +112,128 @@ class _TopProjectsBudgetDashboardState
                       labelStyle: const TextStyle(
                           color: Colors.white, fontSize: 8), // Smaller text
                     ),
-                    legend: Legend(isVisible: true),
+                    tooltipBehavior: TooltipBehavior(
+                      enable: true,
+                      header: '', // Eliminar el encabezado del tooltip
+                      format:
+                          'point.x : point.y', // Formato para mostrar el tooltip
+                      builder: (dynamic data, dynamic point, dynamic series,
+                          int pointIndex, int seriesIndex) {
+                        final DashboardProyectoViewModel item = data;
+                        return Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            '$_abreviaturaMoneda ${formatNumber(item.presupuestoTotal ?? 0.0)}',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    // Habilitar tooltip
                     series: <ChartSeries>[
                       BarSeries<DashboardProyectoViewModel, String>(
-                        name: ' ',
+                        name: 'Presupuesto',
                         dataSource: data,
                         xValueMapper: (DashboardProyectoViewModel item, _) =>
                             item.proy_Nombre ?? '',
-                        yValueMapper: (DashboardProyectoViewModel item, _) =>
-                            item.presupuestoTotal ?? 0.0,
-                        pointColorMapper: (DashboardProyectoViewModel item, index) {
+                        yValueMapper: (DashboardProyectoViewModel item, index) {
+                          return _selectedBars[index]
+                              ? item.presupuestoTotal ?? 0.0
+                              : null;
+                        },
+                        pointColorMapper:
+                            (DashboardProyectoViewModel item, index) {
                           // Asignar diferentes colores a cada barra
                           List<Color> barColors = [
-                            Colors.blueAccent,
-                            Colors.redAccent,
-                            Colors.greenAccent,
-                            Colors.orangeAccent,
-                            Colors.purpleAccent
+                            Colors.blue,
+                            Colors.green,
+                            Colors.red,
+                            Colors.purple,
+                            Colors.orange,
                           ];
                           return barColors[index % barColors.length];
                         },
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
-                          textStyle: const TextStyle(
-                              color: Colors.white, fontSize: 8),
-                          // Muestra el valor con la abreviatura de moneda y formato adecuado
+                          textStyle:
+                              const TextStyle(color: Colors.white, fontSize: 8),
                           labelAlignment: ChartDataLabelAlignment.middle,
                         ),
                         dataLabelMapper: (DashboardProyectoViewModel item, _) {
-                          // Formatear y mostrar el presupuesto con la abreviatura de moneda
-                          return '$_abreviaturaMoneda ${formatNumber(item.presupuestoTotal ?? 0.0)}';
+                          // Mostrar el porcentaje sobre la barra
+                          final double presupuesto =
+                              item.presupuestoTotal ?? 0.0;
+                          return calculatePercentage(
+                              presupuesto, totalPresupuesto);
                         },
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 10), // Spacing for filtering options
+                _buildFilteringOptions(data), // Llamada al widget de filtrado
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  // Widget para mostrar las opciones de filtrado (aparecer/desaparecer barras)
+  Widget _buildFilteringOptions(List<DashboardProyectoViewModel> data) {
+    return Wrap(
+      children: List<Widget>.generate(data.length, (int index) {
+        return Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _selectedBars[index] = !_selectedBars[index];
+              });
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.bar_chart,
+                  color: _selectedBars[index]
+                      ? _getBarColor(index)
+                      : Colors.grey, // Color de la barra
+                  size: 12, // Tamaño reducido del ícono
+                ),
+                SizedBox(width: 2),
+                Text(
+                  data[index].proy_Nombre ?? '',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10, // Tamaño reducido del texto
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // Función para obtener el color de la barra según el índice
+  Color _getBarColor(int index) {
+    List<Color> barColors = [
+      Colors.blue,
+      Colors.green,
+      Colors.red,
+      Colors.purple,
+      Colors.orange,
+    ];
+    return barColors[index % barColors.length];
   }
 }

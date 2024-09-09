@@ -5,25 +5,35 @@ import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
 
 class DashboardVentasPorAgente extends StatefulWidget {
   @override
-  _DashboardVentasPorAgenteState createState() => _DashboardVentasPorAgenteState();
+  _DashboardVentasPorAgenteState createState() =>
+      _DashboardVentasPorAgenteState();
 }
 
 class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
   late Future<List<VentasPorAgenteViewModel>> _dashboardData;
-  TooltipBehavior _tooltipBehavior = TooltipBehavior(enable: true); // Habilitar tooltip
-  List<bool> _selectedSections = [true, true, true, true, true]; // Control de las secciones activadas/desactivadas
+  TooltipBehavior _tooltipBehavior =
+      TooltipBehavior(enable: true); // Habilitar tooltip
+  List<bool> _selectedSections = [
+    true,
+    true,
+    true,
+    true,
+    true
+  ]; // Control de las secciones activadas/desactivadas
 
   @override
   void initState() {
     super.initState();
-    _dashboardData = DashboardService.listarVentasPorAgente(); // Llamada al servicio
+    _dashboardData =
+        DashboardService.listarVentasPorAgente(); // Llamada al servicio
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView( // Agregamos el scroll
+        return SingleChildScrollView(
+          // Agregamos el scroll
           child: Container(
             color: const Color(0xFF171717),
             padding: EdgeInsets.all(8.0),
@@ -63,43 +73,53 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
   Widget _buildPieChart(
       List<VentasPorAgenteViewModel> data, BoxConstraints constraints) {
     // Calcular el total de ventas
-    int totalVentas = data.fold(0, (sum, item) => sum + (item.cantidadVendida ?? 0));
+    int totalVentas =
+        data.fold(0, (sum, item) => sum + (item.cantidadVendida ?? 0));
 
     return Column(
       children: [
         Container(
-          height: constraints.maxHeight * 0.70, // Ajustamos el tamaño del gráfico
-          width: constraints.maxWidth * 0.95, // Usamos el mismo ancho que en el otro gráfico
+          height:
+              constraints.maxHeight * 0.70, // Ajustamos el tamaño del gráfico
+          width: constraints.maxWidth *
+              0.95, // Usamos el mismo ancho que en el otro gráfico
           child: SfCircularChart(
             title: ChartTitle(
               text: 'Ventas por Agente',
               textStyle: TextStyle(
-                  color: const Color(0xFFFFF0C6), fontSize: 14), // Reducir tamaño del título
+                  color: const Color(0xFFFFF0C6),
+                  fontSize: 14), // Reducir tamaño del título
             ),
-            tooltipBehavior: _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
+            tooltipBehavior:
+                _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
             series: <CircularSeries>[
               PieSeries<VentasPorAgenteViewModel, String>(
                 dataSource: data,
-                xValueMapper: (VentasPorAgenteViewModel item, index) => item.agen_NombreCompleto ?? '',
+                xValueMapper: (VentasPorAgenteViewModel item, index) =>
+                    item.agen_NombreCompleto ?? '',
                 yValueMapper: (VentasPorAgenteViewModel item, index) =>
-                    _selectedSections[index] ? item.cantidadVendida ?? 0 : 0, // Mostrar solo las secciones seleccionadas
+                    _selectedSections[index]
+                        ? item.cantidadVendida ?? 0
+                        : 0, // Mostrar solo las secciones seleccionadas
                 dataLabelMapper: (VentasPorAgenteViewModel item, _) {
-                  double percentage = ((item.cantidadVendida ?? 0) / totalVentas) * 100;
+                  double percentage =
+                      ((item.cantidadVendida ?? 0) / totalVentas) * 100;
                   return '${percentage.toStringAsFixed(2)}%'; // Mostrar porcentaje
                 },
                 dataLabelSettings: DataLabelSettings(
                   isVisible: true,
-                  labelPosition: ChartDataLabelPosition.outside, // Etiquetas afuera del gráfico
+                  labelPosition: ChartDataLabelPosition
+                      .outside, // Etiquetas afuera del gráfico
                   textStyle: TextStyle(
                       color: Colors.white, fontSize: 8), // Texto más pequeño
                 ),
                 pointColorMapper: (VentasPorAgenteViewModel item, index) {
                   List<Color> barColors = [
-                    Colors.blue.withOpacity(0.7),
-                    Colors.green.withOpacity(0.7),
-                    Colors.red.withOpacity(0.7),
-                    Colors.purple.withOpacity(0.7),
-                    Colors.orange.withOpacity(0.7),
+                    Colors.blue,
+                    Colors.green,
+                    Colors.red,
+                    Colors.purple,
+                    Colors.orange,
                   ];
                   return barColors[index % barColors.length];
                 },
@@ -128,7 +148,9 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                   children: [
                     Icon(
                       Icons.pie_chart, // Icono de gráfico de pastel
-                      color: _selectedSections[index] ? _getBarColor(index) : Colors.grey,
+                      color: _selectedSections[index]
+                          ? _getBarColor(index)
+                          : Colors.grey,
                       size: 14, // Tamaño más pequeño del ícono
                     ),
                     SizedBox(width: 4),
