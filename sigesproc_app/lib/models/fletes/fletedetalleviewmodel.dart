@@ -2,6 +2,7 @@ class FleteDetalleViewModel {
   int? codigo;
   int? fldeId;
   int? fldeCantidad;
+  int? inppId;
   int? cantidadRecibida;
   bool? fldeTipodeCarga;
   int? flenId;
@@ -12,7 +13,6 @@ class FleteDetalleViewModel {
   String? bodeDescripcion;
   int? bodeId;
   int? bopiStock;
-  int? inppId;
   String? provDescripcion;
   String? insuDescripcion;
   String? equsNombre;
@@ -33,6 +33,7 @@ class FleteDetalleViewModel {
     this.codigo,
     this.fldeId,
     this.fldeCantidad,
+    this.inppId,
     this.cantidadRecibida,
     this.fldeTipodeCarga,
     this.flenId,
@@ -43,7 +44,6 @@ class FleteDetalleViewModel {
     this.bodeDescripcion,
     this.bodeId,
     this.bopiStock,
-    this.inppId,
     this.provDescripcion,
     this.insuDescripcion,
     this.equsNombre,
@@ -66,6 +66,7 @@ class FleteDetalleViewModel {
       codigo: json['codigo'],
       fldeId: json['flde_Id'],
       fldeCantidad: json['flde_Cantidad'],
+      inppId: json['inpp_Id'],
       fldeTipodeCarga: json['flde_TipodeCarga'],
       flenId: json['flen_Id'],
       usuaCreacion: json['usua_Creacion'],
@@ -75,7 +76,6 @@ class FleteDetalleViewModel {
       bodeDescripcion: json['bode_Descripcion'],
       bodeId: json['bode_Id'],
       bopiStock: json['bopi_Stock'],
-      inppId: json['inpp_Id'],
       provDescripcion: json['prov_Descripcion'],
       insuDescripcion: json['insu_Descripcion'],
       equsNombre: json['equs_Nombre'],
@@ -106,6 +106,9 @@ class FleteDetalleViewModel {
     if (fldeCantidad != null) {
       data['flde_Cantidad'] = fldeCantidad;
     }
+    
+    data['inpp_Id'] = inppId;
+
     if (fldeTipodeCarga != null) {
       data['flde_TipodeCarga'] = fldeTipodeCarga;
     }

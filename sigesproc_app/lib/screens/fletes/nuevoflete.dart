@@ -1308,33 +1308,41 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       bool hayCantidadesInvalidas = false;
       bool hayCantidadesInvalidase = false;
 
-      // Filtrar insumos con cantidades inválidas o nulas
-      selectedInsumos.removeWhere((insumo) {
-        int? cantidad = int.tryParse(
-            quantityControllers[selectedInsumos.indexOf(insumo)].text);
-        if (cantidad == null || cantidad <= 0) {
+       for (int i = 0; i < selectedInsumos.length; i++) {
+        if (i >= quantityControllers.length) {
           print(
-              'Eliminando insumo ${insumo.insuDescripcion} con cantidad nula o inválida.');
-          return true; // Eliminar el insumo del arreglo
+              "Error: La lista de controladores es más corta que la lista de insumos");
+          break;
         }
-        return false;
-      });
 
-      // Verificar cantidades restantes en insumos
-      for (int i = 0; i < selectedInsumos.length; i++) {
         int? stock = selectedInsumos[i].bopiStock;
         int? cantidad = int.tryParse(quantityControllers[i].text);
 
-        if (cantidad! <= 0) {
+        if (cantidad == null || cantidad <= 0) {
+          setState(() {
+            _cargando = false;
+          });
           print(
-              'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+              'Cantidad inválida detectada para ${selectedInsumos[i].insuDescripcion}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Cantidad inválida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad')),
+          );
           quantityControllers[i].text = '1';
           selectedCantidades[i] = 1;
           hayCantidadesInvalidas = true;
-        } else if (cantidad == null) {
         } else if (cantidad > stock!) {
+          setState(() {
+            _cargando = false;
+          });
           print(
-              'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad');
+              'Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Cantidad excedida para insumo ${selectedInsumos[i].insuDescripcion}: $cantidad')),
+          );
           quantityControllers[i].text = stock.toString();
           selectedCantidades[i] = stock;
           hayCantidadesInvalidas = true;
@@ -1343,33 +1351,42 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         }
       }
 
-      // Filtrar equipos con cantidades inválidas o nulas
-      selectedEquipos.removeWhere((equipo) {
-        int? cantidad = int.tryParse(
-            equipoQuantityControllers[selectedEquipos.indexOf(equipo)].text);
-        if (cantidad == null || cantidad <= 0) {
-          print(
-              'Eliminando equipo ${equipo.equsNombre} con cantidad nula o inválida.');
-          return true; // Eliminar el equipo del arreglo
-        }
-        return false;
-      });
-
-      // Verificar cantidades restantes en equipos
+// Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
+        if (i >= equipoQuantityControllers.length) {
+          print(
+              "Error: La lista de controladores de equipos es más corta que la lista de equipos");
+          break;
+        }
+
         int? stocke = selectedEquipos[i].bopiStock;
         int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
 
-        if (cantidade! <= 0) {
+        if (cantidade == null || cantidade <= 0) {
+          setState(() {
+            _cargando = false;
+          });
           print(
-              'Cantidad inválida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
+              'Cantidad inválida detectada para equipo ${selectedEquipos[i].equsNombre}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Cantidad inválida para equipo ${selectedEquipos[i].equsNombre}: $cantidade')),
+          );
           equipoQuantityControllers[i].text = '1';
           selectedCantidadesequipos[i] = 1;
           hayCantidadesInvalidase = true;
-        } else if (cantidade == null) {
         } else if (cantidade > stocke!) {
+          setState(() {
+            _cargando = false;
+          });
           print(
-              'Cantidad excedida para equipo ${selectedEquipos[i].equsNombre}: $cantidade');
+              'Cantidad excedida detectada para equipo ${selectedEquipos[i].equsNombre}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Cantidad excedida para equipo ${selectedEquipos[i].equsNombre}: $cantidade')),
+          );
           equipoQuantityControllers[i].text = stocke.toString();
           selectedCantidadesequipos[i] = stocke;
           hayCantidadesInvalidase = true;
@@ -1378,30 +1395,14 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         }
       }
 
-      if (hayCantidadesInvalidas) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Cantidades ajustadas de Insumos. Por favor, revise las cantidades.')),
-        );
-        _cargando = false;
+      // Si hay cantidades inválidas, detener la ejecución
+      if (hayCantidadesInvalidas || hayCantidadesInvalidase) {
         return;
       }
 
-      if (hayCantidadesInvalidase) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Cantidades ajustadas de Equipos. Por favor, revise las cantidades.')),
-        );
-        _cargando = false;
-        return;
-      }
-
-      // Cambiar la condición para verificar si ambos están vacíos
+      // Verificar que al menos un insumo o equipo esté seleccionado
       if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
-        print('insumos vacio $selectedInsumos');
-        print('equipos vacio $selectedEquipos');
+        print('Error: No se seleccionó ningún insumo o equipo.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(

@@ -209,17 +209,20 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title:
-              Text('Eliminar propiedad', style: TextStyle(color: Colors.white)),
+          title: Text(
+            'Confirmación',
+            style: TextStyle(
+              color: Color(0xFFFFF0C6),
+              fontSize: 20,
+            ),
+          ),
           content: Text(
-            '¿Está seguro de querer eliminar la propiedad ${procesoventa.descripcion} del estado en venta?',
+            '¿Está seguro de que quieres eliminar la propiedad ${procesoventa.descripcion} del estado en venta?',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: Color(0xFF171717),
           actions: [
-            TextButton(
-              child:
-                  Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            ElevatedButton(
               onPressed: () async {
                 try {
                   await ProcesoVentaService.Eliminar(procesoventa.btrpId);
@@ -241,13 +244,30 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                   );
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: Text('Eliminar', style: TextStyle(color: Colors.black)),
             ),
-            TextButton(
-              child:
-                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child:
+                  Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
             ),
           ],
         );
@@ -802,7 +822,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                     SizedBox(height: 15.0),
                   ],
                 ),
-              ) :  PreferredSize(
+              )
+            : PreferredSize(
                 preferredSize: Size.fromHeight(40.0),
                 child: Column(
                   children: [
@@ -928,7 +949,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       color: Color(0xFFFFF0C6),
                       size: 20,
                     ),
-                    SizedBox(width: 4), 
+                    SizedBox(width: 4),
                     Text(
                       'Ver todas las ubicaciones',
                       style: TextStyle(

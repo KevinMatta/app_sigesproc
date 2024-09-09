@@ -89,6 +89,6 @@ class EquipoPorProveedorViewModel {
 
   @override
   String toString() {
-    return 'equipoporprov(id: $eqppId, equs $equsId, usuacrea $usuaCreacion, nombre: $equsNombre, desc: $equsDescripcion, bodeid: $bodeId, equsdescripcion $equsDescripcion, bodedes: $bodeDescripcion, fechachreacion $equsFechaCreacion';
+    return 'equipoporprov(eqppId: $eqppId, equsId $equsId, usuacrea $usuaCreacion, nombre: $equsNombre, desc: $equsDescripcion, bodeid: $bodeId, equsdescripcion $equsDescripcion, bodedes: $bodeDescripcion, fechachreacion $equsFechaCreacion';
   }
 }
