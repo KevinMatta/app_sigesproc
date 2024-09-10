@@ -28,6 +28,9 @@ class _CotizacionState extends State<Cotizacion> {
   Future<List<ArticuloViewModel>>? _articulosFuture;
   TextEditingController _searchController = TextEditingController();
   List<CotizacionViewModel> _cotizacionesFiltrados = [];
+  List<ArticuloViewModel> _articulosFiltrados = [];
+  List<CotizacionViewModel> _allCotizaciones = [];
+  List<ArticuloViewModel> _allArticulos = [];
   bool _mostrarArticulos = false;
   int? _selectedCotiId;
   int _currentPage = 0;
@@ -40,15 +43,38 @@ class _CotizacionState extends State<Cotizacion> {
   void initState() {
     super.initState();
     _loadUserId();
-
     _loadUserProfileData();
+
+    // Cargar las cotizaciones
     _cotizacionesFuture = CotizacionService.listarCotizaciones();
     _cotizacionesFuture!.then((cotizaciones) {
       setState(() {
+        _allCotizaciones = cotizaciones;
         _cotizacionesFiltrados = cotizaciones;
       });
     });
-    _searchController.addListener(_filterCotizaciones);
+
+    // Agregar el listener para el campo de búsqueda
+    _searchController.addListener(() {
+      if (_mostrarArticulos) {
+        _filterArticulos();
+      } else {
+        _filterCotizaciones();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(() {
+      if (_mostrarArticulos) {
+        _filterArticulos();
+      } else {
+        _filterCotizaciones();
+      }
+    });
+    _searchController.dispose();
+    super.dispose();
   }
 
   String formatNumber(double value) {
@@ -115,17 +141,11 @@ class _CotizacionState extends State<Cotizacion> {
     }
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   void _filterCotizaciones() {
     final query = _searchController.text.toLowerCase();
     setState(() {
       // Filtrar las cotizaciones
-      _cotizacionesFiltrados = _cotizacionesFiltrados.where((cotizacion) {
+      _cotizacionesFiltrados = _allCotizaciones.where((cotizacion) {
         final salida = cotizacion.provDescripcion?.toLowerCase() ?? '';
         return salida.contains(query);
       }).toList();
@@ -141,6 +161,15 @@ class _CotizacionState extends State<Cotizacion> {
       if (_currentPage >= maxPages) {
         _currentPage = maxPages > 0 ? maxPages - 1 : 0;
       }
+    });
+  }
+
+  void _filterArticulos() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _articulosFiltrados = _allArticulos.where((articulo) {
+        return articulo.articulo.toLowerCase().contains(query);
+      }).toList();
     });
   }
 
@@ -172,6 +201,16 @@ class _CotizacionState extends State<Cotizacion> {
       _selectedCotiId = cotiId;
       print('cotiid: $cotiId');
       _articulosFuture = ArticuloService.ListarArticulosPorCotizacion(cotiId);
+
+      // Cuando cargues los artículos, también inicializa las listas
+      _articulosFuture!.then((articulos) {
+        setState(() {
+          _allArticulos =
+              articulos; // Inicializa _allArticulos con todos los artículos
+          _articulosFiltrados =
+              articulos; // Inicializa _articulosFiltrados con todos los artículos
+        });
+      });
     });
   }
 
@@ -303,6 +342,8 @@ class _CotizacionState extends State<Cotizacion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(
@@ -518,17 +559,25 @@ class _CotizacionState extends State<Cotizacion> {
                             ),
                           );
                         } else {
+                          // Si no hay texto en el buscador, muestra todos los artículos, si hay texto muestra los filtrados
+                          final List<ArticuloViewModel> listaArticulosFiltrada =
+                              _searchController.text.isEmpty
+                                  ? _allArticulos
+                                  : _articulosFiltrados;
+
                           return ListView.builder(
                             padding: EdgeInsets.only(bottom: 80.0),
-                            itemCount: snapshot.data!.length,
+                            itemCount: listaArticulosFiltrada.length,
                             itemBuilder: (context, index) {
-                              return ArticuloRegistro(snapshot.data![index]);
+                              return ArticuloRegistro(
+                                  listaArticulosFiltrada[index]);
                             },
                           );
                         }
                       },
                     )
-                  : FutureBuilder<List<CotizacionViewModel>>(
+                  : // Aquí va la lógica original de las cotizaciones
+                  FutureBuilder<List<CotizacionViewModel>>(
                       future: _cotizacionesFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -663,42 +712,6 @@ class _CotizacionState extends State<Cotizacion> {
                       },
                     ),
             ),
-            // Visibility(
-            //   visible: _mostrarArticulos,
-            //   child: Container(
-            //     color: Colors.black,
-            //     padding: const EdgeInsets.all(10.0),
-            //     child: Row(
-            //       children: [
-            //         Spacer(),
-            //         ElevatedButton(
-            //           style: ElevatedButton.styleFrom(
-            //             backgroundColor: Color(0xFF171717),
-            //             padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-            //             shape: RoundedRectangleBorder(
-            //               borderRadius: BorderRadius.circular(12),
-            //             ),
-            //           ),
-            //           onPressed: () {
-            //             setState(() {
-            //               _selectedCotiId = null;
-            //               _reiniciarCotizacionesFiltros();
-            //               _mostrarArticulos = false;
-            //             });
-            //           },
-            //           child: Text(
-            //             'Regresar',
-            //             style: TextStyle(
-            //               color: Colors.white,
-            //               fontSize: 15,
-            //               decoration: TextDecoration.underline,
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
