@@ -995,7 +995,8 @@ class _FleteState extends State<Flete> {
         ),
         bottom: _viendoVerificacion
             ? PreferredSize(
-                preferredSize: Size.fromHeight(70.0),
+                preferredSize:
+                    _isLoading ? Size.fromHeight(40.0) : Size.fromHeight(70.0),
                 child: Column(
                   children: [
                     Text(
