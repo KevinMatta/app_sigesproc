@@ -59,46 +59,45 @@ class _DetalleFleteState extends State<DetalleFlete> {
   int _selectedIndex = 2;
 
   @override
-void initState() {
-  super.initState();
-  _loadUserId();
-  _loadUserProfileData();
-  _loadEmplId();
+  void initState() {
+    super.initState();
+    _loadUserId();
+    _loadUserProfileData();
+    _loadEmplId();
 
-  // Conectar todos los usuarios al servicio SignalR para recibir la ubicación
-  _fleteHubService.startConnection().then((_) {
-    _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
-      setState(() {
-        LatLng nuevaUbicacion = LatLng(lat, lng);
+    // Conectar todos los usuarios al servicio SignalR para recibir la ubicación
+    _fleteHubService.startConnection().then((_) {
+      _fleteHubService.onReceiveUbicacion((emplId, lat, lng) {
+        setState(() {
+          LatLng nuevaUbicacion = LatLng(lat, lng);
 
-        // Todos los usuarios deben ver la actualización en tiempo real, excepto el propio fletero
-        if (emplId != this.emplId) {
-          if (ubicacionactual != null) {
-            _actualizarPolyline(
-              ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+          // Todos los usuarios deben ver la actualización en tiempo real, excepto el propio fletero
+          if (emplId != this.emplId) {
+            if (ubicacionactual != null) {
+              _actualizarPolyline(
+                  ubicacionactual!, nuevaUbicacion, Colors.red, 'realPolyline');
+            }
+
+            // Actualizar la ubicación del fletero en tiempo real
+            ubicacionactual = nuevaUbicacion;
           }
-
-          // Actualizar la ubicación del fletero en tiempo real
-          ubicacionactual = nuevaUbicacion;
-        }
+        });
       });
     });
-  });
 
-  // Cargar detalles del flete
-  _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
-  _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
-  _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
-  _destinoFuture = _fetchDestino(widget.flenId);
+    // Cargar detalles del flete
+    _fleteFuture = FleteEncabezadoService.obtenerFleteDetalle(widget.flenId);
+    _detallesFuture = FleteDetalleService.listarDetallesdeFlete(widget.flenId);
+    _bodegaOrigenFuture = _fetchBodegaOrigen(widget.flenId);
+    _destinoFuture = _fetchDestino(widget.flenId);
 
-  // Preparar el mapa y el ícono del carrito
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    carritoIcono = await createBitmapDescriptorFromIcon(
-      Icons.directions_car, Colors.red, 80);
-    await iniciarMapa();
-  });
-}
-
+    // Preparar el mapa y el ícono del carrito
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      carritoIcono = await createBitmapDescriptorFromIcon(
+          Icons.directions_car, Colors.red, 80);
+      await iniciarMapa();
+    });
+  }
 
   @override
   void dispose() {
@@ -266,28 +265,37 @@ void initState() {
       // Si es el fletero, inicia el rastreo en tiempo real
       if (esFletero && flete.flenEstado == false) {
         print('Obteniendo la ubicación actual para el fletero...');
-        bool ubicacionObtenida = await ubicacionActualizada();
-        if (!ubicacionObtenida) {
-          print("No se pudo obtener la ubicación actual.");
-          setState(() {
-            estaCargando = false;
-          });
-          return;
-        }
 
-        print("Ubicación obtenida: $ubicacionactual");
-
-        // Guardar la ubicación inicial si es necesario
+        // Guardar la ubicación inicial por flete
         final pref = await SharedPreferences.getInstance();
-        final latitudInicial = pref.getDouble('latitudInicial');
-        final longitudInicial = pref.getDouble('longitudInicial');
+        final latitudInicial = pref.getDouble('latitudInicial_${flete.flenId}');
+        final longitudInicial =
+            pref.getDouble('longitudInicial_${flete.flenId}');
 
         if (latitudInicial != null && longitudInicial != null) {
+          // Si ya existe una ubicación inicial guardada para este flete, la usamos
           ubicacionInicial = LatLng(latitudInicial, longitudInicial);
+          print(
+              'Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
         } else {
+          // Si no hay una ubicación inicial, obtenemos la ubicación actual
+          bool ubicacionObtenida = await ubicacionActualizada();
+          if (!ubicacionObtenida) {
+            print("No se pudo obtener la ubicación actual.");
+            setState(() {
+              estaCargando = false;
+            });
+            return;
+          }
           ubicacionInicial = ubicacionactual;
-          await pref.setDouble('latitudInicial', ubicacionInicial!.latitude);
-          await pref.setDouble('longitudInicial', ubicacionInicial!.longitude);
+
+          // Guardar la nueva ubicación inicial para este flete
+          await pref.setDouble(
+              'latitudInicial_${flete.flenId}', ubicacionInicial!.latitude);
+          await pref.setDouble(
+              'longitudInicial_${flete.flenId}', ubicacionInicial!.longitude);
+          print(
+              'Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
         }
 
         // Actualizar la ubicación en tiempo real
@@ -359,41 +367,41 @@ void initState() {
   }
 
   Future<void> _actualizarPolyline(
-    LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
-  final polylineId = PolylineId(id);
+      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
+    final polylineId = PolylineId(id);
 
-  // Obtener la polyline existente o crear una nueva si no existe
-  Polyline polylineExistente = polylines[polylineId] ?? Polyline(
-    polylineId: polylineId,
-    color: color,
-    points: [inicio],  // Inicializar con el punto inicial si no existe
-    width: 5,
-  );
+    // Obtener la polyline existente o crear una nueva si no existe
+    Polyline polylineExistente = polylines[polylineId] ??
+        Polyline(
+          polylineId: polylineId,
+          color: color,
+          points: [inicio], // Inicializar con el punto inicial si no existe
+          width: 5,
+        );
 
-  // Añadir el nuevo punto a la polyline existente
-  List<LatLng> puntosActualizados = List.from(polylineExistente.points)
-    ..add(nuevaUbicacion);
+    // Añadir el nuevo punto a la polyline existente
+    List<LatLng> puntosActualizados = List.from(polylineExistente.points)
+      ..add(nuevaUbicacion);
 
-  // Crear una nueva polyline con los puntos actualizados
-  Polyline polylineActualizada = polylineExistente.copyWith(
-    pointsParam: puntosActualizados,  // Actualizamos solo los puntos
-  );
+    // Crear una nueva polyline con los puntos actualizados
+    Polyline polylineActualizada = polylineExistente.copyWith(
+      pointsParam: puntosActualizados, // Actualizamos solo los puntos
+    );
 
-  // Actualizar el estado con la nueva polyline
-  setState(() {
-    polylines[polylineId] = polylineActualizada;
-  });
+    // Actualizar el estado con la nueva polyline
+    setState(() {
+      polylines[polylineId] = polylineActualizada;
+    });
 
-  // Convertir las coordenadas a dos listas de latitudes y longitudes
-  List<double> latitudes =
-      puntosActualizados.map((point) => point.latitude).toList();
-  List<double> longitudes =
-      puntosActualizados.map((point) => point.longitude).toList();
+    // Convertir las coordenadas a dos listas de latitudes y longitudes
+    List<double> latitudes =
+        puntosActualizados.map((point) => point.latitude).toList();
+    List<double> longitudes =
+        puntosActualizados.map((point) => point.longitude).toList();
 
-  // Enviar las listas de coordenadas al servidor para su almacenamiento
-  await _fleteHubService.actualizarPolyline(emplId!, latitudes, longitudes);
-}
-
+    // Enviar las listas de coordenadas al servidor para su almacenamiento
+    await _fleteHubService.actualizarPolyline(emplId!, latitudes, longitudes);
+  }
 
   Future<LatLng?> _obtenerOrigen() async {
     final origenData = await _bodegaOrigenFuture;

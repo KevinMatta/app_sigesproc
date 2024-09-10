@@ -376,7 +376,7 @@ class _EditarFleteState extends State<EditarFlete>
 
         if (flete.boasId != null) {
           if (esProyectosalida) {
-            print('Cargando insumos para la bodega de salida');
+            print('Cargando insumos para el proyecto de salida');
 
             // Cargar la lista de insumos disponibles en la bodega
             List<InsumoPorProveedorViewModel> insumosList =
@@ -405,11 +405,10 @@ class _EditarFleteState extends State<EditarFlete>
                 var insumo = insumosList.firstWhere(
                     (insumo) => insumo.inppId == detalle.inppId,
                     orElse: () => InsumoPorProveedorViewModel());
-
-                print('que prueba c $insumo');
-
                 if (insumo != null) {
                   selectedInsumos.add(insumo);
+                  print('INSUMOS CARGA $insumo');
+                  print('DETALLES CARGA $detalle');
                   selectedCantidades.add(detalle.fldeCantidad!);
                   quantityControllers.add(TextEditingController(
                       text: detalle.fldeCantidad.toString()));
@@ -437,7 +436,6 @@ class _EditarFleteState extends State<EditarFlete>
                     .listarEquiposdeSeguridadPorActividadEtapa(flete.boasId!);
             print('Equipos cargados: $equiposList');
 
-            // Filtrar los detalles solo para equipos
             List<FleteDetalleViewModel> detallesEquiposCargados =
                 detallesCargados
                     .where((detalle) => detalle.fldeTipodeCarga == false)
@@ -1512,7 +1510,7 @@ class _EditarFleteState extends State<EditarFlete>
                 child: Column(
                   children: [
                     Text(
-                      'Nuevo Flete',
+                      'Editar Flete',
                       style: TextStyle(
                         color: Color(0xFFFFF0C6),
                         fontSize: 18,
@@ -1696,6 +1694,9 @@ class _EditarFleteState extends State<EditarFlete>
         int? cantidad = int.tryParse(quantityControllers[i].text);
 
         if (cantidad == null || cantidad <= 0) {
+          setState(() {
+            _isLoading = false;
+          });
           print(
               'Cantidad inválida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1707,7 +1708,9 @@ class _EditarFleteState extends State<EditarFlete>
           selectedCantidades[i] = 1;
           hayCantidadesInvalidas = true;
         } else if (cantidad > stock!) {
-          _isLoading = false;
+          setState(() {
+            _isLoading = false;
+          });
           print(
               'Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1735,6 +1738,9 @@ class _EditarFleteState extends State<EditarFlete>
         int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
 
         if (cantidade == null || cantidade <= 0) {
+          setState(() {
+            _isLoading = false;
+          });
           print(
               'Cantidad inválida detectada para equipo ${selectedEquipos[i].equsNombre}');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1746,6 +1752,9 @@ class _EditarFleteState extends State<EditarFlete>
           selectedCantidadesequipos[i] = 1;
           hayCantidadesInvalidase = true;
         } else if (cantidade > stocke!) {
+          setState(() {
+            _isLoading = false;
+          });
           print(
               'Cantidad excedida detectada para equipo ${selectedEquipos[i].equsNombre}');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -2144,39 +2153,15 @@ class _EditarFleteState extends State<EditarFlete>
           Padding(
             padding: const EdgeInsets.only(
                 bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
-            child: SpeedDial(
-              icon: Icons.arrow_downward, // Icono inicial
-              activeIcon: Icons.close, // Icono cuando se despliega
-              backgroundColor: Color(0xFF171717), // Color de fondo
+            child: FloatingActionButton(
+              onPressed: _validarCamposYMostrarInsumos,
+              backgroundColor:
+                  Color(0xFF171717), // Color de fondo similar al SpeedDial
               foregroundColor: Color(0xFFFFF0C6), // Color del icono
-              buttonSize: Size(56.0, 56.0), // Tamaño del botón principal
-              shape: CircleBorder(),
-              childrenButtonSize: Size(56.0, 56.0),
-              spaceBetweenChildren:
-                  10.0, // Espacio entre los botones secundarios
-              overlayColor: Colors.transparent,
-              children: [
-                SpeedDialChild(
-                  child: Icon(Icons.arrow_back),
-                  backgroundColor: Color(0xFFFFF0C6),
-                  foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(),
-                  labelBackgroundColor: Color(0xFFFFF0C6),
-                  labelStyle: TextStyle(color: Color(0xFF171717)),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                SpeedDialChild(
-                  child: Icon(Icons.add),
-                  backgroundColor: Color(0xFFFFF0C6),
-                  foregroundColor: Color(0xFF171717),
-                  shape: CircleBorder(),
-                  labelBackgroundColor: Color(0xFF171717),
-                  labelStyle: TextStyle(color: Colors.white),
-                  onTap: _validarCamposYMostrarInsumos,
-                ),
-              ],
+              child:
+                  Icon(Icons.add, color: Color(0xFFFFF0C6)), // Color del ícono
+              shape: CircleBorder(), // Mantener la forma circular
+              elevation: 2.0, // Ajusta la elevación si es necesario
             ),
           ),
         ],

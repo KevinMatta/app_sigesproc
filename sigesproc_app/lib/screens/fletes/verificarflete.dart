@@ -67,6 +67,7 @@ class _VerificarFleteState extends State<VerificarFlete>
   String _descripcionErrorMessage = '';
   bool _fechaHoraIncidenciaError = false;
   String _fechaHoraIncidenciaErrorMessage = '';
+  bool guardarya = false;
 
   bool _mostrarFormularioIncidencia = false;
   Map<int, int> _cantidadesRecibidasTemp = {};
@@ -571,7 +572,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       icon: Icon(Icons.upload_file,
           color: Colors.black), // Icono de subir archivo
       label: Text(
-        comprobante == null ? 'Subir Imagen' : 'Cambiar Imagen',
+        comprobante == null ? 'Subir Comprobante' : 'Cambiar Comprobante',
         style: TextStyle(color: Colors.black),
       ),
     );
@@ -650,7 +651,21 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ),
               ),
               style: TextStyle(color: Colors.white),
+              onChanged: (value) {
+                // Validar que solo contenga letras y espacios
+                setState(() {
+                  if (RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+                    _descripcionError = false;
+                    _descripcionErrorMessage = '';
+                  } else {
+                    _descripcionError = true;
+                    _descripcionErrorMessage =
+                        'Solo se permiten letras en la descripción.';
+                  }
+                });
+              },
             ),
+
             SizedBox(height: 10), // Para espaciar solo si es necesario
             TextField(
               controller: _fechaHoraIncidenciaController,
@@ -689,11 +704,8 @@ class _VerificarFleteState extends State<VerificarFlete>
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
+                    guardarya = true;
                     await _guardarFleteEIncidencia();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Flete()),
-                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFFF0C6),
@@ -1506,13 +1518,19 @@ class _VerificarFleteState extends State<VerificarFlete>
     // Guardar la incidencia
     await _guardarIncidencia();
 
-    // Limpiar el formulario de incidencia y recargar la lista
-    _descripcionIncidenciaController.clear();
-    _fechaHoraIncidenciaController.clear();
-    setState(() {
-      _mostrarFormularioIncidencia =
-          true; // Mantener visible el formulario de incidencia
-    });
+    if (!guardarya) {
+      _descripcionIncidenciaController.clear();
+      _fechaHoraIncidenciaController.clear();
+      setState(() {
+        _mostrarFormularioIncidencia =
+            true; // Mantener visible el formulario de incidencia
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Flete()),
+      );
+    }
   }
 
 // Método para guardar el flete completo cuando todo ha sido verificado
@@ -1602,11 +1620,12 @@ class _VerificarFleteState extends State<VerificarFlete>
     );
 
     try {
-      print("Guardando la incidencia");
       await FleteControlCalidadService.insertarIncidencia(incidencia);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Insertado con Éxito.')),
-      );
+      if (guardarya) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Insertado con Éxito.')),
+        );
+      }
     } catch (e) {
       print('Error al guardar la incidencia: $e');
       ScaffoldMessenger.of(context).showSnackBar(

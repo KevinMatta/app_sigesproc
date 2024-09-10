@@ -257,8 +257,10 @@ class _VentaState extends State<Venta> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
+ 
+       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(
           children: [
@@ -1502,7 +1504,7 @@ class _VentaState extends State<Venta> {
 
     // Validaciones de campos
     final dniValid =
-        dniController.text.isNotEmpty && dniController.text.length >= 8;
+        dniController.text.isNotEmpty && dniController.text.length < 14;
     final nombreValid = nombreclientecontroller.text.isNotEmpty &&
         RegExp(r'^[a-zA-Z\s]+$').hasMatch(nombreclientecontroller.text);
     final apellidoValid = apellidoController.text.isNotEmpty &&
