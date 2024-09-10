@@ -508,6 +508,8 @@ class _EditarFleteState extends State<EditarFlete>
 
                 if (insumo != null) {
                   selectedInsumos.add(insumo);
+                  print('INSUMOS CARGA $insumo');
+                  print('DETALLES CARGA $detalle');
                   selectedCantidades.add(detalle.fldeCantidad!);
                   quantityControllers.add(TextEditingController(
                       text: detalle.fldeCantidad.toString()));
@@ -1457,7 +1459,8 @@ class _EditarFleteState extends State<EditarFlete>
         ),
         bottom: _showInsumos
             ? PreferredSize(
-                preferredSize: Size.fromHeight(100.0),
+                preferredSize:
+                    _isLoading ? Size.fromHeight(70.0) : Size.fromHeight(100.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1506,7 +1509,8 @@ class _EditarFleteState extends State<EditarFlete>
                 ),
               )
             : PreferredSize(
-                preferredSize: Size.fromHeight(70.0),
+                preferredSize:
+                    _isLoading ? Size.fromHeight(40.0) : Size.fromHeight(70.0),
                 child: Column(
                   children: [
                     Text(
@@ -1952,6 +1956,9 @@ class _EditarFleteState extends State<EditarFlete>
         int cantidad = isSelected
             ? selectedCantidades[selectedInsumos.indexOf(insumo)]
             : 0;
+        if (isSelected) {
+          stock = (stock ?? 0) + cantidad;
+        }
         bool cantidadExcedida = cantidad > (stock ?? 0);
 
         return ListTile(
@@ -1966,8 +1973,7 @@ class _EditarFleteState extends State<EditarFlete>
                   style: TextStyle(color: Colors.white70)),
               Text('Unidad: ${insumo.unmeNombre}',
                   style: TextStyle(color: Colors.white70)),
-              Text('Stock: ${insumo.bopiStock}',
-                  style: TextStyle(color: Colors.white70)),
+              Text('Stock: $stock', style: TextStyle(color: Colors.white70)),
               if (isSelected)
                 Row(
                   children: [
@@ -2051,6 +2057,9 @@ class _EditarFleteState extends State<EditarFlete>
         int cantidadE = isSelected
             ? selectedCantidadesequipos[selectedEquipos.indexOf(equipo)]
             : 0;
+        if (isSelected) {
+          stockE = (stockE ?? 0) + cantidadE;
+        }
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
 
         return ListTile(
@@ -2063,8 +2072,7 @@ class _EditarFleteState extends State<EditarFlete>
             children: [
               Text('Descripción: ${equipo.equsDescripcion ?? ''}',
                   style: TextStyle(color: Colors.white70)),
-              Text('Stock: ${equipo.bopiStock ?? 0}',
-                  style: TextStyle(color: Colors.white70)),
+              Text('Stock: $stockE', style: TextStyle(color: Colors.white70)),
               if (isSelected)
                 Row(
                   children: [

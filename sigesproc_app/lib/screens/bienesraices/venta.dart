@@ -15,6 +15,7 @@ import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
 import 'package:sigesproc_app/screens/acceso/perfil.dart';
 import 'package:sigesproc_app/screens/bienesraices/procesoventa.dart';
+import 'package:sigesproc_app/screens/menu.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
 import 'package:sigesproc_app/services/bienesraices/procesoventaservice.dart';
@@ -87,6 +88,7 @@ class _VentaState extends State<Venta> {
   bool _cargando = false;
   int _unreadCount = 0;
   int? userId;
+  int _selectedIndex = 4;
 
   final ThemeData darkTheme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.dark(
@@ -121,6 +123,12 @@ class _VentaState extends State<Venta> {
   void dispose() {
     keyboardSubscription.cancel();
     super.dispose();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   Future<void> _loadUserId() async {
@@ -259,8 +267,7 @@ class _VentaState extends State<Venta> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
- 
-       appBar: AppBar(
+      appBar: AppBar(
         backgroundColor: Colors.black,
         title: Row(
           children: [
@@ -422,6 +429,10 @@ class _VentaState extends State<Venta> {
             EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: _buildSaveCancelButtons(),
       ),
+      drawer: MenuLateral(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
+      ),
     );
   }
 
@@ -552,10 +563,21 @@ class _VentaState extends State<Venta> {
           ? TextInputType.number
           : (isEmail ? TextInputType.emailAddress : TextInputType.text),
       inputFormatters: isNumeric
-          ? [FilteringTextInputFormatter.digitsOnly]
+          ? [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(
+                  15), // Limitar longitud para números
+            ]
           : (isEmail
-              ? []
-              : [FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]+$'))]),
+              ? [
+                  LengthLimitingTextInputFormatter(
+                      70), // Limitar longitud para correo
+                ]
+              : [
+                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]+$')),
+                  LengthLimitingTextInputFormatter(
+                      50), // Limitar longitud para nombre y apellido
+                ]),
     );
   }
 
@@ -1248,7 +1270,9 @@ class _VentaState extends State<Venta> {
           : TextInputType.text,
       inputFormatters: isNumeric
           ? [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              // Limitar a 15 dígitos antes del punto decimal y 2 después
+              FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d{0,15}(\.\d{0,2})?$')),
             ]
           : null,
     );
@@ -1310,7 +1334,6 @@ class _VentaState extends State<Venta> {
               if (_cargando) return;
               // Activar el spinner al iniciar el guardado
               setState(() {
-                _mostrarErrores = true;
                 _cargando = true;
               });
               try {
@@ -1321,7 +1344,6 @@ class _VentaState extends State<Venta> {
 
                   if (_isClienteFormValid()) {
                     try {
-                      // Crear el modelo del cliente con los datos del formulario
                       final nuevoCliente = ClienteViewModel(
                         clieDNI: dniController.text,
                         clieNombre: nombreclientecontroller.text,
@@ -1440,9 +1462,7 @@ class _VentaState extends State<Venta> {
                   }
                 }
               } catch (e) {
-                // Manejar otros errores generales aquí
               } finally {
-                // Desactivar el spinner al finalizar
                 setState(() {
                   _cargando = false;
                 });
@@ -1496,25 +1516,34 @@ class _VentaState extends State<Venta> {
         telefonoController.text.isNotEmpty &&
         precioController.text.isNotEmpty &&
         fechaController.text.isNotEmpty &&
-        RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(precioController.text);
+        RegExp(r'^\d{1,15}(\.\d{1,2})?$').hasMatch(precioController.text);
   }
 
   bool _isClienteFormValid() {
     final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
 
     // Validaciones de campos
-    final dniValid =
-        dniController.text.isNotEmpty && dniController.text.length < 14;
+    final dniValid = dniController.text.isNotEmpty &&
+        dniController.text.length <= 15; // DNI máximo 15 caracteres
     final nombreValid = nombreclientecontroller.text.isNotEmpty &&
+        nombreclientecontroller.text.length <=
+            50 && // Nombre máximo 50 caracteres
         RegExp(r'^[a-zA-Z\s]+$').hasMatch(nombreclientecontroller.text);
     final apellidoValid = apellidoController.text.isNotEmpty &&
+        apellidoController.text.length <= 50 && // Apellido máximo 50 caracteres
         RegExp(r'^[a-zA-Z\s]+$').hasMatch(apellidoController.text);
-    final emailValid = emailRegExp.hasMatch(correoController.text);
+    final correoVacio = correoController.text.isEmpty;
+    final emailValid =
+        correoController.text.length <= 70 && // Correo máximo 70 caracteres
+            emailRegExp.hasMatch(correoController.text);
     final telefonoValid = telefonoclienteController.text.isNotEmpty &&
-        telefonoclienteController.text.length >= 8;
+        telefonoclienteController.text.length <=
+            15 && // Teléfono máximo 15 caracteres
+        RegExp(r'^\d+$').hasMatch(telefonoclienteController.text);
     final fechaNacimientoValid = fechaNacimientoController.text.isNotEmpty &&
         _esFechaValida(fechaNacimientoController.text);
-    final direccionValid = direccionController.text.isNotEmpty;
+    final direccionValid = direccionController.text.isNotEmpty &&
+        direccionController.text.length <= 90; // Dirección máxima 90 caracteres
     final ciudadValid = ciudadSeleccionada != null;
     final estadoCivilValid = estadoCivilSeleccionado != null;
 
@@ -1527,26 +1556,48 @@ class _VentaState extends State<Venta> {
         (cliente) => cliente.clieCorreoElectronico == correoController.text);
 
     setState(() {
-      if (dniDuplicado) {
+      // Validar si el campo DNI está vacío o duplicado
+      if (dniController.text.isEmpty) {
+        dniErrorMessage = 'El campo es requerido.';
         _mostrarErrores = true;
+      } else if (dniDuplicado) {
         dniController.clear(); // Limpiar el campo de texto si ya existe el DNI
         dniErrorMessage = 'Ya existe un cliente con esa identidad.';
+        _mostrarErrores = true;
+      } else if (dniController.text.length > 15) {
+        dniErrorMessage = 'El DNI no puede tener más de 15 caracteres.';
+        _mostrarErrores = true;
       } else {
-        dniErrorMessage = null; // No hay error, limpiar el mensaje de error
+        dniErrorMessage = null;
       }
 
-      if (correoDuplicado) {
+      // Validar si el campo correo está vacío, inválido o duplicado
+      if (correoVacio) {
+        correoErrorMessage = 'El campo es requerido.';
         _mostrarErrores = true;
+      } else if (!emailValid) {
+        correoErrorMessage = 'Ingrese un correo válido (máx. 70 caracteres).';
+        _mostrarErrores = true;
+      } else if (correoDuplicado) {
         correoController
             .clear(); // Limpiar el campo de texto si ya existe el correo
         correoErrorMessage = 'Ya existe un cliente con ese correo.';
+        _mostrarErrores = true;
       } else {
-        correoErrorMessage = null; // No hay error, limpiar el mensaje de error
+        correoErrorMessage = null;
       }
     });
 
-    // Si hay errores de duplicados, no permitimos avanzar
-    if (dniDuplicado || correoDuplicado) {
+    // Si hay errores de duplicados, campos vacíos o de longitud, no permitimos avanzar
+    if (dniDuplicado ||
+        correoDuplicado ||
+        correoVacio ||
+        !emailValid ||
+        !dniValid ||
+        !nombreValid ||
+        !apellidoValid ||
+        !telefonoValid ||
+        !direccionValid) {
       return false;
     }
 

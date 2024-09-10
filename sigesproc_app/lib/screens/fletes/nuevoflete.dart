@@ -1112,7 +1112,8 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         ),
         bottom: _mostrarInsumos
             ? PreferredSize(
-                preferredSize: Size.fromHeight(100.0),
+                preferredSize:
+                    _cargando ? Size.fromHeight(70.0) : Size.fromHeight(100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

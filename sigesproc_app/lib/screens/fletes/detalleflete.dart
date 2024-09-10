@@ -448,7 +448,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
           ],
         ),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(70.0),
+          preferredSize:
+                    estaCargando ? Size.fromHeight(40.0) : Size.fromHeight(70.0),
           child: Column(
             children: [
               Text(
