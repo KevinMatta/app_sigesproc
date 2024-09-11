@@ -1781,7 +1781,9 @@ class _EditarFleteState extends State<EditarFlete>
 
       // Verificar que al menos un insumo o equipo esté seleccionado
       if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
-        print('Error: No se seleccionó ningún insumo o equipo.');
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(

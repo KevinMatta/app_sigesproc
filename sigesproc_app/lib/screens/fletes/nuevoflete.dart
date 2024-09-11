@@ -1309,7 +1309,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       bool hayCantidadesInvalidas = false;
       bool hayCantidadesInvalidase = false;
 
-       for (int i = 0; i < selectedInsumos.length; i++) {
+      for (int i = 0; i < selectedInsumos.length; i++) {
         if (i >= quantityControllers.length) {
           print(
               "Error: La lista de controladores es más corta que la lista de insumos");
@@ -1403,7 +1403,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
       // Verificar que al menos un insumo o equipo esté seleccionado
       if (selectedInsumos.isEmpty && selectedEquipos.isEmpty) {
-        print('Error: No se seleccionó ningún insumo o equipo.');
+        setState(() {
+          _cargando = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(

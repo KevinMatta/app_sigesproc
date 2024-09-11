@@ -144,10 +144,11 @@ class _CotizacionState extends State<Cotizacion> {
   void _filterCotizaciones() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      // Filtrar las cotizaciones
       _cotizacionesFiltrados = _allCotizaciones.where((cotizacion) {
         final salida = cotizacion.provDescripcion?.toLowerCase() ?? '';
-        return salida.contains(query);
+        final codigo = cotizacion.codigo.toString(); // Convertir el código a cadena
+
+        return salida.contains(query) || codigo.contains(query);
       }).toList();
 
       // Calcular el número total de registros y páginas
@@ -168,7 +169,10 @@ class _CotizacionState extends State<Cotizacion> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _articulosFiltrados = _allArticulos.where((articulo) {
-        return articulo.articulo.toLowerCase().contains(query);
+        final articuloo = articulo.articulo.toLowerCase();
+        final codigo = articulo.codigo.toString();
+
+        return articuloo.contains(query) || codigo.contains(query);
       }).toList();
     });
   }
@@ -230,7 +234,7 @@ class _CotizacionState extends State<Cotizacion> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              (index + 1).toString(),
+              '${cotizacion.codigo}',
               style: TextStyle(color: Colors.white),
             ),
           ),

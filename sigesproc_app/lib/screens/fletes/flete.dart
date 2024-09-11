@@ -173,7 +173,8 @@ class _FleteState extends State<Flete> {
     setState(() {
       _filteredFletes = _allFletes.where((flete) {
         final salida = flete.salida?.toLowerCase() ?? '';
-        return salida.contains(query);
+        final codigo = flete.codigo?.toLowerCase() ?? '';
+        return salida.contains(query) || codigo.contains(query);
       }).toList();
 
       final totalRecords = _filteredFletes.length;
@@ -267,7 +268,7 @@ class _FleteState extends State<Flete> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              (index + 1).toString(),
+              '${flete.codigo}',
               style: TextStyle(color: Colors.white),
             ),
           ),

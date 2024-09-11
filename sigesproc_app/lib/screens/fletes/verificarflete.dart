@@ -331,7 +331,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       ),
       bottom: PreferredSize(
         preferredSize:
-                    _isLoading ? Size.fromHeight(40.0) : Size.fromHeight(70.0),
+            _isLoading ? Size.fromHeight(40.0) : Size.fromHeight(70.0),
         child: Column(
           children: [
             Text(
@@ -628,6 +628,11 @@ class _VerificarFleteState extends State<VerificarFlete>
             SizedBox(height: 20),
             TextField(
               controller: _descripcionIncidenciaController,
+              maxLength: 100, // Límite de 100 caracteres
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(
+                    r'[a-zA-Z0-9\s.,]')), // Solo letras, números, espacios y algunos caracteres especiales
+              ],
               decoration: InputDecoration(
                 labelText: 'Descripción de la Incidencia',
                 errorText: _descripcionError
@@ -650,21 +655,10 @@ class _VerificarFleteState extends State<VerificarFlete>
                   fontSize: 12,
                   height: 1.0, // Controla el espaciado entre líneas
                 ),
+                counterText:
+                    '', // Ocultar el contador de caracteres predeterminado
               ),
               style: TextStyle(color: Colors.white),
-              onChanged: (value) {
-                // Validar que solo contenga letras y espacios
-                setState(() {
-                  if (RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-                    _descripcionError = false;
-                    _descripcionErrorMessage = '';
-                  } else {
-                    _descripcionError = true;
-                    _descripcionErrorMessage =
-                        'Solo se permiten letras en la descripción.';
-                  }
-                });
-              },
             ),
 
             SizedBox(height: 10), // Para espaciar solo si es necesario
@@ -705,7 +699,10 @@ class _VerificarFleteState extends State<VerificarFlete>
               children: [
                 ElevatedButton.icon(
                   onPressed: () async {
-                    guardarya = true;
+                    setState(() {
+                      _isLoading = true;
+                      guardarya = true;
+                    });
                     await _guardarFleteEIncidencia();
                   },
                   style: ElevatedButton.styleFrom(
@@ -1334,6 +1331,12 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Future<void> _verificarFlete() async {
+    if (_fechaHoraController.text.isEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
     final pref = await SharedPreferences.getInstance();
     flete.usuaModificacion = int.tryParse(pref.getString('usuaId') ?? '3');
     flete.flenEstado = true;
@@ -1343,6 +1346,9 @@ class _VerificarFleteState extends State<VerificarFlete>
       bool hayErrores = false;
 
       if (comprobante == null) {
+        setState(() {
+          _isLoading = false;
+        });
         hayErrores = true;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('El comprobante es requerido.')),
@@ -1360,6 +1366,9 @@ class _VerificarFleteState extends State<VerificarFlete>
           item.fldeCantidad = cantidadIngresada;
 
           if (cantidadIngresada <= 0) {
+            setState(() {
+              _isLoading = false;
+            });
             hayErrores = true;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('La cantidad no puede ser vacía o cero.')),
@@ -1371,12 +1380,6 @@ class _VerificarFleteState extends State<VerificarFlete>
         }
       }
 
-      // Validar si falta la fecha de llegada o el comprobante
-      print('quuququ ${_fechaHoraController.text.isEmpty}');
-      if (_fechaHoraController.text.isEmpty) {
-        return;
-      }
-
       flete.flenFechaHoraLlegada =
           DateFormat('dd/MM/yyyy HH:mm').parse(_fechaHoraController.text);
 
@@ -1386,6 +1389,9 @@ class _VerificarFleteState extends State<VerificarFlete>
 
       // Si hay errores en las cantidades, no continuar
       if (hayErrores) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('No se puede guardar, revise las cantidades.')),
@@ -1411,6 +1417,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       }
 
       // Si hay insumos o equipos no recibidos, solo mostrar el formulario de incidencia
+
       setState(() {
         _isLoading = false;
         _mostrarFormularioIncidencia = true;
@@ -1443,6 +1450,77 @@ class _VerificarFleteState extends State<VerificarFlete>
     return hayNoVerificados;
   }
 
+  Future<bool> _guardarInsumosYEquiposNoRecibidos() async {
+    bool hayNoVerificados = false;
+
+    // Guardar insumos no recibidos
+    for (var item in insumosNoRecibidos) {
+      print("Insumo no recibido: ${item.fldeId}");
+
+      var detalleNuevo = _crearDetalleNoRecibido(item, false);
+
+      try {
+        final resp =
+            await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+        if (resp['success'] &&
+            resp['data'] != null &&
+            resp['data']['codeStatus'] != null) {
+          var detalleInsertado =
+              _crearDetalleInsertado(detalleNuevo, resp['data']['codeStatus']);
+          await FleteDetalleService.editarFleteDetalle(detalleInsertado);
+          hayNoVerificados = true;
+        } else {
+          throw Exception('Error al insertar detalle de insumo no recibido.');
+        }
+      } catch (e) {
+        print('Error al insertar insumo no recibido: $e');
+      }
+    }
+
+    // Guardar equipos no recibidos
+    for (var detalle in equiposNoRecibidos) {
+      print("Equipo no recibido: ${detalle.fldeId}");
+
+      var detalleNuevo = _crearDetalleNoRecibido(detalle, true);
+
+      try {
+        final resp =
+            await FleteDetalleService.insertarFleteDetalle2(detalleNuevo);
+        if (resp['success'] &&
+            resp['data'] != null &&
+            resp['data']['codeStatus'] != null) {
+          var detalleInsertado =
+              _crearDetalleInsertado(detalleNuevo, resp['data']['codeStatus']);
+          await FleteDetalleService.editarFleteDetalle(detalleInsertado);
+          hayNoVerificados = true;
+        } else {
+          throw Exception('Error al insertar detalle de equipo no recibido.');
+        }
+      } catch (e) {
+        print('Error al insertar equipo no recibido: $e');
+      }
+    }
+
+    return hayNoVerificados;
+  }
+
+// Método auxiliar para crear el detalle insertado con el ID retornado
+  FleteDetalleViewModel _crearDetalleInsertado(
+      FleteDetalleViewModel detalle, int codeStatus) {
+    return FleteDetalleViewModel(
+      fldeId: codeStatus,
+      fldeCantidad: detalle.fldeCantidad,
+      flenId: detalle.flenId,
+      inppId: detalle.inppId,
+      usuaCreacion: detalle.usuaCreacion,
+      fldeFechaCreacion: detalle.fldeFechaCreacion,
+      usuaModificacion: 3,
+      fldeFechaModificacion: DateTime.now(),
+      fldeLlegada: false,
+      fldeTipodeCarga: detalle.fldeTipodeCarga,
+    );
+  }
+
 // Método que crea un detalle de insumo o equipo no recibido
   FleteDetalleViewModel _crearDetalleNoRecibido(
       FleteDetalleViewModel item, bool esEquipo) {
@@ -1470,6 +1548,13 @@ class _VerificarFleteState extends State<VerificarFlete>
       setState(() {
         _descripcionError = true;
         _descripcionErrorMessage = 'El campo es requerido.';
+      });
+      hayErrores = true;
+    } else if (_descripcionIncidenciaController.text.length > 100) {
+      setState(() {
+        _descripcionError = true;
+        _descripcionErrorMessage =
+            'El texto no puede exceder los 100 caracteres.';
       });
       hayErrores = true;
     } else {
@@ -1510,6 +1595,7 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     if (!_fleteGuardado) {
       print("Primera vez que se guarda, guardando flete completo...");
+      await _guardarInsumosYEquiposNoRecibidos();
       await _guardarFleteCompleto();
       _fleteGuardado = true; // Marcamos que el flete ya ha sido guardado
     } else {
@@ -1580,6 +1666,13 @@ class _VerificarFleteState extends State<VerificarFlete>
       setState(() {
         _descripcionError = true;
         _descripcionErrorMessage = 'El campo es requerido.';
+      });
+      hayErrores = true;
+    } else if (_descripcionIncidenciaController.text.length > 100) {
+      setState(() {
+        _descripcionError = true;
+        _descripcionErrorMessage =
+            'El texto no puede exceder los 100 caracteres.';
       });
       hayErrores = true;
     } else {
