@@ -71,7 +71,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         setState(() {
           LatLng nuevaUbicacion = LatLng(lat, lng);
 
-          // Todos los usuarios deben ver la actualización en tiempo real, excepto el fletero
+          // Todos los usuarios deben ver la actualización en tiempo real, excepto el propio fletero
           if (emplId != this.emplId) {
             if (ubicacionactual != null) {
               _actualizarPolyline(
@@ -226,113 +226,100 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> iniciarMapa() async {
-    try {
-      final FleteEncabezadoViewModel? flete = await _fleteFuture;
-      if (flete == null) {
-        print('No se encontró el flete');
-        setState(() {
-          estaCargando = false;
-        });
-        return;
-      }
-
-      esFletero = flete.emtrId == emplId;
-
-      List<LatLng>? polylineAlmacenada =
-          await _fleteHubService.obtenerPolyline(widget.flenId);
-
-      if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
-        print('Polyline almacenada obtenida.');
-        setState(() {
-          polylines[PolylineId('realPolyline')] = Polyline(
-            polylineId: PolylineId('realPolyline'),
-            color: Colors.red,
-            points: polylineAlmacenada,
-            width: 5,
-          );
-        });
-      } else {
-        print('No se recibieron coordenadas para la Polyline.');
-      }
-
-      // Si es el fletero, inicia el rastreo en tiempo real
-      if (esFletero && flete.flenEstado == false) {
-        print('Obteniendo la ubicación actual para el fletero...');
-
-        // Guardar la ubicación inicial por flete
-        final pref = await SharedPreferences.getInstance();
-        final latitudInicial = pref.getDouble('latitudInicial_${flete.flenId}');
-        final longitudInicial =
-            pref.getDouble('longitudInicial_${flete.flenId}');
-
-        if (latitudInicial != null && longitudInicial != null) {
-          // Si ya existe una ubicación inicial guardada para este flete, la usamos
-          ubicacionInicial = LatLng(latitudInicial, longitudInicial);
-          print(
-              'Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
-        } else {
-          // Si no hay una ubicación inicial, obtenemos la ubicación actual
-          bool ubicacionObtenida = await ubicacionActualizada();
-          if (!ubicacionObtenida) {
-            print("No se pudo obtener la ubicación actual.");
-            setState(() {
-              estaCargando = false;
-            });
-            return;
-          }
-          ubicacionInicial = ubicacionactual;
-
-          // Guardar la nueva ubicación inicial para este flete
-          await pref.setDouble(
-              'latitudInicial_${flete.flenId}', ubicacionInicial!.latitude);
-          await pref.setDouble(
-              'longitudInicial_${flete.flenId}', ubicacionInicial!.longitude);
-          print(
-              'Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
-        }
-
-        List<double> latitudes = [];
-        List<double> longitudes = [];
-
-        locationSubscription = ubicacionController.onLocationChanged.listen(
-          (LocationData currentLocation) async {
-            if (currentLocation.latitude != null &&
-                currentLocation.longitude != null) {
-              LatLng nuevaUbicacion =
-                  LatLng(currentLocation.latitude!, currentLocation.longitude!);
-
-              // Acumular las latitudes y longitudes en las listas
-              latitudes.add(nuevaUbicacion.latitude);
-              longitudes.add(nuevaUbicacion.longitude);
-
-              // Actualizar la Polyline en el servidor con todos los puntos acumulados
-              await _fleteHubService.actualizarPolyline(widget.flenId,
-                  latitudes, longitudes);
-
-              // Actualizar la Polyline en el mapa local
-              await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion,
-                  Colors.red, 'realPolyline');
-
-              // Actualizar la ubicación actual
-              setState(() {
-                ubicacionactual = nuevaUbicacion;
-              });
-            }
-          },
-        );
-      }
-
-      await _generarRutas(flete);
+  try {
+    final FleteEncabezadoViewModel? flete = await _fleteFuture;
+    if (flete == null) {
+      print('No se encontró el flete');
       setState(() {
         estaCargando = false;
       });
-    } catch (e) {
-      print('Error en iniciarMapa: $e');
+      return;
+    }
+
+    esFletero = flete.emtrId == emplId;
+
+    // Cargar la polyline del fletero desde el servidor por `flenId`
+    List<LatLng>? polylineAlmacenada =
+        await _fleteHubService.obtenerPolyline(flete.emtrId!, widget.flenId);
+
+    if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
       setState(() {
-        estaCargando = false;
+        polylines[PolylineId('realPolyline_${widget.flenId}')] = Polyline(
+          polylineId: PolylineId('realPolyline_${widget.flenId}'),
+          color: Colors.red,
+          points: polylineAlmacenada,
+          width: 5,
+        );
+      });
+    } else {
+      print('No se recibieron coordenadas para la Polyline.');
+    }
+
+    // Si es el fletero, inicia el rastreo en tiempo real
+    if (esFletero && flete.flenEstado == false) {
+      print('Obteniendo la ubicación actual para el fletero...');
+
+      // Guardar la ubicación inicial por flete
+      final pref = await SharedPreferences.getInstance();
+      final latitudInicial = pref.getDouble('latitudInicial_${flete.flenId}');
+      final longitudInicial =
+          pref.getDouble('longitudInicial_${flete.flenId}');
+
+      if (latitudInicial != null && longitudInicial != null) {
+        // Si ya existe una ubicación inicial guardada para este flete, la usamos
+        ubicacionInicial = LatLng(latitudInicial, longitudInicial);
+        print(
+            'Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
+      } else {
+        // Si no hay una ubicación inicial, obtenemos la ubicación actual
+        bool ubicacionObtenida = await ubicacionActualizada();
+        if (!ubicacionObtenida) {
+          print("No se pudo obtener la ubicación actual.");
+          setState(() {
+            estaCargando = false;
+          });
+          return;
+        }
+        ubicacionInicial = ubicacionactual;
+
+        // Guardar la nueva ubicación inicial para este flete
+        await pref.setDouble(
+            'latitudInicial_${flete.flenId}', ubicacionInicial!.latitude);
+        await pref.setDouble(
+            'longitudInicial_${flete.flenId}', ubicacionInicial!.longitude);
+        print(
+            'Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
+      }
+
+      // Actualizar la ubicación en tiempo real
+      locationSubscription = ubicacionController.onLocationChanged
+          .listen((LocationData currentLocation) async {
+        if (currentLocation.latitude != null &&
+            currentLocation.longitude != null) {
+          LatLng nuevaUbicacion =
+              LatLng(currentLocation.latitude!, currentLocation.longitude!);
+          await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
+          await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion,
+              Colors.red, 'realPolyline_${widget.flenId}');
+          setState(() {
+            ubicacionactual = nuevaUbicacion;
+          });
+        }
       });
     }
+
+    await _generarRutas(flete);
+    setState(() {
+      estaCargando = false;
+    });
+  } catch (e) {
+    print('Error en iniciarMapa: $e');
+    setState(() {
+      estaCargando = false;
+    });
   }
+}
+
 
   Future<void> _generarRutas(FleteEncabezadoViewModel flete) async {
     print('Obteniendo origen y destino...');
@@ -374,25 +361,10 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> _actualizarPolyline(
-    LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
-  final polylineId = PolylineId(id);
+      LatLng inicio, LatLng nuevaUbicacion, Color color, String id) async {
+    final polylineId = PolylineId(id);
 
-  // Usar Google Directions API para obtener los puntos entre el inicio y la nueva ubicación
-  final polylinePoints = PolylinePoints();
-  PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-    gmak, 
-    PointLatLng(inicio.latitude, inicio.longitude),
-    PointLatLng(nuevaUbicacion.latitude, nuevaUbicacion.longitude),
-    travelMode: TravelMode.driving,
-  );
-
-  if (result.points.isNotEmpty) {
-    // Convertir los puntos obtenidos en una lista de LatLng
-    List<LatLng> polylineCoordinates = result.points
-        .map((point) => LatLng(point.latitude, point.longitude))
-        .toList();
-
-    // Añadir los nuevos puntos a la polyline existente
+    // Obtener la polyline existente o crear una nueva si no existe
     Polyline polylineExistente = polylines[polylineId] ??
         Polyline(
           polylineId: polylineId,
@@ -401,8 +373,9 @@ class _DetalleFleteState extends State<DetalleFlete> {
           width: 5,
         );
 
+    // Añadir el nuevo punto a la polyline existente
     List<LatLng> puntosActualizados = List.from(polylineExistente.points)
-      ..addAll(polylineCoordinates); // Añadir los nuevos puntos de la API
+      ..add(nuevaUbicacion);
 
     // Crear una nueva polyline con los puntos actualizados
     Polyline polylineActualizada = polylineExistente.copyWith(
@@ -421,12 +394,9 @@ class _DetalleFleteState extends State<DetalleFlete> {
         puntosActualizados.map((point) => point.longitude).toList();
 
     // Enviar las listas de coordenadas al servidor para su almacenamiento
-    await _fleteHubService.actualizarPolyline(
-        widget.flenId, latitudes, longitudes);
-  } else {
-    print("Error al obtener puntos entre las ubicaciones: ${result.errorMessage}");
+    await _fleteHubService.actualizarPolyline(emplId!, widget.flenId, latitudes, longitudes);
+
   }
-}
 
   Future<LatLng?> _obtenerOrigen() async {
     final origenData = await _bodegaOrigenFuture;
@@ -500,8 +470,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                         Navigator.pop(context);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                            top: 10.0), 
+                        padding: const EdgeInsets.only(top: 10.0),
                         child: Row(
                           children: [
                             Icon(
@@ -860,7 +829,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                                         } else {
                                           final detalles = snapshot.data!;
                                           return Container(
-                                            height: 100, 
+                                            height: 100,
                                             child: SingleChildScrollView(
                                               child: Table(
                                                 border: TableBorder.all(
@@ -957,7 +926,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
   LatLng? obtenerCoordenadasDeEnlace(String? enlace) {
     if (enlace == null || enlace.isEmpty) {
-      return null; 
+      return null;
     }
 
     final uri = Uri.parse(enlace);
