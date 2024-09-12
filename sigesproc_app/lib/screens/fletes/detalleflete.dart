@@ -226,24 +226,26 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> iniciarMapa() async {
-  try {
-    final FleteEncabezadoViewModel? flete = await _fleteFuture;
-    if (flete == null) {
-      print('No se encontró el flete');
-      setState(() {
-        estaCargando = false;
-      });
-      return;
-    }
+    try {
+      final FleteEncabezadoViewModel? flete = await _fleteFuture;
+      if (flete == null) {
+        print('No se encontró el flete');
+        setState(() {
+          estaCargando = false;
+        });
+        return;
+      }
 
-    esFletero = flete.emtrId == emplId;
+      esFletero = flete.emtrId == emplId;
 
-    // Cargar la polyline del fletero desde el servidor por `flenId`
-    List<LatLng>? polylineAlmacenada =
-        await _fleteHubService.obtenerPolyline(flete.emtrId!, widget.flenId);
+      await _fleteHubService.ensureConnected();
 
-    if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
-      setState(() {
+      // Cargar la polyline del fletero desde el servidor por flenId
+      List<LatLng>? polylineAlmacenada =
+          await _fleteHubService.obtenerPolyline(flete.emtrId!, widget.flenId);
+
+      if (polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
+        setState(() {
         polylines[PolylineId('realPolyline_${widget.flenId}')] = Polyline(
           polylineId: PolylineId('realPolyline_${widget.flenId}'),
           color: Colors.red,
@@ -251,75 +253,98 @@ class _DetalleFleteState extends State<DetalleFlete> {
           width: 5,
         );
       });
-    } else {
-      print('No se recibieron coordenadas para la Polyline.');
-    }
-
-    // Si es el fletero, inicia el rastreo en tiempo real
-    if (esFletero && flete.flenEstado == false) {
-      print('Obteniendo la ubicación actual para el fletero...');
-
-      // Guardar la ubicación inicial por flete
-      final pref = await SharedPreferences.getInstance();
-      final latitudInicial = pref.getDouble('latitudInicial_${flete.flenId}');
-      final longitudInicial =
-          pref.getDouble('longitudInicial_${flete.flenId}');
-
-      if (latitudInicial != null && longitudInicial != null) {
-        // Si ya existe una ubicación inicial guardada para este flete, la usamos
-        ubicacionInicial = LatLng(latitudInicial, longitudInicial);
-        print(
-            'Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
       } else {
-        // Si no hay una ubicación inicial, obtenemos la ubicación actual
-        bool ubicacionObtenida = await ubicacionActualizada();
-        if (!ubicacionObtenida) {
-          print("No se pudo obtener la ubicación actual.");
-          setState(() {
-            estaCargando = false;
-          });
-          return;
-        }
-        ubicacionInicial = ubicacionactual;
-
-        // Guardar la nueva ubicación inicial para este flete
-        await pref.setDouble(
-            'latitudInicial_${flete.flenId}', ubicacionInicial!.latitude);
-        await pref.setDouble(
-            'longitudInicial_${flete.flenId}', ubicacionInicial!.longitude);
-        print(
-            'Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
+        print('No se recibieron coordenadas para la Polyline.');
       }
 
-      // Actualizar la ubicación en tiempo real
-      locationSubscription = ubicacionController.onLocationChanged
-          .listen((LocationData currentLocation) async {
-        if (currentLocation.latitude != null &&
-            currentLocation.longitude != null) {
-          LatLng nuevaUbicacion =
-              LatLng(currentLocation.latitude!, currentLocation.longitude!);
-          await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
-          await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion,
-              Colors.red, 'realPolyline_${widget.flenId}');
+      // Si es el fletero, inicia el rastreo en tiempo real
+      if (esFletero && flete.flenEstado == false) {
+        print('Obteniendo la ubicación actual para el fletero...');
+
+        // Guardar la ubicación inicial por flete
+        final pref = await SharedPreferences.getInstance();
+        final latitudInicial = pref.getDouble('latitudInicial_${flete.flenId}');
+        final longitudInicial =
+            pref.getDouble('longitudInicial_${flete.flenId}');
+
+        if (latitudInicial != null && longitudInicial != null) {
+          ubicacionInicial = LatLng(latitudInicial, longitudInicial);
+          print(
+              'Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
+        } else {
+          bool ubicacionObtenida = await ubicacionActualizada();
+          if (!ubicacionObtenida) {
+            print("No se pudo obtener la ubicación actual.");
+            setState(() {
+              estaCargando = false;
+            });
+            return;
+          }
+          ubicacionInicial = ubicacionactual;
+
+          // Guardar la nueva ubicación inicial para este flete
+          await pref.setDouble('latitudInicial_${flete.flenId}', ubicacionInicial!.latitude);
+          await pref.setDouble('longitudInicial_${flete.flenId}', ubicacionInicial!.longitude);
+          print('Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
+        }
+
+        if (ubicacionactual == null) {
+          bool ubicacionObtenida = await ubicacionActualizada();  
+          if (!ubicacionObtenida) {
+            print("No se pudo obtener la ubicación actual.");
+            setState(() {
+              estaCargando = false;
+            });
+            return;
+          }
+        }
+
+        // Calcular la polyline entre el último punto y la nueva ubicación
+        if (ubicacionactual != null && polylineAlmacenada != null && polylineAlmacenada.isNotEmpty) {
+          LatLng ultimoPunto = polylineAlmacenada.last;
+
+          // Llamar al servicio de Google Maps para obtener la polyline entre ultimoPunto y nuevaUbicacion
+          List<LatLng> nuevaPolyline = await polylinePuntos(ultimoPunto, ubicacionactual!);
+
+          // Actualizar la polyline con la nueva ruta calculada
           setState(() {
-            ubicacionactual = nuevaUbicacion;
+            polylines[PolylineId('realPolyline_${widget.flenId}')] = Polyline(
+              polylineId: PolylineId('realPolyline_${widget.flenId}'),
+              color: Colors.red,
+              points: [...polylineAlmacenada, ...nuevaPolyline], // Añadir la nueva polyline a la ruta
+              width: 5,
+            );
           });
         }
+
+        // Actualizar la ubicación en tiempo real
+        locationSubscription = ubicacionController.onLocationChanged
+            .listen((LocationData currentLocation) async {
+          if (currentLocation.latitude != null &&
+              currentLocation.longitude != null) {
+            LatLng nuevaUbicacion =
+                LatLng(currentLocation.latitude!, currentLocation.longitude!);
+            await _fleteHubService.actualizarUbicacion(emplId!, nuevaUbicacion);
+            await _actualizarPolyline(ubicacionInicial!, nuevaUbicacion,
+                Colors.red, 'realPolyline_${widget.flenId}');
+            setState(() {
+              ubicacionactual = nuevaUbicacion;
+            });
+          }
+        });
+      }
+
+      await _generarRutas(flete);
+      setState(() {
+        estaCargando = false;
+      });
+    } catch (e) {
+      print('Error en iniciarMapa: $e');
+      setState(() {
+        estaCargando = false;
       });
     }
-
-    await _generarRutas(flete);
-    setState(() {
-      estaCargando = false;
-    });
-  } catch (e) {
-    print('Error en iniciarMapa: $e');
-    setState(() {
-      estaCargando = false;
-    });
   }
-}
-
 
   Future<void> _generarRutas(FleteEncabezadoViewModel flete) async {
     print('Obteniendo origen y destino...');
@@ -394,8 +419,8 @@ class _DetalleFleteState extends State<DetalleFlete> {
         puntosActualizados.map((point) => point.longitude).toList();
 
     // Enviar las listas de coordenadas al servidor para su almacenamiento
-    await _fleteHubService.actualizarPolyline(emplId!, widget.flenId, latitudes, longitudes);
-
+    await _fleteHubService.actualizarPolyline(
+        emplId!, widget.flenId, latitudes, longitudes);
   }
 
   Future<LatLng?> _obtenerOrigen() async {
@@ -468,6 +493,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context);
+                        _fleteHubService.stopConnection();
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(top: 10.0),
@@ -972,30 +998,26 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<List<LatLng>> polylinePuntos(LatLng inicio, LatLng destino) async {
-    final polylines = PolylinePoints();
+  final polylines = PolylinePoints();
 
-    final result = await polylines.getRouteBetweenCoordinates(
-      gmak,
-      PointLatLng(inicio.latitude, inicio.longitude),
-      PointLatLng(destino.latitude, destino.longitude),
-      travelMode: TravelMode.driving,
-    );
-    print('resultado polylinePuntos: $result');
+  final result = await polylines.getRouteBetweenCoordinates(
+    gmak, // Tu API key de Google Maps
+    PointLatLng(inicio.latitude, inicio.longitude),
+    PointLatLng(destino.latitude, destino.longitude),
+    travelMode: TravelMode.driving, // Asegúrate de usar el modo de viaje adecuado
+  );
+  print('resultado polylinePuntos: $result');
     print('estado: ${result.status}');
-    print('Error : ${result.errorMessage}');
+    print('Error POLYLINEPUNTOS: ${result.errorMessage}');
     print('numero de puntos: ${result.points.length}');
 
-    if (result.points.isNotEmpty) {
-      print('Puntos obtenidos: ${result.points}');
-      return result.points
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
-    } else {
-      print('No se obtuvieron puntos: ${result.points}');
-      debugPrint(result.errorMessage);
-      return [];
-    }
+  if (result.points.isNotEmpty) {
+    return result.points.map((point) => LatLng(point.latitude, point.longitude)).toList();
+  } else {
+    print('Error al obtener la polyline de Google Maps: ${result.errorMessage}');
+    return [];
   }
+}
 
   Future<void> generarPolylineporPuntos(
       List<LatLng> polylineCoordenadas, Color color, String id) async {

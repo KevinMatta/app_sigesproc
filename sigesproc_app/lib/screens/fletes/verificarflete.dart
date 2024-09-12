@@ -80,6 +80,8 @@ class _VerificarFleteState extends State<VerificarFlete>
 
   int _unreadCount = 0;
   int? userId;
+  int? usuaId;
+  
 
   FleteEncabezadoViewModel flete = FleteEncabezadoViewModel(
     codigo: '',
@@ -183,6 +185,12 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Future<void> _cargarDatosFlete() async {
+    final pref = await SharedPreferences.getInstance();
+    setState(() {
+      usuaId = int.tryParse(pref.getString('usuaId') ?? '');
+    });
+    
+    
     // Cargar el encabezado del flete
     flete = (await FleteEncabezadoService.obtenerFleteDetalle(widget.flenId))!;
 
@@ -1514,7 +1522,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       inppId: detalle.inppId,
       usuaCreacion: detalle.usuaCreacion,
       fldeFechaCreacion: detalle.fldeFechaCreacion,
-      usuaModificacion: 3,
+      usuaModificacion: usuaId ?? 3,
       fldeFechaModificacion: DateTime.now(),
       fldeLlegada: false,
       fldeTipodeCarga: detalle.fldeTipodeCarga,
@@ -1643,7 +1651,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
       await FleteEncabezadoService.editarFlete(flete);
 
-      if (hayNoVerificados) {
+      if (!hayNoVerificados) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Verificado con Éxito.')),
         );

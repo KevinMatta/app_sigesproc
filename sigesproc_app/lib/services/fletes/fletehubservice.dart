@@ -10,18 +10,58 @@ class FleteHubService {
   final HubConnection connection =
       HubConnectionBuilder().withUrl(hubUrl, HttpConnectionOptions(
     accessTokenFactory: () async {
-      print("Obteniendo API Key");
       return ApiService.apiKey;
     },
   )).build();
 
-  // Método para inicializar y empezar la conexión
+  FleteHubService() {
+    connection.onreconnecting((error) {
+      print("SignalR se está reconectando debido a: $error");
+    });
+
+    connection.onreconnected((connectionId) {
+      print("SignalR reconectado. Id de conexión: $connectionId");
+      // Puedes intentar obtener las polylines nuevamente o reintentar solicitudes que fallaron
+    });
+
+    connection.onclose((error) {
+      print("Conexión cerrada. Error: $error");
+      Future.delayed(Duration(seconds: 5), () => startConnection());
+    });
+  }
+
   Future<void> startConnection() async {
+    if (connection.state == HubConnectionState.connected) return;
+
+    if (connection.state == HubConnectionState.connecting ||
+        connection.state == HubConnectionState.reconnecting) {
+      print("La conexión ya está en progreso o en estado de reconexión.");
+      return;
+    }
+
     try {
       await connection.start();
-      debugPrint("Conexión a SignalR iniciada");
+      print("Conexión a SignalR iniciada");
     } catch (e) {
-      debugPrint("Error al iniciar la conexión a SignalR: $e");
+      print("Error al iniciar la conexión a SignalR: $e");
+      Future.delayed(Duration(seconds: 5), () => startConnection());
+    }
+  }
+
+  // Método para asegurar que la conexión esté en el estado 'Connected'
+  Future<void> ensureConnected() async {
+    if (connection.state != HubConnectionState.connected) {
+      print("La conexión no está en estado 'Connected'. Reintentando...");
+      await startConnection();
+    }
+  }
+
+  Future<void> stopConnection() async {
+    try {
+      await connection.stop();
+      debugPrint("Conexión a SignalR detenida");
+    } catch (e) {
+      debugPrint("Error al detener la conexión a SignalR: $e");
     }
   }
 
@@ -74,20 +114,24 @@ class FleteHubService {
   }
 
   void onReceivePolyline(
-    Function(int emplId, int flenId, List<double> latitudes, List<double> longitudes)
-        onPolylineRecibida) {
-  connection.on("RecibirPolyline", (message) {
-    if (message != null && message.length == 4) { // Cambia de 3 a 4, ya que ahora recibimos flenId también
-      int emplId = message[0] as int;
-      int flenId = message[1] as int;
-      List<double> latitudes = (message[2] as List).map((lat) => lat as double).toList();
-      List<double> longitudes = (message[3] as List).map((lng) => lng as double).toList();
-      
-      onPolylineRecibida(emplId, flenId, latitudes, longitudes); // Ahora también pasamos el flenId
-    }
-  });
-}
+      Function(int emplId, int flenId, List<double> latitudes,
+              List<double> longitudes)
+          onPolylineRecibida) {
+    connection.on("RecibirPolyline", (message) {
+      if (message != null && message.length == 4) {
+        // Cambia de 3 a 4, ya que ahora recibimos flenId también
+        int emplId = message[0] as int;
+        int flenId = message[1] as int;
+        List<double> latitudes =
+            (message[2] as List).map((lat) => lat as double).toList();
+        List<double> longitudes =
+            (message[3] as List).map((lng) => lng as double).toList();
 
+        onPolylineRecibida(emplId, flenId, latitudes,
+            longitudes); // Ahora también pasamos el flenId
+      }
+    });
+  }
 
   Future<List<LatLng>?> obtenerPolyline(int emplId, int flenId) async {
     try {

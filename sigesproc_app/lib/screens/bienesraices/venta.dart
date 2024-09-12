@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/models/bienesraices/procesoventaviewmodel.dart';
 import 'package:sigesproc_app/models/generales/ciudadviewmodel.dart';
@@ -1344,6 +1345,7 @@ class _VentaState extends State<Venta> {
 
                   if (_isClienteFormValid()) {
                     try {
+                      final pref = await SharedPreferences.getInstance();
                       final nuevoCliente = ClienteViewModel(
                         clieDNI: dniController.text,
                         clieNombre: nombreclientecontroller.text,
@@ -1359,7 +1361,8 @@ class _VentaState extends State<Venta> {
                         clieDireccionExacta: direccionController.text,
                         ciudId: ciudadSeleccionada?.ciudId,
                         civiId: estadoCivilSeleccionado?.civiId,
-                        clieUsuaCreacion: '3',
+                        clieUsuaCreacion: pref.getString('usuaId'),
+                        usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
                       );
                       print(nuevoCliente);
 
