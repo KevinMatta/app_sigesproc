@@ -50,7 +50,7 @@ class FleteHubService {
   }
 
   Future<void> actualizarPolyline(
-      int emplId, List<double> latitudes, List<double> longitudes) async {
+      int flenId, List<double> latitudes, List<double> longitudes) async {
     if (latitudes.isEmpty || longitudes.isEmpty) {
       print("Error: Las coordenadas son nulas o vacías.");
       return;
@@ -64,46 +64,46 @@ class FleteHubService {
 
     try {
       print(
-          'Enviando polyline a SignalR: EmplId: $emplId, Coordenadas: $latitudes, $longitudes');
-      await connection
-          .invoke("ActualizarPolyline", args: [emplId, latitudes, longitudes]);
+          'Enviando polyline a SignalR: FlenId: $flenId, Coordenadas: $latitudes, $longitudes');
+      await connection.invoke("ActualizarPolyline",
+          args: [flenId, latitudes, longitudes]); // Cambiado a flenId
       print('Polyline actualizada en SignalR');
     } catch (e) {
       print('Error al actualizar polyline en SignalR: $e');
     }
   }
 
+  // Escuchar la recepción de Polyline por flete
   void onReceivePolyline(
-      Function(int emplId, List<double> latitudes, List<double> longitudes)
+      Function(int flenId, List<double> latitudes, List<double> longitudes)
           onPolylineRecibida) {
     connection.on("RecibirPolyline", (message) {
       if (message != null && message.length == 3) {
-        int emplId = message[0] as int;
+        int flenId = message[0] as int;
         List<double> latitudes =
             (message[1] as List).map((lat) => lat as double).toList();
         List<double> longitudes =
             (message[2] as List).map((lng) => lng as double).toList();
-        onPolylineRecibida(emplId, latitudes, longitudes);
+        onPolylineRecibida(flenId, latitudes, longitudes); // Cambiado a flenId
       }
     });
   }
 
-  Future<List<LatLng>?> obtenerPolyline(int emplId) async {
+  // Obtener la Polyline por flete
+  Future<List<LatLng>?> obtenerPolyline(int flenId) async {
     try {
-      print('Solicitando polyline desde el servidor para emplId: $emplId');
-      final result = await connection.invoke('ObtenerPolyline', args: [emplId]);
+      print('Solicitando polyline desde el servidor para flenId: $flenId');
+      final result = await connection
+          .invoke('ObtenerPolyline', args: [flenId]); // Cambiado a flenId
       print('result $result');
 
-      // Asegúrate de que el resultado sea una lista de mapas con "lat" y "lng"
       if (result != null && result is List) {
         List<LatLng> polylineCoordinates = [];
         for (var item in result) {
           if (item is Map && item['lat'] != null && item['lng'] != null) {
-            // Verifica que los valores no sean nulos
             polylineCoordinates.add(LatLng(item['lat'], item['lng']));
           }
         }
-        print('Polyline obtenida del servidor: $polylineCoordinates');
         return polylineCoordinates;
       } else {
         print('No se recibieron coordenadas válidas del servidor.');
