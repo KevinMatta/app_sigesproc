@@ -4,33 +4,29 @@ import 'package:sigesproc_app/models/dashboard/dashboardviewmodel.dart';
 import 'package:sigesproc_app/services/dashboard/dashboardservice.dart';
 import 'package:intl/intl.dart'; // Para formatear números
 import 'package:sigesproc_app/services/generales/monedaglobalservice.dart'; // Para la moneda global
-
 class DashboardVentaBienRaiz extends StatefulWidget {
   @override
   _DashboardVentaBienRaizState createState() => _DashboardVentaBienRaizState();
 }
 
 class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
-  late Future<List<DashboardBienRaizViewModel>> _dashboardData; // Lista de datos
-  String _abreviaturaMoneda = "L"; // Abreviatura de moneda por defecto
+  late Future<List<DashboardBienRaizViewModel>> _dashboardData;
+  String _abreviaturaMoneda = "L";
 
   @override
   void initState() {
     super.initState();
-    _dashboardData = DashboardService.ventamensualbienraiz(); // Llamada al servicio que retorna una lista
+    _dashboardData = DashboardService.ventamensualbienraiz();
     _obtenerAbreviaturaMoneda();
   }
 
-  // Método para obtener la abreviatura de la moneda global
   Future<void> _obtenerAbreviaturaMoneda() async {
     _abreviaturaMoneda = (await MonedaGlobalService.obtenerAbreviaturaMoneda())!;
     setState(() {});
   }
 
-  // Método para formatear el número con comas y puntos
   String formatNumber(double value) {
-    // Para asegurarse de que las comas estén en miles y el punto sea decimal
-    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US'); // Formato correcto para comas en miles y punto en decimales
+    final NumberFormat formatter = NumberFormat('#,##0.00', 'en_US');
     return formatter.format(value);
   }
 
@@ -38,6 +34,10 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Obtener tamaño de la pantalla
+        final screenWidth = MediaQuery.of(context).size.width;
+        final screenHeight = MediaQuery.of(context).size.height;
+
         return Container(
           color: const Color(0xFF171717),
           padding: EdgeInsets.all(8.0),
@@ -56,7 +56,7 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
                       style: TextStyle(color: Colors.white)),
                 );
               } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                return _buildDashboardContent(snapshot.data!.first, constraints);
+                return _buildDashboardContent(snapshot.data!.first, screenWidth);
               } else {
                 return Center(
                   child: Text('No hay datos disponibles',
@@ -71,59 +71,66 @@ class _DashboardVentaBienRaizState extends State<DashboardVentaBienRaiz> {
   }
 
   Widget _buildDashboardContent(
-      DashboardBienRaizViewModel data, BoxConstraints constraints) {
+      DashboardBienRaizViewModel data, double screenWidth) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Ícono y título con mejor estilo
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.real_estate_agent, color: const Color(0xFFFFF0C6), size: 20), // Icono más pequeño
+            Icon(Icons.real_estate_agent,
+                color: const Color(0xFFFFF0C6), size: screenWidth * 0.05),
             SizedBox(width: 8),
             Text(
               'Bienes Raíces',
-              style: TextStyle(color: const Color(0xFFFFF0C6), fontSize: 20), // Título más pequeño
+              style: TextStyle(
+                  color: const Color(0xFFFFF0C6),
+                  fontSize: screenWidth * 0.05), // Texto ajustado dinámicamente
             ),
           ],
         ),
-        SizedBox(height: 15),
-
-        // Icono de casa al lado de "Cantidad Vendida" y dato abajo
+        SizedBox(height: screenWidth * 0.02),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.home, color: const Color.fromARGB(255, 105, 152, 240), size: 16), // Icono de casa
+            Icon(Icons.home,
+                color: const Color.fromARGB(255, 105, 152, 240),
+                size: screenWidth * 0.04), // Tamaño de icono ajustado
             SizedBox(width: 8),
             Text(
               'Cantidad Vendida',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.035),
             ),
           ],
         ),
         SizedBox(height: 4),
         Text(
           '${data.cantidadVendidosMes}',
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: screenWidth * 0.045,
+              fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 15),
-
-        // Icono de dólar al lado de "Total Ventas" y dato abajo
+        SizedBox(height: screenWidth * 0.03),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.attach_money, color: Colors.yellowAccent, size: 16), // Icono de dólar
+            Icon(Icons.attach_money,
+                color: Colors.yellowAccent, size: screenWidth * 0.04),
             SizedBox(width: 8),
             Text(
               'Total Ventas',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: Colors.grey, fontSize: screenWidth * 0.035),
             ),
           ],
         ),
         SizedBox(height: 4),
         Text(
           '$_abreviaturaMoneda ${formatNumber(data.totalVentasMes ?? 0.0)}',
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: screenWidth * 0.045,
+              fontWeight: FontWeight.bold),
         ),
       ],
     );

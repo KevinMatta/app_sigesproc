@@ -33,7 +33,6 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          // Agregamos el scroll
           child: Container(
             color: const Color(0xFF171717),
             padding: EdgeInsets.all(8.0),
@@ -79,28 +78,23 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
     return Column(
       children: [
         Container(
-          height:
-              constraints.maxHeight * 0.70, // Ajustamos el tamaño del gráfico
-          width: constraints.maxWidth *
-              0.95, // Usamos el mismo ancho que en el otro gráfico
+          height: constraints.maxHeight * 0.7, // Ajustamos el tamaño del gráfico
+          width: constraints.maxWidth * 0.95, // Usamos el mismo ancho que en el otro gráfico
           child: SfCircularChart(
             title: ChartTitle(
               text: 'Ventas por Agente',
               textStyle: TextStyle(
                   color: const Color(0xFFFFF0C6),
-                  fontSize: 14), // Reducir tamaño del título
+                  fontSize: constraints.maxWidth * 0.04), // Ajuste dinámico del tamaño del texto
             ),
-            tooltipBehavior:
-                _tooltipBehavior, // Habilitar tooltip para mostrar cantidad
+            tooltipBehavior: _tooltipBehavior,
             series: <CircularSeries>[
               PieSeries<VentasPorAgenteViewModel, String>(
                 dataSource: data,
                 xValueMapper: (VentasPorAgenteViewModel item, index) =>
                     item.agen_NombreCompleto ?? '',
                 yValueMapper: (VentasPorAgenteViewModel item, index) =>
-                    _selectedSections[index]
-                        ? item.cantidadVendida ?? 0
-                        : 0, // Mostrar solo las secciones seleccionadas
+                    _selectedSections[index] ? item.cantidadVendida ?? 0 : 0,
                 dataLabelMapper: (VentasPorAgenteViewModel item, _) {
                   double percentage =
                       ((item.cantidadVendida ?? 0) / totalVentas) * 100;
@@ -108,10 +102,9 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                 },
                 dataLabelSettings: DataLabelSettings(
                   isVisible: true,
-                  labelPosition: ChartDataLabelPosition
-                      .outside, // Etiquetas afuera del gráfico
+                  labelPosition: ChartDataLabelPosition.outside,
                   textStyle: TextStyle(
-                      color: Colors.white, fontSize: 8), // Texto más pequeño
+                      color: Colors.white, fontSize: constraints.maxWidth * 0.025), // Texto ajustado
                 ),
                 pointColorMapper: (VentasPorAgenteViewModel item, index) {
                   List<Color> barColors = [
@@ -125,7 +118,7 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                 },
                 explode: true,
                 explodeAll: true,
-                radius: '95%',
+                radius: '90%', // Ajustar el radio para mejor visibilidad
               ),
             ],
           ),
@@ -151,14 +144,14 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                       color: _selectedSections[index]
                           ? _getBarColor(index)
                           : Colors.grey,
-                      size: 14, // Tamaño más pequeño del ícono
+                      size: constraints.maxWidth * 0.035, // Tamaño dinámico del ícono
                     ),
                     SizedBox(width: 4),
                     Text(
                       data[index].agen_NombreCompleto ?? '',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
+                        fontSize: constraints.maxWidth * 0.04, // Texto ajustado dinámicamente
                       ),
                     ),
                   ],
