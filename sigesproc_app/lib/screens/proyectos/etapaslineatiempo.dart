@@ -170,7 +170,17 @@ class _LineaDeTiempoState extends State<LineaDeTiempo> {
         child: Column(
           children: [
             SizedBox(height: 20),
-            Expanded(
+            widget.etapas == null || widget.etapas.isEmpty ? Expanded(
+              child: Center(
+                child: Text(
+                  'No hay etapas disponibles.',
+                  style: TextStyle(
+                    color: Color(0xFFFFF0C6),
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ) : Expanded(
               child: Stack(
                 children: [
                   // Posicionar el círculo al inicio de la línea central

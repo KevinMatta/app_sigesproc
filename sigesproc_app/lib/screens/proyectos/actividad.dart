@@ -187,9 +187,8 @@ Future<void> _refreshControls(int acetId) async {
               Text(
                 'Confirmación',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFFF0C6),
+                  fontSize: 20,
                 ),
               ),
               SizedBox(height: 10.0),
@@ -234,11 +233,18 @@ Future<void> _refreshControls(int acetId) async {
                         );
                       }
                     },
+                      style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFFFF0C6),
+                      textStyle: TextStyle(fontSize: 14),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
                     child: Text(
                       'Confirmar',
                       style: TextStyle(
-                        color: Color(0xFFFFF0C6),
-                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -247,11 +253,18 @@ Future<void> _refreshControls(int acetId) async {
                     onPressed: () {
                       Navigator.of(context).pop(); // Cerrar el diálogo
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      textStyle: TextStyle(fontSize: 14),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
                     child: Text(
                       'Cancelar',
                       style: TextStyle(
                         color: Color(0xFFFFF0C6),
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

@@ -38,6 +38,8 @@ late int userId;
   ScrollController _scrollController = ScrollController();
   double _savedScrollPosition = 0.0; // Variable para almacenar la posición del scroll
   int _savedCurrentPage = 0; // Variable para almacenar la página actual
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
 
   @override
   void initState() {
@@ -91,6 +93,54 @@ Future<void> _loadNotifications() async {
     super.dispose();
   }
 
+  
+
+    void _showCustomTooltip(BuildContext context) {
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+    } else {
+      _overlayEntry = _createOverlayEntry();
+      Overlay.of(context)!.insert(_overlayEntry!);
+    }
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(-170.0, 30.0), // Ajusta la posición vertical y horizontal del tooltip
+          child: Material(
+            color: Colors.transparent,
+            child: GestureDetector(
+              onTap: () {
+                _overlayEntry!.remove();
+                _overlayEntry = null;
+              },
+              child: Container(
+                padding: EdgeInsets.all(8),
+                margin: EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Color(0xFFFFF0C6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Toca un proyecto para ver su Línea de Tiempo',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 void _proyectoFiltrado() {
   final query = _searchController.text.toLowerCase();
   if (_proyectosFuture != null) {
@@ -584,22 +634,35 @@ Widget _buildEtapasRow(EtapaPorProyectoViewModel etapa) {
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(40.0),
           child: Column(
-            children: [
-              Text(
-                'Proyecto',
-                style: TextStyle(
-                  color: Color(0xFFFFF0C6),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4.0),
-              Container(
-                height: 2.0,
-                color: Color(0xFFFFF0C6),
-              ),
-            ],
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Proyecto',
+            style: TextStyle(
+              color: Color(0xFFFFF0C6),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          SizedBox(width: 4.0),
+          GestureDetector(
+                  onTap: () => _showCustomTooltip(context),
+                  child: CompositedTransformTarget(
+                    link: _layerLink,
+                    child: Icon(Icons.help_outline, color: Color(0xFFFFF0C6), size: 18,),
+                  ),
+          )
+        ],
+      ),
+      SizedBox(height: 4.0),
+      Container(
+        height: 2.0,
+        color: Color(0xFFFFF0C6),
+      ),
+    ],
+  )
         ),
          iconTheme: const IconThemeData(color: Color(0xFFFFF0C6)),
         actions: <Widget>[
