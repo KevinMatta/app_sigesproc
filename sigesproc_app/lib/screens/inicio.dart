@@ -225,51 +225,45 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCotizacionesTab() {
-  
-    return Container(
-      child: Container(
-        color: Colors.black,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-        Card(
-  color: Color(0xFF171717),
-  child: Padding(
-    padding: const EdgeInsets.all(1.0),
-    child: DashboardCompraMesActual(), // Componente nuevo para compras del mes
-  ),
-   ),
-
-            SizedBox(height: 10),
-            Card(
-              color: Color(0xFF171717),
-              child: Container(
-                height: 270,
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child:
-                      TopArticlesDashboard(), // Gráfico de los top 5 artículos
-                ),
+Widget _buildCotizacionesTab() {
+  return Container(
+    color: Colors.black,
+    padding: const EdgeInsets.all(16.0),
+    child: SingleChildScrollView(
+      child: Column(
+        children: [
+          Card(
+            color: Color(0xFF171717),
+            child: Padding(
+              padding: const EdgeInsets.all(1.0),
+              child: DashboardCompraMesActual(), // Componente nuevo para compras del mes
+            ),
+          ),
+          SizedBox(height: 10),
+          Card(
+            color: Color(0xFF171717),
+            child: Container(
+              height: 270,
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: TopArticlesDashboard(), // Gráfico de los top 5 artículos
               ),
             ),
-            SizedBox(height: 10),
-            Card(
-              color: Color(0xFF171717),
-              child: Container(
-                height: 230,
-                padding: const EdgeInsets.all(
-                      8.0),
-                  child:
-                      TopProveedoresDashboard(), // Gráfico de los top 5 proveedores
-              
-              ),
+          ),
+          SizedBox(height: 10),
+          Card(
+            color: Color(0xFF171717),
+            child: Container(
+              height: 230,
+              padding: const EdgeInsets.all(8.0),
+              child: TopProveedoresDashboard(), // Gráfico de los top 5 proveedores
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildFletesTab() {
     return Container(
@@ -412,54 +406,67 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   }
 
 Widget _buildBienesTab() {
-  return Container(
-    color: Colors.black,
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      children: [
-        Row(
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final screenHeight = MediaQuery.of(context).size.height;
+
+      return Container(
+        color: Colors.black,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Card(
-                color: Color(0xFF171717),
-                child: Container(
-                  height: 200,
-                    padding: const EdgeInsets.all(
-                      8.0), 
-                  child: DashboardVentaBienRaiz(), // Dashboard de Bienes Raíces
+            // Sección de tarjetas (Bienes Raíces y Terrenos)
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: screenHeight * 0.22, // Ajuste dinámico para evitar desbordamiento
+                      padding: const EdgeInsets.all(8.0),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: DashboardVentaBienRaiz(), // Dashboard de Bienes Raíces
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                SizedBox(width: 5),
+                Expanded(
+                  child: Card(
+                    color: Color(0xFF171717),
+                    child: Container(
+                      height: screenHeight * 0.22, // Ajuste dinámico para evitar desbordamiento
+                      padding: const EdgeInsets.all(8.0),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: DashboardVentaTerreno(), // Dashboard de Terrenos
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: 5),
+            SizedBox(height: 10),
+            // Sección del gráfico (Ventas por Agente)
             Expanded(
               child: Card(
                 color: Color(0xFF171717),
                 child: Container(
-                  height: 200,
-                    padding: const EdgeInsets.all(
-                      8.0), 
-                  child: DashboardVentaTerreno(), // Nuevo Dashboard de Terrenos
+                  padding: const EdgeInsets.all(8.0),
+                  child: DashboardVentasPorAgente(), // Dashboard de Ventas por Agente
                 ),
               ),
             ),
           ],
         ),
-        SizedBox(height: 10),
-        Expanded(
-          child: Card(
-            color: Color(0xFF171717),
-            child: Container(
-              height: 200,
-                padding: const EdgeInsets.all(
-                      8.0),  // Ajusta la altura si es necesario
-              child: DashboardVentasPorAgente(), // Dashboard de Ventas por Agente (nuevo gráfico circular)
-            ),
-          ),
-        ),
-      ],
-    ),
+      );
+    },
   );
 }
+
   Widget _buildBienesPlanilla() {
     return Container(
       color: Colors.black,

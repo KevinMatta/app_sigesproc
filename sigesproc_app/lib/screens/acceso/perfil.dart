@@ -21,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditingEmail = false;
   bool _machclave = false;
   bool _confirmarclave = false;
-  bool _passwordSubmitted = false; 
+  bool _passwordSubmitted = false;
   bool _emailSubmitted = false;
 
   TextEditingController _emailController = TextEditingController();
@@ -42,26 +42,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _telfono = prefs.userTelefono;
     _cargo = prefs.userCargo;
 
-  //   String imageUrl2 = prefs.userImagenEmpleado;
-  //   final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
-  // // String baseUrl = "https://backendsigesproc-production.up.railway.app/api/Empleado";
-  //   String imageUrl = "$baseUrl$imageUrl2";  
-  //   if (imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
-  //     _profileImage = NetworkImage(imageUrl);
-  //   } else {
-  //     _profileImage = AssetImage('lib/assets/usuario.jpeg');
-  //   }
-
-
-String imageUrl2 = prefs.userImagenEmpleado;
+    String imageUrl2 = prefs.userImagenEmpleado;
     final baseUrl = Uri.parse('${ApiService.apiUrl}/Empleado');
-    
-    // Verificar si imageUrl2 viene vacío o no es válida
-    if (imageUrl2.isNotEmpty ) {
-      String imageUrl = "$baseUrl$imageUrl2";  
+
+    if (imageUrl2.isNotEmpty) {
+      String imageUrl = "$baseUrl$imageUrl2";
       _profileImage = NetworkImage(imageUrl);
     } else {
-      // Si viene vacío, usar AssetImage por defecto
       _profileImage = AssetImage('lib/assets/usuario.jpg');
     }
 
@@ -75,7 +62,7 @@ String imageUrl2 = prefs.userImagenEmpleado;
           message,
           style: TextStyle(color: Colors.black),
         ),
-        backgroundColor: Color(0xFFFFF0C6), 
+        backgroundColor: Color(0xFFFFF0C6),
         duration: Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -91,9 +78,13 @@ String imageUrl2 = prefs.userImagenEmpleado;
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final screenWidth = MediaQuery.of(context).size.width;
             return AlertDialog(
               backgroundColor: Color(0xFF171717),
-              title: Text('Cambiar Contraseña', style: TextStyle(color: Colors.white, fontSize: 16)),
+              title: Text(
+                'Cambiar Contraseña',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -104,7 +95,8 @@ String imageUrl2 = prefs.userImagenEmpleado;
                     decoration: InputDecoration(
                       labelText: 'Contraseña actual',
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                      errorText: _passwordSubmitted && _currentPasswordController.text.isEmpty
+                      errorText: _passwordSubmitted &&
+                              _currentPasswordController.text.isEmpty
                           ? 'El campo es requerido.'
                           : null,
                     ),
@@ -116,13 +108,15 @@ String imageUrl2 = prefs.userImagenEmpleado;
                     decoration: InputDecoration(
                       labelText: 'Nueva contraseña',
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                      errorText: _passwordSubmitted && _newPasswordController.text.isEmpty
+                      errorText: _passwordSubmitted &&
+                              _newPasswordController.text.isEmpty
                           ? 'El campo es requerido.'
                           : null,
                     ),
                     onChanged: (value) {
                       setState(() {
-                        _machclave = _newPasswordController.text != _confirmPasswordController.text;
+                        _machclave = _newPasswordController.text !=
+                            _confirmPasswordController.text;
                       });
                     },
                   ),
@@ -133,7 +127,9 @@ String imageUrl2 = prefs.userImagenEmpleado;
                     decoration: InputDecoration(
                       labelText: 'Confirmar nueva contraseña',
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                      errorText: _passwordSubmitted && (_confirmPasswordController.text.isEmpty || _machclave)
+                      errorText: _passwordSubmitted &&
+                              (_confirmPasswordController.text.isEmpty ||
+                                  _machclave)
                           ? _confirmPasswordController.text.isEmpty
                               ? 'El campo es requerido.'
                               : 'Las contraseñas deben coincidir'
@@ -142,7 +138,8 @@ String imageUrl2 = prefs.userImagenEmpleado;
                     onChanged: (value) {
                       setState(() {
                         _confirmarclave = true;
-                        _machclave = _newPasswordController.text != value;
+                        _machclave =
+                            _newPasswordController.text != value;
                       });
                     },
                   ),
@@ -152,86 +149,109 @@ String imageUrl2 = prefs.userImagenEmpleado;
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        setState(() {
-                          _passwordSubmitted = true; 
-                        });
+                    Flexible(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          setState(() {
+                            _passwordSubmitted = true;
+                          });
 
-                        if (_currentPasswordController.text.isEmpty ||
-                            _newPasswordController.text.isEmpty ||
-                            _confirmPasswordController.text.isEmpty ||
-                            _machclave) {
-                          
-                          return;
-                        }
+                          if (_currentPasswordController.text.isEmpty ||
+                              _newPasswordController.text.isEmpty ||
+                              _confirmPasswordController.text.isEmpty ||
+                              _machclave) {
+                            return;
+                          }
 
-                        try {
-                          int? result = await UsuarioService.Restablecerflutter(
-                            usua_Id, 
-                            _currentPasswordController.text,
-                            _newPasswordController.text,
-                          );
-
-                          Navigator.of(context).pop();
-                          if (result != null && result == 1) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Actualizado con Éxito.')),
+                          try {
+                            int? result =
+                                await UsuarioService.Restablecerflutter(
+                              usua_Id,
+                              _currentPasswordController.text,
+                              _newPasswordController.text,
                             );
-                          } else {
+
+                            Navigator.of(context).pop();
+                            if (result != null && result == 1) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text('Actualizado con Éxito.')),
+                              );
+                              // Limpiar los campos de contraseñas
+                              _currentPasswordController.clear();
+                              _newPasswordController.clear();
+                              _confirmPasswordController.clear();
+                              setState(() {
+                                _passwordSubmitted = false;
+                              });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Contraseña actual inválida.')),
+                              );
+                            }
+                          } catch (e) {
+                            Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Contraseña actual inválida.')),
+                              SnackBar(
+                                  content: Text(
+                                      'Error al actualizar la contraseña.')),
                             );
                           }
-                        } catch (e) {
-                          Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al actualizar la contraseña.')),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFFFF0C6), 
-                        textStyle: TextStyle(fontSize: 14), 
-                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFFFF0C6),
+                          textStyle: TextStyle(fontSize: 14),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.02,
+                              vertical: screenWidth * 0.02),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.save, color: Colors.black),
-                          SizedBox(width: 6),
-                          Text('Guardar', style: TextStyle(color: Colors.black)),
-                        ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.save, color: Colors.black),
+                            SizedBox(width: 6),
+                            Text('Guardar',
+                                style: TextStyle(color: Colors.black)),
+                          ],
+                        ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _currentPasswordController.clear();
-                          _newPasswordController.clear();
-                          _confirmPasswordController.clear();
-                          _passwordSubmitted = false;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black, 
-                        textStyle: TextStyle(fontSize: 14),
-                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                    Flexible(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _currentPasswordController.clear();
+                            _newPasswordController.clear();
+                            _confirmPasswordController.clear();
+                            _passwordSubmitted = false;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          textStyle: TextStyle(fontSize: 14),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.02,
+                              vertical: screenWidth * 0.02),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.close, color: Color(0xFFFFF0C6)),
-                          SizedBox(width: 6),
-                          Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
-                        ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.close, color: Color(0xFFFFF0C6)),
+                            SizedBox(width: 6),
+                            Text('Cancelar',
+                                style: TextStyle(color: Color(0xFFFFF0C6))),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -246,11 +266,21 @@ String imageUrl2 = prefs.userImagenEmpleado;
 
   void _confirmEmailChange() {
     setState(() {
-      _emailSubmitted = true; 
+      _emailSubmitted = true;
     });
 
-    if (_emailController.text.isEmpty) {
+    String email = _emailController.text;
+    // Validación del formato de correo electrónico
+    bool emailValid =
+        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+
+    if (email.isEmpty) {
       _showOverlayMessage('El campo es requerido.');
+      return;
+    }
+
+    if (!emailValid) {
+      _showOverlayMessage('El correo electrónico no es válido.');
       return;
     }
 
@@ -260,11 +290,14 @@ String imageUrl2 = prefs.userImagenEmpleado;
         return AlertDialog(
           backgroundColor: Color(0xFF171717),
           title: Text('Confirmación', style: TextStyle(color: Colors.white)),
-          content: Text('¿Estás seguro de querer cambiar tu correo electrónico?', style: TextStyle(color: Colors.white)),
+          content: Text(
+              '¿Estás seguro de querer cambiar tu correo electrónico?',
+              style: TextStyle(color: Colors.white)),
           actions: [
             ElevatedButton(
               onPressed: () async {
-                int? result = await UsuarioService.Restablecercorreo(usua_Id, _emailController.text);
+                int? result =
+                    await UsuarioService.Restablecercorreo(usua_Id, email);
 
                 Navigator.of(context).pop();
                 if (result != null && result == 1) {
@@ -272,7 +305,7 @@ String imageUrl2 = prefs.userImagenEmpleado;
                     SnackBar(content: Text('Actualizado con Éxito.')),
                   );
                   setState(() {
-                    _correo = _emailController.text;
+                    _correo = email;
                     _isEditingEmail = false;
                   });
                 } else {
@@ -284,7 +317,9 @@ String imageUrl2 = prefs.userImagenEmpleado;
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFFFF0C6),
                 textStyle: TextStyle(fontSize: 15),
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.03,
+                    vertical: MediaQuery.of(context).size.width * 0.03),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -309,7 +344,9 @@ String imageUrl2 = prefs.userImagenEmpleado;
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 textStyle: TextStyle(fontSize: 15),
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.03,
+                    vertical: MediaQuery.of(context).size.width * 0.03),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -322,7 +359,7 @@ String imageUrl2 = prefs.userImagenEmpleado;
                   Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
                 ],
               ),
-            ),      
+            ),
           ],
         );
       },
@@ -331,6 +368,10 @@ String imageUrl2 = prefs.userImagenEmpleado;
 
   @override
   Widget build(BuildContext context) {
+    // Obteniendo el tamaño de la pantalla
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return GestureDetector(
       onTap: () {
         if (_isEditingEmail) {
@@ -339,29 +380,31 @@ String imageUrl2 = prefs.userImagenEmpleado;
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-         
         appBar: AppBar(
           backgroundColor: Colors.black,
-          leadingWidth: 100, 
+          leadingWidth: screenWidth * 0.25, // Ajuste dinámico
           leading: GestureDetector(
             onTap: () {
-              Navigator.of(context).pop(); // Acción para regresar
+              Navigator.of(context).pop();
             },
             child: Row(
               children: [
-                SizedBox(width: 8), // Espacio inicial para evitar que se corte
-                Icon(Icons.arrow_back, color: Color(0xFFFFF0C6)), // Flecha de regreso
-                SizedBox(width: 4), // Espacio entre el ícono y el texto
-                Text(
-                  'Regresar',
-                  style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 16),
-                  overflow: TextOverflow.visible, // Mostrar el texto completo
+                SizedBox(width: 8),
+                Icon(Icons.arrow_back, color: Color(0xFFFFF0C6)),
+                SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    'Regresar',
+                    style: TextStyle(
+                        color: Color(0xFFFFF0C6), fontSize: screenWidth * 0.04),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
           ),
           title: Text('Perfil', style: TextStyle(color: Color(0xFFFFF0C6))),
-          centerTitle: true, // Centrar el título
+          centerTitle: true,
           iconTheme: IconThemeData(color: Color(0xFFFFF0C6)),
         ),
         body: SingleChildScrollView(
@@ -369,21 +412,21 @@ String imageUrl2 = prefs.userImagenEmpleado;
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 20), 
+              SizedBox(height: screenHeight * 0.02), // Espacio dinámico
               ClipOval(
                 child: Image(
                   image: _profileImage,
-                  width: 120,
-                  height: 120,
+                  width: screenWidth * 0.3, // Ajuste dinámico
+                  height: screenWidth * 0.3,
                   fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(height: 10),
-        
+              SizedBox(height: screenHeight * 0.02), // Espacio dinámico
+
               Text(
                 _usuaUsuario,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: screenWidth * 0.06, // Ajuste dinámico
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -391,19 +434,19 @@ String imageUrl2 = prefs.userImagenEmpleado;
               Text(
                 _cargo,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: screenWidth * 0.04, // Ajuste dinámico
                   color: Colors.grey,
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.03),
               ElevatedButton(
                 onPressed: _showChangePasswordModal,
                 style: ElevatedButton.styleFrom(
-                  textStyle: TextStyle(fontSize: 14),
+                  textStyle: TextStyle(fontSize: screenWidth * 0.04),
                 ),
                 child: Text('Cambiar Contraseña'),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.02),
               TextField(
                 controller: TextEditingController(text: _empleado),
                 style: TextStyle(color: Colors.white),
@@ -413,14 +456,15 @@ String imageUrl2 = prefs.userImagenEmpleado;
                   filled: true,
                   fillColor: Color(0xFF171717),
                   hintText: "Nombre",
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                  hintStyle: TextStyle(
+                      color: Colors.grey, fontSize: screenWidth * 0.04),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                     borderSide: BorderSide.none,
                   ),
                 ),
               ),
-                  SizedBox(height: 10),
+              SizedBox(height: screenHeight * 0.01), // Espacio dinámico
               TextField(
                 controller: TextEditingController(text: _telfono),
                 style: TextStyle(color: Colors.white),
@@ -430,14 +474,15 @@ String imageUrl2 = prefs.userImagenEmpleado;
                   filled: true,
                   fillColor: Color(0xFF171717),
                   hintText: "Teléfono",
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                  hintStyle: TextStyle(
+                      color: Colors.grey, fontSize: screenWidth * 0.04),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                     borderSide: BorderSide.none,
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: screenHeight * 0.01), // Espacio dinámico
               Stack(
                 children: [
                   TextField(
@@ -449,15 +494,20 @@ String imageUrl2 = prefs.userImagenEmpleado;
                       filled: true,
                       fillColor: Color(0xFF171717),
                       hintText: "Correo electrónico",
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 10),
+                      hintStyle: TextStyle(
+                          color: Colors.grey, fontSize: screenWidth * 0.04),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                         borderSide: BorderSide(
-                          color: _isEditingEmail ? Colors.blue : Colors.transparent,
+                          color: _isEditingEmail
+                              ? Colors.blue
+                              : Colors.transparent,
                           width: _isEditingEmail ? 2.0 : 1.0,
                         ),
                       ),
-                      errorText: _emailSubmitted && _emailController.text.isEmpty ? 'El campo es requerido.' : null,
+                      errorText: _emailSubmitted && _emailController.text.isEmpty
+                          ? 'El campo es requerido.'
+                          : null,
                     ),
                     onSubmitted: (value) {
                       _confirmEmailChange();
@@ -477,7 +527,6 @@ String imageUrl2 = prefs.userImagenEmpleado;
                   ),
                 ],
               ),
-          
             ],
           ),
         ),
