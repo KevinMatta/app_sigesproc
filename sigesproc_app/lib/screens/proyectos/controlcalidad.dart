@@ -151,6 +151,7 @@ Future<void> obtenerTotalCantidadTrabajada() async {
       final SharedPreferences pref = await SharedPreferences.getInstance();
               String idParse = pref.getString('usuaId')!;
         usuarioLogueado = int.parse(idParse);
+        controlDeCalidadesViewModel.usuaCreacion = usuarioLogueado ?? 3;
   try {
 
     if(uploadedImages.length > 0)
@@ -474,6 +475,7 @@ Widget build(BuildContext context) {
                           keyboardType: TextInputType.numberWithOptions(decimal: true),
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')), // Limita a dos decimales
+                            LengthLimitingTextInputFormatter(8), // Limita a 11 caracteres
                           ],
                           validator: (value) {
                             setState(() {}); // Para actualizar el estado y mostrar/ocultar el asterisco

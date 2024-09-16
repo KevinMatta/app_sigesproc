@@ -42,7 +42,7 @@ class _MenuLateralState extends State<MenuLateral> {
 
     // Intenta obtener el valor almacenado bajo la clave 'roleDescripcion'
     rolName = pref.getString('roleDescripcion');
-    print("Rol del usuario: $rolName");
+    // print("Rol del usuario: $rolName");
 
     String? esAdminString = pref.getString('EsAdmin');
     // Convierte la cadena a un valor booleano, asegurándote de que no sea null
@@ -51,9 +51,9 @@ class _MenuLateralState extends State<MenuLateral> {
     } else {
       administrador = false; // Valor por defecto
     }
-    print("Es administrador: $administrador");
+    // print("Es administrador: $administrador");
 
-    print("Pantallas por rol: $pantallasPorRol");
+    // print("Pantallas por rol: $pantallasPorRol");
 
     setState(() {}); // Actualiza el estado para que se reconstruya el menú
   }
@@ -66,7 +66,7 @@ class _MenuLateralState extends State<MenuLateral> {
 
     // Verifica si la lista de pantallas no es nula
     if (pantallas == null || pantallas.isEmpty) {
-      print("La lista de pantallas está vacía o es nula.");
+      // print("La lista de pantallas está vacía o es nula.");
       return {}; // Retorna un mapa vacío si la lista es nula o vacía
     }
 
@@ -75,7 +75,7 @@ class _MenuLateralState extends State<MenuLateral> {
 
     // Recorrer cada pantalla
     for (var pantalla in pantallas) {
-      print("Procesando pantalla: ${pantalla.pantDescripcion} con rol: ${pantalla.roleDescripcion}");
+      // print("Procesando pantalla: ${pantalla.pantDescripcion} con rol: ${pantalla.roleDescripcion}");
       // Validar que pant_Descripcion y role_Descripcion no sean nulos
       if (pantalla.pantDescripcion != null && pantalla.roleDescripcion != null) {
         String roleDescripcionKey = pantalla.roleDescripcion!;
@@ -88,7 +88,7 @@ class _MenuLateralState extends State<MenuLateral> {
       }
     }
 
-    print("Mapa de pantallas agrupadas por rol: $pantallasPorRol");
+    // print("Mapa de pantallas agrupadas por rol: $pantallasPorRol");
     return pantallasPorRol;
   }
 
@@ -106,19 +106,19 @@ class _MenuLateralState extends State<MenuLateral> {
 
     for (int index = 1; index < 6; index++) {
       String text = _normalizeString(_getMenuItemText(index));
-      print("Comparando ítem del menú: $text");
+      // print("Comparando ítem del menú: $text");
 
       // Si el usuario es administrador, muestra todas las opciones
       if (administrador == true) {
-        print("Usuario es administrador, añadiendo todas las opciones.");
+        // print("Usuario es administrador, añadiendo todas las opciones.");
         menuItems.add(_crearItem(context, index));
       }
       // Si el usuario no es administrador, muestra solo las opciones permitidas
       else if (_isPantallaPermitida(text)) {
-        print("Pantalla permitida encontrada: $text");
+        // print("Pantalla permitida encontrada: $text");
         menuItems.add(_crearItem(context, index));
       } else {
-        print("Pantalla no permitida: $text");
+        // print("Pantalla no permitida: $text");
       }
     }
 
@@ -174,7 +174,7 @@ class _MenuLateralState extends State<MenuLateral> {
       List<String> pantallasSeparadas = normalizedPantalla.split(',');
 
       for (String pantallaIndividual in pantallasSeparadas) {
-        print("Comparando pantalla del rol: $pantallaIndividual con el texto normalizado: $normalizedText");
+        // print("Comparando pantalla del rol: $pantallaIndividual con el texto normalizado: $normalizedText");
         if (pantallaIndividual == normalizedText) {
           return true;
         }

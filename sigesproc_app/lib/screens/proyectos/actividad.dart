@@ -34,11 +34,14 @@ class _ActividadState extends State<Actividad> {
   int _savedCurrentPage = 0; // Variable para almacenar la página actual
   int _unreadCount = 0;
   late int userId;
+  late bool isAdmin;
   @override
   void initState() {
     super.initState();
       var prefs = PreferenciasUsuario();
     userId = int.tryParse(prefs.userId) ?? 0; // Obtener el userId desde las preferencias
+    isAdmin = bool.tryParse(prefs.esAdmin) ?? false; // Saber si es Administrador desde las preferencias
+
 
     _loadNotifications();
     etapaName = widget.etapaNombre ?? "";
@@ -155,6 +158,19 @@ Future<void> _refreshControls(int acetId) async {
 
 
  void _mostrarDialogoAprobar(BuildContext context, int cocaId, bool? cocaAprobado, int acetId) {
+
+  // Si no es administrador, no se puede aprobar
+  if (!isAdmin) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Permiso denegado."
+        ),
+      ),
+     );
+    return;
+  }
+
   // Si ya está aprobado, no mostrar el diálogo
   if (cocaAprobado == true) {
     ScaffoldMessenger.of(context).showSnackBar(
