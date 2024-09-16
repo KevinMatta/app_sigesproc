@@ -201,6 +201,7 @@ class _CotizacionState extends State<Cotizacion> {
 
   void _verArticulos(int cotiId) {
     setState(() {
+      _searchController.text = '';
       _mostrarArticulos = true;
       _selectedCotiId = cotiId;
       print('cotiid: $cotiId');
@@ -243,7 +244,7 @@ class _CotizacionState extends State<Cotizacion> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              'Cotización ${cotizacion.cotiId}',
+              cotizacion.provDescripcion ?? 'N/A',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -252,8 +253,9 @@ class _CotizacionState extends State<Cotizacion> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              cotizacion.provDescripcion ?? 'N/A',
-              style: TextStyle(color: Colors.white70),
+              '$_abreviaturaMoneda ${formatNumber(double.parse(cotizacion.total!.replaceAll(",", "")))}',
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.end, 
             ),
           ),
         ),
@@ -393,6 +395,7 @@ class _CotizacionState extends State<Cotizacion> {
                         GestureDetector(
                           onTap: () {
                             setState(() {
+                              _searchController.text = '';
                               _selectedCotiId = null;
                               _reiniciarCotizacionesFiltros();
                               _mostrarArticulos = false;
@@ -659,7 +662,7 @@ class _CotizacionState extends State<Cotizacion> {
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
-                                              'Descripción',
+                                              'Proveedor',
                                               style: TextStyle(
                                                 color: Color(0xFFFFF0C6),
                                                 fontWeight: FontWeight.bold,
@@ -669,7 +672,7 @@ class _CotizacionState extends State<Cotizacion> {
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
-                                              'Proveedor',
+                                              'Total',
                                               style: TextStyle(
                                                 color: Color(0xFFFFF0C6),
                                                 fontWeight: FontWeight.bold,
