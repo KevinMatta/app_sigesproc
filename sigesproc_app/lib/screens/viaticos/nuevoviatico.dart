@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
@@ -432,63 +433,82 @@ Widget _buildBottomButtons() {
   }
 
   Widget _buildDropdownProyecto() {
-    return TypeAheadFormField<ProyectoViewModel>(
-      textFieldConfiguration: TextFieldConfiguration(
-        controller: TextEditingController(
-            text: _selectedProyecto?.proyNombre ?? ''),
-        style: TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: 'Proyecto',
-          labelStyle: TextStyle(color: Colors.white),
-          filled: true,
-          fillColor: Colors.black,
-          border: OutlineInputBorder(),
-          suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
-        ),
-      ),
-      suggestionsCallback: (pattern) async {
-        return _proyectos
-            .where((proyecto) => proyecto.proyNombre!.contains(pattern))
-            .toList();
-      },
-      itemBuilder: (context, ProyectoViewModel suggestion) {
-        return ListTile(
-          title: Text(
-            suggestion.proyNombre ?? '',
-            style: TextStyle(color: Colors.white),
-          ),
-        );
-      },
-      onSuggestionSelected: (ProyectoViewModel suggestion) {
-        setState(() {
-          _selectedProyecto = suggestion;
-        });
-      },
-      noItemsFoundBuilder: (context) => Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          'No se encontraron proyectos',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      suggestionsBoxDecoration: SuggestionsBoxDecoration(
-        color: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildMontoTextField() {
-    return TextField(
-      controller: _montoController,
-      keyboardType: TextInputType.number,
+  return TypeAheadFormField<ProyectoViewModel>(
+    textFieldConfiguration: TextFieldConfiguration(
+      controller: TextEditingController(
+          text: _selectedProyecto?.proyNombre ?? ''),
+      style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        labelText: 'Monto a Desembolsar',
+        labelText: 'Proyecto',
         labelStyle: TextStyle(color: Colors.white),
         filled: true,
         fillColor: Colors.black,
         border: OutlineInputBorder(),
+        suffixIcon: Icon(Icons.arrow_drop_down, color: Color(0xFFFFF0C6)),
       ),
-      style: TextStyle(color: Colors.white),
-    );
-  }
+    ),
+    suggestionsCallback: (pattern) async {
+      // Convierte el patrón a minúsculas
+      final lowerPattern = pattern.toLowerCase();
+      // Filtra la lista de proyectos ignorando las mayúsculas y minúsculas
+      return _proyectos
+          .where((proyecto) => 
+              proyecto.proyNombre?.toLowerCase().contains(lowerPattern) ?? false
+          ).toList();
+    },
+    itemBuilder: (context, ProyectoViewModel suggestion) {
+      return ListTile(
+        title: Text(
+          suggestion.proyNombre ?? '',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    },
+    onSuggestionSelected: (ProyectoViewModel suggestion) {
+      setState(() {
+        _selectedProyecto = suggestion;
+      });
+    },
+    noItemsFoundBuilder: (context) => Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        'No se encontraron proyectos',
+        style: TextStyle(color: Colors.white),
+      ),
+    ),
+    suggestionsBoxDecoration: SuggestionsBoxDecoration(
+      color: Colors.black,
+    ),
+  );
+}
+
+
+  Widget _buildMontoTextField() {
+  return TextField(
+    controller: _montoController,
+    keyboardType: TextInputType.number,
+    inputFormatters: [
+      FilteringTextInputFormatter.allow(RegExp(r'^\d{0,9}')), // Permite solo hasta 9 dígitos
+    ],
+    decoration: InputDecoration(
+      labelText: 'Monto a Desembolsar',
+      labelStyle: TextStyle(color: Colors.white),
+      filled: true,
+      fillColor: Colors.black,
+      border: OutlineInputBorder(),
+    ),
+    style: TextStyle(color: Colors.white),
+    onChanged: (value) {
+      // Validar que el valor no sea negativo
+      if (value.isNotEmpty && double.tryParse(value)! < 0) {
+        // Si es negativo, eliminar el signo
+        _montoController.text = value.replaceAll('-', '');
+        _montoController.selection = TextSelection.fromPosition(
+          TextPosition(offset: _montoController.text.length),
+        );
+      }
+    },
+  );
+}
+
 }

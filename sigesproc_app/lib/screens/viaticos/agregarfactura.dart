@@ -212,25 +212,38 @@ class _AgregarFacturaState extends State<AgregarFactura> {
   }
 
   void _validarCampos() {
-    setState(() {
-      _descripcionError = descripcionController.text.isEmpty ? 'El campo es requerido.' : null;
-      _montoGastadoError = montoGastadoController.text.isEmpty ? 'El campo es requerido.' : null;
-      double? montoGastado = double.tryParse(montoGastadoController.text);
-      if (_esAdmin == true) {
+  setState(() {
+    // Validar campo de descripción
+    _descripcionError = descripcionController.text.isEmpty ? 'El campo es requerido.' : null;
+
+    // Validar campo de monto gastado
+    _montoGastadoError = montoGastadoController.text.isEmpty ? 'El campo es requerido.' : null;
+    double? montoGastado = double.tryParse(montoGastadoController.text);
+
+    // Validar campo de monto reconocido si el usuario es administrador
+    if (_esAdmin == true) {
+      if (montoReconocidoController.text.isEmpty) {
+        _montoReconocidoError = 'El campo es requerido.';  // Si el campo está vacío
+      } else {
         double? montoReconocido = double.tryParse(montoReconocidoController.text);
+        
         if (montoReconocido == null || montoGastado == null) {
           _montoReconocidoError = 'Ingrese un número válido.';
+        } else if (montoReconocido > montoGastado) {
+          _montoReconocidoError = 'El monto reconocido no puede ser mayor que el monto gastado.';  // Si el monto reconocido es mayor al gastado
         } else {
-          _montoReconocidoError = montoReconocido > montoGastado
-              ? 'El monto reconocido no puede ser mayor que el monto gastado.'
-              : null;
+          _montoReconocidoError = null;  // Si todo es correcto, no hay error
         }
-      } else {
-        _montoReconocidoError = null;
       }
-      _categoriaError = categoriaSeleccionada == null ? 'El campo es requerido.' : null;
-    });
-  }
+    } else {
+      _montoReconocidoError = null; // Si no es admin, no validamos el monto reconocido
+    }
+
+    // Validar la categoría
+    _categoriaError = categoriaSeleccionada == null ? 'El campo es requerido.' : null;
+  });
+}
+
 
   Widget _buildCarruselDeImagenes() {
     return CarouselSlider(
