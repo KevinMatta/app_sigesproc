@@ -1242,12 +1242,12 @@ class _VentaState extends State<Venta> {
             setState(() {
               dniController.text = '';
               nombreclientecontroller.text = '';
-              apellidoController.text = ''; // Eliminar múltiples espacios
+              apellidoController.text = ''; 
               correoController.text = '';
               telefonoclienteController.text = '';
               fechaNacimientoController.text = '';
-              sexo = 'F';
-              tipoCliente = 'B';
+              sexo = 'Femenino';
+              tipoCliente = 'Bien Raiz';
               direccionController.text = '';
               ciudadSeleccionada = null;
               estadoCivilSeleccionado = null;
