@@ -1445,10 +1445,7 @@ class _VentaState extends State<Venta> {
                       );
 
                       print('Cliente seleccionado: $clienteSeleccionado');
-                      print(
-                          'Texto del clienteController: ${clienteController.text}');
-                      print(
-                          'Nombre y Apellido: ${nombreController.text} ${apellidoController.text}');
+                      print('es nulo ${clienteSeleccionado.clieId}');
 
                       if (clienteSeleccionado.clieId != null) {
                         final venta = ProcesoVentaViewModel(
@@ -1459,6 +1456,8 @@ class _VentaState extends State<Venta> {
                               .parse(fechaController.text),
                           clieId: clienteSeleccionado.clieId.toString(),
                         );
+
+                        print('venta guardando $venta');
 
                         await ProcesoVentaService.venderProcesoVenta(venta);
                         Navigator.push(
