@@ -953,7 +953,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                     ),
                     SizedBox(width: 4),
                     Text(
-                      'Ver todas las ubicaciones',
+                      'Ver todas los terrenos',
                       style: TextStyle(
                         color: Color(0xFFFFF0C6),
                         fontSize: 12,

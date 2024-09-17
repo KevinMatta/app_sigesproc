@@ -226,7 +226,7 @@ class _TerrenosMapState extends State<TerrenosMap> {
           child: Column(
             children: [
               Text(
-                'Ubicación de Bienes Raíces',
+                'Ubicación de Terrenos',
                 style: TextStyle(
                   color: Color(0xFFFFF0C6),
                   fontSize: 18,

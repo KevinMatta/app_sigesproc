@@ -456,20 +456,22 @@ class _VentaState extends State<Venta> {
                     isNumeric: true,
                     showError: _mostrarErrores && dniErrorMessage != null,
                     errorMessage: dniErrorMessage ?? 'El campo es requerido.',
+                    inputFormatterLength: 13, // DNI exacto de 13 caracteres
                   ),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Nombre', nombreclientecontroller, 'Ingrese el nombre',
                       showError: _mostrarErrores &&
-                          !RegExp(r'^[a-zA-Z\s]+$')
-                              .hasMatch(nombreclientecontroller.text),
+                          !RegExp(r'^[a-zA-Z\s]+$').hasMatch(
+                              nombreclientecontroller.text
+                                  .trim()), // Trim aplicado
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Apellido', apellidoController, 'Ingrese el apellido',
                       showError: _mostrarErrores &&
-                          !RegExp(r'^[a-zA-Z\s]+$')
-                              .hasMatch(apellidoController.text),
+                          !RegExp(r'^[a-zA-Z\s]+$').hasMatch(
+                              apellidoController.text.trim()), // Trim aplicado
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
@@ -486,8 +488,12 @@ class _VentaState extends State<Venta> {
                       'Ingrese el teléfono',
                       isNumeric: true,
                       showError: _mostrarErrores &&
-                          telefonoclienteController.text.length < 7,
-                      errorMessage: 'El campo es requerido.'),
+                          telefonoclienteController.text.length <
+                              8, // Mínimo 8 dígitos
+                      errorMessage: 'El campo es requerido.',
+                      inputFormatterLength:
+                          15 // Limitar el teléfono a 15 dígitos
+                      ),
                   SizedBox(height: 10),
                   _buildDateField(
                       'Fecha de Nacimiento', fechaNacimientoController,
@@ -544,7 +550,8 @@ class _VentaState extends State<Venta> {
       bool isEmail = false,
       bool enabled = true,
       bool showError = false,
-      String? errorMessage}) {
+      String? errorMessage,
+      int? inputFormatterLength}) {
     return TextField(
       controller: controller,
       enabled: enabled,
@@ -566,18 +573,16 @@ class _VentaState extends State<Venta> {
       inputFormatters: isNumeric
           ? [
               FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(
-                  15), // Limitar longitud para números
+              LengthLimitingTextInputFormatter(inputFormatterLength),
             ]
           : (isEmail
               ? [
-                  LengthLimitingTextInputFormatter(
-                      70), // Limitar longitud para correo
+                  LengthLimitingTextInputFormatter(inputFormatterLength),
                 ]
               : [
-                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]+$')),
-                  LengthLimitingTextInputFormatter(
-                      50), // Limitar longitud para nombre y apellido
+                  FilteringTextInputFormatter.allow(RegExp(
+                      r'^[a-zA-Z0-9\s,.#-]+$')), // Se permiten letras, números, espacios y caracteres especiales
+                  LengthLimitingTextInputFormatter(inputFormatterLength),
                 ]),
     );
   }
@@ -1235,9 +1240,19 @@ class _VentaState extends State<Venta> {
           icon: Icon(Icons.person_add_rounded, color: Color(0xFFFFF0C6)),
           onPressed: () {
             setState(() {
+              dniController.text = '';
+              nombreclientecontroller.text = '';
+              apellidoController.text = ''; // Eliminar múltiples espacios
+              correoController.text = '';
+              telefonoclienteController.text = '';
+              fechaNacimientoController.text = '';
+              sexo = 'F';
+              tipoCliente = 'B';
+              direccionController.text = '';
+              ciudadSeleccionada = null;
+              estadoCivilSeleccionado = null;
               _mostrarFormularioCliente = true;
             });
-            print(_mostrarFormularioCliente);
           },
         ),
       ],
@@ -1347,10 +1362,14 @@ class _VentaState extends State<Venta> {
                     try {
                       final pref = await SharedPreferences.getInstance();
                       final nuevoCliente = ClienteViewModel(
-                        clieDNI: dniController.text,
-                        clieNombre: nombreclientecontroller.text,
-                        clieApellido: apellidoController.text,
-                        clieCorreoElectronico: correoController.text,
+                        clieDNI: dniController.text.trim(),
+                        clieNombre: nombreclientecontroller.text
+                            .trim()
+                            .replaceAll(RegExp(r'\s+'),
+                                ' '), // Eliminar múltiples espacios
+                        clieApellido: apellidoController.text.trim().replaceAll(
+                            RegExp(r'\s+'), ' '), // Eliminar múltiples espacios
+                        clieCorreoElectronico: correoController.text.trim(),
                         clieTelefono: telefonoclienteController.text,
                         clieFechaNacimiento: DateFormat('dd/MM/yyyy')
                             .parse(fechaNacimientoController.text),
@@ -1358,11 +1377,14 @@ class _VentaState extends State<Venta> {
                         clieTipo: tipoCliente == 'Bien Raiz'
                             ? 'B'
                             : (tipoCliente == 'Proyecto' ? 'P' : 'A'),
-                        clieDireccionExacta: direccionController.text,
+                        clieDireccionExacta: direccionController.text
+                            .trim()
+                            .replaceAll(RegExp(r'\s+'), ' '),
                         ciudId: ciudadSeleccionada?.ciudId,
                         civiId: estadoCivilSeleccionado?.civiId,
                         clieUsuaCreacion: pref.getString('usuaId'),
-                        usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
+                        usuaCreacion:
+                            int.tryParse(pref.getString('usuaId') ?? ''),
                       );
                       print(nuevoCliente);
 
@@ -1525,65 +1547,84 @@ class _VentaState extends State<Venta> {
   bool _isClienteFormValid() {
     final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
 
-    // Validaciones de campos
-    final dniValid = dniController.text.isNotEmpty &&
-        dniController.text.length <= 15; // DNI máximo 15 caracteres
-    final nombreValid = nombreclientecontroller.text.isNotEmpty &&
-        nombreclientecontroller.text.length <=
-            50 && // Nombre máximo 50 caracteres
-        RegExp(r'^[a-zA-Z\s]+$').hasMatch(nombreclientecontroller.text);
-    final apellidoValid = apellidoController.text.isNotEmpty &&
-        apellidoController.text.length <= 50 && // Apellido máximo 50 caracteres
-        RegExp(r'^[a-zA-Z\s]+$').hasMatch(apellidoController.text);
-    final correoVacio = correoController.text.isEmpty;
-    final emailValid =
-        correoController.text.length <= 70 && // Correo máximo 70 caracteres
-            emailRegExp.hasMatch(correoController.text);
-    final telefonoValid = telefonoclienteController.text.isNotEmpty &&
-        telefonoclienteController.text.length <=
-            15 && // Teléfono máximo 15 caracteres
-        RegExp(r'^\d+$').hasMatch(telefonoclienteController.text);
-    final fechaNacimientoValid = fechaNacimientoController.text.isNotEmpty &&
-        _esFechaValida(fechaNacimientoController.text);
-    final direccionValid = direccionController.text.isNotEmpty &&
-        direccionController.text.length <= 90; // Dirección máxima 90 caracteres
+    // Validaciones de campos con trim aplicado
+    final dniValid = dniController.text.trim().isNotEmpty &&
+        dniController.text.trim().length == 13; // DNI exacto 13 caracteres
+    final nombreValid = nombreclientecontroller.text
+            .trim()
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .isNotEmpty &&
+        nombreclientecontroller.text
+                .trim()
+                .replaceAll(RegExp(r'\s+'), ' ')
+                .length <=
+            50 &&
+        RegExp(r'^[a-zA-Z\s]+$').hasMatch(nombreclientecontroller.text
+            .trim()
+            .replaceAll(RegExp(r'\s+'), ' '));
+    final apellidoValid = apellidoController.text
+            .trim()
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .isNotEmpty &&
+        apellidoController.text.trim().replaceAll(RegExp(r'\s+'), ' ').length <=
+            50 &&
+        RegExp(r'^[a-zA-Z\s]+$').hasMatch(
+            apellidoController.text.trim().replaceAll(RegExp(r'\s+'), ' '));
+    final correoVacio = correoController.text.trim().isEmpty;
+    final emailValid = correoController.text.trim().length <= 70 &&
+        emailRegExp.hasMatch(correoController.text.trim());
+    final telefonoValid = telefonoclienteController.text.trim().isNotEmpty &&
+        telefonoclienteController.text.trim().length >=
+            8 && // Teléfono mínimo 8 dígitos
+        RegExp(r'^\d+$').hasMatch(telefonoclienteController.text.trim());
+    final fechaNacimientoValid =
+        fechaNacimientoController.text.trim().isNotEmpty &&
+            _esFechaValida(fechaNacimientoController.text.trim());
+    final direccionValid = direccionController.text
+            .trim()
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .isNotEmpty &&
+        direccionController.text
+                .trim()
+                .replaceAll(RegExp(r'\s+'), ' ')
+                .length <=
+            90 &&
+        RegExp(r'^[a-zA-Z0-9\s,.#-]+$').hasMatch(
+            direccionController.text.trim().replaceAll(RegExp(r'\s+'), ' '));
     final ciudadValid = ciudadSeleccionada != null;
     final estadoCivilValid = estadoCivilSeleccionado != null;
 
-    // Validación de DNI duplicado
+    // Validaciones adicionales
     final dniDuplicado =
-        clientes.any((cliente) => cliente.clieDNI == dniController.text);
+        clientes.any((cliente) => cliente.clieDNI == dniController.text.trim());
 
-    // Validación de correo duplicado
-    final correoDuplicado = clientes.any(
-        (cliente) => cliente.clieCorreoElectronico == correoController.text);
+    final correoDuplicado = clientes.any((cliente) =>
+        cliente.clieCorreoElectronico == correoController.text.trim());
 
     setState(() {
-      // Validar si el campo DNI está vacío o duplicado
-      if (dniController.text.isEmpty) {
+      // Validar DNI y correo duplicado o errores de formato
+      if (dniController.text.trim().isEmpty) {
         dniErrorMessage = 'El campo es requerido.';
         _mostrarErrores = true;
       } else if (dniDuplicado) {
-        dniController.clear(); // Limpiar el campo de texto si ya existe el DNI
+        dniController.clear();
         dniErrorMessage = 'Ya existe un cliente con esa identidad.';
         _mostrarErrores = true;
-      } else if (dniController.text.length > 15) {
-        dniErrorMessage = 'El DNI no puede tener más de 15 caracteres.';
+      } else if (dniController.text.trim().length != 13) {
+        dniErrorMessage = 'El DNI debe ser de 13 dígitos.';
         _mostrarErrores = true;
       } else {
         dniErrorMessage = null;
       }
 
-      // Validar si el campo correo está vacío, inválido o duplicado
       if (correoVacio) {
         correoErrorMessage = 'El campo es requerido.';
         _mostrarErrores = true;
       } else if (!emailValid) {
-        correoErrorMessage = 'Ingrese un correo válido (máx. 70 caracteres).';
+        correoErrorMessage = 'Ingrese un correo válido.';
         _mostrarErrores = true;
       } else if (correoDuplicado) {
-        correoController
-            .clear(); // Limpiar el campo de texto si ya existe el correo
+        correoController.clear();
         correoErrorMessage = 'Ya existe un cliente con ese correo.';
         _mostrarErrores = true;
       } else {
@@ -1591,7 +1632,7 @@ class _VentaState extends State<Venta> {
       }
     });
 
-    // Si hay errores de duplicados, campos vacíos o de longitud, no permitimos avanzar
+    // Validaciones finales
     if (dniDuplicado ||
         correoDuplicado ||
         correoVacio ||
@@ -1604,7 +1645,6 @@ class _VentaState extends State<Venta> {
       return false;
     }
 
-    // Si todas las validaciones son correctas, retorna true
     return dniValid &&
         nombreValid &&
         apellidoValid &&
@@ -1624,79 +1664,6 @@ class _VentaState extends State<Venta> {
       return false;
     }
   }
-
-  void _mostrarMensajeDeError(String mensaje) {
-    // Mostrar el mensaje de error en un diálogo
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Error'),
-          content: Text(mensaje),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Aceptar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-// Future<void> _notificarVentaCompletada() async {
-//   try {
-//     String title = "Bien Raíz Vendido";
-//     String body = "El bien raíz ${nombreController.text} ha sido vendido.";
-//     await NotificationServices.EnviarNotificacion(title, body, widget.btrpId as String);
-//     // ScaffoldMessenger.of(context).showSnackBar(
-//     //   SnackBar(content: Text('Notificación de venta completada enviada.')),
-//     // );
-//   } catch (e) {
-//     print('Error al enviar la notificación de venta completada: $e');
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text('Error al enviar la notificación de venta completada.')),
-//     );
-//   }
-// }
-
-// Future<void> _notificarVentaCompletada() async {
-//   try {
-//     var prefs = PreferenciasUsuario();
-//     String title = "Bien Raíz Vendido";
-//     String body = "El bien raíz ${nombreController.text} ha sido vendido.";
-
-//     // Intentar convertir el valor de prefs.userId a un int
-//     int? usuarioCreacionId = int.tryParse(prefs.userId);
-
-//     // Verificar si la conversión fue exitosa
-//     if (usuarioCreacionId != null) {
-//       // Crear instancia de NotificationServices
-//       final notificationService = NotificationServices();
-//         await NotificationServices.EnviarNotificacionAAdministradores(title, body);
-
-//       // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
-//       await notificationService.enviarNotificacionYRegistrarEnBD(title, body, usuarioCreacionId);
-
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Notificación de venta completada enviada.')),
-//       );
-//     } else {
-//       // Si la conversión falló, manejar el error
-//       print('Error: userId no es un número válido.');
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error: ID de usuario no válido.')),
-//       );
-//     }
-//   } catch (e) {
-//     print('Error al enviar la notificación de venta completada: $e');
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text('Error al enviar la notificación de venta completada.')),
-//     );
-//   }
-// }
 
   Future<void> _notificarVentaCompletada() async {
     try {
