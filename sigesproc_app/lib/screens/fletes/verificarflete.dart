@@ -568,6 +568,29 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
   }
 
+
+    Future<void> _enviarNotificacionFleteIncidencias() async {
+    var prefs = PreferenciasUsuario();
+
+    int? usuarioCreacionId = int.tryParse(prefs.userId);
+
+    String title = 'Nuevo flete con Incidencias';
+    String body =
+        'Se recibió el flete con Incidecias por ${flete.supervisorSalida} desde ${flete.salida}';
+
+    // Enviar la notificación a los administradores
+    if (usuarioCreacionId != null) {
+      // Crear instancia de NotificationServices
+      final notificationService = NotificationServices();
+      await NotificationServices.EnviarNotificacionAAdministradores(
+          title, body);
+
+      // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+      await notificationService.enviarNotificacionYRegistrarEnBD(
+          title, body, usuarioCreacionId);
+    }
+  }
+
   Widget _buildSubirImagenButton() {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
@@ -712,6 +735,8 @@ class _VerificarFleteState extends State<VerificarFlete>
                       guardarya = true;
                     });
                     await _guardarFleteEIncidencia();
+                    await _enviarNotificacionFleteIncidencias();
+                    await _enviarNotificacionFleteVerificado();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFFF0C6),

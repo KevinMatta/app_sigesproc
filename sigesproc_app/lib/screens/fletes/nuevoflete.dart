@@ -197,6 +197,30 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     _loadNotifications();
   }
 
+
+
+  Future<void> _enviarNotificacionFletenuevo() async {
+    var prefs = PreferenciasUsuario();
+
+    int? usuarioCreacionId = int.tryParse(prefs.userId);
+
+    String title = 'Nuevo Flete';
+    String body =
+        'Nuevo flete enviado por ${flete.supervisorSalida} desde ${flete.salida}';
+
+    // Enviar la notificación a los administradores
+    if (usuarioCreacionId != null) {
+      // Crear instancia de NotificationServices
+      final notificationService = NotificationServices();
+      await NotificationServices.EnviarNotificacionAAdministradores(
+          title, body);
+
+      // Llamar al método de instancia para enviar la notificación y registrar en la base de datos
+      await notificationService.enviarNotificacionYRegistrarEnBD(
+          title, body, usuarioCreacionId);
+    }
+  }
+
   Future<void> _insertarToken() async {
     var prefs = PreferenciasUsuario();
     String? token = prefs.token;
@@ -1418,6 +1442,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
       final int? flenIdNuevo =
           await FleteEncabezadoService.insertarFlete(flete);
+          
       print('guardo e id $flenIdNuevo');
       if (flenIdNuevo != null) {
         for (int i = 0; i < selectedInsumos.length; i++) {
@@ -1441,6 +1466,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           );
           print('Detalle eq: ${detalle.toJson()}');
           await FleteDetalleService.insertarFleteDetalle(detalle);
+          await _enviarNotificacionFletenuevo();
         }
         Navigator.push(
           context,
@@ -1450,6 +1476,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Insertado con Éxito.')),
+          
         );
       } else {
         _cargando = false;
