@@ -428,7 +428,7 @@ class _VentaState extends State<Venta> {
       bottomNavigationBar: Padding(
         padding:
             EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: _buildSaveCancelButtons(),
+        child: _cargando ? SizedBox.shrink() : _buildSaveCancelButtons(),
       ),
       drawer: MenuLateral(
         selectedIndex: _selectedIndex,
