@@ -94,4 +94,8 @@ class PreferenciasUsuario {
   String get nombreusuario {
     return _prefs.getString('usuario') ?? '';
   }
+
+    String get esAdmin {
+    return _prefs.getString('EsAdmin') ?? '';
+  }
 }
