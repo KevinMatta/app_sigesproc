@@ -1,6 +1,9 @@
 class Detalleviaticoviewmodel {
 
    List<String> imagenes;
+   List<String>? videImagenFacturaList;
+
+   
 
   int? codigo;
   String? empleado;
@@ -30,6 +33,7 @@ class Detalleviaticoviewmodel {
   
 
   Detalleviaticoviewmodel({
+    this.videImagenFacturaList,
     required this.imagenes,
     this.codigo,
     this.empleado,

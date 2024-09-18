@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigesproc_app/models/viaticos/CategoriaViaticoViewModel.dart';
+import 'package:sigesproc_app/models/viaticos/detalleviaticoViewModel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoDetViewModel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/screens/acceso/notificacion.dart';
@@ -82,18 +83,20 @@ class _AgregarFacturaState extends State<AgregarFactura> {
     });
   }
 
-  Future<void> _cargarDetalleViatico() async {
-    try {
-      final detalle = await ViaticosEncService.buscarViaticoDetalle(widget.viaticoId);
-      setState(() {
-        if (detalle.videImagenFactura != null && detalle.videImagenFactura!.isNotEmpty) {
-          _loadedImages = detalle.videImagenFactura!.split(',').map((url) => url.trim()).toList();
-        }
-      });
-    } catch (e) {
-      print('Error al cargar el detalle del viático: $e');
-    }
+Future<void> _cargarDetalleViatico() async {
+  try {
+    final detalle = await ViaticosEncService.buscarViaticoDetalle(widget.viaticoId);
+    setState(() {
+      // Usar directamente la lista videImagenFacturaList, que ya tiene las URLs completas
+      if (detalle.videImagenFacturaList != null && detalle.videImagenFacturaList!.isNotEmpty) {
+        _loadedImages = detalle.videImagenFacturaList!;
+      }
+    });
+  } catch (e) {
+    print('Error al cargar el detalle del viático: $e');
   }
+}
+
 
   void _seleccionarImagen() async {
     final result = await FilePicker.platform.pickFiles(
@@ -176,6 +179,7 @@ class _AgregarFacturaState extends State<AgregarFactura> {
         SnackBar(content: Text('Factura insertada con éxito.')),
       );
       _limpiarFormulario();
+      _cargarDetalleViatico();
     } catch (e, stacktrace) {
       print('Error al guardar la factura: $e');
       print('Stacktrace: $stacktrace');
@@ -244,57 +248,82 @@ class _AgregarFacturaState extends State<AgregarFactura> {
   });
 }
 
+void _cargarDatosDeImagen(Detalleviaticoviewmodel detalleImagen) {
+  setState(() {
+    descripcionController.text = detalleImagen.videDescripcion ?? '';
+    montoGastadoController.text = detalleImagen.videMontoGastado?.toString() ?? '';
+    montoReconocidoController.text = detalleImagen.videMontoReconocido?.toString() ?? '';
+    categoriaController.text = detalleImagen.caviDescripcion ?? '';
+    categoriaSeleccionada = detalleImagen.caviId.toString();  // Guardar la categoría seleccionada
+  });
+}
 
-  Widget _buildCarruselDeImagenes() {
-    return CarouselSlider(
-      options: CarouselOptions(
-        height: 200.0,
-        enableInfiniteScroll: false,
-        viewportFraction: 0.8,
-        enlargeCenterPage: true,
-      ),
-      items: [
+
+List<Detalleviaticoviewmodel> _detallesImagenes = [];
+
+
+
+
+
+Widget _buildCarruselDeImagenes() {
+  return CarouselSlider(
+    options: CarouselOptions(
+      height: 200.0,
+      enableInfiniteScroll: false,
+      viewportFraction: 0.8,
+      enlargeCenterPage: true,
+    ),
+    items: [
+      if (_uploadedImages.isNotEmpty)
         ..._uploadedImages.asMap().entries.map((entry) {
           int index = entry.key;
           final imagePath = entry.value.path;
           if (imagePath != null && File(imagePath).existsSync()) {
-            return Stack(
-              children: [
-                Container(
-                  margin: EdgeInsets.all(5.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.0),
-                    color: Color(0xFF222222),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10.0),
-                    child: Image.file(
-                      File(imagePath),
-                      fit: BoxFit.cover,
-                      width: 1000.0,
+            return GestureDetector(
+              onTap: () {
+                // Llenar los datos de la imagen seleccionada en los campos
+                if (index < _detallesImagenes.length) {
+                  _cargarDatosDeImagen(_detallesImagenes[index]);
+                }
+              },
+              child: Stack(
+                children: [
+                  Container(
+                    margin: EdgeInsets.all(5.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      color: Color(0xFF222222),
                     ),
-                  ),
-                ),
-                Positioned(
-                  top: 5,
-                  right: 5,
-                  child: GestureDetector(
-                    onTap: () => _removeImage(index),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(255, 189, 13, 0).withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: EdgeInsets.all(5),
-                      child: Icon(
-                        Icons.delete_forever,
-                        color: Colors.white,
-                        size: 20,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Image.file(
+                        File(imagePath),
+                        fit: BoxFit.cover,
+                        width: 1000.0,
                       ),
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    top: 5,
+                    right: 5,
+                    child: GestureDetector(
+                      onTap: () => _removeImage(index),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color.fromARGB(255, 189, 13, 0).withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.all(5),
+                        child: Icon(
+                          Icons.delete_forever,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           } else {
             return Center(
@@ -305,38 +334,53 @@ class _AgregarFacturaState extends State<AgregarFactura> {
             );
           }
         }).toList(),
-        ..._loadedImages.map((imageUrl) {
-          print("Mostrando imagen desde el servidor: $imageUrl");
-          return Container(
-            margin: EdgeInsets.all(5.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
-              color: Color(0xFF222222),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                width: 1000.0,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: Center(
-                      child: Text(
-                        'Imagen no disponible',
-                        style: TextStyle(color: Colors.black),
+      if (_loadedImages.isNotEmpty)
+        ..._loadedImages.asMap().entries.map((entry) {
+          int index = entry.key;
+          final fullImageUrl = entry.value; // Ya contiene la URL completa
+          return GestureDetector(
+            onTap: () {
+              // Cargar datos de la imagen cuando es seleccionada
+              if (index < _detallesImagenes.length) {
+                _cargarDatosDeImagen(_detallesImagenes[index]);
+              }
+            },
+            child: Container(
+              margin: EdgeInsets.all(5.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                color: Color(0xFF222222),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: Image.network(
+                  fullImageUrl,
+                  fit: BoxFit.cover,
+                  width: 1000.0,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: Center(
+                        child: Text(
+                          'Imagen no disponible',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           );
         }).toList(),
-      ],
-    );
-  }
+    ],
+  );
+}
+
+
+
+
+
     void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;

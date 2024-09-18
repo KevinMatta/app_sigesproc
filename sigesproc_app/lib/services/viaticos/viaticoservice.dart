@@ -39,23 +39,26 @@ static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
     final data = json.decode(response.body);
 
     if (data is List && data.isNotEmpty) {
-      // Obtener el objeto de detalle
+      // Definir la URL base para las imágenes
+      const String baseUrl = 'https://backendsigesproc-production-4160.up.railway.app';
+
+      // Crear una lista para almacenar todas las imágenes de los objetos JSON
+      List<String> imagenes = [];
+
+      // Iterar sobre cada objeto en el JSON
+      for (var item in data) {
+        // Verificar si el campo de imagen no es nulo y tiene contenido
+        if (item['vide_ImagenFactura'] != null && item['vide_ImagenFactura'].isNotEmpty) {
+          // Concatenar la URL base con la ruta relativa de la imagen y agregarla a la lista
+          imagenes.add('$baseUrl${item['vide_ImagenFactura'].trim()}');
+        }
+      }
+
+      // Crear el modelo de detalle
       final detalle = Detalleviaticoviewmodel.fromJson(data[0]);
 
-      // Concatenar la URL base de la imagen si es necesario
-      const String baseUrl = 'http://www.apisigesproc.somee.com';  // Cambia a tu URL real
-
-      // Asegúrate de que el campo de imagen no sea nulo y que contenga una ruta
-      if (detalle.videImagenFactura != null && detalle.videImagenFactura!.isNotEmpty) {
-        // Convertir la cadena separada por comas en una lista de URLs de las imágenes
-        List<String> imagenes = detalle.videImagenFactura!.split(',').map((imagePath) {
-          // Quitar espacios en blanco y concatenar con la URL base
-          return '$baseUrl${imagePath.trim()}';
-        }).toList();
-
-        // Asignar la lista de imágenes procesadas al detalle
-        detalle.videImagenFactura = imagenes.join(',');
-      }
+      // Asignar la lista de imágenes procesadas al modelo
+      detalle.videImagenFacturaList = imagenes;
 
       return detalle;
     } else {
@@ -65,8 +68,6 @@ static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
     throw Exception('Error al buscar el detalle del viático');
   }
 }
-
-
 
 
 
