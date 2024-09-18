@@ -1667,9 +1667,13 @@ class _EditarFleteState extends State<EditarFlete>
       }
 
       if (bodegaSalidaCambiada) {
+        print('cambio');
+
         // Eliminar todos los detalles existentes para este flete
         final detallesExistentes =
             await FleteDetalleService.listarDetallesdeFlete(flete.flenId!);
+
+        print('detallesexistentes $detallesExistentes');
 
         for (var detalle in detallesExistentes) {
           print('Eliminando detalle con fldeId: ${detalle.fldeId}');
@@ -1925,8 +1929,15 @@ class _EditarFleteState extends State<EditarFlete>
               content:
                   Text('Algo salió mal. Comuníquese con un Administrador.')),
         );
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
+      print('ay por que yo $e');
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Algo salió mal. Comuníquese con un Administrador.')),

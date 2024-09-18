@@ -187,6 +187,6 @@ class FleteDetalleViewModel {
 
    @override
   String toString() {
-    return 'FleteDetalleViewModel(flenId: $flenId, fldeId $fldeId, inpp $inppId, cantidad: $fldeCantidad, insudescripcion: $insuDescripcion, equsnombre: $equsNombre, equsdescripcion $equsDescripcion, fldeLlegada: $fldeLlegada, fldeTipodeCarga: $fldeTipodeCarga, usuacreacion $usuaCreacion, fechachreacion $fldeFechaCreacion';
+    return 'FleteDetalleViewModel(flenId: $flenId, fldeId $fldeId, inpp $inppId, cantidad: $fldeCantidad, insudescripcion: $insuDescripcion, matedes $mateDescripcion, unidad $unmeNombre, stock $bopiStock equsnombre: $equsNombre, equsdescripcion $equsDescripcion, fldeLlegada: $fldeLlegada, fldeTipodeCarga: $fldeTipodeCarga, usuacreacion $usuaCreacion, fechachreacion $fldeFechaCreacion';
   }
 }
