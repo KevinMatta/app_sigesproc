@@ -375,10 +375,19 @@ class _ViaticoState extends State<Viatico> {
             '¿Está seguro de querer eliminar el viático en el proyecto ${viatico.proyecto}?',
             style: TextStyle(color: Colors.white),
           ),
+          
           backgroundColor: Color(0xFF171717),
           actions: [
             TextButton(
-              child: Text('Eliminar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: Text('Eliminar', style: TextStyle(color: Colors.black)),
               onPressed: () async {
                 try {
                   await ViaticosEncService.eliminarViatico(viatico.vienId!);
@@ -401,6 +410,14 @@ class _ViaticoState extends State<Viatico> {
               },
             ),
             TextButton(
+               style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
               child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -425,7 +442,16 @@ class _ViaticoState extends State<Viatico> {
           backgroundColor: Color(0xFF171717),
           actions: [
             TextButton(
-              child: Text('Aceptar', style: TextStyle(color: Color(0xFFFFF0C6))),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFFFF0C6),
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              
+              child: Text('Aceptar', style: TextStyle(color: Colors.black)),
               onPressed: () async {
                 try {
                   await ViaticosEncService.finalizarViatico(viatico.vienId!);
@@ -444,6 +470,14 @@ class _ViaticoState extends State<Viatico> {
               },
             ),
             TextButton(
+               style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                textStyle: TextStyle(fontSize: 14),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
               child: Text('Cancelar', style: TextStyle(color: Color(0xFFFFF0C6))),
               onPressed: () {
                 Navigator.of(context).pop();

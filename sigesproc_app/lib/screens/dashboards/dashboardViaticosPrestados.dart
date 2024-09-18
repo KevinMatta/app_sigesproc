@@ -134,14 +134,14 @@ class _DashboardViaticosMesActualState
                                   text: 'Gastado: $_abreviaturaMoneda ',
                                   style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 20,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 TextSpan(
                                   text: formatNumber(totalGastadoMes),
                                   style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 20,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ],
@@ -155,12 +155,12 @@ class _DashboardViaticosMesActualState
                                 TextSpan(
                                   text: 'Estimado: $_abreviaturaMoneda ',
                                   style: TextStyle(
-                                      color: Colors.white70, fontSize: 14),
+                                      color: Colors.white70, fontSize: 12),
                                 ),
                                 TextSpan(
                                   text: formatNumber(montoEstimadoMes),
                                   style: TextStyle(
-                                      color: Colors.white70, fontSize: 14),
+                                      color: Colors.white70, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -170,7 +170,7 @@ class _DashboardViaticosMesActualState
                           Text(
                             'Viáticos: $cantidadViaticosMes',
                             style:
-                                TextStyle(color: Colors.white70, fontSize: 14),
+                                TextStyle(color: Colors.white70, fontSize: 12),
                           ),
                         ],
                       ),
