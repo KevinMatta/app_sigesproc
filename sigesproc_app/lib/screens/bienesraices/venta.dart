@@ -633,10 +633,15 @@ class _VentaState extends State<Venta> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(color: Colors.white)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+        Wrap(
+          // Usar Wrap en lugar de Row para que los elementos se ajusten a la pantalla
+          spacing: 10.0, // Espaciado horizontal entre los RadioButtons
+          runSpacing:
+              10.0, // Espaciado vertical entre las líneas de RadioButtons
           children: options.map((option) {
             return Row(
+              mainAxisSize: MainAxisSize
+                  .min, // Mantener el tamaño mínimo de los elementos
               children: [
                 Radio<String>(
                   value: option,
@@ -1497,7 +1502,8 @@ class _VentaState extends State<Venta> {
                     try {
                       await ClienteService.listarClientes();
 
-                      String dni = clienteController.text.split(' - ')[1]; // Eliminar el nombre completo y obtener el DNI
+                      String dni = clienteController.text.split(' - ')[
+                          1]; // Eliminar el nombre completo y obtener el DNI
 
                       // Buscar el cliente por su DNI
                       ClienteViewModel? clienteSeleccionado =
