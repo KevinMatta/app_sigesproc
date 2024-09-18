@@ -396,7 +396,7 @@ class _EditarViaticoState extends State<EditarViatico> {
 
 Widget _buildBottomButtons() {
   return Container(
-    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 15.0),
+    padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 1.0),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.end, // Alinea los botones a la derecha
       children: [
