@@ -205,8 +205,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     int? usuarioCreacionId = int.tryParse(prefs.userId);
 
     String title = 'Nuevo Flete';
+    String encargado = encargadoController.text.split(' - ')[0];
+    String salida = salidaController.text;
+
     String body =
-        'Nuevo flete enviado por ${flete.supervisorSalida} desde ${flete.salida}';
+        'Nuevo flete enviado por $encargado desde $salida';
 
     // Enviar la notificación a los administradores
     if (usuarioCreacionId != null) {
@@ -1466,8 +1469,9 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           );
           print('Detalle eq: ${detalle.toJson()}');
           await FleteDetalleService.insertarFleteDetalle(detalle);
-          await _enviarNotificacionFletenuevo();
         }
+        await _enviarNotificacionFletenuevo();
+
         Navigator.push(
           context,
           MaterialPageRoute(

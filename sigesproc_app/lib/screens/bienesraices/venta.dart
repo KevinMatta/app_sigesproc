@@ -46,6 +46,8 @@ class _VentaState extends State<Venta> {
   TextEditingController clienteController = TextEditingController();
   TextEditingController nombreController = TextEditingController();
   TextEditingController telefonoController = TextEditingController();
+  TextEditingController precioInicialController = TextEditingController();
+  TextEditingController fechaInicialController = TextEditingController();
   TextEditingController precioController = TextEditingController();
   TextEditingController fechaController = TextEditingController();
   TextEditingController dniController = TextEditingController();
@@ -59,6 +61,9 @@ class _VentaState extends State<Venta> {
   TextEditingController estadoController = TextEditingController();
   TextEditingController ciudadController = TextEditingController();
   TextEditingController estadocivilController = TextEditingController();
+
+  Future<List<ProcesoVentaViewModel>>? _procesosventaFuture;
+  List<ProcesoVentaViewModel>? _selectedVenta;
 
   bool _precioFueEditado = false;
   bool _fechaFueEditada = false;
@@ -79,6 +84,8 @@ class _VentaState extends State<Venta> {
 
   String? dniErrorMessage;
   String? correoErrorMessage;
+  String? precioErrorMessage;
+  String? fechaErrorMessage;
 
   bool _mostrarFormularioCliente = false;
   String sexo = 'Femenino';
@@ -104,8 +111,8 @@ class _VentaState extends State<Venta> {
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // Cargamos el userId desde las preferencias.
-
+    _loadUserId();
+    _cargarDatosBienRaiz();
     _loadUserProfileData();
     _cargarClientes();
     _cargarPaises();
@@ -181,6 +188,39 @@ class _VentaState extends State<Venta> {
     } catch (e) {
       print("Error al cargar los datos del usuario: $e");
     }
+  }
+
+  void _cargarDatosBienRaiz() {
+    setState(() {
+      _cargando = true;
+      _procesosventaFuture = ProcesoVentaService.Buscar(
+        widget.btrpId,
+        widget.btrpTerrenoOBienRaizId,
+        widget.btrpBienoterrenoId,
+      );
+
+      _procesosventaFuture!.then((value) {
+        setState(() {
+          _selectedVenta = value;
+
+          if (_selectedVenta != null && _selectedVenta!.isNotEmpty) {
+            precioInicialController.text =
+                _selectedVenta![0].btrpPrecioVentaInicio?.toString() ?? '';
+            fechaInicialController.text =
+                _selectedVenta![0].btrpFechaPuestaVenta != null
+                    ? DateFormat('dd/MM/yyyy')
+                        .format(_selectedVenta![0].btrpFechaPuestaVenta!)
+                    : '';
+          }
+          _cargando = false;
+        });
+      }).catchError((error) {
+        setState(() {
+          _cargando = false;
+        });
+        print('Error al cargar los detalles del bien raíz: $error');
+      });
+    });
   }
 
   Future<void> _cargarClientes() async {
@@ -1102,16 +1142,25 @@ class _VentaState extends State<Venta> {
                           telefonoController.text.isEmpty,
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 20),
+                  _campodeTexto('Precio Inicial', precioInicialController, '',
+                      enabled: false),
+                  SizedBox(height: 20),
+                  _buildDateField(
+                      'Fecha de Venta Inicial', fechaInicialController,
+                      enabled: false),
+                  SizedBox(height: 20),
                   _campodeTexto('Precio Final', precioController, '0.00',
                       isNumeric: true,
                       showError:
-                          _mostrarErroresventa && precioController.text.isEmpty,
-                      errorMessage: 'El campo es requerido.'),
+                          _mostrarErroresventa && precioErrorMessage != null,
+                      errorMessage:
+                          precioErrorMessage ?? 'El campo es requerido.'),
                   SizedBox(height: 20),
                   _buildDateField('Fecha de Venta Final', fechaController,
                       showError:
-                          _mostrarErroresventa && fechaController.text.isEmpty,
-                      errorMessage: 'El campo es requerido.'),
+                          _mostrarErroresventa && fechaErrorMessage != null,
+                      errorMessage:
+                          fechaErrorMessage ?? 'El campo es requerido.'),
                 ],
               ),
             ),
@@ -1242,7 +1291,7 @@ class _VentaState extends State<Venta> {
             setState(() {
               dniController.text = '';
               nombreclientecontroller.text = '';
-              apellidoController.text = ''; 
+              apellidoController.text = '';
               correoController.text = '';
               telefonoclienteController.text = '';
               fechaNacimientoController.text = '';
@@ -1278,6 +1327,11 @@ class _VentaState extends State<Venta> {
         filled: true,
         fillColor: Colors.black,
         border: OutlineInputBorder(),
+        errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
+        errorStyle: TextStyle(
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
+        ),
         errorText: shouldShowError ? errorMessage : null,
       ),
       style: TextStyle(color: Colors.white),
@@ -1295,16 +1349,23 @@ class _VentaState extends State<Venta> {
   }
 
   Widget _buildDateField(String label, TextEditingController controller,
-      {bool showError = false, String? errorMessage}) {
+      {bool showError = false, bool enabled = true, String? errorMessage}) {
+    bool shouldShowError = showError && enabled;
     return TextField(
       controller: controller,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.black,
         labelStyle: TextStyle(color: Colors.white),
-        errorText: showError ? errorMessage : null,
+        errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
+        errorStyle: TextStyle(
+          fontSize: 12,
+          height: 1.0, // Controla el espaciado entre líneas
+        ),
+        errorText: shouldShowError ? errorMessage : null,
       ),
       style: TextStyle(color: Colors.white),
       readOnly: true,
@@ -1354,6 +1415,7 @@ class _VentaState extends State<Venta> {
               });
               try {
                 if (_mostrarFormularioCliente) {
+                  print('aaaaaaaaa entra cliente');
                   setState(() {
                     _mostrarErrores = true;
                   });
@@ -1404,7 +1466,7 @@ class _VentaState extends State<Venta> {
                         // Actualizar los controladores en la vista de venta de bien raíz
                         setState(() {
                           clienteController.text =
-                              "${clienteInsertado.clieDNI} - ${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
+                              "${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido} - ${clienteInsertado.clieDNI}";
                           nombreController.text =
                               "${clienteInsertado.clieNombre} ${clienteInsertado.clieApellido}";
                           telefonoController.text =
@@ -1435,17 +1497,14 @@ class _VentaState extends State<Venta> {
                     try {
                       await ClienteService.listarClientes();
 
-                      // Comparar usando el DNI extraído del controlador clienteController
-                      String dni = clienteController.text.split(' - ')[0];
+                      String dni = clienteController.text.split(' - ')[1]; // Eliminar el nombre completo y obtener el DNI
 
+                      // Buscar el cliente por su DNI
                       ClienteViewModel? clienteSeleccionado =
                           clientes.firstWhere(
                         (cliente) => cliente.clieDNI == dni,
                         orElse: () => ClienteViewModel(),
                       );
-
-                      print('Cliente seleccionado: $clienteSeleccionado');
-                      print('es nulo ${clienteSeleccionado.clieId}');
 
                       if (clienteSeleccionado.clieId != null) {
                         final venta = ProcesoVentaViewModel(
@@ -1457,9 +1516,8 @@ class _VentaState extends State<Venta> {
                           clieId: clienteSeleccionado.clieId.toString(),
                         );
 
-                        print('venta guardando $venta');
-
                         await ProcesoVentaService.venderProcesoVenta(venta);
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -1483,6 +1541,8 @@ class _VentaState extends State<Venta> {
                             content: Text('Error al vender la propiedad: $e')),
                       );
                     }
+                  } else {
+                    print('Formulario NO es válido');
                   }
                 }
               } catch (e) {
@@ -1535,12 +1595,74 @@ class _VentaState extends State<Venta> {
   }
 
   bool _isFormValid() {
-    return clienteController.text.isNotEmpty &&
+    // Imprimir los valores de los controladores al inicio
+    print('ClienteController: ${clienteController.text}');
+    print('NombreController: ${nombreController.text}');
+    print('TelefonoController: ${telefonoController.text}');
+    print('PrecioController: ${precioController.text}');
+    print('FechaController: ${fechaController.text}');
+
+    final double? precioInicial = double.tryParse(precioInicialController.text);
+    print('Precio Inicial: $precioInicial'); // Imprimir valor de precio inicial
+
+    final double? precioFinal = double.tryParse(precioController.text);
+    print('Precio Final: $precioFinal'); // Imprimir valor de precio final
+
+    final DateTime? fechaInicial = _parseDate(fechaInicialController.text);
+    print('Fecha Inicial: $fechaInicial'); // Imprimir valor de fecha inicial
+
+    final DateTime? fechaFinal = _parseDate(fechaController.text);
+    print('Fecha Final: $fechaFinal'); // Imprimir valor de fecha final
+
+    setState(() {
+      _mostrarErroresventa = true;
+
+      print('Set _mostrarErroresventa to true');
+
+      // Validación de precio
+      if (precioFinal == null || precioFinal < (precioInicial ?? 0)) {
+        precioErrorMessage =
+            'El precio final no puede ser menor al precio inicial.';
+        print('Error en precio: $precioErrorMessage');
+      } else {
+        precioErrorMessage = null;
+        print('Precio validado correctamente');
+      }
+
+      // Validación de fecha
+      if (fechaFinal == null ||
+          fechaFinal.isBefore(fechaInicial ?? DateTime.now())) {
+        fechaErrorMessage =
+            'La fecha de venta no puede ser anterior a la fecha inicial.';
+        print('Error en fecha: $fechaErrorMessage');
+      } else {
+        fechaErrorMessage = null;
+        print('Fecha validada correctamente');
+      }
+    });
+
+    // Validaciones para verificar si el formulario es válido
+    bool isValid = clienteController.text.isNotEmpty &&
         nombreController.text.isNotEmpty &&
         telefonoController.text.isNotEmpty &&
         precioController.text.isNotEmpty &&
         fechaController.text.isNotEmpty &&
-        RegExp(r'^\d{1,15}(\.\d{1,2})?$').hasMatch(precioController.text);
+        RegExp(r'^\d{1,15}(\.\d{1,2})?$').hasMatch(precioController.text) &&
+        precioErrorMessage == null && // No debe haber error en el precio
+        fechaErrorMessage == null; // No debe haber error en la fecha
+
+    print('Formulario válido: $isValid');
+
+    return isValid;
+  }
+
+  DateTime? _parseDate(String date) {
+    try {
+      return DateFormat('dd/MM/yyyy').parse(date);
+    } catch (e) {
+      print('Error parsing date: $e');
+      return null;
+    }
   }
 
   bool _isClienteFormValid() {
