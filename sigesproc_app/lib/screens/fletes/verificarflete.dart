@@ -735,8 +735,7 @@ class _VerificarFleteState extends State<VerificarFlete>
                       guardarya = true;
                     });
                     await _guardarFleteEIncidencia();
-                    await _enviarNotificacionFleteIncidencias();
-                    await _enviarNotificacionFleteVerificado();
+                    
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFFFF0C6),
@@ -1677,6 +1676,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       await FleteEncabezadoService.editarFlete(flete);
 
       if (!hayNoVerificados) {
+        await _enviarNotificacionFleteVerificado();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Verificado con Éxito.')),
         );
@@ -1749,6 +1749,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     try {
       await FleteControlCalidadService.insertarIncidencia(incidencia);
       if (guardarya) {
+        await _enviarNotificacionFleteIncidencias();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Insertado con Éxito.')),
         );

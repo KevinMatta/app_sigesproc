@@ -251,6 +251,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           color: Colors.red,
           points: polylineAlmacenada,
           width: 5,
+          zIndex: 2,
         );
       });
       } else {
@@ -313,6 +314,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
               color: Colors.red,
               points: [...polylineAlmacenada, ...nuevaPolyline], // Añadir la nueva polyline a la ruta
               width: 5,
+              zIndex: 2,
             );
           });
         }
@@ -355,7 +357,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
       print('Origen: $inicio, Destino: $destino');
       final coordinates = await polylinePuntos(inicio, destino);
       final id = PolylineId('polyline_azul_${widget.flenId}');
-      await generarPolylineporPuntos(coordinates, Colors.blue, id.toString());
+      await generarPolylineporPuntos(coordinates, Colors.blue, id.toString(), 1); // zIndex para la línea azul
       print('Polyline azul generada con ID: $id');
     } else {
       print('Ubicaciones inválidas para la generación de rutas.');
@@ -1020,20 +1022,21 @@ class _DetalleFleteState extends State<DetalleFlete> {
 }
 
   Future<void> generarPolylineporPuntos(
-      List<LatLng> polylineCoordenadas, Color color, String id) async {
-    final polylineId = PolylineId(id);
+    List<LatLng> polylineCoordenadas, Color color, String id, int zIndex) async {
+  final polylineId = PolylineId(id);
 
-    final polyline = Polyline(
-      polylineId: polylineId,
-      color: color,
-      points: polylineCoordenadas,
-      width: 5,
-    );
+  final polyline = Polyline(
+    polylineId: polylineId,
+    color: color,
+    points: polylineCoordenadas,
+    width: 5,
+    zIndex: zIndex, // Aplicar el zIndex
+  );
 
-    if (mounted) {
-      setState(() => polylines[polylineId] = polyline);
-    }
+  if (mounted) {
+    setState(() => polylines[polylineId] = polyline);
   }
+}
 
   String formatDateTime(DateTime? dateTime) {
     if (dateTime == null) {
