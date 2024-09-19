@@ -31,7 +31,7 @@ class ViaticosEncService {
     }
   }
 
-static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
+static Future<List<Detalleviaticoviewmodel>> buscarViaticoDetalle(int id) async {
   final url = Uri.parse('${ApiService.apiUrl}/ViaticosEnc/BuscarEncDet/$id');
   final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
@@ -42,25 +42,25 @@ static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
       // Definir la URL base para las imágenes
       const String baseUrl = 'https://backendsigesproc-production-4160.up.railway.app';
 
-      // Crear una lista para almacenar todas las imágenes de los objetos JSON
-      List<String> imagenes = [];
+      // Lista para almacenar todos los detalles
+      List<Detalleviaticoviewmodel> detalles = [];
 
       // Iterar sobre cada objeto en el JSON
       for (var item in data) {
+        // Crear el modelo de detalle para cada objeto
+        final detalle = Detalleviaticoviewmodel.fromJson(item);
+
         // Verificar si el campo de imagen no es nulo y tiene contenido
         if (item['vide_ImagenFactura'] != null && item['vide_ImagenFactura'].isNotEmpty) {
-          // Concatenar la URL base con la ruta relativa de la imagen y agregarla a la lista
-          imagenes.add('$baseUrl${item['vide_ImagenFactura'].trim()}');
+          // Concatenar la URL base con la ruta relativa de la imagen
+          detalle.videImagenFacturaList = ['$baseUrl${item['vide_ImagenFactura'].trim()}'];
         }
+
+        // Agregar el detalle a la lista
+        detalles.add(detalle);
       }
 
-      // Crear el modelo de detalle
-      final detalle = Detalleviaticoviewmodel.fromJson(data[0]);
-
-      // Asignar la lista de imágenes procesadas al modelo
-      detalle.videImagenFacturaList = imagenes;
-
-      return detalle;
+      return detalles;
     } else {
       throw Exception('No se encontraron datos en la respuesta');
     }
@@ -68,6 +68,8 @@ static Future<Detalleviaticoviewmodel> buscarViaticoDetalle(int id) async {
     throw Exception('Error al buscar el detalle del viático');
   }
 }
+
+
 
 
 

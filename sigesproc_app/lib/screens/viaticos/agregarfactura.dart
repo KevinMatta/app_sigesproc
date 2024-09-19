@@ -85,17 +85,25 @@ class _AgregarFacturaState extends State<AgregarFactura> {
 
 Future<void> _cargarDetalleViatico() async {
   try {
-    final detalle = await ViaticosEncService.buscarViaticoDetalle(widget.viaticoId);
+    final List<Detalleviaticoviewmodel> detalles = await ViaticosEncService.buscarViaticoDetalle(widget.viaticoId);
     setState(() {
-      // Usar directamente la lista videImagenFacturaList, que ya tiene las URLs completas
-      if (detalle.videImagenFacturaList != null && detalle.videImagenFacturaList!.isNotEmpty) {
-        _loadedImages = detalle.videImagenFacturaList!;
+      // Limpiar la lista de imágenes cargadas previamente
+      _loadedImages.clear();
+
+      // Iterar sobre cada detalle para obtener las imágenes
+      for (var detalle in detalles) {
+        if (detalle.videImagenFacturaList != null && detalle.videImagenFacturaList!.isNotEmpty) {
+          // Agregar cada imagen individual a la lista _loadedImages
+          _loadedImages.addAll(detalle.videImagenFacturaList!);
+          _detallesImagenes.add(detalle); // Agregar los detalles correspondientes
+        }
       }
     });
   } catch (e) {
     print('Error al cargar el detalle del viático: $e');
   }
 }
+
 
 
   void _seleccionarImagen() async {
@@ -281,7 +289,7 @@ Widget _buildCarruselDeImagenes() {
           if (imagePath != null && File(imagePath).existsSync()) {
             return GestureDetector(
               onTap: () {
-                // Llenar los datos de la imagen seleccionada en los campos
+                // Llenar los datos de la imagen seleccionada en los campos del formulario
                 if (index < _detallesImagenes.length) {
                   _cargarDatosDeImagen(_detallesImagenes[index]);
                 }
@@ -303,6 +311,7 @@ Widget _buildCarruselDeImagenes() {
                       ),
                     ),
                   ),
+                  // Solo mostrar el botón de eliminar si es una imagen local
                   Positioned(
                     top: 5,
                     right: 5,
@@ -338,6 +347,7 @@ Widget _buildCarruselDeImagenes() {
         ..._loadedImages.asMap().entries.map((entry) {
           int index = entry.key;
           final fullImageUrl = entry.value; // Ya contiene la URL completa
+
           return GestureDetector(
             onTap: () {
               // Cargar datos de la imagen cuando es seleccionada
@@ -376,10 +386,6 @@ Widget _buildCarruselDeImagenes() {
     ],
   );
 }
-
-
-
-
 
     void _onItemTapped(int index) {
     setState(() {
