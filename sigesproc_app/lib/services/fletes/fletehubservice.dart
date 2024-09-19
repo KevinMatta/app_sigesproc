@@ -65,12 +65,13 @@ class FleteHubService {
     }
   }
 
-  Future<void> actualizarUbicacion(int emplId, LatLng ubicacion) async {
+  Future<void> actualizarUbicacion(
+      int emplId, int flenId, LatLng ubicacion) async {
     print(
-        'Intentando actualizar ubicación en SignalR: EmplId: $emplId, Ubicación: $ubicacion');
+        'Intentando actualizar ubicación en SignalR: EmplId: $emplId, FlenId: $flenId, Ubicación: $ubicacion');
     try {
       await connection.invoke("ActualizarUbicacion",
-          args: [emplId, ubicacion.latitude, ubicacion.longitude]);
+          args: [emplId, flenId, ubicacion.latitude, ubicacion.longitude]);
       print('Ubicación actualizada en SignalR: $ubicacion');
     } catch (e) {
       print('Error al actualizar ubicación en SignalR: $e');
@@ -78,13 +79,16 @@ class FleteHubService {
   }
 
   void onReceiveUbicacion(
-      Function(int emplId, double lat, double lng) onUbicacionRecibida) {
+      Function(int emplId, int flenId, double lat, double lng)
+          onUbicacionRecibida) {
     connection.on("RecibirUbicacion", (message) {
-      if (message != null && message.length == 3) {
+      if (message != null && message.length == 4) {
+        // Ahora recibimos 4 parámetros
         int emplId = message[0] as int;
-        double lat = message[1] as double;
-        double lng = message[2] as double;
-        onUbicacionRecibida(emplId, lat, lng);
+        int flenId = message[1] as int;
+        double lat = message[2] as double;
+        double lng = message[3] as double;
+        onUbicacionRecibida(emplId, flenId, lat, lng);
       }
     });
   }
