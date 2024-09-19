@@ -197,8 +197,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     _loadNotifications();
   }
 
-
-
   Future<void> _enviarNotificacionFletenuevo() async {
     var prefs = PreferenciasUsuario();
 
@@ -208,8 +206,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     String supervisor = supervisorSalidaController.text.split(' - ')[0];
     String salida = salidaController.text;
 
-    String body =
-        'Nuevo flete enviado por $supervisor desde $salida';
+    String body = 'Nuevo flete enviado por $supervisor desde $salida';
 
     // Enviar la notificación a los administradores
     if (usuarioCreacionId != null) {
@@ -372,8 +369,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     try {
       List<InsumoPorProveedorViewModel> insumosList =
           await FleteDetalleService.listarInsumosPorProveedorPorBodega(bodeId);
+      List<InsumoPorProveedorViewModel> insumosfiltrados = [];
       setState(() {
-        insumos = insumosList;
+        insumosfiltrados =
+            insumosList.where((insuu) => (insuu.bopiStock ?? 0) > 0).toList();
+        insumos = insumosfiltrados;
         // Inicializar controladores para cada insumo cargado
         quantityControllers = List.generate(
             insumos.length, (index) => TextEditingController(text: '1'));
@@ -388,8 +388,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     try {
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorBodega(bodeId);
+      List<EquipoPorProveedorViewModel> equiposfiltrados = [];
       setState(() {
-        equiposdeSeguridad = equiposList;
+        equiposfiltrados =
+            equiposList.where((equii) => (equii.bopiStock ?? 0) > 0).toList();
+        equiposdeSeguridad = equiposfiltrados;
         equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
             (index) => TextEditingController(text: '1'));
         selectedCantidadesequipos =
@@ -405,8 +408,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       List<InsumoPorProveedorViewModel> insumosList =
           await FleteDetalleService.listarInsumosPorProveedorPorActividadEtapa(
               acetId);
+      List<InsumoPorProveedorViewModel> insumosfiltrados = [];
       setState(() {
-        insumos = insumosList;
+        insumosfiltrados =
+            insumosList.where((insuu) => (insuu.bopiStock ?? 0) > 0).toList();
+        insumos = insumosfiltrados;
         // Inicializar controladores para cada insumo cargado
         quantityControllers = List.generate(
             insumos.length, (index) => TextEditingController(text: '1'));
@@ -422,9 +428,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorActividadEtapa(
               acetId);
+      List<EquipoPorProveedorViewModel> equiposfiltrados = [];
 
       setState(() {
-        equiposdeSeguridad = equiposList;
+        equiposfiltrados =
+            equiposList.where((equii) => (equii.bopiStock ?? 0) > 0).toList();
+        equiposdeSeguridad = equiposfiltrados;
         equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
             (index) => TextEditingController(text: '1'));
         selectedCantidadesequipos =
@@ -1445,7 +1454,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
       final int? flenIdNuevo =
           await FleteEncabezadoService.insertarFlete(flete);
-          
+
       print('guardo e id $flenIdNuevo');
       if (flenIdNuevo != null) {
         for (int i = 0; i < selectedInsumos.length; i++) {
@@ -1480,7 +1489,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Insertado con Éxito.')),
-          
         );
       } else {
         _cargando = false;

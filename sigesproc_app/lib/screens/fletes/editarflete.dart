@@ -401,31 +401,51 @@ class _EditarFleteState extends State<EditarFlete>
               quantityControllers = [];
               selectedInsumos = [];
 
+              List<InsumoPorProveedorViewModel> insumosFiltrados = [];
+
               for (var detalle in detallesInsumosCargados) {
                 var insumo = insumosList.firstWhere(
                     (insumo) => insumo.inppId == detalle.inppId,
                     orElse: () => InsumoPorProveedorViewModel());
+
                 if (insumo != null) {
-                  selectedInsumos.add(insumo);
+                  int stockTemporalInsumos =
+                      (insumo.bopiStock ?? 0) + detalle.fldeCantidad!;
                   print('INSUMOS CARGA $insumo');
                   print('DETALLES CARGA $detalle');
-                  selectedCantidades.add(detalle.fldeCantidad!);
-                  quantityControllers.add(TextEditingController(
-                      text: detalle.fldeCantidad.toString()));
-                  print(
-                      'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+
+                  // Solo agregar insumos cuyo stock temporal es mayor que 0
+                  if (stockTemporalInsumos > 0) {
+                    selectedInsumos.add(insumo);
+                    selectedCantidades.add(detalle.fldeCantidad!);
+                    quantityControllers.add(TextEditingController(
+                        text: detalle.fldeCantidad.toString()));
+                    insumo.bopiStock =
+                        stockTemporalInsumos; // Actualiza el stock temporal
+                    print(
+                        'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+
+                    // Añadir el insumo filtrado a la lista final
+                    insumosFiltrados.add(insumo);
+                  }
                 }
               }
 
-              // Asegurarse de que la lista de insumos contenga todos los insumos, no solo los seleccionados
+              // Asegurarse de que la lista de insumos contenga todos los insumos no seleccionados y filtrados
               for (var insumo in insumosList) {
-                if (!selectedInsumos.contains(insumo)) {
+                int stockTemporalInsumo = insumo.bopiStock ?? 0;
+
+                // Solo añadir insumos con stock temporal mayor que 0
+                if (!selectedInsumos.contains(insumo) &&
+                    stockTemporalInsumo > 0) {
                   quantityControllers.add(TextEditingController(text: '1'));
                   selectedCantidades.add(1);
+                  insumosFiltrados
+                      .add(insumo); // Añadir el insumo a la lista filtrada
                 }
               }
 
-              insumos = insumosList;
+              insumos = insumosFiltrados;
             });
 
             print('Cargando equipos de seguridad para la bodega de salida');
@@ -447,31 +467,45 @@ class _EditarFleteState extends State<EditarFlete>
               equipoQuantityControllers = [];
               selectedEquipos = [];
 
+              List<EquipoPorProveedorViewModel> equiposFiltrados = [];
+
               for (var detalle in detallesEquiposCargados) {
                 var equipo = equiposList.firstWhere(
                     (equipo) => equipo.eqppId == detalle.inppId,
                     orElse: () => EquipoPorProveedorViewModel());
 
                 if (equipo != null) {
-                  selectedEquipos.add(equipo);
+                  
+                  int stocktemporalequipos =
+                      (equipo.bopiStock ?? 0) + detalle.fldeCantidad!;
+                  
+                  if (stocktemporalequipos > 0) {
+                    selectedEquipos.add(equipo);
                   selectedCantidadesequipos.add(detalle.fldeCantidad!);
-                  equipoQuantityControllers.add(TextEditingController(
+                   equipoQuantityControllers.add(TextEditingController(
                       text: detalle.fldeCantidad.toString()));
-                  print(
-                      'Cantidad seleccionada para equipo ${equipo.equsNombre}: ${detalle.fldeCantidad}');
+                  equipo.bopiStock = stocktemporalequipos; 
+
+                    // Añadir el equipo filtrado a la lista final
+                    equiposFiltrados.add(equipo);
+                  }
                 }
               }
 
-              // Asegurarse de que la lista de equipos contenga todos los equipos, no solo los seleccionados
               for (var equipo in equiposList) {
-                if (!selectedEquipos.contains(equipo)) {
+                int stocktemporalequipo = equipo.bopiStock ?? 0;
+
+                if (!selectedEquipos.contains(equipo) &&
+                    stocktemporalequipo > 0) {
                   equipoQuantityControllers
                       .add(TextEditingController(text: '1'));
                   selectedCantidadesequipos.add(1);
+                  equiposFiltrados
+                      .add(equipo); // Añadir el insumo a la lista filtrada
                 }
               }
-
-              equiposdeSeguridad = equiposList;
+              
+              equiposdeSeguridad = equiposFiltrados;
             });
           } else {
             print('Cargando insumos para la bodega de salida');
@@ -499,34 +533,50 @@ class _EditarFleteState extends State<EditarFlete>
               quantityControllers = [];
               selectedInsumos = [];
 
+              List<InsumoPorProveedorViewModel> insumosFiltrados = [];
+
               for (var detalle in detallesInsumosCargados) {
                 var insumo = insumosList.firstWhere(
                     (insumo) => insumo.inppId == detalle.inppId,
                     orElse: () => InsumoPorProveedorViewModel());
 
-                print('que prueba c $insumo');
-
                 if (insumo != null) {
-                  selectedInsumos.add(insumo);
-                  print('INSUMOS CARGA $insumo');
-                  print('DETALLES CARGA $detalle');
-                  selectedCantidades.add(detalle.fldeCantidad!);
-                  quantityControllers.add(TextEditingController(
-                      text: detalle.fldeCantidad.toString()));
-                  print(
-                      'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+                  int stockTemporalInsumos =
+                      (insumo.bopiStock ?? 0) + detalle.fldeCantidad!;
+
+                  // Solo agregar insumos cuyo stock temporal es mayor que 0
+                  if (stockTemporalInsumos > 0) {
+                    selectedInsumos.add(insumo);
+                    selectedCantidades.add(detalle.fldeCantidad!);
+                    quantityControllers.add(TextEditingController(
+                        text: detalle.fldeCantidad.toString()));
+                    insumo.bopiStock =
+                        stockTemporalInsumos; // Actualiza el stock temporal
+                    print(
+                        'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+
+                    // Añadir el insumo filtrado a la lista final
+                    insumosFiltrados.add(insumo);
+                  }
                 }
               }
 
-              // Asegurarse de que la lista de insumos contenga todos los insumos, no solo los seleccionados
+              // Asegurarse de que la lista de insumos contenga todos los insumos no seleccionados y filtrados
               for (var insumo in insumosList) {
-                if (!selectedInsumos.contains(insumo)) {
+                int stockTemporalInsumo = insumo.bopiStock ?? 0;
+
+                // Solo añadir insumos con stock temporal mayor que 0
+                if (!selectedInsumos.contains(insumo) &&
+                    stockTemporalInsumo > 0) {
                   quantityControllers.add(TextEditingController(text: '1'));
                   selectedCantidades.add(1);
+                  insumosFiltrados
+                      .add(insumo); // Añadir el insumo a la lista filtrada
                 }
               }
 
-              insumos = insumosList;
+              // Finalmente, asignar la lista de insumos filtrados
+              insumos = insumosFiltrados;
             });
 
             print('Cargando equipos de seguridad para la bodega de salida');
@@ -549,31 +599,45 @@ class _EditarFleteState extends State<EditarFlete>
               equipoQuantityControllers = [];
               selectedEquipos = [];
 
+              List<EquipoPorProveedorViewModel> equiposFiltrados = [];
+
               for (var detalle in detallesEquiposCargados) {
                 var equipo = equiposList.firstWhere(
                     (equipo) => equipo.eqppId == detalle.inppId,
                     orElse: () => EquipoPorProveedorViewModel());
 
                 if (equipo != null) {
-                  selectedEquipos.add(equipo);
+                  
+                  int stocktemporalequipos =
+                      (equipo.bopiStock ?? 0) + detalle.fldeCantidad!;
+                  
+                  if (stocktemporalequipos > 0) {
+                    selectedEquipos.add(equipo);
                   selectedCantidadesequipos.add(detalle.fldeCantidad!);
-                  equipoQuantityControllers.add(TextEditingController(
+                   equipoQuantityControllers.add(TextEditingController(
                       text: detalle.fldeCantidad.toString()));
-                  print(
-                      'Cantidad seleccionada para equipo ${equipo.equsNombre}: ${detalle.fldeCantidad}');
+                  equipo.bopiStock = stocktemporalequipos; 
+
+                    // Añadir el equipo filtrado a la lista final
+                    equiposFiltrados.add(equipo);
+                  }
                 }
               }
 
-              // Asegurarse de que la lista de equipos contenga todos los equipos, no solo los seleccionados
               for (var equipo in equiposList) {
-                if (!selectedEquipos.contains(equipo)) {
+                int stocktemporalequipo = equipo.bopiStock ?? 0;
+
+                if (!selectedEquipos.contains(equipo) &&
+                    stocktemporalequipo > 0) {
                   equipoQuantityControllers
                       .add(TextEditingController(text: '1'));
                   selectedCantidadesequipos.add(1);
+                  equiposFiltrados
+                      .add(equipo); // Añadir el insumo a la lista filtrada
                 }
               }
 
-              equiposdeSeguridad = equiposList;
+              equiposdeSeguridad = equiposFiltrados;
             });
           }
         }
@@ -697,8 +761,11 @@ class _EditarFleteState extends State<EditarFlete>
     try {
       List<InsumoPorProveedorViewModel> insumosList =
           await FleteDetalleService.listarInsumosPorProveedorPorBodega(bodeId);
+      List<InsumoPorProveedorViewModel> insumosfiltrados = [];
       setState(() {
-        insumos = insumosList;
+        insumosfiltrados =
+            insumosList.where((insuu) => (insuu.bopiStock ?? 0) > 0).toList();
+        insumos = insumosfiltrados;
         // Inicializar controladores para cada insumo cargado
         quantityControllers = List.generate(
             insumos.length, (index) => TextEditingController(text: '1'));
@@ -711,12 +778,13 @@ class _EditarFleteState extends State<EditarFlete>
 
   Future<void> _cargarEquiposDeSeguridadPorBodega(int bodeId) async {
     try {
-      print('entra a equi');
-
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorBodega(bodeId);
+      List<EquipoPorProveedorViewModel> equiposfiltrados = [];
       setState(() {
-        equiposdeSeguridad = equiposList;
+        equiposfiltrados =
+            equiposList.where((equii) => (equii.bopiStock ?? 0) > 0).toList();
+        equiposdeSeguridad = equiposfiltrados;
         equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
             (index) => TextEditingController(text: '1'));
         selectedCantidadesequipos =
@@ -726,6 +794,8 @@ class _EditarFleteState extends State<EditarFlete>
       print('Error al cargar los equipos de seguridad: $e');
     }
   }
+
+  
 
   Widget _buildBodegaAutocomplete(
       String label, TextEditingController controller) {
@@ -1054,8 +1124,11 @@ class _EditarFleteState extends State<EditarFlete>
       List<InsumoPorProveedorViewModel> insumosList =
           await FleteDetalleService.listarInsumosPorProveedorPorActividadEtapa(
               acetId);
+      List<InsumoPorProveedorViewModel> insumosfiltrados = [];
       setState(() {
-        insumos = insumosList;
+        insumosfiltrados =
+            insumosList.where((insuu) => (insuu.bopiStock ?? 0) > 0).toList();
+        insumos = insumosfiltrados;
         // Inicializar controladores para cada insumo cargado
         quantityControllers = List.generate(
             insumos.length, (index) => TextEditingController(text: '1'));
@@ -1071,9 +1144,12 @@ class _EditarFleteState extends State<EditarFlete>
       List<EquipoPorProveedorViewModel> equiposList =
           await FleteDetalleService.listarEquiposdeSeguridadPorActividadEtapa(
               acetId);
+      List<EquipoPorProveedorViewModel> equiposfiltrados = [];
 
       setState(() {
-        equiposdeSeguridad = equiposList;
+        equiposfiltrados =
+            equiposList.where((equii) => (equii.bopiStock ?? 0) > 0).toList();
+        equiposdeSeguridad = equiposfiltrados;
         equipoQuantityControllers = List.generate(equiposdeSeguridad.length,
             (index) => TextEditingController(text: '1'));
         selectedCantidadesequipos =
@@ -1969,9 +2045,6 @@ class _EditarFleteState extends State<EditarFlete>
         int cantidad = isSelected
             ? selectedCantidades[selectedInsumos.indexOf(insumo)]
             : 0;
-        if (isSelected) {
-          stock = (stock ?? 0) + cantidad;
-        }
         bool cantidadExcedida = cantidad > (stock ?? 0);
 
         return ListTile(
@@ -2070,9 +2143,6 @@ class _EditarFleteState extends State<EditarFlete>
         int cantidadE = isSelected
             ? selectedCantidadesequipos[selectedEquipos.indexOf(equipo)]
             : 0;
-        if (isSelected) {
-          stockE = (stockE ?? 0) + cantidadE;
-        }
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
 
         return ListTile(
