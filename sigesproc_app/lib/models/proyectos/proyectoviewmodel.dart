@@ -118,4 +118,9 @@ class ProyectoViewModel {
 
     };
   }
+
+  @override
+  String toString() {
+    return 'ProyectoViewModel(id:$proyId, nombre: $proyNombre, descripcio: $proyDescripcion';
+  }
 }

@@ -1,6 +1,6 @@
 class ApiService {
 
-  static const String apiUrl = 'https://backendsigesproc-production-4160.up.railway.app/api';
+  static const String apiUrl = 'https://localhost:44337/api';
 
   static const String url = 'https://backendsigesproc-production-4160.up.railway.app';
   

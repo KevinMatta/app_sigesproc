@@ -294,23 +294,14 @@ class _EditarFleteState extends State<EditarFlete>
             });
 
             // Cargar actividades del proyecto
-            await _cargarActividadesPorProyecto(flete.proyId!, 'Llegada');
+            await _cargarActividadesPorProyecto(
+                flete.proyId!, 'Llegada');
 
             // Verificar si hay una actividad asociada
             if (flete.boatId != null) {
-              ActividadPorEtapaViewModel etapaActividad = actividadesLlegada
-                  .firstWhere((actividad) => actividad.acetId == flete.boatId!,
-                      orElse: () => ActividadPorEtapaViewModel(
-                          etapDescripcion: '', actiDescripcion: ''));
-
-              if (etapaActividad.etapDescripcion!.isNotEmpty) {
-                setState(() {
-                  actividadControllerLlegada.text =
-                      etapaActividad.etapDescripcion! +
-                          ' - ' +
-                          etapaActividad.actiDescripcion!;
-                });
-              }
+              setState(() {
+                actividadControllerLlegada.text = flete.boatDescripcion!;
+              });
             } else {
               print('No se encontraron actividades o boatId es nulo');
             }
@@ -333,13 +324,13 @@ class _EditarFleteState extends State<EditarFlete>
         if (esProyectosalida) {
           print('Es un proyecto de salida: sí');
           ProyectoViewModel? proyectoSeleccionado =
-              await ProyectoService.obtenerProyecto(flete.proyId!);
+              await ProyectoService.obtenerProyecto(flete.proyIdSalidaa!);
           print('Proyecto de salida seleccionado: $proyectoSeleccionado');
           if (proyectoSeleccionado != null) {
             salidaController.text = proyectoSeleccionado.proyNombre!;
 
             // Cargar actividades del proyecto
-            await _cargarActividadesPorProyecto(flete.proyId!, 'Salida');
+            await _cargarActividadesPorProyecto(flete.proyIdSalidaa!, 'Salida');
 
             // Verificar si hay una actividad asociada
             if (flete.boasId != null) {
@@ -475,16 +466,15 @@ class _EditarFleteState extends State<EditarFlete>
                     orElse: () => EquipoPorProveedorViewModel());
 
                 if (equipo != null) {
-                  
                   int stocktemporalequipos =
                       (equipo.bopiStock ?? 0) + detalle.fldeCantidad!;
-                  
+
                   if (stocktemporalequipos > 0) {
                     selectedEquipos.add(equipo);
-                  selectedCantidadesequipos.add(detalle.fldeCantidad!);
-                   equipoQuantityControllers.add(TextEditingController(
-                      text: detalle.fldeCantidad.toString()));
-                  equipo.bopiStock = stocktemporalequipos; 
+                    selectedCantidadesequipos.add(detalle.fldeCantidad!);
+                    equipoQuantityControllers.add(TextEditingController(
+                        text: detalle.fldeCantidad.toString()));
+                    equipo.bopiStock = stocktemporalequipos;
 
                     // Añadir el equipo filtrado a la lista final
                     equiposFiltrados.add(equipo);
@@ -504,7 +494,7 @@ class _EditarFleteState extends State<EditarFlete>
                       .add(equipo); // Añadir el insumo a la lista filtrada
                 }
               }
-              
+
               equiposdeSeguridad = equiposFiltrados;
             });
           } else {
@@ -607,16 +597,15 @@ class _EditarFleteState extends State<EditarFlete>
                     orElse: () => EquipoPorProveedorViewModel());
 
                 if (equipo != null) {
-                  
                   int stocktemporalequipos =
                       (equipo.bopiStock ?? 0) + detalle.fldeCantidad!;
-                  
+
                   if (stocktemporalequipos > 0) {
                     selectedEquipos.add(equipo);
-                  selectedCantidadesequipos.add(detalle.fldeCantidad!);
-                   equipoQuantityControllers.add(TextEditingController(
-                      text: detalle.fldeCantidad.toString()));
-                  equipo.bopiStock = stocktemporalequipos; 
+                    selectedCantidadesequipos.add(detalle.fldeCantidad!);
+                    equipoQuantityControllers.add(TextEditingController(
+                        text: detalle.fldeCantidad.toString()));
+                    equipo.bopiStock = stocktemporalequipos;
 
                     // Añadir el equipo filtrado a la lista final
                     equiposFiltrados.add(equipo);
@@ -695,7 +684,7 @@ class _EditarFleteState extends State<EditarFlete>
         if (tipo == 'Salida') {
           actividadesSalida = actividadesCargadas;
           _noActividadesErrorsalida = actividadesCargadas.isEmpty;
-        } else {
+        } else if (tipo == 'Llegada') {
           actividadesLlegada = actividadesCargadas;
           _noActividadesError = actividadesCargadas.isEmpty;
         }
@@ -794,8 +783,6 @@ class _EditarFleteState extends State<EditarFlete>
       print('Error al cargar los equipos de seguridad: $e');
     }
   }
-
-  
 
   Widget _buildBodegaAutocomplete(
       String label, TextEditingController controller) {
