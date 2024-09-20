@@ -45,39 +45,34 @@ class ViaticosDetService {
     }
   }
 
-  static Future<http.Response> insertarViaticoDet(ViaticoDetViewModel viaticoDet) async {
+// Si la API espera un Map, asegúrate de que las firmas estén correctas
+static Future<http.Response> insertarViaticoDet(Map<String, dynamic> data) async {
   final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Insertar');
   final response = await http.post(
     url,
     headers: {
+      "Content-Type": "application/json",
       ...ApiService.getHttpHeaders(),
-      "Content-Type": "application/json"
     },
-    body: json.encode(viaticoDet.toJson()),
+    body: json.encode(data), // Asegúrate de enviar un Map aquí
   );
-
-  if (response.statusCode != 200) {
-    throw Exception('Error al insertar el detalle del viático');
-  }
-
   return response;
 }
 
-  static Future<void> actualizarViaticoDet(ViaticoDetViewModel viaticoDet) async {
-    final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Actualizar');
-    final response = await http.put(
-      url,
-      headers: {
-        ...ApiService.getHttpHeaders(),
-        "Content-Type": "application/json"
-      },
-      body: json.encode(viaticoDet.toJson()),
-    );
 
-    if (response.statusCode != 200) {
-      throw Exception('Error al actualizar el detalle del viático');
-    }
-  }
+static Future<http.Response> actualizarViaticoDet(Map<String, dynamic> data) async {
+  final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Actualizar');
+  final response = await http.put(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      ...ApiService.getHttpHeaders(),
+    },
+    body: json.encode(data),  // Enviamos el Map como JSON
+  );
+  return response;
+}
+
 
   static Future<void> eliminarViaticoDet(int id) async {
     final url = Uri.parse('${ApiService.apiUrl}/ViaticosDet/Eliminar/$id');

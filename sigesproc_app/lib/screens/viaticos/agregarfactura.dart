@@ -89,6 +89,7 @@ Future<void> _cargarDetalleViatico() async {
     setState(() {
       // Limpiar la lista de imágenes cargadas previamente
       _loadedImages.clear();
+      _detallesImagenes.clear(); // Limpiar los detalles anteriores
 
       // Iterar sobre cada detalle para obtener las imágenes
       for (var detalle in detalles) {
@@ -98,11 +99,15 @@ Future<void> _cargarDetalleViatico() async {
           _detallesImagenes.add(detalle); // Agregar los detalles correspondientes
         }
       }
+
+      // Depuración para ver cuántas imágenes se cargaron
+      print("Imágenes cargadas: ${_loadedImages.length}");
     });
   } catch (e) {
     print('Error al cargar el detalle del viático: $e');
   }
 }
+
 
 
 
@@ -135,26 +140,42 @@ Future<void> _cargarDetalleViatico() async {
     });
   }
 
-  Future<void> _guardarFactura() async {
-    _validarCampos();
-    if (_descripcionError != null ||
-        _montoGastadoError != null ||
-        _montoReconocidoError != null ||
-        _categoriaError != null) {
-      return;
-    }
-    if (_uploadedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, suba una imagen de la factura.')),
-      );
-      return;
-    }
-    final DateTime fechaCreacion = DateTime.now();
-    const String rutaBaseImagenes = "/uploads/";
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final int usuaCreacion = int.parse(prefs.getString('usuaId') ?? '0');
-      List<String> rutasImagenes = [];
+
+  
+  Detalleviaticoviewmodel? _currentViatico;
+  bool isEditing = false; // Nueva variable de estado para saber si estamos editando
+
+Future<void> _guardarFactura() async {
+  _validarCampos();
+
+  // Validar los campos, si hay errores salimos del método
+  if (_descripcionError != null ||
+      _montoGastadoError != null ||
+      _montoReconocidoError != null ||
+      _categoriaError != null) {
+    return;
+  }
+
+  // Si estamos insertando (no es edición) y no hay imágenes subidas, mostramos error
+  if (!isEditing && _uploadedImages.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Por favor, suba una imagen de la factura.')),
+    );
+    return;
+  }
+
+  final DateTime fechaCreacion = DateTime.now();
+  const String rutaBaseImagenes = "/uploads/";
+
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final int usuaCreacion = int.parse(prefs.getString('usuaId') ?? '0');
+    final int usuaModificacion = usuaCreacion; // Usamos el mismo ID para modificación por ahora
+    
+    List<String> rutasImagenes = [];
+
+    // Subimos nuevas imágenes solo si existen imágenes cargadas por el usuario
+    if (_uploadedImages.isNotEmpty) {
       for (final image in _uploadedImages) {
         final String imagenNombre = await _subirImagenFactura(image);
         final String rutaCompletaImagen = rutaBaseImagenes + imagenNombre;
@@ -163,39 +184,64 @@ Future<void> _cargarDetalleViatico() async {
           _loadedImages.insert(0, rutaCompletaImagen);
         });
       }
-      final viaticoDet = ViaticoDetViewModel(
-        videDescripcion: descripcionController.text,
-        videImagenFactura: rutasImagenes.join(','),
-        videMontoGastado: montoGastadoController.text,
-        vienId: widget.viaticoId,
-        caviId: int.parse(categoriaSeleccionada!),
-        usuaCreacion: usuaCreacion,
-        videFechaCreacion: fechaCreacion,
-        videMontoReconocido: _esAdmin == true
-            ? double.parse(montoReconocidoController.text)
-            : null,
+    }
+
+    // Crear el objeto ViaticoDetViewModel para la inserción o actualización
+    ViaticoDetViewModel viaticoDet = ViaticoDetViewModel(
+      videId: isEditing ? _currentViatico?.videId : null,  // Usar el ID si estamos editando
+      videDescripcion: descripcionController.text,
+      videImagenFactura: rutasImagenes.isNotEmpty
+          ? rutasImagenes.join(',')  // Solo agregar nuevas imágenes si se subieron
+          : isEditing ? _currentViatico?.videImagenFactura ?? '' : '',  // Mantener la imagen existente si estamos editando
+      videMontoGastado: montoGastadoController.text,
+      vienId: widget.viaticoId,
+      caviId: int.parse(categoriaSeleccionada!),
+      usuaCreacion: usuaCreacion,
+      videFechaCreacion: fechaCreacion,
+      videMontoReconocido: _esAdmin == true
+          ? double.parse(montoReconocidoController.text)
+          : null,
+      // Añadimos los campos para modificación solo si estamos editando
+      usuaModificacion: isEditing ? usuaModificacion : null,  // Enviar el ID del usuario que modificó
+      videFechaModificacion: isEditing ? DateTime.now() : null,  // Fecha de modificación
+    );
+
+    // Imprimir los datos que se van a enviar
+    print("Datos del viático que se van a enviar:");
+    print(viaticoDet.toJson(isEditing: isEditing));
+
+    // Si el viático ya tiene un ID, actualizamos, de lo contrario insertamos
+    if (isEditing) {
+      print("Actualizando viático...");
+      await ViaticosDetService.actualizarViaticoDet(viaticoDet.toJson(isEditing: true));  // Llamar al servicio para actualizar
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Factura actualizada con éxito.')),
       );
-      final response = await ViaticosDetService.insertarViaticoDet(viaticoDet);
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        print('Error en la respuesta de la API: ${response.statusCode}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar la factura.')),
-        );
-        return;
-      }
+    } else {
+      print("Insertando nuevo viático...");
+      final response = await ViaticosDetService.insertarViaticoDet(viaticoDet.toJson(isEditing: false));  // Llamar al servicio para insertar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Factura insertada con éxito.')),
       );
-      _limpiarFormulario();
-      _cargarDetalleViatico();
-    } catch (e, stacktrace) {
-      print('Error al guardar la factura: $e');
-      print('Stacktrace: $stacktrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la factura. Detalles: $e')),
-      );
+      
     }
+
+    _limpiarFormulario();
+    _cargarDetalleViatico();
+
+  } catch (e, stacktrace) {
+    print('Error al guardar la factura: $e');
+    print('Stacktrace: $stacktrace');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al guardar la factura. Detalles: $e')),
+    );
   }
+}
+
+
+
+
 
   Future<String> _subirImagenFactura(PlatformFile file) async {
     print('Nombre del archivo: ${file.name}');
@@ -207,21 +253,23 @@ Future<void> _cargarDetalleViatico() async {
     return uniqueFileName;
   }
 
-  void _limpiarFormulario() {
-    setState(() {
-      descripcionController.clear();
-      montoGastadoController.clear();
-      montoReconocidoController.clear();
-      categoriaController.clear();
-      categoriaSeleccionada = null;
-      facturaSeleccionada = null;
-      _uploadedImages.clear();
-      _descripcionError = null;
-      _montoGastadoError = null;
-      _montoReconocidoError = null;
-      _categoriaError = null;
-    });
-  }
+void _limpiarFormulario() {
+  setState(() {
+    descripcionController.clear();
+    montoGastadoController.clear();
+    montoReconocidoController.clear();
+    categoriaController.clear();
+    categoriaSeleccionada = null;
+    facturaSeleccionada = null;
+    _uploadedImages.clear(); // Limpiar las imágenes subidas
+    _descripcionError = null;
+    _montoGastadoError = null;
+    _montoReconocidoError = null;
+    _categoriaError = null;
+    _currentViatico = null; // Limpiar el viático actual
+  });
+}
+
 
   void _validarCampos() {
   setState(() {
@@ -263,8 +311,14 @@ void _cargarDatosDeImagen(Detalleviaticoviewmodel detalleImagen) {
     montoReconocidoController.text = detalleImagen.videMontoReconocido?.toString() ?? '';
     categoriaController.text = detalleImagen.caviDescripcion ?? '';
     categoriaSeleccionada = detalleImagen.caviId.toString();  // Guardar la categoría seleccionada
+    
+    // Cargar el vide_Id y vide_ImagenFactura
+    _currentViatico = detalleImagen;  // Asignamos el viático seleccionado como el actual para edición
   });
 }
+
+
+
 
 
 List<Detalleviaticoviewmodel> _detallesImagenes = [];
@@ -282,17 +336,16 @@ Widget _buildCarruselDeImagenes() {
       enlargeCenterPage: true,
     ),
     items: [
+      // Imágenes subidas por el usuario
       if (_uploadedImages.isNotEmpty)
         ..._uploadedImages.asMap().entries.map((entry) {
           int index = entry.key;
           final imagePath = entry.value.path;
           if (imagePath != null && File(imagePath).existsSync()) {
             return GestureDetector(
-              onTap: () {
-                // Llenar los datos de la imagen seleccionada en los campos del formulario
-                if (index < _detallesImagenes.length) {
-                  _cargarDatosDeImagen(_detallesImagenes[index]);
-                }
+              onTap: () async {
+                // Llamar a la función para cargar los datos primero, y luego actualizar el estado
+                await _cargarDatosDeImagenYActualizar(index);
               },
               child: Stack(
                 children: [
@@ -311,10 +364,29 @@ Widget _buildCarruselDeImagenes() {
                       ),
                     ),
                   ),
-                  // Solo mostrar el botón de eliminar si es una imagen local
+                  // Tooltip con diálogo emergente
                   Positioned(
                     top: 5,
                     right: 5,
+                    child: Tooltip(
+                      message: 'Información de la imagen',
+                      child: GestureDetector(
+                        onTap: () {
+                          // Mostrar el diálogo emergente cuando se toca el Tooltip
+                          _mostrarDialogo(context);
+                        },
+                        child: Icon(
+                          Icons.info_outline,
+                          color: const Color.fromARGB(255, 0, 0, 0),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Botón para eliminar imágenes subidas
+                  Positioned(
+                    top: 5,
+                    right: 35,
                     child: GestureDetector(
                       onTap: () => _removeImage(index),
                       child: Container(
@@ -343,17 +415,17 @@ Widget _buildCarruselDeImagenes() {
             );
           }
         }).toList(),
+
+      // Imágenes cargadas desde la API
       if (_loadedImages.isNotEmpty)
         ..._loadedImages.asMap().entries.map((entry) {
           int index = entry.key;
-          final fullImageUrl = entry.value; // Ya contiene la URL completa
+          final fullImageUrl = entry.value; // La URL completa de la imagen cargada desde la API
 
           return GestureDetector(
-            onTap: () {
-              // Cargar datos de la imagen cuando es seleccionada
-              if (index < _detallesImagenes.length) {
-                _cargarDatosDeImagen(_detallesImagenes[index]);
-              }
+            onTap: () async {
+              // Llamar a la función para cargar los datos primero, y luego actualizar el estado
+              await _cargarDatosDeImagenYActualizar(index);
             },
             child: Container(
               margin: EdgeInsets.all(5.0),
@@ -361,24 +433,47 @@ Widget _buildCarruselDeImagenes() {
                 borderRadius: BorderRadius.circular(10.0),
                 color: Color(0xFF222222),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: Image.network(
-                  fullImageUrl,
-                  fit: BoxFit.cover,
-                  width: 1000.0,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Center(
-                        child: Text(
-                          'Imagen no disponible',
-                          style: TextStyle(color: Colors.black),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Image.network(
+                      fullImageUrl,
+                      fit: BoxFit.cover,
+                      width: 1000.0,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: Text(
+                              'Imagen no disponible',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Tooltip con diálogo emergente
+                  Positioned(
+                    top: 5,
+                    right: 5,
+                    child: Tooltip(
+                      message: 'Información de la imagen',
+                      child: GestureDetector(
+                        onTap: () {
+                          // Mostrar el diálogo emergente cuando se toca el Tooltip
+                          _mostrarDialogo(context);
+                        },
+                        child: Icon(
+                          Icons.info_outline,
+                          color: const Color.fromARGB(255, 0, 0, 0),
+                          size: 24,
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -386,6 +481,82 @@ Widget _buildCarruselDeImagenes() {
     ],
   );
 }
+
+void _mostrarDialogo(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: Colors.black, // Fondo negro para el diálogo
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ), // Bordes redondeados
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Información',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: Color(0xFFFFF0C6), // Texto blanco
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Para poder ver el detalle de la factura, dar click en la imagen. '
+                'De igual manera, podrá editar la factura.',
+                style: TextStyle(
+                  color: Colors.white, // Texto blanco para que sea legible
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cerrar el diálogo
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black, backgroundColor: Color(0xFFFFF0C6), // Texto negro en el botón
+                ),
+                child: Text('Cerrar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+
+
+Future<void> _cargarDatosDeImagenYActualizar(int index) async {
+  // Activamos el modo edición
+  setState(() {
+    isEditing = true;
+  });
+
+  // Llamamos a la función para cargar los datos del viático
+  if (index < _detallesImagenes.length) {
+    // Esperar a que los datos estén cargados antes de actualizar el estado
+    _cargarDatosDeImagen(_detallesImagenes[index]);
+
+    // Ahora que los datos están cargados, actualizamos el estado
+    setState(() {
+      // Aquí podrías actualizar cualquier otro dato del estado si es necesario
+    });
+  }
+}
+
+
+
+
 
     void _onItemTapped(int index) {
     setState(() {
@@ -748,23 +919,49 @@ Widget _buildBottomButtons() {
     );
   }
 
-  Widget _buildSubirImagenButton() {
-  return Center(
-    child: ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFFFFF0C6),
-        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+Widget _buildSubirImagenButton() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFFFFF0C6),
+          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: _seleccionarImagen, // Acción para seleccionar o cambiar imagen
+        icon: Icon(Icons.upload_file, color: Colors.black), // Icono de subir archivo
+        label: Text(
+          facturaSeleccionada == null ? 'Subir Imágenes' : 'Cambiar Imagen',
+          style: TextStyle(color: Colors.black), // Estilo del texto
         ),
       ),
-      onPressed: _seleccionarImagen, // Acción para seleccionar o cambiar imagen
-      icon: Icon(Icons.upload_file, color: Colors.black), // Icono de subir archivo
-      label: Text(
-        facturaSeleccionada == null ? 'Subir Imágenes' : 'Cambiar Imagen',
-        style: TextStyle(color: Colors.black), // Estilo del texto
+      SizedBox(width: 10), // Espacio entre botones
+      ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF171717),
+          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: () {
+          // Lógica para limpiar el formulario y activar el modo de inserción
+          _limpiarFormulario();
+          setState(() {
+            isEditing = false; // Entramos en modo insertar
+          });
+        },
+        icon: Icon(Icons.delete, color: Color(0xFFFFF0C6)), // Icono del botón de limpiar
+        label: Text(
+          'Limpiar',
+          style: TextStyle(color: Colors.white), // Estilo del texto
+        ),
       ),
-    ),
+    ],
   );
 }
+
 }

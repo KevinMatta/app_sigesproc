@@ -48,10 +48,11 @@ class ViaticoDetViewModel {
     );
   }
 
-Map<String, dynamic> toJson() {
+Map<String, dynamic> toJson({bool isEditing = false}) {
   final Map<String, dynamic> data = {
+    'vide_Id': videId ?? 0,  // Asegúrate de incluir el vide_Id
     'vide_Descripcion': videDescripcion ?? '',
-    'vide_ImagenFactura': videImagenFactura ?? '',
+    'vide_ImagenFactura': videImagenFactura ?? '',  // Incluir vide_ImagenFactura
     'vide_MontoGastado': videMontoGastado ?? '',
     'vien_Id': vienId ?? 0,
     'cavi_Id': caviId ?? 0,
@@ -60,9 +61,15 @@ Map<String, dynamic> toJson() {
     'vide_MontoReconocido': videMontoReconocido ?? 0.0,
   };
 
-  print('Datos para enviar: $data');
+  // Si estamos en modo edición, añadimos los campos de modificación
+  if (isEditing) {
+    data['usua_Modificacion'] = usuaModificacion ?? 0;
+    data['vide_FechaModificacion'] = videFechaModificacion?.toIso8601String() ?? DateTime.now().toIso8601String();
+  }
+
   return data;
 }
+
 
 
   @override
