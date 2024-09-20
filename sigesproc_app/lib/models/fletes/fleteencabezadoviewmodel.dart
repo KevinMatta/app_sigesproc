@@ -8,6 +8,7 @@ class FleteEncabezadoViewModel {
   String? destino;
   String? estado;
   String? salida;
+  String? boatDescripcion;
   int? flenId;
   DateTime? flenFechaHoraSalida;
   DateTime? flenFechaHoraEstablecidaDeLlegada;
@@ -21,6 +22,7 @@ class FleteEncabezadoViewModel {
   int? boasId;
   int? boatId;
   int? proyId;
+  int? proyIdSalidaa;
   int? emtrId;
   int? emssId;
   int? emslId;
@@ -41,6 +43,7 @@ class FleteEncabezadoViewModel {
     this.destino,
     this.estado,
     this.salida,
+    this.boatDescripcion,
     this.flenId,
     this.flenFechaHoraSalida,
     this.flenFechaHoraEstablecidaDeLlegada,
@@ -54,6 +57,7 @@ class FleteEncabezadoViewModel {
     this.boasId,
     this.boatId,
     this.proyId,
+    this.proyIdSalidaa,
     this.emtrId,
     this.emssId,
     this.emslId,
@@ -73,6 +77,7 @@ class FleteEncabezadoViewModel {
       encargado: json['encargado'],
       supervisorLlegada: json['supervisorllegada'],
       supervisorSalida: json['supervisorsalida'],
+      boatDescripcion: json['boat_Descripcion'],
       destino: json['destino'],
       estado: json['estado'],
       salida: json['salida'],
@@ -94,6 +99,7 @@ class FleteEncabezadoViewModel {
       boasId: json['boas_Id'],
       boatId: json['boat_Id'],
       proyId: json['proy_Id'],
+      proyIdSalidaa: json['proy_IdSalida'],
       emtrId: json['emtr_Id'],
       emssId: json['emss_Id'],
       emslId: json['emsl_Id'],
@@ -121,6 +127,7 @@ class FleteEncabezadoViewModel {
       'destino': destino,
       'estado': estado,
       'salida': salida,
+      'boat_Descripcion': boatDescripcion,
       'flen_FechaHoraSalida': flenFechaHoraSalida?.toIso8601String(),
       'flen_FechaHoraEstablecidaDeLlegada':
           flenFechaHoraEstablecidaDeLlegada?.toIso8601String(),
@@ -162,6 +169,6 @@ class FleteEncabezadoViewModel {
 
   @override
   String toString() {
-    return 'FleteEncabezadoViewModel(cdifo:$codigo, flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, flencomprobantellegada: $flenComprobanteLLegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
+    return 'FleteEncabezadoViewModel(cdifo:$codigo, flenId: $flenId, flenFechaHoraSalida: $flenFechaHoraSalida, flenFechaHorallegada: $flenFechaHoraLlegada, flenFechaHoraEstablecidaDeLlegada: $flenFechaHoraEstablecidaDeLlegada, flencomprobantellegada: $flenComprobanteLLegada, emtrId: $emtrId, emssId: $emssId, emslId: $emslId, boasId: $boasId, boatId: $boatId, boatdescripcion: $boatDescripcion, flenEstado: $flenEstado, flenDestinoProyecto: $flenDestinoProyecto, flensalidaproyecto: $flenSalidaProyecto, usuaCreacion: $usuaCreacion, flenFechaCreacion: $flenFechaCreacion, usuaModificacion: $usuaModificacion, flenFechaModificacion: $flenFechaModificacion';
   }
 }

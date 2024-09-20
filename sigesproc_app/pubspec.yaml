@@ -62,7 +62,7 @@ dependencies:
   intl: 
   data_tables: ^1.4.0 
 
-  carousel_slider: ^4.0.0
+  carousel_slider: ^5.0.0
   file_picker: ^5.0.0
 
 
