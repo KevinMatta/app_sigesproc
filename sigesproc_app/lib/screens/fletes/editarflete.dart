@@ -100,7 +100,7 @@ class _EditarFleteState extends State<EditarFlete>
   TextEditingController actividadControllerSalida = TextEditingController();
   TextEditingController actividadControllerLlegada = TextEditingController();
   TabController? _tabController;
-  FleteEncabezadoViewModel? fleteOriginal;
+  int? boasidd;  
   int _unreadCount = 0;
   int? userId;
 
@@ -322,6 +322,7 @@ class _EditarFleteState extends State<EditarFlete>
 
         esProyectosalida = flete.flenSalidaProyecto ?? false;
         if (esProyectosalida) {
+          
           print('Es un proyecto de salida: sí');
           ProyectoViewModel? proyectoSeleccionado =
               await ProyectoService.obtenerProyecto(flete.proyIdSalidaa!);
@@ -364,6 +365,8 @@ class _EditarFleteState extends State<EditarFlete>
             print('La bodega de salida es nula');
           }
         }
+
+        boasidd = flete.boasId;
 
         if (flete.boasId != null) {
           if (esProyectosalida) {
@@ -1725,9 +1728,10 @@ class _EditarFleteState extends State<EditarFlete>
       bool bodegaSalidaCambiada = false;
 
       // Verificar si la bodega de salida ha cambiado
-      if (fleteOriginal != null && fleteOriginal!.boasId != flete.boasId) {
+      if (boasidd != flete.boasId) {
         bodegaSalidaCambiada = true;
       }
+      print('bool bodegasalida $bodegaSalidaCambiada');
 
       if (bodegaSalidaCambiada) {
         print('cambio');
@@ -1743,14 +1747,6 @@ class _EditarFleteState extends State<EditarFlete>
           await FleteDetalleService.Eliminar(detalle.fldeId!);
         }
 
-        // Vaciar las listas de seleccionados y controladores
-        selectedInsumos.clear();
-        selectedCantidades.clear();
-        quantityControllers.clear();
-
-        selectedEquipos.clear();
-        selectedCantidadesequipos.clear();
-        equipoQuantityControllers.clear();
       }
 
 // Verificar insumos seleccionados
@@ -1799,11 +1795,11 @@ class _EditarFleteState extends State<EditarFlete>
 
 // Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
-        if (i >= equipoQuantityControllers.length) {
-          print(
-              "Error: La lista de controladores de equipos es más corta que la lista de equipos");
-          break;
-        }
+        // if (i >= equipoQuantityControllers.length) {
+        //   print(
+        //       "Error: La lista de controladores de equipos es más corta que la lista de equipos");
+        //   break;
+        // }
 
         int? stocke = selectedEquipos[i].bopiStock;
         int? cantidade = int.tryParse(equipoQuantityControllers[i].text);
