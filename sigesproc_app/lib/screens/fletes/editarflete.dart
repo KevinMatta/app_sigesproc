@@ -100,7 +100,7 @@ class _EditarFleteState extends State<EditarFlete>
   TextEditingController actividadControllerSalida = TextEditingController();
   TextEditingController actividadControllerLlegada = TextEditingController();
   TabController? _tabController;
-  int? boasidd;  
+  int? boasidd;
   int _unreadCount = 0;
   int? userId;
 
@@ -294,8 +294,7 @@ class _EditarFleteState extends State<EditarFlete>
             });
 
             // Cargar actividades del proyecto
-            await _cargarActividadesPorProyecto(
-                flete.proyId!, 'Llegada');
+            await _cargarActividadesPorProyecto(flete.proyId!, 'Llegada');
 
             // Verificar si hay una actividad asociada
             if (flete.boatId != null) {
@@ -322,7 +321,6 @@ class _EditarFleteState extends State<EditarFlete>
 
         esProyectosalida = flete.flenSalidaProyecto ?? false;
         if (esProyectosalida) {
-          
           print('Es un proyecto de salida: sí');
           ProyectoViewModel? proyectoSeleccionado =
               await ProyectoService.obtenerProyecto(flete.proyIdSalidaa!);
@@ -925,6 +923,15 @@ class _EditarFleteState extends State<EditarFlete>
                 flete.boasId = selection.bodeId;
                 _cargarInsumosPorBodega(flete.boasId!);
                 _cargarEquiposDeSeguridadPorBodega(flete.boasId!);
+                if (boasidd != flete.boasId) {
+                  selectedInsumos.clear();
+                  selectedCantidades.clear();
+                  quantityControllers.clear();
+
+                  selectedEquipos.clear();
+                  selectedCantidadesequipos.clear();
+                  equipoQuantityControllers.clear();
+                }
               } else if (label == 'Llegada') {
                 flete.boatId = selection.bodeId;
               }
@@ -1272,6 +1279,15 @@ class _EditarFleteState extends State<EditarFlete>
             flete.boasId = selection.acetId;
             _cargarInsumosPorActividadEtapa(flete.boasId!);
             _cargarEquiposDeSeguridadPorActividadEtapa(flete.boasId!);
+            if (boasidd != flete.boasId) {
+              selectedInsumos.clear();
+              selectedCantidades.clear();
+              quantityControllers.clear();
+
+              selectedEquipos.clear();
+              selectedCantidadesequipos.clear();
+              equipoQuantityControllers.clear();
+            }
           } else {
             flete.boatId = selection.acetId;
           }
@@ -1746,7 +1762,6 @@ class _EditarFleteState extends State<EditarFlete>
           print('Eliminando detalle con fldeId: ${detalle.fldeId}');
           await FleteDetalleService.Eliminar(detalle.fldeId!);
         }
-
       }
 
 // Verificar insumos seleccionados
