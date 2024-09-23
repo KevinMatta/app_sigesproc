@@ -434,7 +434,7 @@ class _FleteState extends State<Flete> {
                 try {
                   await FleteEncabezadoService.Eliminar(flete.flenId!);
                   setState(() {
-                    _filteredFletes.remove(flete);
+                    _cargarFletes();
                     _isLoading = true;
                   });
 
@@ -502,35 +502,48 @@ class _FleteState extends State<Flete> {
         ),
         Divider(color: Color(0xFFFFF0C6)),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Enviado por',
-                  style: TextStyle(
-                      color: Color(0xFFFFF0C6), fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  flete.supervisorSalida ?? 'N/A',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
-                ),
-              ],
+            // Columna para 'Enviado por'
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enviado por',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    flete.supervisorSalida ?? 'N/A',
+                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                    overflow: TextOverflow
+                        .visible, // Permitir que el texto se envuelva
+                  ),
+                ],
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recibido por',
-                  style: TextStyle(
-                      color: Color(0xFFFFF0C6), fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  flete.supervisorLlegada ?? 'N/A',
-                  style: TextStyle(color: Color(0xFFFFF0C6)),
-                ),
-              ],
+            // Columna para 'Recibido por'
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recibido por',
+                    style: TextStyle(
+                      color: Color(0xFFFFF0C6),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    flete.supervisorLlegada ?? 'N/A',
+                    style: TextStyle(color: Color(0xFFFFF0C6)),
+                    overflow: TextOverflow
+                        .visible, // Permitir que el texto se envuelva
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -617,7 +630,7 @@ class _FleteState extends State<Flete> {
         ...detalles
             .map((detalle) => _buildTableRow([
                   detalle.insuDescripcion ?? 'N/A',
-                  detalle.unmeNomenclatura ?? 'N/A',
+                  detalle.unmeNombre ?? 'N/A',
                   detalle.fldeCantidad.toString(),
                 ]))
             .toList(),
