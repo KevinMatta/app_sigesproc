@@ -1313,11 +1313,15 @@ class _EditarFleteState extends State<EditarFlete>
               if (label == '¿Salida de Proyecto?') {
                 esProyectosalida = newValue;
                 flete.boasId = null;
+                flete.proyIdSalida = null;
                 salidaController.clear();
+                actividadControllerSalida.clear();
               } else {
                 esProyecto = newValue;
                 flete.boatId = null;
+                flete.proyIdLlegada = null;
                 llegadaController.clear();
+                actividadControllerLlegada.clear();
               }
             });
             onChanged(newValue);
