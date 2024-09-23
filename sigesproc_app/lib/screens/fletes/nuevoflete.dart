@@ -1043,12 +1043,12 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         _ubicacionSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
-      if (flete.boasId == null && esProyectosalida) {
+      if (flete.boasId == null && esProyectosalida && salidaController.text.isEmpty) {
         _ubicacionSalidaError = true;
         _ubicacionSalidaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
       }
-      if (flete.boatId == null && esProyecto) {
+      if (flete.boatId == null && esProyecto && llegadaController.text.isEmpty) {
         _ubicacionLlegadaError = true;
         _ubicacionLlegadaErrorMessage = 'El campo es requerido.';
         hayErrores = true;
@@ -1734,15 +1734,25 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.only(
                 bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
-            child: FloatingActionButton(
-              onPressed: _validarCamposYMostrarInsumos,
-              backgroundColor:
-                  Color(0xFF171717), // Color de fondo similar al SpeedDial
-              foregroundColor: Color(0xFFFFF0C6), // Color del icono
-              child:
-                  Icon(Icons.add, color: Color(0xFFFFF0C6)), // Color del ícono
-              shape: CircleBorder(), // Mantener la forma circular
-              elevation: 2.0, // Ajusta la elevación si es necesario
+            child: Row(
+              children: [
+                Text(
+                  'Agregar Materiales', // Texto que aparecerá junto al botón
+                  style: TextStyle(
+                    color: Color(0xFFFFF0C6), // Mismo color que el ícono
+                    fontSize: 15.0,
+                  ),
+                ),
+                SizedBox(width: 8.0), // Espacio entre el texto y el botón
+                FloatingActionButton(
+                  onPressed: _validarCamposYMostrarInsumos,
+                  backgroundColor: Color(0xFF171717),
+                  child: Icon(Icons.add,
+                      color: Color(0xFFFFF0C6)), // Color del ícono
+                  shape: CircleBorder(), // Mantener la forma circular
+                  elevation: 2.0, // Ajusta la elevación si es necesario
+                ),
+              ],
             ),
           ),
         ],

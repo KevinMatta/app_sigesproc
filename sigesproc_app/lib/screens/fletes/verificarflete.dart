@@ -1437,7 +1437,6 @@ class _VerificarFleteState extends State<VerificarFlete>
       // Si no hay insumos o equipos no recibidos, guardar todo
       print('hayyy $hayNoVerificados');
       if (!hayNoVerificados) {
-        await _enviarNotificacionFleteVerificado();
 
         await _guardarFleteCompleto();
         Navigator.push(
@@ -1466,7 +1465,6 @@ class _VerificarFleteState extends State<VerificarFlete>
     bool hayNoVerificados = false;
 
     // Verificar insumos no recibidos
-    print('insumos no $insumosNoRecibidos');
     for (var item in insumosNoRecibidos) {
       print("Insumo no recibido: ${item.fldeId}");
       hayNoVerificados = true;
@@ -1487,6 +1485,7 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     // Guardar insumos no recibidos
     for (var item in insumosNoRecibidos) {
+      item.fldeLlegada = false;
       print("Insumo no recibido: ${item.fldeId}");
 
       var detalleNuevo = _crearDetalleNoRecibido(item, false);
@@ -1511,6 +1510,7 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     // Guardar equipos no recibidos
     for (var detalle in equiposNoRecibidos) {
+      detalle.fldeLlegada = false;
       print("Equipo no recibido: ${detalle.fldeId}");
 
       var detalleNuevo = _crearDetalleNoRecibido(detalle, true);
@@ -1563,7 +1563,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       usuaCreacion: item.usuaCreacion ?? 3,
       fldeFechaCreacion: item.fldeFechaCreacion ?? DateTime.now(),
       fldeCantidad: item.fldeCantidad ?? 0,
-      fldeTipodeCarga: esEquipo ? true : item.fldeTipodeCarga,
+      fldeTipodeCarga: esEquipo ? false : item.fldeTipodeCarga,
       fldeLlegada: false,
       insuDescripcion: esEquipo ? null : item.insuDescripcion,
       equsNombre: esEquipo ? item.equsNombre : null,
