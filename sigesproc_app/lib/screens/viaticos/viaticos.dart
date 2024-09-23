@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sigesproc_app/models/viaticos/detalleviaticoViewModel.dart';
 import 'package:sigesproc_app/models/viaticos/viaticoViewModel.dart';
 import 'package:sigesproc_app/screens/viaticos/agregarfactura.dart';
 import 'package:sigesproc_app/screens/viaticos/editarviatico.dart';
@@ -138,41 +139,43 @@ class _ViaticoState extends State<Viatico> {
   }
 
   Future<void> _showDetailModal(BuildContext context, int viaticoId) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return FutureBuilder(
-          future: ViaticosEncService.buscarViaticoDetalle(viaticoId),
-          builder: (context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return AlertDialog(
-                backgroundColor: Color(0xFF171717),
-                content: Container(
-                  width: double.minPositive,
-                  height: 100,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFF0C6)),
-                    ),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return FutureBuilder(
+        future: ViaticosEncService.buscarViaticoDetalle(viaticoId),
+        builder: (context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return AlertDialog(
+              backgroundColor: Color(0xFF171717),
+              content: Container(
+                width: double.minPositive,
+                height: 100,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFF0C6)),
                   ),
                 ),
-              );
-            } else if (snapshot.hasError) {
-              return AlertDialog(
-                backgroundColor: Color(0xFF171717),
-                title: Text('Error', style: TextStyle(color: Colors.red)),
-                content: Text('Error al cargar el detalle del viático', style: TextStyle(color: Colors.white)),
-                actions: [
-                  TextButton(
-                    child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            } else {
-              final viatico = snapshot.data;
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return AlertDialog(
+              backgroundColor: Color(0xFF171717),
+              title: Text('Error', style: TextStyle(color: Colors.red)),
+              content: Text('Error al cargar el detalle del viático', style: TextStyle(color: Colors.white)),
+              actions: [
+                TextButton(
+                  child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          } else if (snapshot.hasData) {
+            final viaticoDetalles = snapshot.data as List<Detalleviaticoviewmodel>;
+            if (viaticoDetalles.isNotEmpty) {
+              final viatico = viaticoDetalles[0];  // Acceder al primer elemento de la lista
               return AlertDialog(
                 backgroundColor: Color(0xFF171717),
                 title: Text('Detalle del Viático', style: TextStyle(color: Color(0xFFFFF0C6))),
@@ -180,7 +183,7 @@ class _ViaticoState extends State<Viatico> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildDetailRow('Código', viatico.codigo?.toString() ?? 'N/A'),  // Cambiado de vienId a código
+                    _buildDetailRow('Código', viatico.codigo?.toString() ?? 'N/A'), // Asegurarse de que 'codigo' sea válido
                     _buildDetailRow('Monto Estimado', 'LPS ${viatico.vienMontoEstimado?.toStringAsFixed(2) ?? 'N/A'}'),
                     _buildDetailRow('Total Gastado', 'LPS ${viatico.vienTotalGastado?.toStringAsFixed(2) ?? 'N/A'}'),
                     SizedBox(height: 16),
@@ -200,12 +203,42 @@ class _ViaticoState extends State<Viatico> {
                   ),
                 ],
               );
+            } else {
+              return AlertDialog(
+                backgroundColor: Color(0xFF171717),
+                title: Text('Error', style: TextStyle(color: Colors.red)),
+                content: Text('No se encontraron detalles para este viático', style: TextStyle(color: Colors.white)),
+                actions: [
+                  TextButton(
+                    child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
             }
-          },
-        );
-      },
-    );
-  }
+          } else {
+            return AlertDialog(
+              backgroundColor: Color(0xFF171717),
+              title: Text('Error', style: TextStyle(color: Colors.red)),
+              content: Text('Error inesperado', style: TextStyle(color: Colors.white)),
+              actions: [
+                TextButton(
+                  child: Text('Cerrar', style: TextStyle(color: Color(0xFFFFF0C6))),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          }
+        },
+      );
+    },
+  );
+}
+
 
 
   Widget _buildDetailRow(String label, String value) {
