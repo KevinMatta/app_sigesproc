@@ -96,7 +96,11 @@ class _MenuLateralState extends State<MenuLateral> {
   Widget build(BuildContext context) {
     // Si el estado no ha sido inicializado completamente
     if (pantallasPorRol == null || rolName == null) {
-      return Center(child: CircularProgressIndicator());
+      return Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFFFF0C6),
+                ),
+              );
     }
 
     List<Widget> menuItems = [];

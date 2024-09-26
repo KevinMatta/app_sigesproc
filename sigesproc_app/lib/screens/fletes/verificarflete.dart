@@ -146,7 +146,6 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
       print('No se encontró token en las preferencias.');
     }
@@ -172,7 +171,6 @@ class _VerificarFleteState extends State<VerificarFlete>
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
       print("Error al cargar los datos del usuario: $e");
     }
@@ -256,7 +254,6 @@ class _VerificarFleteState extends State<VerificarFlete>
           comprobante!
         ]; // Reemplaza la lista anterior con la nueva imagen
       });
-      print('Imagen seleccionada: ${comprobante!.name}');
     } else {
       setState(() {
         comprobante = null;
@@ -952,20 +949,17 @@ class _VerificarFleteState extends State<VerificarFlete>
 
           if (fechaHoraIncidencia.isBefore(flete.flenFechaHoraSalida!)) {
             _fechaHoraIncidenciaError = true;
-            print('aja');
             _fechaHoraIncidenciaErrorMessage =
                 'La fecha de la incidencia no puede ser anterior a la fecha de salida.';
             _fechaHoraIncidenciaController.text =
                 DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraIncidencia);
           } else if (fechaHoraIncidencia.isAfter(fechaHoraLleg)) {
-            print('aqui');
             _fechaHoraIncidenciaError = true;
             _fechaHoraIncidenciaErrorMessage =
                 'La fecha de la incidencia no puede ser posterior a la fecha de llegada.';
             _fechaHoraIncidenciaController.text =
                 DateFormat('dd/MM/yyyy HH:mm').format(fechaHoraIncidencia);
           } else {
-            print('lerololelole');
             _fechaHoraIncidenciaError = false;
             _fechaHoraIncidenciaErrorMessage = '';
             _fechaHoraIncidenciaController.text =
@@ -1112,10 +1106,9 @@ class _VerificarFleteState extends State<VerificarFlete>
   void _onCantidadChanged(
       String value, FleteDetalleViewModel item, bool isInsumo) {
     setState(() {
-      print(value);
       int cantidadIngresada = int.tryParse(value) ?? 0;
       int cantidadOriginal = item.fldeCantidad!;
-      print('cantidad origi $cantidadOriginal');
+      // print('cantidad origi $cantidadOriginal');
 
       if (cantidadIngresada > cantidadOriginal) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1131,14 +1124,12 @@ class _VerificarFleteState extends State<VerificarFlete>
 
       // Actualizar el mapa temporal con la cantidad ingresada
       _cantidadesRecibidasTemp[item.fldeId!] = cantidadIngresada;
-      print('en onchange $cantidadIngresada');
 
       // Actualizar el valor en el modelo
       item.cantidadRecibida = cantidadIngresada;
 
-      print(
-          'Cantidad ingresada: $cantidadIngresada para item ID: ${item.fldeId}');
-      print('Mapa temporal actualizado: $_cantidadesRecibidasTemp');
+      // print('Cantidad ingresada: $cantidadIngresada para item ID: ${item.fldeId}');
+      // print('Mapa temporal actualizado: $_cantidadesRecibidasTemp');
 
       // Asegurarte de que no se pierden valores importantes
       if (cantidadIngresada < cantidadOriginal) {
@@ -1146,7 +1137,7 @@ class _VerificarFleteState extends State<VerificarFlete>
 
         List<FleteDetalleViewModel> noRecibidosList =
             isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
-        print('norecibidoslis antes de actualizar: $noRecibidosList');
+        // print('norecibidoslis antes de actualizar: $noRecibidosList');
         var existente = noRecibidosList.firstWhere(
           (e) => isInsumo
               ? e.insuDescripcion == item.insuDescripcion
@@ -1183,7 +1174,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     List<FleteDetalleViewModel> noRecibidosList =
         isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
 
-    print('elminar de no recib $noRecibidosList');
+    // print('elminar de no recib $noRecibidosList');
     noRecibidosList.removeWhere((e) => isInsumo
         ? e.insuDescripcion == item.insuDescripcion
         : e.equsNombre == item.equsNombre);
@@ -1298,7 +1289,6 @@ class _VerificarFleteState extends State<VerificarFlete>
                               ),
                             ),
                             onChanged: (value) {
-                              print('al cambiar $value, $item, $isInsumo');
                               _onCantidadChanged(value, item, isInsumo);
                             },
                             onTap: () {
@@ -1407,8 +1397,7 @@ class _VerificarFleteState extends State<VerificarFlete>
             );
           }
 
-          print(
-              'Cantidad actualizada para item ID: ${item.fldeId} es ${item.fldeCantidad}');
+          // print('Cantidad actualizada para item ID: ${item.fldeId} es ${item.fldeCantidad}');
         }
       }
 
@@ -1435,7 +1424,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
 
       // Si no hay insumos o equipos no recibidos, guardar todo
-      print('hayyy $hayNoVerificados');
+      // print('hayyy no verificados $hayNoVerificados');
       if (!hayNoVerificados) {
 
         await _guardarFleteCompleto();
@@ -1466,14 +1455,14 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     // Verificar insumos no recibidos
     for (var item in insumosNoRecibidos) {
-      print("Insumo no recibido: ${item.fldeId}");
+      // print("Insumo no recibido: ${item.insuDescripcion}");
       hayNoVerificados = true;
     }
 
     // Verificar equipos no recibidos
-    print('equipos no $equiposNoRecibidos');
+    // print('equipos no $equiposNoRecibidos');
     for (var detalle in equiposNoRecibidos) {
-      print("Equipo no recibido: ${detalle.fldeId}");
+      // print("Equipo no recibido: ${detalle.fldeId}");
       hayNoVerificados = true;
     }
 
@@ -1486,7 +1475,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     // Guardar insumos no recibidos
     for (var item in insumosNoRecibidos) {
       item.fldeLlegada = false;
-      print("Insumo no recibido: ${item.fldeId}");
+      // print("Insumo no recibido: ${item.fldeId}");
 
       var detalleNuevo = _crearDetalleNoRecibido(item, false);
 
@@ -1511,7 +1500,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     // Guardar equipos no recibidos
     for (var detalle in equiposNoRecibidos) {
       detalle.fldeLlegada = false;
-      print("Equipo no recibido: ${detalle.fldeId}");
+      // print("Equipo no recibido: ${detalle.fldeId}");
 
       var detalleNuevo = _crearDetalleNoRecibido(detalle, true);
 
@@ -1571,8 +1560,6 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Future<void> _guardarFleteEIncidencia() async {
-    print("Guardando flete e incidencia...");
-
     bool hayErrores = false;
 
     // Validar que la descripción no esté vacía
@@ -1598,7 +1585,6 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     // Validar que la fecha no esté vacía
     if (_fechaHoraIncidenciaController.text.isEmpty) {
-      print('como asi');
       setState(() {
         _fechaHoraIncidenciaError = true;
         _fechaHoraIncidenciaErrorMessage = 'El campo es requerido.';
@@ -1611,12 +1597,10 @@ class _VerificarFleteState extends State<VerificarFlete>
         _fechaHoraIncidenciaErrorMessage = '';
       });
     } else {
-      print('dondeee');
       _fechaHoraIncidenciaController.clear();
     }
 
     if (_fechaHoraIncidenciaError) {
-      print('aaakss');
       return;
     }
 
@@ -1626,12 +1610,12 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
 
     if (!_fleteGuardado) {
-      print("Primera vez que se guarda, guardando flete completo...");
+      // print("Primera vez que se guarda, guardando flete completo...");
       await _guardarInsumosYEquiposNoRecibidos();
       await _guardarFleteCompleto();
       _fleteGuardado = true; // Marcamos que el flete ya ha sido guardado
     } else {
-      print("Flete ya guardado, solo guardando incidencia...");
+      // print("Flete ya guardado, solo guardando incidencia...");
     }
 
     // Guardar la incidencia
@@ -1671,7 +1655,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         await FleteDetalleService.editarFleteDetalle(item);
       }
 
-      print('fleetevenviando $flete');
+      // print('fleetevenviando $flete');
       bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
       await FleteEncabezadoService.editarFlete(flete);
 
@@ -1690,8 +1674,6 @@ class _VerificarFleteState extends State<VerificarFlete>
   }
 
   Future<void> _guardarIncidencia() async {
-    print("Iniciando guardado de incidencia...");
-
     bool hayErrores = false;
 
     // Validar que la descripción no esté vacía
@@ -1822,7 +1804,6 @@ class _VerificarFleteState extends State<VerificarFlete>
                 ),
                 onPressed: () async {
                   if (!_isLoading) {
-                    print('carg $_isLoading');
                     setState(() {
                       _isLoading = true;
                       _mostrarErrores = true;
