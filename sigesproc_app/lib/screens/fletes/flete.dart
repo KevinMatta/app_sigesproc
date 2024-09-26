@@ -82,7 +82,7 @@ class _FleteState extends State<Flete> {
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -94,7 +94,7 @@ class _FleteState extends State<Flete> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -106,7 +106,7 @@ class _FleteState extends State<Flete> {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -145,7 +145,7 @@ class _FleteState extends State<Flete> {
 
             // print("Fletes filtrados: ${_allFletes.length}");
           } else {
-            print('Usuario es admin, mostrando todos los fletes');
+            // print('Usuario es admin, mostrando todos los fletes');
             _allFletes = fletes;
           }
 
@@ -153,11 +153,11 @@ class _FleteState extends State<Flete> {
           _filteredFletes = _allFletes;
           // print("Fletes mostrados en la tabla: ${_filteredFletes.length}");
         } else {
-          print('emplId o EsAdmin no cargado correctamente');
+          // print('emplId o EsAdmin no cargado correctamente');
         }
       });
     } catch (e) {
-      print('Error al cargar fletes: $e');
+      // print('Error al cargar fletes: $e');
     } finally {
       setState(() {
         _isLoading = false;

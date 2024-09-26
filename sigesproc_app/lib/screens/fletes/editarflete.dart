@@ -202,7 +202,7 @@ class _EditarFleteState extends State<EditarFlete>
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -214,7 +214,7 @@ class _EditarFleteState extends State<EditarFlete>
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -226,7 +226,7 @@ class _EditarFleteState extends State<EditarFlete>
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -282,7 +282,7 @@ class _EditarFleteState extends State<EditarFlete>
 
         esProyecto = flete.flenDestinoProyecto ?? false;
         if (esProyecto) {
-          print('Es un proyecto: sí');
+          // print('Es un proyecto: sí');
           ProyectoViewModel? proyectoSeleccionado =
               await ProyectoService.obtenerProyecto(flete.proyId!);
           // print('Proyecto seleccionado: $proyectoSeleccionado');
@@ -300,26 +300,26 @@ class _EditarFleteState extends State<EditarFlete>
                 actividadControllerLlegada.text = flete.boatDescripcion!;
               });
             } else {
-              print('No se encontraron actividades o boatId es nulo');
+              // print('No se encontraron actividades o boatId es nulo');
             }
           } else {
-            print('El proyecto seleccionado es nulo');
+            // print('El proyecto seleccionado es nulo');
           }
         } else {
-          print('Es un proyecto: no');
+          // print('Es un proyecto: no');
           BodegaViewModel? llegada = await BodegaService.buscar(flete.boatId!);
           if (llegada != null) {
             setState(() {
               llegadaController.text = llegada.bodeDescripcion!;
             });
           } else {
-            print('La bodega de llegada es nula');
+            // print('La bodega de llegada es nula');
           }
         }
 
         esProyectosalida = flete.flenSalidaProyecto ?? false;
         if (esProyectosalida) {
-          print('Es un proyecto de salida: sí');
+          // print('Es un proyecto de salida: sí');
           ProyectoViewModel? proyectoSeleccionado =
               await ProyectoService.obtenerProyecto(flete.proyIdSalidaa!);
           // print('Proyecto de salida seleccionado: $proyectoSeleccionado');
@@ -346,18 +346,18 @@ class _EditarFleteState extends State<EditarFlete>
                 });
               }
             } else {
-              print('No se encontraron actividades de salida o boasId es nulo');
+              // print('No se encontraron actividades de salida o boasId es nulo');
             }
           } else {
-            print('El proyecto de salida seleccionado es nulo');
+            // print('El proyecto de salida seleccionado es nulo');
           }
         } else {
-          print('Es un proyecto de salida: no');
+          // print('Es un proyecto de salida: no');
           BodegaViewModel? salida = await BodegaService.buscar(flete.boasId!);
           if (salida != null) {
             salidaController.text = salida.bodeDescripcion!;
           } else {
-            print('La bodega de salida es nula');
+            // print('La bodega de salida es nula');
           }
         }
 
@@ -620,7 +620,7 @@ class _EditarFleteState extends State<EditarFlete>
         }
       }
     } catch (e) {
-      print('Error al cargar los datos del flete: $e');
+      // print('Error al cargar los datos del flete: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -636,7 +636,7 @@ class _EditarFleteState extends State<EditarFlete>
         empleados = empleadosList;
       });
     } catch (e) {
-      print('Error al cargar los empleados: $e');
+      // print('Error al cargar los empleados: $e');
     }
   }
 
@@ -647,7 +647,7 @@ class _EditarFleteState extends State<EditarFlete>
         bodegas = bodegasList;
       });
     } catch (e) {
-      print('Error al cargar las bodegas: $e');
+      // print('Error al cargar las bodegas: $e');
     }
   }
 
@@ -659,7 +659,7 @@ class _EditarFleteState extends State<EditarFlete>
         proyectos = proyectosList;
       });
     } catch (e) {
-      print('Error al cargar los proyectos: $e');
+      // print('Error al cargar los proyectos: $e');
     }
   }
 
@@ -678,7 +678,7 @@ class _EditarFleteState extends State<EditarFlete>
         }
       });
     } catch (e) {
-      print('Error al cargar las actividades: $e');
+      // print('Error al cargar las actividades: $e');
     }
   }
 
@@ -749,7 +749,7 @@ class _EditarFleteState extends State<EditarFlete>
         selectedCantidades = List.generate(insumos.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los insumos: $e');
+      // print('Error al cargar los insumos: $e');
     }
   }
 
@@ -768,7 +768,7 @@ class _EditarFleteState extends State<EditarFlete>
             List.generate(equiposdeSeguridad.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los equipos de seguridad: $e');
+      // print('Error al cargar los equipos de seguridad: $e');
     }
   }
 
@@ -1119,7 +1119,7 @@ class _EditarFleteState extends State<EditarFlete>
         selectedCantidades = List.generate(insumos.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los insumos: $e');
+      // print('Error al cargar los insumos: $e');
     }
   }
 
@@ -1140,7 +1140,7 @@ class _EditarFleteState extends State<EditarFlete>
             List.generate(equiposdeSeguridad.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los equipos de seguridad: $e');
+      // print('Error al cargar los equipos de seguridad: $e');
     }
   }
 
@@ -1739,7 +1739,7 @@ class _EditarFleteState extends State<EditarFlete>
         bodegaSalidaCambiada = true;
       }
       if (bodegaSalidaCambiada) {
-        print('cambio');
+        // print('cambio');
 
         // Eliminar todos los detalles existentes para este flete
         final detallesExistentes =
@@ -1756,7 +1756,7 @@ class _EditarFleteState extends State<EditarFlete>
 // Verificar insumos seleccionados
       for (int i = 0; i < selectedInsumos.length; i++) {
         if (i >= quantityControllers.length) {
-          print("Error: La lista de controladores es más corta que la lista de insumos");
+          // print("Error: La lista de controladores es más corta que la lista de insumos");
           break;
         }
 
@@ -1797,7 +1797,7 @@ class _EditarFleteState extends State<EditarFlete>
 // Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
         // if (i >= equipoQuantityControllers.length) {
-        //   print(
+        //   // print(
         //       "Error: La lista de controladores de equipos es más corta que la lista de equipos");
         //   break;
         // }
@@ -1883,7 +1883,7 @@ class _EditarFleteState extends State<EditarFlete>
 
           // Insertar o actualizar el detalle
           if (detalleExistente.fldeId != null) {
-            print('Procesando detalle existente: $detalleExistente');
+            // print('Procesando detalle existente: $detalleExistente');
             if (detalleExistente.fldeCantidad != detalle.fldeCantidad) {
               await FleteDetalleService.Eliminar(detalleExistente.fldeId!);
               // print('Reinsertando nuevo detalle para insumo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
@@ -1917,7 +1917,7 @@ class _EditarFleteState extends State<EditarFlete>
 
           // Insertar o actualizar el detalle
           if (detalleExistente.fldeId != null) {
-            print('Procesando detalle existente: $detalleExistente');
+            // print('Procesando detalle existente: $detalleExistente');
             if (detalleExistente.fldeCantidad != detalle.fldeCantidad) {
               // print('Eliminando detalle existente con fldeId: ${detalleExistente.fldeId}');
               await FleteDetalleService.Eliminar(detalleExistente.fldeId!);
@@ -1981,7 +1981,7 @@ class _EditarFleteState extends State<EditarFlete>
         });
       }
     } catch (e) {
-      print('Error al editar $e');
+      // print('Error al editar $e');
       setState(() {
         _isLoading = false;
       });

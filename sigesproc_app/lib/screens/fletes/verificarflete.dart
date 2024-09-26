@@ -147,7 +147,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -159,7 +159,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -172,7 +172,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -258,7 +258,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       setState(() {
         comprobante = null;
       });
-      print('No se seleccionó ninguna imagen.');
+      // print('No se seleccionó ninguna imagen.');
     }
   }
 
@@ -1108,7 +1108,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     setState(() {
       int cantidadIngresada = int.tryParse(value) ?? 0;
       int cantidadOriginal = item.fldeCantidad!;
-      // print('cantidad origi $cantidadOriginal');
+      // // print('cantidad origi $cantidadOriginal');
 
       if (cantidadIngresada > cantidadOriginal) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1128,8 +1128,8 @@ class _VerificarFleteState extends State<VerificarFlete>
       // Actualizar el valor en el modelo
       item.cantidadRecibida = cantidadIngresada;
 
-      // print('Cantidad ingresada: $cantidadIngresada para item ID: ${item.fldeId}');
-      // print('Mapa temporal actualizado: $_cantidadesRecibidasTemp');
+      // // print('Cantidad ingresada: $cantidadIngresada para item ID: ${item.fldeId}');
+      // // print('Mapa temporal actualizado: $_cantidadesRecibidasTemp');
 
       // Asegurarte de que no se pierden valores importantes
       if (cantidadIngresada < cantidadOriginal) {
@@ -1137,7 +1137,7 @@ class _VerificarFleteState extends State<VerificarFlete>
 
         List<FleteDetalleViewModel> noRecibidosList =
             isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
-        // print('norecibidoslis antes de actualizar: $noRecibidosList');
+        // // print('norecibidoslis antes de actualizar: $noRecibidosList');
         var existente = noRecibidosList.firstWhere(
           (e) => isInsumo
               ? e.insuDescripcion == item.insuDescripcion
@@ -1174,7 +1174,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     List<FleteDetalleViewModel> noRecibidosList =
         isInsumo ? insumosNoRecibidos : equiposNoRecibidos;
 
-    // print('elminar de no recib $noRecibidosList');
+    // // print('elminar de no recib $noRecibidosList');
     noRecibidosList.removeWhere((e) => isInsumo
         ? e.insuDescripcion == item.insuDescripcion
         : e.equsNombre == item.equsNombre);
@@ -1397,7 +1397,7 @@ class _VerificarFleteState extends State<VerificarFlete>
             );
           }
 
-          // print('Cantidad actualizada para item ID: ${item.fldeId} es ${item.fldeCantidad}');
+          // // print('Cantidad actualizada para item ID: ${item.fldeId} es ${item.fldeCantidad}');
         }
       }
 
@@ -1424,7 +1424,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
 
       // Si no hay insumos o equipos no recibidos, guardar todo
-      // print('hayyy no verificados $hayNoVerificados');
+      // // print('hayyy no verificados $hayNoVerificados');
       if (!hayNoVerificados) {
 
         await _guardarFleteCompleto();
@@ -1443,7 +1443,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         _mostrarFormularioIncidencia = true;
       });
     } catch (e) {
-      print('Error en la verificación del flete: $e');
+      // print('Error en la verificación del flete: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al procesar la verificación del flete.')),
       );
@@ -1455,14 +1455,14 @@ class _VerificarFleteState extends State<VerificarFlete>
 
     // Verificar insumos no recibidos
     for (var item in insumosNoRecibidos) {
-      // print("Insumo no recibido: ${item.insuDescripcion}");
+      // // print("Insumo no recibido: ${item.insuDescripcion}");
       hayNoVerificados = true;
     }
 
     // Verificar equipos no recibidos
-    // print('equipos no $equiposNoRecibidos');
+    // // print('equipos no $equiposNoRecibidos');
     for (var detalle in equiposNoRecibidos) {
-      // print("Equipo no recibido: ${detalle.fldeId}");
+      // // print("Equipo no recibido: ${detalle.fldeId}");
       hayNoVerificados = true;
     }
 
@@ -1475,7 +1475,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     // Guardar insumos no recibidos
     for (var item in insumosNoRecibidos) {
       item.fldeLlegada = false;
-      // print("Insumo no recibido: ${item.fldeId}");
+      // // print("Insumo no recibido: ${item.fldeId}");
 
       var detalleNuevo = _crearDetalleNoRecibido(item, false);
 
@@ -1493,14 +1493,14 @@ class _VerificarFleteState extends State<VerificarFlete>
           throw Exception('Error al insertar detalle de insumo no recibido.');
         }
       } catch (e) {
-        print('Error al insertar insumo no recibido: $e');
+        // print('Error al insertar insumo no recibido: $e');
       }
     }
 
     // Guardar equipos no recibidos
     for (var detalle in equiposNoRecibidos) {
       detalle.fldeLlegada = false;
-      // print("Equipo no recibido: ${detalle.fldeId}");
+      // // print("Equipo no recibido: ${detalle.fldeId}");
 
       var detalleNuevo = _crearDetalleNoRecibido(detalle, true);
 
@@ -1518,7 +1518,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           throw Exception('Error al insertar detalle de equipo no recibido.');
         }
       } catch (e) {
-        print('Error al insertar equipo no recibido: $e');
+        // print('Error al insertar equipo no recibido: $e');
       }
     }
 
@@ -1610,12 +1610,12 @@ class _VerificarFleteState extends State<VerificarFlete>
     }
 
     if (!_fleteGuardado) {
-      // print("Primera vez que se guarda, guardando flete completo...");
+      // // print("Primera vez que se guarda, guardando flete completo...");
       await _guardarInsumosYEquiposNoRecibidos();
       await _guardarFleteCompleto();
       _fleteGuardado = true; // Marcamos que el flete ya ha sido guardado
     } else {
-      // print("Flete ya guardado, solo guardando incidencia...");
+      // // print("Flete ya guardado, solo guardando incidencia...");
     }
 
     // Guardar la incidencia
@@ -1655,7 +1655,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         await FleteDetalleService.editarFleteDetalle(item);
       }
 
-      // print('fleetevenviando $flete');
+      // // print('fleetevenviando $flete');
       bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
       await FleteEncabezadoService.editarFlete(flete);
 
@@ -1737,7 +1737,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
       }
     } catch (e) {
-      print('Error al guardar la incidencia: $e');
+      // print('Error al guardar la incidencia: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Algo salió mal. Comuníquese con un Administrador.')),
