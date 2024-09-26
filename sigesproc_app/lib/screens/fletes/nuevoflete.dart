@@ -1343,8 +1343,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
       for (int i = 0; i < selectedInsumos.length; i++) {
         if (i >= quantityControllers.length) {
-          // print(
-              "Error: La lista de controladores es más corta que la lista de insumos");
+          // print("Error: La lista de controladores es más corta que la lista de insumos");
           break;
         }
 
@@ -1385,8 +1384,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 // Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
         if (i >= equipoQuantityControllers.length) {
-          // print(
-              "Error: La lista de controladores de equipos es más corta que la lista de equipos");
+          // print("Error: La lista de controladores de equipos es más corta que la lista de equipos");
           break;
         }
 

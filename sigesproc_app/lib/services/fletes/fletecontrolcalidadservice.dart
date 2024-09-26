@@ -29,7 +29,7 @@ class FleteControlCalidadService {
       'XApiKey': ApiService.apiKey,
     };
 
-    print('Body insertar incidencia: $body');
+    // print('Body insertar incidencia: $body');
 
     final response = await http.post(
       url,
@@ -37,8 +37,8 @@ class FleteControlCalidadService {
       body: body,
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    // print('Response status: ${response.statusCode}');
+    // print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
@@ -58,8 +58,8 @@ class FleteControlCalidadService {
       body: json.encode(modelo.toJson()),
     );
 
-    print('Response status actualizar incidencia: ${response.statusCode}');
-    print('Response body actualizar incidencia: ${response.body}');
+    // print('Response status actualizar incidencia: ${response.statusCode}');
+    // print('Response body actualizar incidencia: ${response.body}');
 
     if (response.statusCode == 200) {
       return true;
@@ -74,8 +74,8 @@ class FleteControlCalidadService {
     final response =
         await http.delete(url, headers: ApiService.getHttpHeaders());
 
-    print('Response status eliminar incidencia: ${response.statusCode}');
-    print('Response body eliminar incidencia: ${response.body}');
+    // print('Response status eliminar incidencia: ${response.statusCode}');
+    // print('Response body eliminar incidencia: ${response.body}');
 
     if (response.statusCode == 200) {
       return true;

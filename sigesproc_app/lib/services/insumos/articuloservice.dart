@@ -9,11 +9,11 @@ class ArticuloService {
     final url = Uri.parse(
         '${ApiService.apiUrl}/Cotizacion/ListarArticulosPorCotizacion/$cotiId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    //print('Response status: ${response.statusCode}');
+    //print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      print('Data processed: $data');
+      //print('Data processed: $data');
 
       return data.map((json) => ArticuloViewModel.fromJson(json)).toList();
     } else {

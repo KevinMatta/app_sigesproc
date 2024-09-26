@@ -1797,7 +1797,7 @@ class _EditarFleteState extends State<EditarFlete>
 // Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
         // if (i >= equipoQuantityControllers.length) {
-        //   // print(
+        // print(
         //       "Error: La lista de controladores de equipos es más corta que la lista de equipos");
         //   break;
         // }

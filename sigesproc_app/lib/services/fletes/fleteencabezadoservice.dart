@@ -53,8 +53,8 @@ class FleteEncabezadoService {
       body: body,
     );
 
-    print('Response insertar enca: ${response.statusCode}');
-    print('Response body enca: ${response.body}');
+    // print('Response insertar enca: ${response.statusCode}');
+    // print('Response body enca: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
@@ -71,7 +71,7 @@ class FleteEncabezadoService {
     request.headers.addAll(ApiService.getHttpHeaders());
 
     if (comprobante.path == null) {
-      print('Error: El archivo de imagen no tiene una ruta válida.');
+      // print('Error: El archivo de imagen no tiene una ruta válida.');
       throw Exception('El archivo de imagen no tiene una ruta válida.');
     }
 
@@ -92,7 +92,7 @@ class FleteEncabezadoService {
       final responseData = await response.stream.bytesToString();
       final parsedJson = json.decode(responseData);
 
-      print("JSON recibido: $parsedJson");
+      // print("JSON recibido: $parsedJson");
 
       final respuesta = RespuestaSoloMensaje.fromJson(parsedJson);
 
@@ -106,7 +106,7 @@ class FleteEncabezadoService {
       throw Exception('Error al subir la imagen. Código de estado: ${response.statusCode}');
     }
     } catch (e) {
-      print('Error al procesar la imagen: $e');
+      // print('Error al procesar la imagen: $e');
       rethrow;
     }
   }
@@ -119,7 +119,7 @@ class FleteEncabezadoService {
       'XApiKey': ApiService.apiKey,
     };
 
-    print('Body editar: $body');
+    // print('Body editar: $body');
 
     final response = await http.put(
       url,
@@ -127,7 +127,7 @@ class FleteEncabezadoService {
       body: body,
     );
 
-    print('Response body editar: ${response.body}');
+    // print('Response body editar: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
@@ -146,7 +146,7 @@ class FleteEncabezadoService {
       final flete = fletes.firstWhere((flete) => flete.flenId == flenId);
       return flete;
     } catch (e) {
-      print('Error: $e');
+      // print('Error: $e');
       throw Exception('Flete con ID $flenId no encontrado');
     }
   }
