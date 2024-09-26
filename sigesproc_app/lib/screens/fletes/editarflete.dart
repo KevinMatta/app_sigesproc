@@ -136,7 +136,7 @@ class _EditarFleteState extends State<EditarFlete>
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // Cargamos el userId desde las preferencias.
+    _loadUserId(); 
 
     _loadUserProfileData();
     _tabController = TabController(length: 2, vsync: this);
@@ -201,7 +201,6 @@ class _EditarFleteState extends State<EditarFlete>
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
       print('No se encontró token en las preferencias.');
     }
@@ -226,7 +225,6 @@ class _EditarFleteState extends State<EditarFlete>
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
       print("Error al cargar los datos del usuario: $e");
     }
@@ -287,7 +285,7 @@ class _EditarFleteState extends State<EditarFlete>
           print('Es un proyecto: sí');
           ProyectoViewModel? proyectoSeleccionado =
               await ProyectoService.obtenerProyecto(flete.proyId!);
-          print('Proyecto seleccionado: $proyectoSeleccionado');
+          // print('Proyecto seleccionado: $proyectoSeleccionado');
           if (proyectoSeleccionado != null) {
             setState(() {
               llegadaController.text = proyectoSeleccionado.proyNombre!;
@@ -324,7 +322,7 @@ class _EditarFleteState extends State<EditarFlete>
           print('Es un proyecto de salida: sí');
           ProyectoViewModel? proyectoSeleccionado =
               await ProyectoService.obtenerProyecto(flete.proyIdSalidaa!);
-          print('Proyecto de salida seleccionado: $proyectoSeleccionado');
+          // print('Proyecto de salida seleccionado: $proyectoSeleccionado');
           if (proyectoSeleccionado != null) {
             salidaController.text = proyectoSeleccionado.proyNombre!;
 
@@ -337,7 +335,7 @@ class _EditarFleteState extends State<EditarFlete>
                   .firstWhere((actividad) => actividad.acetId == flete.boasId!,
                       orElse: () => ActividadPorEtapaViewModel(
                           etapDescripcion: '', actiDescripcion: ''));
-              print('Etapa actividad de salida seleccionada: $etapaActividad');
+              // print('Etapa actividad de salida seleccionada: $etapaActividad');
 
               if (etapaActividad.etapDescripcion!.isNotEmpty) {
                 setState(() {
@@ -356,7 +354,6 @@ class _EditarFleteState extends State<EditarFlete>
         } else {
           print('Es un proyecto de salida: no');
           BodegaViewModel? salida = await BodegaService.buscar(flete.boasId!);
-          print('Bodega de salida cargada: $salida');
           if (salida != null) {
             salidaController.text = salida.bodeDescripcion!;
           } else {
@@ -368,25 +365,25 @@ class _EditarFleteState extends State<EditarFlete>
 
         if (flete.boasId != null) {
           if (esProyectosalida) {
-            print('Cargando insumos para el proyecto de salida');
+            // print('Cargando insumos para el proyecto de salida');
 
             // Cargar la lista de insumos disponibles en la bodega
             List<InsumoPorProveedorViewModel> insumosList =
                 await FleteDetalleService
                     .listarInsumosPorProveedorPorActividadEtapa(flete.boasId!);
-            print('Insumos cargados: $insumosList');
+            // print('Insumos cargados: $insumosList');
 
             // Cargar los detalles de insumos ya seleccionados en el flete
             List<FleteDetalleViewModel> detallesCargados =
                 await FleteDetalleService.Buscar(flete.flenId!);
-            print('Detalles de insumos cargados: $detallesCargados');
+            // print('Detalles de insumos cargados: $detallesCargados');
 
             // Filtrar los detalles solo para insumos
             List<FleteDetalleViewModel> detallesInsumosCargados =
                 detallesCargados
                     .where((detalle) => detalle.fldeTipodeCarga == true)
                     .toList();
-            print('Detalles filtrados de insumos: $detallesInsumosCargados');
+            // print('Detalles filtrados de insumos: $detallesInsumosCargados');
 
             setState(() {
               selectedCantidades = [];
@@ -403,8 +400,6 @@ class _EditarFleteState extends State<EditarFlete>
                 if (insumo != null) {
                   int stockTemporalInsumos =
                       (insumo.bopiStock ?? 0) + detalle.fldeCantidad!;
-                  print('INSUMOS CARGA $insumo');
-                  print('DETALLES CARGA $detalle');
 
                   // Solo agregar insumos cuyo stock temporal es mayor que 0
                   if (stockTemporalInsumos > 0) {
@@ -414,8 +409,7 @@ class _EditarFleteState extends State<EditarFlete>
                         text: detalle.fldeCantidad.toString()));
                     insumo.bopiStock =
                         stockTemporalInsumos; // Actualiza el stock temporal
-                    print(
-                        'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+                    // print('Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
 
                     // Añadir el insumo filtrado a la lista final
                     insumosFiltrados.add(insumo);
@@ -440,19 +434,17 @@ class _EditarFleteState extends State<EditarFlete>
               insumos = insumosFiltrados;
             });
 
-            print('Cargando equipos de seguridad para la bodega de salida');
-
             // Cargar la lista de equipos disponibles en la bodega
             List<EquipoPorProveedorViewModel> equiposList =
                 await FleteDetalleService
                     .listarEquiposdeSeguridadPorActividadEtapa(flete.boasId!);
-            print('Equipos cargados: $equiposList');
+            // print('Equipos cargados: $equiposList');
 
             List<FleteDetalleViewModel> detallesEquiposCargados =
                 detallesCargados
                     .where((detalle) => detalle.fldeTipodeCarga == false)
                     .toList();
-            print('Detalles filtrados de equipos: $detallesEquiposCargados');
+            // print('Detalles filtrados de equipos: $detallesEquiposCargados');
 
             setState(() {
               selectedCantidadesequipos = [];
@@ -499,25 +491,23 @@ class _EditarFleteState extends State<EditarFlete>
               equiposdeSeguridad = equiposFiltrados;
             });
           } else {
-            print('Cargando insumos para la bodega de salida');
-
             // Cargar la lista de insumos disponibles en la bodega
             List<InsumoPorProveedorViewModel> insumosList =
                 await FleteDetalleService.listarInsumosPorProveedorPorBodega(
                     flete.boasId!);
-            print('Insumos cargados: $insumosList');
+            // print('Insumos cargados: $insumosList');
 
             // Cargar los detalles de insumos ya seleccionados en el flete
             List<FleteDetalleViewModel> detallesCargados =
                 await FleteDetalleService.Buscar(flete.flenId!);
-            print('Detalles de insumos cargados: $detallesCargados');
+            // print('Detalles de insumos cargados: $detallesCargados');
 
             // Filtrar los detalles solo para insumos
             List<FleteDetalleViewModel> detallesInsumosCargados =
                 detallesCargados
                     .where((detalle) => detalle.fldeTipodeCarga == true)
                     .toList();
-            print('Detalles filtrados de insumos: $detallesInsumosCargados');
+            // print('Detalles filtrados de insumos: $detallesInsumosCargados');
 
             setState(() {
               selectedCantidades = [];
@@ -543,8 +533,7 @@ class _EditarFleteState extends State<EditarFlete>
                         text: detalle.fldeCantidad.toString()));
                     insumo.bopiStock =
                         stockTemporalInsumos; // Actualiza el stock temporal
-                    print(
-                        'Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
+                    // print('Cantidad seleccionada para ${insumo.insuDescripcion}: ${detalle.fldeCantidad}');
 
                     // Añadir el insumo filtrado a la lista final
                     insumosFiltrados.add(insumo);
@@ -570,20 +559,18 @@ class _EditarFleteState extends State<EditarFlete>
               insumos = insumosFiltrados;
             });
 
-            print('Cargando equipos de seguridad para la bodega de salida');
-
             // Cargar la lista de equipos disponibles en la bodega
             List<EquipoPorProveedorViewModel> equiposList =
                 await FleteDetalleService.listarEquiposdeSeguridadPorBodega(
                     flete.boasId!);
-            print('Equipos cargados: $equiposList');
+            // print('Equipos cargados: $equiposList');
 
             // Filtrar los detalles solo para equipos
             List<FleteDetalleViewModel> detallesEquiposCargados =
                 detallesCargados
                     .where((detalle) => detalle.fldeTipodeCarga == false)
                     .toList();
-            print('Detalles filtrados de equipos: $detallesEquiposCargados');
+            // print('Detalles filtrados de equipos: $detallesEquiposCargados');
 
             setState(() {
               selectedCantidadesequipos = [];
@@ -1528,7 +1515,7 @@ class _EditarFleteState extends State<EditarFlete>
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
+              height: 50, 
             ),
             SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
             Expanded(
@@ -1751,8 +1738,6 @@ class _EditarFleteState extends State<EditarFlete>
       if (boasidd != flete.boasId) {
         bodegaSalidaCambiada = true;
       }
-      print('bool bodegasalida $bodegaSalidaCambiada');
-
       if (bodegaSalidaCambiada) {
         print('cambio');
 
@@ -1760,10 +1745,10 @@ class _EditarFleteState extends State<EditarFlete>
         final detallesExistentes =
             await FleteDetalleService.listarDetallesdeFlete(flete.flenId!);
 
-        print('detallesexistentes $detallesExistentes');
+        // print('detallesexistentes $detallesExistentes');
 
         for (var detalle in detallesExistentes) {
-          print('Eliminando detalle con fldeId: ${detalle.fldeId}');
+          // print('Eliminando detalle con fldeId: ${detalle.fldeId}');
           await FleteDetalleService.Eliminar(detalle.fldeId!);
         }
       }
@@ -1771,8 +1756,7 @@ class _EditarFleteState extends State<EditarFlete>
 // Verificar insumos seleccionados
       for (int i = 0; i < selectedInsumos.length; i++) {
         if (i >= quantityControllers.length) {
-          print(
-              "Error: La lista de controladores es más corta que la lista de insumos");
+          print("Error: La lista de controladores es más corta que la lista de insumos");
           break;
         }
 
@@ -1783,8 +1767,7 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             _isLoading = false;
           });
-          print(
-              'Cantidad inválida detectada para ${selectedInsumos[i].insuDescripcion}');
+          // print('Cantidad inválida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1797,8 +1780,7 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             _isLoading = false;
           });
-          print(
-              'Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
+          // print('Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1827,8 +1809,7 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             _isLoading = false;
           });
-          print(
-              'Cantidad inválida detectada para equipo ${selectedEquipos[i].equsNombre}');
+          // print('Cantidad inválida detectada para equipo ${selectedEquipos[i].equsNombre}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1841,8 +1822,7 @@ class _EditarFleteState extends State<EditarFlete>
           setState(() {
             _isLoading = false;
           });
-          print(
-              'Cantidad excedida detectada para equipo ${selectedEquipos[i].equsNombre}');
+          // print('Cantidad excedida detectada para equipo ${selectedEquipos[i].equsNombre}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1875,7 +1855,7 @@ class _EditarFleteState extends State<EditarFlete>
       }
 
       // Actualizar el flete
-      print('Flete a enviar: $flete');
+      // print('Flete a enviar: $flete');
       await FleteEncabezadoService.editarFlete(flete);
 
       final int? fleteId = widget.flenId;
@@ -1905,20 +1885,15 @@ class _EditarFleteState extends State<EditarFlete>
           if (detalleExistente.fldeId != null) {
             print('Procesando detalle existente: $detalleExistente');
             if (detalleExistente.fldeCantidad != detalle.fldeCantidad) {
-              print(
-                  'Eliminando detalle existente con fldeId: ${detalleExistente.fldeId}');
               await FleteDetalleService.Eliminar(detalleExistente.fldeId!);
-              print(
-                  'Reinsertando nuevo detalle para insumo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
+              // print('Reinsertando nuevo detalle para insumo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
               await FleteDetalleService.insertarFleteDetalle(detalle);
             } else {
-              print(
-                  'Actualizando detalle existente con fldeId: ${detalle.fldeId} con cantidad: ${detalle.fldeCantidad}');
+              // print('Actualizando detalle existente con fldeId: ${detalle.fldeId} con cantidad: ${detalle.fldeCantidad}');
               await FleteDetalleService.editarFleteDetalle(detalle);
             }
           } else {
-            print(
-                'Insertando nuevo detalle para insumo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
+            // print('Insertando nuevo detalle para insumo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
             await FleteDetalleService.insertarFleteDetalle(detalle);
           }
         }
@@ -1944,20 +1919,16 @@ class _EditarFleteState extends State<EditarFlete>
           if (detalleExistente.fldeId != null) {
             print('Procesando detalle existente: $detalleExistente');
             if (detalleExistente.fldeCantidad != detalle.fldeCantidad) {
-              print(
-                  'Eliminando detalle existente con fldeId: ${detalleExistente.fldeId}');
+              // print('Eliminando detalle existente con fldeId: ${detalleExistente.fldeId}');
               await FleteDetalleService.Eliminar(detalleExistente.fldeId!);
-              print(
-                  'Reinsertando nuevo detalle para equipo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
+              // print('Reinsertando nuevo detalle para equipo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
               await FleteDetalleService.insertarFleteDetalle(detalle);
             } else {
-              print(
-                  'Actualizando detalle existente con fldeId: ${detalle.fldeId} con cantidad: ${detalle.fldeCantidad}');
+              // print('Actualizando detalle existente con fldeId: ${detalle.fldeId} con cantidad: ${detalle.fldeCantidad}');
               await FleteDetalleService.editarFleteDetalle(detalle);
             }
           } else {
-            print(
-                'Insertando nuevo detalle para equipo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
+            // print('Insertando nuevo detalle para equipo: ${detalle.inppId} con cantidad: ${detalle.fldeCantidad}');
             await FleteDetalleService.insertarFleteDetalle(detalle);
           }
         }
@@ -1972,8 +1943,7 @@ class _EditarFleteState extends State<EditarFlete>
 
           if (insumoCorrespondiente.inppId == null &&
               detalle.fldeTipodeCarga == true) {
-            print(
-                'Eliminando detalle no seleccionado para insumo con fldeId: ${detalle.fldeId}');
+            // print('Eliminando detalle no seleccionado para insumo con fldeId: ${detalle.fldeId}');
             await FleteDetalleService.Eliminar(detalle.fldeId!);
           }
 
@@ -1985,8 +1955,7 @@ class _EditarFleteState extends State<EditarFlete>
 
           if (equipoCorrespondiente.eqppId == null &&
               detalle.fldeTipodeCarga == false) {
-            print(
-                'Eliminando detalle no seleccionado para equipo con fldeId: ${detalle.fldeId}');
+            // print('Eliminando detalle no seleccionado para equipo con fldeId: ${detalle.fldeId}');
             await FleteDetalleService.Eliminar(detalle.fldeId!);
           }
         }
@@ -2012,7 +1981,7 @@ class _EditarFleteState extends State<EditarFlete>
         });
       }
     } catch (e) {
-      print('ay por que yo $e');
+      print('Error al editar $e');
       setState(() {
         _isLoading = false;
       });
@@ -2249,7 +2218,7 @@ class _EditarFleteState extends State<EditarFlete>
           child: Row(
             children: [
               Text(
-                'Editar Materiales', // Texto que aparecerá junto al botón
+                'Editar Materiales', 
                 style: TextStyle(
                   color: Color(0xFFFFF0C6), // Mismo color que el ícono
                   fontSize: 15.0,

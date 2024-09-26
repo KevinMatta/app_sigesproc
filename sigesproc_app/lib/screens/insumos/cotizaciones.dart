@@ -15,7 +15,6 @@ import 'package:sigesproc_app/services/insumos/cotizacionservice.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import 'package:sigesproc_app/services/acceso/notificacionservice.dart';
 import 'package:sigesproc_app/services/bloc/notifications_bloc.dart';
-import '../appBar.dart'; // Asegúrate de que estás importando el CustomAppBar
 
 class Cotizacion extends StatefulWidget {
   @override
@@ -109,7 +108,6 @@ class _CotizacionState extends State<Cotizacion> {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
       print('No se encontró token en las preferencias.');
     }
@@ -127,7 +125,6 @@ class _CotizacionState extends State<Cotizacion> {
     }
   }
 
-  // Nueva función para cargar datos del usuario
   Future<void> _loadUserProfileData() async {
     var prefs = PreferenciasUsuario();
     int usua_Id = int.tryParse(prefs.userId) ?? 0;
@@ -135,7 +132,6 @@ class _CotizacionState extends State<Cotizacion> {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
       print("Error al cargar los datos del usuario: $e");
     }
@@ -147,8 +143,9 @@ class _CotizacionState extends State<Cotizacion> {
       _cotizacionesFiltrados = _allCotizaciones.where((cotizacion) {
         final salida = cotizacion.provDescripcion?.toLowerCase() ?? '';
         final codigo = cotizacion.codigo.toString(); // Convertir el código a cadena
+        final total = cotizacion.total!;
 
-        return salida.contains(query) || codigo.contains(query);
+        return salida.contains(query) || codigo.contains(query) || total.contains(query);
       }).toList();
 
       // Calcular el número total de registros y páginas
@@ -204,10 +201,8 @@ class _CotizacionState extends State<Cotizacion> {
       _searchController.text = '';
       _mostrarArticulos = true;
       _selectedCotiId = cotiId;
-      print('cotiid: $cotiId');
       _articulosFuture = ArticuloService.ListarArticulosPorCotizacion(cotiId);
 
-      // Cuando cargues los artículos, también inicializa las listas
       _articulosFuture!.then((articulos) {
         setState(() {
           _allArticulos =
@@ -592,7 +587,7 @@ class _CotizacionState extends State<Cotizacion> {
                         }
                       },
                     )
-                  : // Aquí va la lógica original de las cotizaciones
+                  : 
                   FutureBuilder<List<CotizacionViewModel>>(
                       future: _cotizacionesFuture,
                       builder: (context, snapshot) {
@@ -603,7 +598,6 @@ class _CotizacionState extends State<Cotizacion> {
                                 color: Color(0xFFFFF0C6)),
                           );
                         } else if (snapshot.hasError) {
-                          print('tiene error $snapshot');
                           return Center(
                             child: Text(
                               'Error al cargar los datos',

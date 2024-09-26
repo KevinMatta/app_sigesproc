@@ -227,7 +227,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
       print('No se encontró token en las preferencias.');
     }
@@ -253,7 +252,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
       print("Error al cargar los datos del usuario: $e");
     }
@@ -1088,7 +1086,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         hayErrores = true;
       }
 
-      print('$esProyecto, ${actividadesLlegada.isNotEmpty}, ${flete.boatId}');
       if (esProyecto && actividadesLlegada.isNotEmpty && flete.boatId == null) {
         _actividadError = true;
         _actividadErrorMessage = 'El campo es requerido.';
@@ -1131,7 +1128,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
+              height: 50, 
             ),
             SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
             Expanded(
@@ -1221,7 +1218,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
                           SizedBox(width: 5.0),
                           GestureDetector(
                             onTap: () {
-                              // Acción para el botón de "Regresar"
                               Navigator.pop(context);
                             },
                             child: Padding(
@@ -1359,8 +1355,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           setState(() {
             _cargando = false;
           });
-          print(
-              'Cantidad inválida detectada para ${selectedInsumos[i].insuDescripcion}');
+          // print('Cantidad inválida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1373,8 +1368,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           setState(() {
             _cargando = false;
           });
-          print(
-              'Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
+          // print('Cantidad excedida detectada para ${selectedInsumos[i].insuDescripcion}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1403,8 +1397,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           setState(() {
             _cargando = false;
           });
-          print(
-              'Cantidad inválida detectada para equipo ${selectedEquipos[i].equsNombre}');
+          // print('Cantidad inválida detectada para equipo ${selectedEquipos[i].equsNombre}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1417,8 +1410,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
           setState(() {
             _cargando = false;
           });
-          print(
-              'Cantidad excedida detectada para equipo ${selectedEquipos[i].equsNombre}');
+          // print('Cantidad excedida detectada para equipo ${selectedEquipos[i].equsNombre}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -1450,12 +1442,11 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         return;
       }
 
-      print('fleteaa $flete');
+      // print('Flete a insertar $flete');
 
       final int? flenIdNuevo =
           await FleteEncabezadoService.insertarFlete(flete);
 
-      print('guardo e id $flenIdNuevo');
       if (flenIdNuevo != null) {
         for (int i = 0; i < selectedInsumos.length; i++) {
           final detalle = FleteDetalleViewModel(
@@ -1465,7 +1456,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             inppId: selectedInsumos[i].inppId,
             usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
           );
-          print('Detalle data: ${detalle.toJson()}');
+          // print('Detalle data: ${detalle.toJson()}');
           await FleteDetalleService.insertarFleteDetalle(detalle);
         }
         for (int i = 0; i < selectedEquipos.length; i++) {
@@ -1476,7 +1467,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             inppId: selectedEquipos[i].eqppId,
             usuaCreacion: int.tryParse(pref.getString('usuaId') ?? ''),
           );
-          print('Detalle eq: ${detalle.toJson()}');
+          // print('Detalle eq: ${detalle.toJson()}');
           await FleteDetalleService.insertarFleteDetalle(detalle);
         }
         await _enviarNotificacionFletenuevo();
@@ -1499,9 +1490,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
-      // Imprimir la excepción en la consola
-      print('Error: $e'); // Esto mostrará el error en la consola
-      // O usar debugPrint si prefieres para evitar truncar mensajes largos
+      print('Error: $e'); 
       debugPrint('Error: $e');
 
       // Mostrar mensaje en el SnackBar
@@ -1632,7 +1621,6 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             ? selectedCantidadesequipos[selectedEquipos.indexOf(equipo)]
             : 0;
         bool cantidadExcedidaE = cantidadE > (stockE ?? 0);
-        print('todo equi $equipo');
 
         return ListTile(
           title: Text(
