@@ -51,8 +51,6 @@ class _TopProveedoresDashboardState extends State<TopProveedoresDashboard> {
                   );
                 } else if (snapshot.hasData) {
                   if (snapshot.data!.length < 5) {
-                    print(
-                        "No hay suficientes proveedores para mostrar los 5 más cotizados.");
                   }
                   return _buildPieChart(snapshot.data!, constraints);
                 } else {

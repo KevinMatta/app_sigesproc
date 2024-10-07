@@ -61,8 +61,7 @@ class _TopArticlesDashboardState extends State<TopArticlesDashboard> {
                 );
               } else if (snapshot.hasData) {
                 if (snapshot.data!.length < 5) {
-                  print(
-                      "No hay suficientes artículos para mostrar los 5 más comprados.");
+             
                 }
 
                 return _buildVerticalBarChart(snapshot.data!, constraints);

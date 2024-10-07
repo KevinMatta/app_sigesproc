@@ -38,7 +38,6 @@ class MonedaGlobalService {
         monedaAbreviaturaGlobal = monedaGlobal!.moneAbreviatura;
       }
     } catch (e) {
-      print('Error al cargar la moneda: $e');
     }
   }
 
@@ -54,7 +53,6 @@ class MonedaGlobalService {
       // Retornar la abreviatura de la moneda
       return moneda.moneAbreviatura;
     } catch (e) {
-      print('Error al cargar la abreviatura de la moneda: $e');
       return null; // En caso de error, retornar null
     }
   }

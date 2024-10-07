@@ -36,7 +36,6 @@ class _TopProjectsDashboardState extends State<TopProjectsDashboard> {
             return Center(
                 child: CircularProgressIndicator(color: Color(0xFFFFE645)));
           } else if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
             return Center(
                 child: Text('Error al cargar los datos',
                     style: TextStyle(color: Colors.white, fontSize: 10)));
