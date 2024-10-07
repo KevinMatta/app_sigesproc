@@ -1643,7 +1643,7 @@ class _VentaState extends State<Venta> {
   }
 
   bool _isClienteFormValid() {
-    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+\.com$');
 
     // Validaciones de campos con trim aplicado
     final dniValid = dniController.text.trim().isNotEmpty &&
