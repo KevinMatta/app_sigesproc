@@ -30,7 +30,7 @@ class PaisService {
       final pais = paises.firstWhere((cliente) => cliente.paisId == paisId);
       return pais;
     } catch (e) {
-      print('Error: $e');
+      //print('Error: $e');
       throw Exception('Flete con ID $paisId no encontrado');
     }
   }

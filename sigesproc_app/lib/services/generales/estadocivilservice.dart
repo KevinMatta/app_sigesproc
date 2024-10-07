@@ -25,7 +25,7 @@ class EstadoCivilService {
       final estadocivil = estadosciviles.firstWhere((cliente) => cliente.civiId == estadocivilId);
       return estadocivil;
     } catch (e) {
-      print('Error: $e');
+      //print('Error: $e');
       throw Exception('Flete con ID $estadocivilId no encontrado');
     }
   }

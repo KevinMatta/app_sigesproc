@@ -79,7 +79,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -91,7 +91,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -103,7 +103,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -157,7 +157,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
           // print('Detalles venta: $_selectedVenta');
         });
       }).catchError((error) {
-        print('Error: $error');
+        // print('Error: $error');
       });
     });
   }
@@ -195,7 +195,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       List<String> imagenes = value.map((e) => e.imprImagen!).toList();
       callback(imagenes);
     }).catchError((error) {
-      print('Error: $error');
+      // print('Error: $error');
       callback([]);
     });
   }
@@ -475,7 +475,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         .where((e) => e.imprImagen != null)
         .map((e) => e.imprImagen!)
         .toList();
-    print('Imagenes: $imagenes');
+    // print('Imagenes: $imagenes');
 
     return Column(
       children: [

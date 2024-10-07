@@ -159,7 +159,7 @@ class _VentaState extends State<Venta> {
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -171,7 +171,7 @@ class _VentaState extends State<Venta> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -183,7 +183,7 @@ class _VentaState extends State<Venta> {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -215,7 +215,7 @@ class _VentaState extends State<Venta> {
         setState(() {
           _cargando = false;
         });
-        print('Error al cargar los detalles del bien raíz: $error');
+        // print('Error al cargar los detalles del bien raíz: $error');
       });
     });
   }
@@ -228,7 +228,7 @@ class _VentaState extends State<Venta> {
         clientes = listaClientes;
       });
     } catch (e) {
-      print('Error al cargar los clientes: $e');
+      // print('Error al cargar los clientes: $e');
     }
   }
 
@@ -243,7 +243,7 @@ class _VentaState extends State<Venta> {
         });
       }
     } catch (e) {
-      print('Error al cargar los datos del cliente: $e');
+      // print('Error al cargar los datos del cliente: $e');
     }
   }
 
@@ -254,7 +254,7 @@ class _VentaState extends State<Venta> {
         paises = listaPaises;
       });
     } catch (e) {
-      print('Error al cargar los paises: $e');
+      // print('Error al cargar los paises: $e');
     }
   }
 
@@ -271,7 +271,7 @@ class _VentaState extends State<Venta> {
         estadoSeleccionadoId = null;
       });
     } catch (e) {
-      print('Error al cargar los estados: $e');
+      // print('Error al cargar los estados: $e');
     }
   }
 
@@ -284,7 +284,7 @@ class _VentaState extends State<Venta> {
         ciudadController.clear();
       });
     } catch (e) {
-      print('Error al cargar las ciudades: $e');
+      // print('Error al cargar las ciudades: $e');
     }
   }
 
@@ -296,7 +296,7 @@ class _VentaState extends State<Venta> {
         estadosciviles = listaEstadosCiviles;
       });
     } catch (e) {
-      print('Error al cargar los estados civiles: $e');
+      // print('Error al cargar los estados civiles: $e');
     }
   }
 
@@ -1538,7 +1538,7 @@ class _VentaState extends State<Venta> {
                       );
                     }
                   } else {
-                    print('Formulario NO es válido');
+                    // print('Formulario NO es válido');
                   }
                 }
               } catch (e) {
@@ -1606,7 +1606,6 @@ class _VentaState extends State<Venta> {
       if (precioFinal == null || precioFinal < (precioInicial ?? 0)) {
         precioErrorMessage =
             'El precio final no puede ser menor al precio inicial.';
-        print('Error en precio: $precioErrorMessage');
       } else {
         precioErrorMessage = null;
       }
@@ -1616,7 +1615,6 @@ class _VentaState extends State<Venta> {
           fechaFinal.isBefore(fechaInicial ?? DateTime.now())) {
         fechaErrorMessage =
             'La fecha de venta no puede ser anterior a la fecha inicial.';
-        print('Error en fecha: $fechaErrorMessage');
       } else {
         fechaErrorMessage = null;
       }
@@ -1632,7 +1630,6 @@ class _VentaState extends State<Venta> {
         precioErrorMessage == null && 
         fechaErrorMessage == null; 
 
-    print('Formulario válido: $isValid');
 
     return isValid;
   }
@@ -1641,13 +1638,12 @@ class _VentaState extends State<Venta> {
     try {
       return DateFormat('dd/MM/yyyy').parse(date);
     } catch (e) {
-      print('Error parsing date: $e');
       return null;
     }
   }
 
   bool _isClienteFormValid() {
-    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+\.com$');
 
     // Validaciones de campos con trim aplicado
     final dniValid = dniController.text.trim().isNotEmpty &&
@@ -1791,13 +1787,13 @@ class _VentaState extends State<Venta> {
         );
       } else {
         // Si la conversión falló, manejar el error
-        print('Error: userId no es un número válido.');
+        // print('Error: userId no es un número válido.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ID de usuario no válido.')),
         );
       }
     } catch (e) {
-      print('Error al enviar la notificación de venta completada: $e');
+      // print('Error al enviar la notificación de venta completada: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content:

@@ -133,7 +133,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -145,7 +145,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -156,7 +156,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -206,7 +206,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         }
       }
     } catch (e) {
-      print('Error fetching bodega origen: $e');
+      // print('Error fetching bodega origen: $e');
     }
     return null;
   }
@@ -223,7 +223,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         }
       }
     } catch (e) {
-      print('Error fetching destino: $e');
+      // print('Error fetching destino: $e');
     }
     return null;
   }
@@ -232,7 +232,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
     try {
       final FleteEncabezadoViewModel? flete = await _fleteFuture;
       if (flete == null) {
-        print('No se encontró el flete');
+        // print('No se encontró el flete');
         setState(() {
           estaCargando = false;
         });
@@ -258,7 +258,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           );
         });
       } else {
-        print('No se recibieron coordenadas para la Polyline.');
+        // print('No se recibieron coordenadas para la Polyline.');
       }
 
       // Si es el fletero, inicia el rastreo en tiempo real
@@ -275,7 +275,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         } else {
           bool ubicacionObtenida = await ubicacionActualizada();
           if (!ubicacionObtenida) {
-            print("No se pudo obtener la ubicación actual.");
+            // print("No se pudo obtener la ubicación actual.");
             setState(() {
               estaCargando = false;
             });
@@ -294,7 +294,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         if (ubicacionactual == null) {
           bool ubicacionObtenida = await ubicacionActualizada();
           if (!ubicacionObtenida) {
-            print("No se pudo obtener la ubicación actual.");
+            // print("No se pudo obtener la ubicación actual.");
             setState(() {
               estaCargando = false;
             });
@@ -350,7 +350,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         estaCargando = false;
       });
     } catch (e) {
-      print('Error en iniciarMapa: $e');
+      // print('Error en iniciarMapa: $e');
       setState(() {
         estaCargando = false;
       });
@@ -368,7 +368,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
       await generarPolylineporPuntos(coordinates, Colors.blue, id.toString(),
           1); // zIndex para la línea azul
     } else {
-      print('Ubicaciones inválidas para la generación de rutas.');
+      // print('Ubicaciones inválidas para la generación de rutas.');
     }
   }
 
@@ -1031,8 +1031,6 @@ class _DetalleFleteState extends State<DetalleFlete> {
           .map((point) => LatLng(point.latitude, point.longitude))
           .toList();
     } else {
-      print(
-          'Error al obtener la polyline de Google Maps: ${result.errorMessage}');
       return [];
     }
   }

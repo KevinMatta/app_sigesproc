@@ -25,7 +25,7 @@ class EmpleadoService {
       final empleado = empleados.firstWhere((flete) => flete.emplId == empleId);
       return empleado;
     } catch (e) {
-      print('Error: $e');
+      //print('Error: $e');
       throw Exception('Flete con ID $empleId no encontrado');
     }
   }

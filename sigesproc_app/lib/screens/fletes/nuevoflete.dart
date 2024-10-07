@@ -228,7 +228,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -240,7 +240,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -253,7 +253,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -265,7 +265,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         empleados = empleadosList;
       });
     } catch (e) {
-      print('Error al cargar los empleados: $e');
+      // print('Error al cargar los empleados: $e');
     }
   }
 
@@ -276,7 +276,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         bodegas = bodegasList;
       });
     } catch (e) {
-      print('Error al cargar las bodegas: $e');
+      // print('Error al cargar las bodegas: $e');
     }
   }
 
@@ -288,7 +288,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         proyectos = proyectosList;
       });
     } catch (e) {
-      print('Error al cargar los proyectos: $e');
+      // print('Error al cargar los proyectos: $e');
     }
   }
 
@@ -307,7 +307,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         }
       });
     } catch (e) {
-      print('Error al cargar las actividades: $e');
+      // print('Error al cargar las actividades: $e');
     }
   }
 
@@ -378,7 +378,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         selectedCantidades = List.generate(insumos.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los insumos: $e');
+      // print('Error al cargar los insumos: $e');
     }
   }
 
@@ -397,7 +397,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             List.generate(equiposdeSeguridad.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los equipos de seguridad: $e');
+      // print('Error al cargar los equipos de seguridad: $e');
     }
   }
 
@@ -417,7 +417,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         selectedCantidades = List.generate(insumos.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los insumos: $e');
+      // print('Error al cargar los insumos: $e');
     }
   }
 
@@ -438,7 +438,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
             List.generate(equiposdeSeguridad.length, (index) => 1);
       });
     } catch (e) {
-      print('Error al cargar los equipos de seguridad: $e');
+      // print('Error al cargar los equipos de seguridad: $e');
     }
   }
 
@@ -1343,8 +1343,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 
       for (int i = 0; i < selectedInsumos.length; i++) {
         if (i >= quantityControllers.length) {
-          print(
-              "Error: La lista de controladores es más corta que la lista de insumos");
+          // print("Error: La lista de controladores es más corta que la lista de insumos");
           break;
         }
 
@@ -1385,8 +1384,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
 // Verificar equipos seleccionados
       for (int i = 0; i < selectedEquipos.length; i++) {
         if (i >= equipoQuantityControllers.length) {
-          print(
-              "Error: La lista de controladores de equipos es más corta que la lista de equipos");
+          // print("Error: La lista de controladores de equipos es más corta que la lista de equipos");
           break;
         }
 
@@ -1490,7 +1488,7 @@ class _NuevoFleteState extends State<NuevoFlete> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
-      print('Error: $e'); 
+      // print('Error: $e'); 
       debugPrint('Error: $e');
 
       // Mostrar mensaje en el SnackBar

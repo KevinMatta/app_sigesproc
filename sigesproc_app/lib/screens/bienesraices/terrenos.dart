@@ -61,9 +61,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -74,7 +73,7 @@ class _TerrenosMapState extends State<TerrenosMap> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -86,9 +85,8 @@ class _TerrenosMapState extends State<TerrenosMap> {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -98,7 +96,7 @@ class _TerrenosMapState extends State<TerrenosMap> {
           await ProcesoVentaService.listarTerrenos();
       return terrenos;
     } catch (e) {
-      print('Error fetching terrenos: $e');
+      // print('Error fetching terrenos: $e');
       return [];
     }
   }

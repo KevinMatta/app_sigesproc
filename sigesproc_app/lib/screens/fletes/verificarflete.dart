@@ -147,7 +147,7 @@ class _VerificarFleteState extends State<VerificarFlete>
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -159,7 +159,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -172,7 +172,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -258,7 +258,7 @@ class _VerificarFleteState extends State<VerificarFlete>
       setState(() {
         comprobante = null;
       });
-      print('No se seleccionó ninguna imagen.');
+      // print('No se seleccionó ninguna imagen.');
     }
   }
 
@@ -1443,7 +1443,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         _mostrarFormularioIncidencia = true;
       });
     } catch (e) {
-      print('Error en la verificación del flete: $e');
+      // print('Error en la verificación del flete: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al procesar la verificación del flete.')),
       );
@@ -1493,7 +1493,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           throw Exception('Error al insertar detalle de insumo no recibido.');
         }
       } catch (e) {
-        print('Error al insertar insumo no recibido: $e');
+        // print('Error al insertar insumo no recibido: $e');
       }
     }
 
@@ -1518,7 +1518,7 @@ class _VerificarFleteState extends State<VerificarFlete>
           throw Exception('Error al insertar detalle de equipo no recibido.');
         }
       } catch (e) {
-        print('Error al insertar equipo no recibido: $e');
+        // print('Error al insertar equipo no recibido: $e');
       }
     }
 
@@ -1737,7 +1737,7 @@ class _VerificarFleteState extends State<VerificarFlete>
         );
       }
     } catch (e) {
-      print('Error al guardar la incidencia: $e');
+      // print('Error al guardar la incidencia: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Algo salió mal. Comuníquese con un Administrador.')),
