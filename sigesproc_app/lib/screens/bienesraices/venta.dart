@@ -181,6 +181,7 @@ class _VentaState extends State<Venta> {
 
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
+
     } catch (e) {
       print("Error al cargar los datos del usuario: $e");
     }
@@ -492,21 +493,22 @@ class _VentaState extends State<Venta> {
                     isNumeric: true,
                     showError: _mostrarErrores && dniErrorMessage != null,
                     errorMessage: dniErrorMessage ?? 'El campo es requerido.',
-                    inputFormatterLength: 13,
+                    inputFormatterLength: 13, 
                   ),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Nombre', nombreclientecontroller, 'Ingrese el nombre',
                       showError: _mostrarErrores &&
-                          !RegExp(r'^[a-zA-Z\s]+$')
-                              .hasMatch(nombreclientecontroller.text.trim()),
+                          !RegExp(r'^[a-zA-Z\s]+$').hasMatch(
+                              nombreclientecontroller.text
+                                  .trim()), 
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Apellido', apellidoController, 'Ingrese el apellido',
                       showError: _mostrarErrores &&
-                          !RegExp(r'^[a-zA-Z\s]+$')
-                              .hasMatch(apellidoController.text.trim()),
+                          !RegExp(r'^[a-zA-Z\s]+$').hasMatch(
+                              apellidoController.text.trim()),
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
@@ -598,7 +600,8 @@ class _VentaState extends State<Venta> {
         filled: true,
         fillColor: Colors.black,
         border: OutlineInputBorder(),
-        errorText: showError ? errorMessage : null,
+        errorText:
+            showError ? errorMessage : null,
       ),
       style: TextStyle(color: Colors.white),
       keyboardType: isNumeric
@@ -1328,7 +1331,7 @@ class _VentaState extends State<Venta> {
         errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
         errorStyle: TextStyle(
           fontSize: 12,
-          height: 1.0,
+          height: 1.0, 
         ),
         errorText: shouldShowError ? errorMessage : null,
       ),
@@ -1576,7 +1579,7 @@ class _VentaState extends State<Venta> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            icon: Icon(Icons.close, color: Colors.white),
+            icon: Icon(Icons.close, color: Colors.white), 
             label: Text(
               'Cancelar',
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
@@ -1626,8 +1629,8 @@ class _VentaState extends State<Venta> {
         precioController.text.isNotEmpty &&
         fechaController.text.isNotEmpty &&
         RegExp(r'^\d{1,15}(\.\d{1,2})?$').hasMatch(precioController.text) &&
-        precioErrorMessage == null &&
-        fechaErrorMessage == null;
+        precioErrorMessage == null && 
+        fechaErrorMessage == null; 
 
     print('Formulario válido: $isValid');
 
@@ -1644,7 +1647,7 @@ class _VentaState extends State<Venta> {
   }
 
   bool _isClienteFormValid() {
-    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+\.com$');
+    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
 
     // Validaciones de campos con trim aplicado
     final dniValid = dniController.text.trim().isNotEmpty &&
