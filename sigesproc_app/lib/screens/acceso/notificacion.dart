@@ -31,7 +31,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
         _notifications = notifications;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -61,7 +60,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       await NotificationServices.LeerNotificacion(napuId);
       _loadNotifications(); 
     } catch (e) {
-      print('Error al marcar la notificación como leída: $e');
     }
   }
 
@@ -84,7 +82,6 @@ class _NotificacionesScreenState extends State<NotificacionesScreen> {
       }
     } catch (e) {
       
-      print('Error al eliminar la notificación: $e');
     }
   }
 
