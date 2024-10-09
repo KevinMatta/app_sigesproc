@@ -1643,9 +1643,25 @@ class _VentaState extends State<Venta> {
     }
   }
 
-  bool _isClienteFormValid() {
-    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+  bool validarCorreo(String correo) {
+  // Eliminar espacios en los extremos y convertir a minúsculas
+  String correoLimpio = correo.trim().toLowerCase();
 
+  // Verificar si el correo tiene un @ y termina con .com
+  if (!correoLimpio.contains('@') || !correoLimpio.endsWith('.com')) {
+    return false; // Correo no válido
+  }
+
+  // Verificar que ".com" esté al final sin espacios intermedios
+  String correoSinEspacios = correoLimpio.replaceAll(' ', '');
+  if (!correoSinEspacios.endsWith('.com')) {
+    return false;
+  }
+
+  return true; // Correo válido
+}
+
+  bool _isClienteFormValid() {
     // Validaciones de campos con trim aplicado
     final dniValid = dniController.text.trim().isNotEmpty &&
         dniController.text.trim().length == 13; // DNI exacto 13 caracteres
@@ -1670,11 +1686,7 @@ class _VentaState extends State<Venta> {
         RegExp(r'^[a-zA-Z\s]+$').hasMatch(
             apellidoController.text.trim().replaceAll(RegExp(r'\s+'), ' '));
     final correoVacio = correoController.text.trim().isEmpty;
-    final emailValid = correoController.text.trim().length <= 70 &&
-    emailRegExp.hasMatch(correoController.text.trim());
-
-print('Correo ingresado: ${correoController.text.trim()}');  // Para verificar que el correo está limpio
-print('es valido cor $emailValid');
+    final emailValid = validarCorreo(correoController.text.trim());
     final telefonoValid = telefonoclienteController.text.trim().isNotEmpty &&
         telefonoclienteController.text.trim().length >=
             8 && // Teléfono mínimo 8 dígitos
