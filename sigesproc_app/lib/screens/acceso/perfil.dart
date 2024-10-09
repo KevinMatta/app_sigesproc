@@ -303,9 +303,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (result != null && result == 1) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Actualizado con Éxito.')),
+                  
                   );
                   setState(() {
+                    var prefes = PreferenciasUsuario();
                     _correo = email;
+                    _correo= prefes.userCorreo;
                     _isEditingEmail = false;
                   });
                 } else {

@@ -298,32 +298,33 @@ class _LineaDeTiempoState extends State<LineaDeTiempo> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: SpeedDial(
-        icon: Icons.arrow_downward,
-        activeIcon: Icons.close,
-        backgroundColor: Color(0xFF171717),
-        foregroundColor: Color(0xFFFFF0C6),
-        buttonSize: Size(56.0, 56.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+      floatingActionButton: Container(
+        color: Colors.black,
+        padding: const EdgeInsets.all(10.0),
+        child: Row(
+          children: [
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(
+                  bottom: 10.0, right: 10.0), // Espacio adicional al lado y abajo
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.pop(context); 
+                },
+                backgroundColor: Color(0xFF171717), // Color de fondo
+                foregroundColor: Color(0xFFFFF0C6), // Color del icono
+                child: Icon(
+                  Icons.arrow_back,
+                  color: Color(0xFFFFF0C6), // Color del ícono
+                ),
+                shape: CircleBorder(), // Forma circular
+                elevation: 2.0, // Ajusta la elevación
+              ),
+            ),
+          ],
         ),
-        childrenButtonSize: Size(56.0, 56.0),
-        spaceBetweenChildren: 10.0,
-        overlayColor: Colors.transparent,
-        children: [
-          SpeedDialChild(
-            child: Icon(Icons.arrow_back),
-            backgroundColor: Color(0xFFFFF0C6),
-            foregroundColor: Color(0xFF171717),
-            shape: CircleBorder(),
-            labelBackgroundColor: Color(0xFFFFF0C6),
-            labelStyle: TextStyle(color: Color(0xFF171717)),
-            onTap: () {
-              Navigator.pop(context); // Acción de regresar
-            },
-          ),
-        ],
       ),
+
     );
   }
 }
