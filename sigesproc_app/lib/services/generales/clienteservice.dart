@@ -10,7 +10,7 @@ class ClienteService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-    print('lisclie $data');
+    // print('lisclie $data');
       return data.map((json) => ClienteViewModel.fromJson(json)).toList();
     } else {
       throw Exception('Error al cargar los datos');
@@ -26,7 +26,7 @@ class ClienteService {
       final cliente = clientes.firstWhere((venta) => venta.clieId == clieId);
       return cliente;
     } catch (e) {
-      print('Error: $e');
+      // print('Error: $e');
       throw Exception('Flete con ID $clieId no encontrado');
     }
   }
@@ -39,7 +39,7 @@ class ClienteService {
       'XApiKey': ApiService.apiKey,
     };
 
-    print('Body clienteeeee: $body');
+    // print('Body clienteeeee: $body');
 
     final response = await http.post(
       url,
@@ -47,8 +47,8 @@ class ClienteService {
       body: body,
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    // print('Response status: ${response.statusCode}');
+    // print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);

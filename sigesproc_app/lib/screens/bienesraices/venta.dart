@@ -158,9 +158,8 @@ class _VentaState extends State<Venta> {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -172,21 +171,18 @@ class _VentaState extends State<Venta> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
-  // Nueva función para cargar datos del usuario
   Future<void> _loadUserProfileData() async {
     var prefs = PreferenciasUsuario();
     int usua_Id = int.tryParse(prefs.userId) ?? 0;
 
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
-
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -218,7 +214,7 @@ class _VentaState extends State<Venta> {
         setState(() {
           _cargando = false;
         });
-        print('Error al cargar los detalles del bien raíz: $error');
+        // print('Error al cargar los detalles del bien raíz: $error');
       });
     });
   }
@@ -231,7 +227,7 @@ class _VentaState extends State<Venta> {
         clientes = listaClientes;
       });
     } catch (e) {
-      print('Error al cargar los clientes: $e');
+      // print('Error al cargar los clientes: $e');
     }
   }
 
@@ -246,7 +242,7 @@ class _VentaState extends State<Venta> {
         });
       }
     } catch (e) {
-      print('Error al cargar los datos del cliente: $e');
+      // print('Error al cargar los datos del cliente: $e');
     }
   }
 
@@ -257,7 +253,7 @@ class _VentaState extends State<Venta> {
         paises = listaPaises;
       });
     } catch (e) {
-      print('Error al cargar los paises: $e');
+      // print('Error al cargar los paises: $e');
     }
   }
 
@@ -274,7 +270,7 @@ class _VentaState extends State<Venta> {
         estadoSeleccionadoId = null;
       });
     } catch (e) {
-      print('Error al cargar los estados: $e');
+      // print('Error al cargar los estados: $e');
     }
   }
 
@@ -287,7 +283,7 @@ class _VentaState extends State<Venta> {
         ciudadController.clear();
       });
     } catch (e) {
-      print('Error al cargar las ciudades: $e');
+      // print('Error al cargar las ciudades: $e');
     }
   }
 
@@ -299,7 +295,7 @@ class _VentaState extends State<Venta> {
         estadosciviles = listaEstadosCiviles;
       });
     } catch (e) {
-      print('Error al cargar los estados civiles: $e');
+      // print('Error al cargar los estados civiles: $e');
     }
   }
 
@@ -458,7 +454,12 @@ class _VentaState extends State<Venta> {
         ],
       ),
       body: _cargando
-          ? Center(child: CircularProgressIndicator(color: Color(0xFFFFF0C6)))
+          ? Container(
+              color: Colors.black,
+              child: Center(
+                child: CircularProgressIndicator(color: Color(0xFFFFF0C6)),
+              ),
+            )
           : Container(
               color: Colors.black,
               padding: const EdgeInsets.all(16.0),
@@ -496,22 +497,21 @@ class _VentaState extends State<Venta> {
                     isNumeric: true,
                     showError: _mostrarErrores && dniErrorMessage != null,
                     errorMessage: dniErrorMessage ?? 'El campo es requerido.',
-                    inputFormatterLength: 13, // DNI exacto de 13 caracteres
+                    inputFormatterLength: 13,
                   ),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Nombre', nombreclientecontroller, 'Ingrese el nombre',
                       showError: _mostrarErrores &&
-                          !RegExp(r'^[a-zA-Z\s]+$').hasMatch(
-                              nombreclientecontroller.text
-                                  .trim()), // Trim aplicado
+                          !RegExp(r'^[a-zA-Z\s]+$')
+                              .hasMatch(nombreclientecontroller.text.trim()),
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
                       'Apellido', apellidoController, 'Ingrese el apellido',
                       showError: _mostrarErrores &&
-                          !RegExp(r'^[a-zA-Z\s]+$').hasMatch(
-                              apellidoController.text.trim()), // Trim aplicado
+                          !RegExp(r'^[a-zA-Z\s]+$')
+                              .hasMatch(apellidoController.text.trim()),
                       errorMessage: 'El campo es requerido.'),
                   SizedBox(height: 10),
                   _campoDeTextoCliente(
@@ -603,8 +603,7 @@ class _VentaState extends State<Venta> {
         filled: true,
         fillColor: Colors.black,
         border: OutlineInputBorder(),
-        errorText:
-            showError ? errorMessage : null, // Mostrar el error si corresponde
+        errorText: showError ? errorMessage : null,
       ),
       style: TextStyle(color: Colors.white),
       keyboardType: isNumeric
@@ -634,7 +633,6 @@ class _VentaState extends State<Venta> {
       children: [
         Text(label, style: TextStyle(color: Colors.white)),
         Wrap(
-          // Usar Wrap en lugar de Row para que los elementos se ajusten a la pantalla
           spacing: 10.0, // Espaciado horizontal entre los RadioButtons
           runSpacing:
               10.0, // Espaciado vertical entre las líneas de RadioButtons
@@ -1335,7 +1333,7 @@ class _VentaState extends State<Venta> {
         errorMaxLines: 3, // Permitir varias líneas en el mensaje de error
         errorStyle: TextStyle(
           fontSize: 12,
-          height: 1.0, // Controla el espaciado entre líneas
+          height: 1.0,
         ),
         errorText: shouldShowError ? errorMessage : null,
       ),
@@ -1345,7 +1343,6 @@ class _VentaState extends State<Venta> {
           : TextInputType.text,
       inputFormatters: isNumeric
           ? [
-              // Limitar a 15 dígitos antes del punto decimal y 2 después
               FilteringTextInputFormatter.allow(
                   RegExp(r'^\d{0,15}(\.\d{0,2})?$')),
             ]
@@ -1414,13 +1411,11 @@ class _VentaState extends State<Venta> {
           ElevatedButton.icon(
             onPressed: () async {
               if (_cargando) return;
-              // Activar el spinner al iniciar el guardado
               setState(() {
                 _cargando = true;
               });
               try {
                 if (_mostrarFormularioCliente) {
-                  print('aaaaaaaaa entra cliente');
                   setState(() {
                     _mostrarErrores = true;
                   });
@@ -1453,9 +1448,7 @@ class _VentaState extends State<Venta> {
                         usuaCreacion:
                             int.tryParse(pref.getString('usuaId') ?? ''),
                       );
-                      print(nuevoCliente);
 
-                      // Insertar el cliente en la base de datos o servicio
                       await ClienteService.insertarCliente(nuevoCliente);
 
                       // Actualizar la lista de clientes después de insertar el nuevo cliente
@@ -1480,7 +1473,6 @@ class _VentaState extends State<Venta> {
                               false; // Volver a la vista de venta
                         });
 
-                        // Mostrar mensaje de éxito
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                               content: Text('Cliente insertado con éxito')),
@@ -1519,7 +1511,7 @@ class _VentaState extends State<Venta> {
                               double.parse(precioController.text),
                           btrpFechaVendida: DateFormat('dd/MM/yyyy')
                               .parse(fechaController.text),
-                          clieId: clienteSeleccionado.clieId.toString(),
+                          clieId: clienteSeleccionado.clieId,
                         );
 
                         await ProcesoVentaService.venderProcesoVenta(venta);
@@ -1548,7 +1540,7 @@ class _VentaState extends State<Venta> {
                       );
                     }
                   } else {
-                    print('Formulario NO es válido');
+                    // print('Formulario NO es válido');
                   }
                 }
               } catch (e) {
@@ -1589,7 +1581,7 @@ class _VentaState extends State<Venta> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            icon: Icon(Icons.close, color: Colors.white), // Icono de Cancelar
+            icon: Icon(Icons.close, color: Colors.white),
             label: Text(
               'Cancelar',
               style: TextStyle(color: Color(0xFFFFF0C6), fontSize: 15),
@@ -1601,38 +1593,23 @@ class _VentaState extends State<Venta> {
   }
 
   bool _isFormValid() {
-    // Imprimir los valores de los controladores al inicio
-    print('ClienteController: ${clienteController.text}');
-    print('NombreController: ${nombreController.text}');
-    print('TelefonoController: ${telefonoController.text}');
-    print('PrecioController: ${precioController.text}');
-    print('FechaController: ${fechaController.text}');
-
     final double? precioInicial = double.tryParse(precioInicialController.text);
-    print('Precio Inicial: $precioInicial'); // Imprimir valor de precio inicial
 
     final double? precioFinal = double.tryParse(precioController.text);
-    print('Precio Final: $precioFinal'); // Imprimir valor de precio final
 
     final DateTime? fechaInicial = _parseDate(fechaInicialController.text);
-    print('Fecha Inicial: $fechaInicial'); // Imprimir valor de fecha inicial
 
     final DateTime? fechaFinal = _parseDate(fechaController.text);
-    print('Fecha Final: $fechaFinal'); // Imprimir valor de fecha final
 
     setState(() {
       _mostrarErroresventa = true;
-
-      print('Set _mostrarErroresventa to true');
 
       // Validación de precio
       if (precioFinal == null || precioFinal < (precioInicial ?? 0)) {
         precioErrorMessage =
             'El precio final no puede ser menor al precio inicial.';
-        print('Error en precio: $precioErrorMessage');
       } else {
         precioErrorMessage = null;
-        print('Precio validado correctamente');
       }
 
       // Validación de fecha
@@ -1640,10 +1617,8 @@ class _VentaState extends State<Venta> {
           fechaFinal.isBefore(fechaInicial ?? DateTime.now())) {
         fechaErrorMessage =
             'La fecha de venta no puede ser anterior a la fecha inicial.';
-        print('Error en fecha: $fechaErrorMessage');
       } else {
         fechaErrorMessage = null;
-        print('Fecha validada correctamente');
       }
     });
 
@@ -1654,10 +1629,8 @@ class _VentaState extends State<Venta> {
         precioController.text.isNotEmpty &&
         fechaController.text.isNotEmpty &&
         RegExp(r'^\d{1,15}(\.\d{1,2})?$').hasMatch(precioController.text) &&
-        precioErrorMessage == null && // No debe haber error en el precio
-        fechaErrorMessage == null; // No debe haber error en la fecha
-
-    print('Formulario válido: $isValid');
+        precioErrorMessage == null &&
+        fechaErrorMessage == null;
 
     return isValid;
   }
@@ -1666,14 +1639,29 @@ class _VentaState extends State<Venta> {
     try {
       return DateFormat('dd/MM/yyyy').parse(date);
     } catch (e) {
-      print('Error parsing date: $e');
       return null;
     }
   }
 
-  bool _isClienteFormValid() {
-    final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+  bool validarCorreo(String correo) {
+  // Eliminar espacios en los extremos y convertir a minúsculas
+  String correoLimpio = correo.trim().toLowerCase();
 
+  // Verificar si el correo tiene un @ y termina con .com
+  if (!correoLimpio.contains('@') || !correoLimpio.endsWith('.com')) {
+    return false; // Correo no válido
+  }
+
+  // Verificar que ".com" esté al final sin espacios intermedios
+  String correoSinEspacios = correoLimpio.replaceAll(' ', '');
+  if (!correoSinEspacios.endsWith('.com')) {
+    return false;
+  }
+
+  return true; // Correo válido
+}
+
+  bool _isClienteFormValid() {
     // Validaciones de campos con trim aplicado
     final dniValid = dniController.text.trim().isNotEmpty &&
         dniController.text.trim().length == 13; // DNI exacto 13 caracteres
@@ -1698,8 +1686,7 @@ class _VentaState extends State<Venta> {
         RegExp(r'^[a-zA-Z\s]+$').hasMatch(
             apellidoController.text.trim().replaceAll(RegExp(r'\s+'), ' '));
     final correoVacio = correoController.text.trim().isEmpty;
-    final emailValid = correoController.text.trim().length <= 70 &&
-        emailRegExp.hasMatch(correoController.text.trim());
+    final emailValid = validarCorreo(correoController.text.trim());
     final telefonoValid = telefonoclienteController.text.trim().isNotEmpty &&
         telefonoclienteController.text.trim().length >=
             8 && // Teléfono mínimo 8 dígitos
@@ -1721,7 +1708,6 @@ class _VentaState extends State<Venta> {
     final ciudadValid = ciudadSeleccionada != null;
     final estadoCivilValid = estadoCivilSeleccionado != null;
 
-    // Validaciones adicionales
     final dniDuplicado =
         clientes.any((cliente) => cliente.clieDNI == dniController.text.trim());
 
@@ -1817,13 +1803,13 @@ class _VentaState extends State<Venta> {
         );
       } else {
         // Si la conversión falló, manejar el error
-        print('Error: userId no es un número válido.');
+        // print('Error: userId no es un número válido.');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: ID de usuario no válido.')),
         );
       }
     } catch (e) {
-      print('Error al enviar la notificación de venta completada: $e');
+      // print('Error al enviar la notificación de venta completada: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content:

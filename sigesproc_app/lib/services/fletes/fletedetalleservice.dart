@@ -29,8 +29,8 @@ class FleteDetalleService {
     final url = Uri.parse(
         '${ApiService.apiUrl}/EquipoSeguridad/BuscarEquipoPorProveedor/$bodeId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response status equios: ${response.statusCode}');
-    print('Response body equipos: ${response.body}');
+    // print('Response status equios: ${response.statusCode}');
+    // print('Response body equipos: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -47,12 +47,12 @@ class FleteDetalleService {
     final url = Uri.parse(
         '${ApiService.apiUrl}/FleteDetalle/BuscarInsumosPorActividadEtapa/$acetId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response acet insumos: ${response.statusCode}');
-    print('Response acet nsumos: ${response.body}');
+    // print('Response acet insumos: ${response.statusCode}');
+    // print('Response acet nsumos: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      print('data insumos $data');
+      // print('data insumos $data');
       return data
           .map((json) => InsumoPorProveedorViewModel.fromJson(json))
           .toList();
@@ -66,12 +66,12 @@ class FleteDetalleService {
     final url = Uri.parse(
         '${ApiService.apiUrl}/FleteDetalle/BuscarEquiposPorActividadEtapa/$acetId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response acet equios: ${response.statusCode}');
-    print('Response acet equipos: ${response.body}');
+    // print('Response acet equios: ${response.statusCode}');
+    // print('Response acet equipos: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      print('data $data');
+      // print('data $data');
       return data
           .map((json) => EquipoPorProveedorViewModel.fromJson(json))
           .toList();
@@ -95,7 +95,7 @@ class FleteDetalleService {
       body: body,
     );
 
-    print('Response insertar lete detalle: ${response.body}');
+    // print('Response insertar lete detalle: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Error al insertar el detalle del flete');
@@ -117,7 +117,7 @@ class FleteDetalleService {
       body: body,
     );
 
-    print(' body insertar fletedet2: ${response.body}');
+    // print(' body insertar fletedet2: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Error al insertar el detalle del flete');
@@ -141,7 +141,7 @@ class FleteDetalleService {
       body: body,
     );
 
-    print('Response body editar detalle: ${response.body}');
+    // print('Response body editar detalle: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Error al editar el detalle del flete');
@@ -152,8 +152,8 @@ class FleteDetalleService {
     final url =
         Uri.parse('${ApiService.apiUrl}/FleteDetalle/BuscarDetalles/$flenId');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print('Response status detalle: ${response.statusCode}');
-    print('Response body detalle: ${response.body}');
+    // print('Response status detalle: ${response.statusCode}');
+    // print('Response body detalle: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -181,7 +181,7 @@ class FleteDetalleService {
     final url = Uri.parse('${ApiService.apiUrl}/FleteDetalle/Eliminar/$fldeId');
     final response =
         await http.delete(url, headers: ApiService.getHttpHeaders());
-    print('response eliminar $response');
+    // print('response eliminar $response');
     if (response.statusCode != 200) {
       throw Exception('Error al eliminar el flete detalle');
     }

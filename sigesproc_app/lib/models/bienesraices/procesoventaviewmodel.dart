@@ -7,7 +7,7 @@ class ProcesoVentaViewModel {
   String? agenNombreCompleto;
   String? agenTelefono;
   String? agenDNI;
-  String? clieId;
+  int? clieId;
   String? clieDNI;
   String? clieTelefono;
   String? clieNombreCompleto;

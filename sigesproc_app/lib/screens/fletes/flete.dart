@@ -81,9 +81,8 @@ class _FleteState extends State<Flete> {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -95,7 +94,7 @@ class _FleteState extends State<Flete> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -106,9 +105,8 @@ class _FleteState extends State<Flete> {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -117,7 +115,7 @@ class _FleteState extends State<Flete> {
     setState(() {
       emplId = int.tryParse(pref.getString('emplId') ?? '');
       EsAdmin = bool.tryParse(pref.getString('EsAdmin') ?? 'false');
-      print('Empleado cargado - emplId: $emplId, EsAdmin: $EsAdmin');
+      // print('Empleado cargado - emplId: $emplId, EsAdmin: $EsAdmin');
     });
 
     // Cargar los fletes solo después de que emplId y EsAdmin estén cargados
@@ -138,29 +136,28 @@ class _FleteState extends State<Flete> {
           // Si el usuario no es admin, filtrar por emplId
           if (EsAdmin == false) {
             _allFletes = fletes.where((flete) {
-              print(
-                  'Filtrando fletes para emplId $emplId: emtrId ${flete.emtrId}, emssId ${flete.emssId}, emslId ${flete.emslId}');
+              // print('Filtrando fletes para emplId $emplId: emtrId ${flete.emtrId}, emssId ${flete.emssId}, emslId ${flete.emslId}');
               return flete.emtrId == emplId ||
                   flete.emssId == emplId ||
                   flete.emslId == emplId;
             }).toList();
-            print('all $_allFletes');
+            // print('all $_allFletes');
 
-            print("Fletes filtrados: ${_allFletes.length}");
+            // print("Fletes filtrados: ${_allFletes.length}");
           } else {
-            print('Usuario es admin, mostrando todos los fletes');
+            // print('Usuario es admin, mostrando todos los fletes');
             _allFletes = fletes;
           }
 
           // Actualizamos los fletes filtrados
           _filteredFletes = _allFletes;
-          print("Fletes mostrados en la tabla: ${_filteredFletes.length}");
+          // print("Fletes mostrados en la tabla: ${_filteredFletes.length}");
         } else {
-          print('emplId o EsAdmin no cargado correctamente');
+          // print('emplId o EsAdmin no cargado correctamente');
         }
       });
     } catch (e) {
-      print('Error al cargar fletes: $e');
+      // print('Error al cargar fletes: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -211,7 +208,6 @@ class _FleteState extends State<Flete> {
   }
 
   TableRow _buildFleteRow(FleteEncabezadoViewModel flete, int index) {
-    // Estas variables deben calcularse por cada registro
     bool esFletero = flete.emtrId == emplId;
     bool esSupervisorSalida = flete.emssId == emplId;
     bool esSupervisorLlegada = flete.emslId == emplId;
@@ -299,7 +295,6 @@ class _FleteState extends State<Flete> {
       bool esFletero, bool esSupervisorSalida, bool esSupervisorLlegada) {
     List<PopupMenuEntry<int>> menuOptions = [];
 
-    // Opción "Detalle" (siempre disponible)
     menuOptions.add(
       const PopupMenuItem<int>(
         value: 0,
@@ -313,7 +308,6 @@ class _FleteState extends State<Flete> {
     // Si el flete está activo
     if (flete.flenEstado == true) {
       if (EsAdmin!) {
-        // Opciones adicionales para administradores
         menuOptions.addAll([
           const PopupMenuItem<int>(
             value: 1,
@@ -503,7 +497,6 @@ class _FleteState extends State<Flete> {
         Divider(color: Color(0xFFFFF0C6)),
         Row(
           children: [
-            // Columna para 'Enviado por'
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +517,6 @@ class _FleteState extends State<Flete> {
                 ],
               ),
             ),
-            // Columna para 'Recibido por'
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

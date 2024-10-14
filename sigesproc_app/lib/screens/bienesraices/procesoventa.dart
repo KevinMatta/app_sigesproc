@@ -78,9 +78,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -92,11 +91,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
-  // Nueva función para cargar datos del usuario
   Future<void> _loadUserProfileData() async {
     var prefs = PreferenciasUsuario();
     int usua_Id = int.tryParse(prefs.userId) ?? 0;
@@ -104,9 +102,8 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -157,10 +154,10 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       _procesosventaFuture!.then((value) {
         setState(() {
           _selectedVenta = value;
-          print('Detalles venta: $_selectedVenta');
+          // print('Detalles venta: $_selectedVenta');
         });
       }).catchError((error) {
-        print('Error: $error');
+        // print('Error: $error');
       });
     });
   }
@@ -198,7 +195,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
       List<String> imagenes = value.map((e) => e.imprImagen!).toList();
       callback(imagenes);
     }).catchError((error) {
-      print('Error: $error');
+      // print('Error: $error');
       callback([]);
     });
   }
@@ -227,11 +224,9 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                 try {
                   await ProcesoVentaService.Eliminar(procesoventa.btrpId);
                   setState(() {
-                    print(_filteredProcesosVenta);
-                    print(procesoventa);
+                    // print(_filteredProcesosVenta);
+                    // print(procesoventa);
                     _filteredProcesosVenta.remove(procesoventa);
-                    print(_filteredProcesosVenta.remove(procesoventa));
-                    print(_filteredProcesosVenta);
                   });
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -480,7 +475,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
         .where((e) => e.imprImagen != null)
         .map((e) => e.imprImagen!)
         .toList();
-    print('Imagenes: $imagenes');
+    // print('Imagenes: $imagenes');
 
     return Column(
       children: [
@@ -606,7 +601,7 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                       SizedBox(height: 8.0),
                       Divider(
                           color: Color.fromARGB(
-                              179, 255, 255, 255)), // Línea de separación
+                              179, 255, 255, 255)), 
                       SizedBox(height: 8.0),
 
                       Text(
@@ -665,7 +660,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                             GestureDetector(
                               onTap: () {
                                 if (venta.btrpIdentificador == true) {
-                                  //   _modalVender(context, venta);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -708,38 +702,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
             ),
           ),
         ),
-        // Container(
-        //   color: Colors.black,
-        //   padding: const EdgeInsets.all(10.0),
-        //   child: Row(
-        //     children: [
-        //       Spacer(),
-        //       ElevatedButton(
-        //         style: ElevatedButton.styleFrom(
-        //           backgroundColor: Color(0xFF171717),
-        //           padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-        //           shape: RoundedRectangleBorder(
-        //             borderRadius: BorderRadius.circular(12),
-        //           ),
-        //         ),
-        //         onPressed: () {
-        //           setState(() {
-        //             _selectedVenta = null;
-        //             _reiniciarProcesosVentaFiltros();
-        //           });
-        //         },
-        //         child: Text(
-        //           'Regresar',
-        //           style: TextStyle(
-        //             color: Colors.white,
-        //             fontSize: 15,
-        //             decoration: TextDecoration.underline,
-        //           ),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
       ],
     );
   }
@@ -974,7 +936,6 @@ class _ProcesoVentaState extends State<ProcesoVenta> {
                           CircularProgressIndicator(color: Color(0xFFFFF0C6)),
                     );
                   } else if (snapshot.hasError) {
-                    print('Error: ${snapshot.error}');
                     return Center(
                       child: Text('Error al cargar los datos',
                           style: TextStyle(color: Colors.red)),
