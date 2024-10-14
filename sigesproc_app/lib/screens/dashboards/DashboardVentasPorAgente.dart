@@ -52,7 +52,6 @@ class _DashboardVentasPorAgenteState extends State<DashboardVentasPorAgente> {
                   );
                 } else if (snapshot.hasData) {
                   if (snapshot.data!.length < 5) {
-                    print("No hay suficientes agentes para mostrar.");
                   }
                   return _buildPieChart(snapshot.data!, constraints);
                 } else {

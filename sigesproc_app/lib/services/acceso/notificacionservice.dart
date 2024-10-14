@@ -24,7 +24,6 @@ class NotificationServices {
 
     static Future<void> LeerNotificacion(int napuId) async {
     final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/Leer/$napuId');
-    print('URL de la solicitud: $url'); 
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
     if (response.statusCode != 200) {
@@ -79,37 +78,11 @@ class NotificationServices {
     );
 
     if (response.statusCode == 200) {
-      print('Notificación enviada con éxito');
     } else {
-      print('Error al enviar la notificación: ${response.statusCode}');
       throw Exception('Error al enviar la notificación');
     }
   }
 
-
-  //  static Future<void> insertarToken(int usuaId, String token) async {
-  //   final url = Uri.parse('${ApiService.apiUrl}/NotificacionAlertaPorUsuario/InsertarToken');
-
-  //   final body = jsonEncode({
-  //     'usua_Id': usuaId,
-  //     'tokn_JsonToken': token,
-  //   });
-
-
-  //   final response = await http.post(
-  //     url,
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: body,
-  //   );
-
-  //   Verificar la respuesta
-  //   if (response.statusCode == 200) {
-  //     print('Token insertado/actualizado correctamente');
-  //   } else {
-  //     print('Error al insertar/actualizar el token: ${response.statusCode}');
-  //     throw Exception('Error al insertar/actualizar el token');
-  //   }
-  // }
 
 
 static Future<void> insertarToken(int usuaId, String token) async {
@@ -130,9 +103,7 @@ static Future<void> insertarToken(int usuaId, String token) async {
   );
 
   if (response.statusCode == 200) {
-    print('Token insertado correctamente');
   } else {
-    print('Error al insertar/actualizar el token: ${response.statusCode}');
     throw Exception('Error al insertar/actualizar el token');
   }
 } 
@@ -158,36 +129,6 @@ static Future<List<String>> ListarTokenAdministradores() async {
 
 
 
-// static Future<void> EnviarNotificacionAAdministradores(String title, String body) async {
-//   try {
-//     List<String> adminTokens = await ListarTokenAdministradores();
-
-//     for (String token in adminTokens) {
-//     final url = Uri.parse('https://sigesproc.onrender.com/send-notification');
-
-//       final response = await http.post(
-//       url,
-//       headers: {'Content-Type': 'application/json'},
-//       body: jsonEncode({
-//         'token': [token], 
-//         'data': {
-//           'title': title,
-//           'body': body,
-//         }
-//       }),
-//     );
-
-//       if (response.statusCode != 200) {
-//         print('Error al enviar la notificación a $token: ${response.statusCode}');
-//       } else {
-//         print('Notificación enviada con éxito a $token');
-//       }
-//     }
-//   } catch (e) {
-//     print('Error al enviar la notificación: $e');
-//     throw Exception('Error al enviar la notificación');
-//   }
-// }
  
 static Future<void> EnviarNotificacionAAdministradores(String title, String body) async {
   try {
@@ -224,20 +165,15 @@ static Future<void> EnviarNotificacionAAdministradores(String title, String body
 
       // Verificar el estado de la respuesta
       if (response.statusCode != 200) {
-        print('Error al enviar la notificación: ${response.statusCode}');
-        print('Respuesta del servidor: ${response.body}');
       } else {
-        print('Notificación enviada con éxito a todos los administradores, excepto al dispositivo actual.');
       }
 
       // Ahora manejamos la notificación para el dispositivo actual manualmente
       await _enviarNotificacionManualAlDispositivoActual(title, body);
 
     } else {
-      print('No hay tokens de administradores para enviar la notificación.');
     }
   } catch (e) {
-    print('Error al enviar la notificación: $e');
     throw Exception('Error al enviar la notificación');
   }
 }
@@ -266,9 +202,7 @@ static Future<void> _enviarNotificacionManualAlDispositivoActual(String title, S
     );
 
     if (response.statusCode == 200) {
-      print('Token eliminado en el servidor con éxito');
     } else {
-      print('Error al eliminar el token en el servidor: ${response.statusCode}');
       throw Exception('Error al eliminar el token en el servidor');
     }
   }
@@ -337,20 +271,14 @@ Future<void> enviarNotificacionYRegistrarEnBD(String title, String body, int usu
         );
 
         if (response.statusCode == 200) {
-          print('Notificación enviada y registrada exitosamente');
         } else {
-          print('Error al enviar y registrar la notificación');
-          print('Status Code: ${response.statusCode}');
-          print('Response Body: ${response.body}');
+        
         }
       } else {
-        print('No hay detalles para enviar');
       }
     } else {
-      print('No se encontraron administradores para notificar');
     }
   } catch (e) {
-    print('Error: $e');
   }
 }
 

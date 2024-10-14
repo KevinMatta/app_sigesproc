@@ -42,7 +42,6 @@ class _Top5BancosDashboardState extends State<Top5BancosDashboard> {
                   ),
                 );
               } else if (snapshot.hasError) {
-                print('Error: ${snapshot.error}');
                 return Center(
                   child: Text(
                     'Error: ENTRA AQUI',

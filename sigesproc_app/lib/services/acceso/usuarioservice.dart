@@ -23,7 +23,6 @@ static Future<UsuarioViewModel> Buscar(int usuaId) async {
   final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
   if (response.statusCode == 200) {
-    print("Respuesta del servidor: ${response.body}");
     Map<String, dynamic> jsonResponse = json.decode(response.body);
 
     if (jsonResponse['data'] != null) {
@@ -43,8 +42,7 @@ static Future<int?> Restablecerflutter(int usuaId, String clave, String nuevacla
   final url = Uri.parse('${ApiService.apiUrl}/Usuario/RestablecerFlutter/$usuaId/$clave/$nuevaclave');
   final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
+
 
   if (response.statusCode == 200) {
     final jsonResponse = jsonDecode(response.body);
@@ -52,11 +50,9 @@ static Future<int?> Restablecerflutter(int usuaId, String clave, String nuevacla
     if (jsonResponse['code'] == 200) {
       return jsonResponse['data']['codeStatus'];
     } else {
-      print("Operación fallida: ${jsonResponse['message']}");
       return null;
     }
   } else {
-    print("Error en la solicitud: ${response.statusCode}");
     return null;
   }
 }
@@ -66,8 +62,6 @@ static Future<int?> Restablecerflutter(int usuaId, String clave, String nuevacla
   final url = Uri.parse('${ApiService.apiUrl}/Usuario/RestablecerCorreo/$usuaId/$correo');
   final response = await http.get(url, headers: ApiService.getHttpHeaders());
 
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
 
   if (response.statusCode == 200) {
     final jsonResponse = jsonDecode(response.body);
@@ -75,11 +69,9 @@ static Future<int?> Restablecerflutter(int usuaId, String clave, String nuevacla
     if (jsonResponse['code'] == 200) {
       return jsonResponse['data']['codeStatus'];
     } else {
-      print("Operación fallida: ${jsonResponse['message']}");
       return null;
     }
   } else {
-    print("Error en la solicitud: ${response.statusCode}");
     return null;
   }
 }
