@@ -53,7 +53,6 @@ class _TopWarehousesDashboardState extends State<TopWarehousesDashboard> {
                   child: CircularProgressIndicator(color: Color(0xFFFFE645)),
                 );
               } else if (snapshot.hasError) {
-                print('Error: ${snapshot.error}');
                 return Center(
                   child: Text('Error al cargar los datos',
                       style: TextStyle(color: Colors.white, fontSize: 10)),

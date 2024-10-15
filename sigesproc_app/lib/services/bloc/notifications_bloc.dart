@@ -48,11 +48,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('Notificaciones permitidas');
     } else if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      print('Notificaciones denegadas');
     } else {
-      print('Permiso provisional o sin decidir');
     }
 
     await LocalNotification.requestPermissionLocalNotifications();
@@ -66,9 +63,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     if (token != null) {
       final prefs = PreferenciasUsuario();
       prefs.token = token;
-      print('FCM Token: $token');
     } else {
-      print('No se pudo obtener el token');
     }
   }
 
@@ -81,8 +76,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   var title = message.data['title'];
   var body = message.data['body'];
 
-  print('Título: $title');
-  print('Cuerpo: $body');
 
   if (title != null && body != null) {
     Random random = Random();
@@ -94,7 +87,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       body: body,
     );
   } else {
-    print('Error: El título o el cuerpo son null');
   }
 
 }

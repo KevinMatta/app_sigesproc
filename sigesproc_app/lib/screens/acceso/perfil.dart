@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
 import 'package:sigesproc_app/services/acceso/usuarioservice.dart';
-import 'package:sigesproc_app/models/acceso/usuarioviewmodel.dart';
 import 'package:sigesproc_app/preferences/pref_usuarios.dart';
 import '../.././services/apiservice.dart';
 
@@ -23,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _confirmarclave = false;
   bool _passwordSubmitted = false;
   bool _emailSubmitted = false;
+  bool _isEmailValid = true; // Nueva variable para la validación del email
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _currentPasswordController = TextEditingController();
@@ -270,17 +270,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     String email = _emailController.text;
-    // Validación del formato de correo electrónico
-    bool emailValid =
-        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+    
+    // Validación del formato de correo electrónico para que tenga solo un @ y un dominio válido (.com, .es, etc.)
+    _isEmailValid = RegExp(r'^[^@]+@[^@]+\.[a-zA-Z]{2,}$').hasMatch(email);
 
     if (email.isEmpty) {
-      _showOverlayMessage('El campo es requerido.');
+      setState(() {
+        _isEmailValid = false;
+      });
       return;
     }
 
-    if (!emailValid) {
-      _showOverlayMessage('El correo electrónico no es válido.');
+    if (!_isEmailValid) {
       return;
     }
 
@@ -296,19 +297,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             ElevatedButton(
               onPressed: () async {
-                int? result =
-                    await UsuarioService.Restablecercorreo(usua_Id, email);
+                int? result = await UsuarioService.Restablecercorreo(usua_Id, email);
 
                 Navigator.of(context).pop();
                 if (result != null && result == 1) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Actualizado con Éxito.')),
-                  
                   );
+                  
                   setState(() {
-                    var prefes = PreferenciasUsuario();
+                    var prefs = PreferenciasUsuario();
+                    prefs.userCorreo = email;  // Guardar el nuevo correo en preferencias
                     _correo = email;
-                    _correo= prefes.userCorreo;
+                    _emailController.text = email;
                     _isEditingEmail = false;
                   });
                 } else {
@@ -371,7 +372,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Obteniendo el tamaño de la pantalla
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -415,21 +415,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: screenHeight * 0.02), // Espacio dinámico
+              SizedBox(height: screenHeight * 0.02),
               ClipOval(
                 child: Image(
                   image: _profileImage,
-                  width: screenWidth * 0.3, // Ajuste dinámico
+                  width: screenWidth * 0.3,
                   height: screenWidth * 0.3,
                   fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02), // Espacio dinámico
-
+              SizedBox(height: screenHeight * 0.02),
               Text(
                 _usuaUsuario,
                 style: TextStyle(
-                  fontSize: screenWidth * 0.06, // Ajuste dinámico
+                  fontSize: screenWidth * 0.06,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -437,7 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 _cargo,
                 style: TextStyle(
-                  fontSize: screenWidth * 0.04, // Ajuste dinámico
+                  fontSize: screenWidth * 0.04,
                   color: Colors.grey,
                 ),
               ),
@@ -467,7 +466,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.01), // Espacio dinámico
+              SizedBox(height: screenHeight * 0.01),
               TextField(
                 controller: TextEditingController(text: _telfono),
                 style: TextStyle(color: Colors.white),
@@ -485,7 +484,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.01), // Espacio dinámico
+              SizedBox(height: screenHeight * 0.01),
               Stack(
                 children: [
                   TextField(
@@ -508,8 +507,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: _isEditingEmail ? 2.0 : 1.0,
                         ),
                       ),
-                      errorText: _emailSubmitted && _emailController.text.isEmpty
-                          ? 'El campo es requerido.'
+                      errorText: _emailSubmitted && !_isEmailValid
+                          ? 'El correo electrónico no es válido. Debe contener un @ y un dominio (.com, .es, etc.).'
                           : null,
                     ),
                     onSubmitted: (value) {

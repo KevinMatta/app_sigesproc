@@ -22,7 +22,6 @@ class DashboardService {
     final url =
         Uri.parse('${ApiService.apiUrl}/Dashboard/DashboardTop5Proveedores');
     final response = await http.get(url, headers: ApiService.getHttpHeaders());
-    print(response);
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => ProveedorViewModel.fromJson(json)).toList();
@@ -116,10 +115,8 @@ class DashboardService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      print('Datos recibidos del servicio fletessss: $data');
       return data.map((json) => IncidenceDashboardViewModel.fromJson(json)).toList();
     } else {
-      print('Error al cargar los datos, código: ${response.statusCode}');
       throw Exception('Error al cargar los datos');
     }
   }
