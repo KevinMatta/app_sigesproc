@@ -231,12 +231,15 @@ class _ReestablecerState extends State<Reestablecer> {
         // Variables para almacenar usuaId y correo
         int? usuaId;
         String? correo;
+        String? usuaUsuario;
         
         // Iterar sobre la lista de usuarios
         for (var usuarioItem in usuarios) {
             if (usuarioItem.usuaUsuario == usuario) {
                 usuaId = usuarioItem.usuaId;
                 correo = usuarioItem.correoEmpleado;
+                usuaUsuario = usuarioItem.usuaUsuario;
+
                 
                 print("Usuario encontrado: ID = $usuaId, Correo = $correo");
                 
@@ -245,7 +248,7 @@ class _ReestablecerState extends State<Reestablecer> {
         }
         // Verificar si se encontraron los datos
         if (usuaId != null && correo != null) {
-          response = await LoginService.reestablecer(usuaId, correo);
+          response = await LoginService.reestablecer(usuaId, correo, usuaUsuario!);
           await pref.setString('usuarioReestablecerId', usuaId.toString());
        
           if(response != null)
@@ -326,7 +329,9 @@ class _ReestablecerState extends State<Reestablecer> {
 
 
   Widget botonCancelar() {
-    return ElevatedButton(
+  return Container(
+    margin: EdgeInsets.only(top: 10), // margen superior de 20 píxeles
+    child: ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Color.fromARGB(255, 224, 223, 223),
         padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
@@ -335,7 +340,7 @@ class _ReestablecerState extends State<Reestablecer> {
         ),
       ),
       onPressed: () {
-      Navigator.pop(context);
+        Navigator.pop(context);
       },
       child: Text(
         'Cancelar',
@@ -344,6 +349,8 @@ class _ReestablecerState extends State<Reestablecer> {
           fontSize: 14,
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

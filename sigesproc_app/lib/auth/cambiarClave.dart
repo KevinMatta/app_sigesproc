@@ -325,7 +325,9 @@ Widget confirmartextb() {
   }
 
   Widget botonCancelar() {
-    return ElevatedButton(
+  return Container(
+    margin: EdgeInsets.only(top: 10), // margen superior de 20 píxeles
+    child: ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Color.fromARGB(255, 224, 223, 223),
         padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
@@ -334,7 +336,7 @@ Widget confirmartextb() {
         ),
       ),
       onPressed: () {
-      Navigator.pop(context);
+        Navigator.pop(context);
       },
       child: Text(
         'Cancelar',
@@ -343,6 +345,8 @@ Widget confirmartextb() {
           fontSize: 14,
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
