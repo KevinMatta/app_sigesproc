@@ -1,8 +1,8 @@
 class ApiService {
 
-  static const String apiUrl = 'https://backendsigesproc-production-e0a2.up.railway.app/api';
+  static const String apiUrl = 'https://backendsigesproc-production-0c01.up.railway.app/api';
 
-  static const String url = 'https://backendsigesproc-production-e0a2.up.railway.app';
+  static const String url = 'https://backendsigesproc-production-0c01.up.railway.app';
   
   static const String googleApiKey = 'AIzaSyAOiZCVZgs7nw1PHRUFhEMm995sK4nlsD4';
 
