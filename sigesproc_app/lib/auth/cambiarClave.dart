@@ -25,6 +25,15 @@ class _CambiarClaveState extends State<CambiarClave> {
   bool clavevacio = false;
   bool claveConfirmarvacio = false;
   bool incorrectos = false;
+  
+
+    // Método para validar la contraseña
+  bool validarClave(String clave) {
+    // Expresión regular para validar la contraseña
+    String pattern = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$&*~]).{8,}$';
+    RegExp regExp = RegExp(pattern);
+    return regExp.hasMatch(clave);
+  }
 
 
   Widget _cuadritoflotante() {
@@ -265,6 +274,14 @@ Widget confirmartextb() {
           ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("La contraseña no coincide."),),
     );      
+      return;
+    }
+
+    // Validar los requisitos de la contraseña
+    if (!validarClave(clave)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("La contraseña debe tener una mayúscula, un número, un carácter especial y al menos 8 caracteres.")),
+      );
       return;
     }
 
