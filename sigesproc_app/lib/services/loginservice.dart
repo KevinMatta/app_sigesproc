@@ -58,10 +58,10 @@ class LoginService {
 
 
 
-  static Future<UsuarioViewModel?> reestablecer(int id, String correo) async {
+  static Future<UsuarioViewModel?> reestablecer(int id, String correo, String usuario) async {
     const String apiUrl = ApiService.apiUrl;
 
-    String url = "$apiUrl/Usuario/RestablecerContraWebb/$id/$correo";
+    String url = "$apiUrl/Usuario/RestablecerContraWebb/$id/$correo/$usuario";
     final response = await http.get(
       Uri.parse(url),
       headers: ApiService.getHttpHeaders(),

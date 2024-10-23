@@ -55,7 +55,7 @@ class ProcesoVentaService {
         'btrp_Id': venta.btrpId,
         'btrp_PrecioVenta_Final': venta.btrpPrecioVentaFinal,
         'btrp_FechaVendida': venta.btrpFechaVendida?.toIso8601String(),
-        'clie_Id': venta.clieId,
+        'clie_Id': venta.clieId.toString(),
       }),
     );
 

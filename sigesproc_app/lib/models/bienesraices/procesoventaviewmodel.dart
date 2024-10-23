@@ -128,6 +128,6 @@ class ProcesoVentaViewModel {
 
   @override
   String toString() {
-    return 'procesoventa(btrpId: $btrpId, clieNombreCompleto: $clieNombreCompleto, clieId: $clieId, clieDNI: $clieDNI, clieTelefono: $clieTelefono';
+    return 'procesoventa(btrpId: $btrpId, precioventafinal: $btrpPrecioVentaFinal, clieId: $clieId, fechavendida: $btrpFechaVendida';
   }
 }
