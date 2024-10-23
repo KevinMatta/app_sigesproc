@@ -70,11 +70,9 @@ class _DetalleFleteState extends State<DetalleFlete> {
     _fleteHubService.startConnection().then((_) {
       _fleteHubService.onReceiveUbicacion((emplId, flenId, lat, lng) {
         if (flenId == widget.flenId) {
-          // Asegúrate de que el flenId coincida con el flete actual
           setState(() {
             LatLng nuevaUbicacion = LatLng(lat, lng);
 
-            // Todos los usuarios deben ver la actualización en tiempo real, excepto el propio fletero
             if (emplId != this.emplId) {
               if (ubicacionactual != null) {
                 _actualizarPolyline(ubicacionactual!, nuevaUbicacion,
@@ -135,7 +133,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -147,7 +145,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -158,7 +156,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -208,7 +206,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         }
       }
     } catch (e) {
-      print('Error fetching bodega origen: $e');
+      // print('Error fetching bodega origen: $e');
     }
     return null;
   }
@@ -225,7 +223,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         }
       }
     } catch (e) {
-      print('Error fetching destino: $e');
+      // print('Error fetching destino: $e');
     }
     return null;
   }
@@ -234,7 +232,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
     try {
       final FleteEncabezadoViewModel? flete = await _fleteFuture;
       if (flete == null) {
-        print('No se encontró el flete');
+        // print('No se encontró el flete');
         setState(() {
           estaCargando = false;
         });
@@ -260,13 +258,11 @@ class _DetalleFleteState extends State<DetalleFlete> {
           );
         });
       } else {
-        print('No se recibieron coordenadas para la Polyline.');
+        // print('No se recibieron coordenadas para la Polyline.');
       }
 
       // Si es el fletero, inicia el rastreo en tiempo real
       if (esFletero && flete.flenEstado == false) {
-        print('Obteniendo la ubicación actual para el fletero...');
-
         // Guardar la ubicación inicial por flete
         final pref = await SharedPreferences.getInstance();
         final latitudInicial = pref.getDouble('latitudInicial_${flete.flenId}');
@@ -275,12 +271,11 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
         if (latitudInicial != null && longitudInicial != null) {
           ubicacionInicial = LatLng(latitudInicial, longitudInicial);
-          print(
-              'Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
+          // print('Ubicación inicial cargada para el flete ${flete.flenId}: $ubicacionInicial');
         } else {
           bool ubicacionObtenida = await ubicacionActualizada();
           if (!ubicacionObtenida) {
-            print("No se pudo obtener la ubicación actual.");
+            // print("No se pudo obtener la ubicación actual.");
             setState(() {
               estaCargando = false;
             });
@@ -293,14 +288,13 @@ class _DetalleFleteState extends State<DetalleFlete> {
               'latitudInicial_${flete.flenId}', ubicacionInicial!.latitude);
           await pref.setDouble(
               'longitudInicial_${flete.flenId}', ubicacionInicial!.longitude);
-          print(
-              'Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
+          // print('Ubicación inicial guardada para el flete ${flete.flenId}: $ubicacionInicial');
         }
 
         if (ubicacionactual == null) {
           bool ubicacionObtenida = await ubicacionActualizada();
           if (!ubicacionObtenida) {
-            print("No se pudo obtener la ubicación actual.");
+            // print("No se pudo obtener la ubicación actual.");
             setState(() {
               estaCargando = false;
             });
@@ -356,7 +350,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
         estaCargando = false;
       });
     } catch (e) {
-      print('Error en iniciarMapa: $e');
+      // print('Error en iniciarMapa: $e');
       setState(() {
         estaCargando = false;
       });
@@ -364,23 +358,22 @@ class _DetalleFleteState extends State<DetalleFlete> {
   }
 
   Future<void> _generarRutas(FleteEncabezadoViewModel flete) async {
-    print('Obteniendo origen y destino...');
     LatLng? inicio = await _obtenerOrigen();
     LatLng? destino = await _obtenerDestino();
 
     if (inicio != null && destino != null) {
-      print('Origen: $inicio, Destino: $destino');
+      // print('Origen: $inicio, Destino: $destino');
       final coordinates = await polylinePuntos(inicio, destino);
       final id = PolylineId('polyline_azul_${widget.flenId}');
       await generarPolylineporPuntos(coordinates, Colors.blue, id.toString(),
           1); // zIndex para la línea azul
-      print('Polyline azul generada con ID: $id');
     } else {
-      print('Ubicaciones inválidas para la generación de rutas.');
+      // print('Ubicaciones inválidas para la generación de rutas.');
     }
   }
 
- void onReceiveUbicacion(int emplId, int flenId, double lat, double lng) async {
+  void onReceiveUbicacion(
+      int emplId, int flenId, double lat, double lng) async {
     // Verificamos que la actualización sea para el flete correcto (el mismo flenId que el de la vista actual)
     if (flenId != widget.flenId) {
       return; // Ignorar la actualización si no es para el flete actual
@@ -391,20 +384,21 @@ class _DetalleFleteState extends State<DetalleFlete> {
 
     // Verificar si el flete ha sido completado para detener la actualización
     if (flete == null || flete.flenEstado == true) {
-      print(
-          'El flete ya ha sido recibido, deteniendo la actualización de la polyline.');
+      // print('El flete ya ha sido recibido, deteniendo la actualización de la polyline.');
       locationSubscription?.cancel();
       return;
     }
 
     // Crear una nueva ubicación a partir de los datos recibidos
     LatLng nuevaUbicacion = LatLng(lat, lng);
-    print("Ubicación recibida: EmplId: $emplId, FlenId: $flenId, Lat: $lat, Lng: $lng");
+    // print("Ubicación recibida: EmplId: $emplId, FlenId: $flenId, Lat: $lat, Lng: $lng");
 
     setState(() {
       if (emplId != this.emplId) {
         // Actualizar la polyline solo si no es el fletero actual (emplId diferente)
-        polylines[PolylineId('realPolyline_${widget.flenId}')]?.points.add(nuevaUbicacion);
+        polylines[PolylineId('realPolyline_${widget.flenId}')]
+            ?.points
+            .add(nuevaUbicacion);
       }
       ubicacionactual = nuevaUbicacion;
     });
@@ -1015,7 +1009,7 @@ class _DetalleFleteState extends State<DetalleFlete> {
           currentLocation.latitude!,
           currentLocation.longitude!,
         );
-        print('ubi actial $ubicacionactual');
+        // print('ubi actial $ubicacionactual');
       });
       return true;
     }
@@ -1026,24 +1020,17 @@ class _DetalleFleteState extends State<DetalleFlete> {
     final polylines = PolylinePoints();
 
     final result = await polylines.getRouteBetweenCoordinates(
-      gmak, // Tu API key de Google Maps
+      gmak, // API key de Google Maps
       PointLatLng(inicio.latitude, inicio.longitude),
       PointLatLng(destino.latitude, destino.longitude),
-      travelMode:
-          TravelMode.driving, // Asegúrate de usar el modo de viaje adecuado
+      travelMode: TravelMode.driving,
     );
-    print('resultado polylinePuntos: $result');
-    print('estado: ${result.status}');
-    print('Error POLYLINEPUNTOS: ${result.errorMessage}');
-    print('numero de puntos: ${result.points.length}');
 
     if (result.points.isNotEmpty) {
       return result.points
           .map((point) => LatLng(point.latitude, point.longitude))
           .toList();
     } else {
-      print(
-          'Error al obtener la polyline de Google Maps: ${result.errorMessage}');
       return [];
     }
   }

@@ -16,16 +16,16 @@ class FleteHubService {
 
   FleteHubService() {
     connection.onreconnecting((error) {
-      print("SignalR se está reconectando debido a: $error");
+      // print("SignalR se está reconectando debido a: $error");
     });
 
     connection.onreconnected((connectionId) {
-      print("SignalR reconectado. Id de conexión: $connectionId");
+      // print("SignalR reconectado. Id de conexión: $connectionId");
       // Puedes intentar obtener las polylines nuevamente o reintentar solicitudes que fallaron
     });
 
     connection.onclose((error) {
-      print("Conexión cerrada. Error: $error");
+      // print("Conexión cerrada. Error: $error");
       Future.delayed(Duration(seconds: 5), () => startConnection());
     });
   }
@@ -35,15 +35,15 @@ class FleteHubService {
 
     if (connection.state == HubConnectionState.connecting ||
         connection.state == HubConnectionState.reconnecting) {
-      print("La conexión ya está en progreso o en estado de reconexión.");
+      // print("La conexión ya está en progreso o en estado de reconexión.");
       return;
     }
 
     try {
       await connection.start();
-      print("Conexión a SignalR iniciada");
+      // print("Conexión a SignalR iniciada");
     } catch (e) {
-      print("Error al iniciar la conexión a SignalR: $e");
+      // print("Error al iniciar la conexión a SignalR: $e");
       Future.delayed(Duration(seconds: 5), () => startConnection());
     }
   }
@@ -51,7 +51,7 @@ class FleteHubService {
   // Método para asegurar que la conexión esté en el estado 'Connected'
   Future<void> ensureConnected() async {
     if (connection.state != HubConnectionState.connected) {
-      print("La conexión no está en estado 'Connected'. Reintentando...");
+      // print("La conexión no está en estado 'Connected'. Reintentando...");
       await startConnection();
     }
   }
@@ -67,14 +67,13 @@ class FleteHubService {
 
   Future<void> actualizarUbicacion(
       int emplId, int flenId, LatLng ubicacion) async {
-    print(
-        'Intentando actualizar ubicación en SignalR: EmplId: $emplId, FlenId: $flenId, Ubicación: $ubicacion');
+    // print('Intentando actualizar ubicación en SignalR: EmplId: $emplId, FlenId: $flenId, Ubicación: $ubicacion');
     try {
       await connection.invoke("ActualizarUbicacion",
           args: [emplId, flenId, ubicacion.latitude, ubicacion.longitude]);
-      print('Ubicación actualizada en SignalR: $ubicacion');
+      // print('Ubicación actualizada en SignalR: $ubicacion');
     } catch (e) {
-      print('Error al actualizar ubicación en SignalR: $e');
+      // print('Error al actualizar ubicación en SignalR: $e');
     }
   }
 
@@ -96,24 +95,22 @@ class FleteHubService {
   Future<void> actualizarPolyline(int emplId, int flenId,
       List<double> latitudes, List<double> longitudes) async {
     if (latitudes.isEmpty || longitudes.isEmpty) {
-      print("Error: Las coordenadas son nulas o vacías.");
+      // print("Error: Las coordenadas son nulas o vacías.");
       return;
     }
 
     if (latitudes.length != longitudes.length) {
-      print(
-          "Error: Las listas de latitudes y longitudes deben tener el mismo tamaño.");
+      // print("Error: Las listas de latitudes y longitudes deben tener el mismo tamaño.");
       return;
     }
 
     try {
-      print(
-          'Enviando polyline a SignalR: EmplId: $emplId, FlenId: $flenId, Coordenadas: $latitudes, $longitudes');
+      // print('Enviando polyline a SignalR: EmplId: $emplId, FlenId: $flenId, Coordenadas: $latitudes, $longitudes');
       await connection.invoke("ActualizarPolyline",
           args: [emplId, flenId, latitudes, longitudes]);
-      print('Polyline actualizada en SignalR');
+      // print('Polyline actualizada en SignalR');
     } catch (e) {
-      print('Error al actualizar polyline en SignalR: $e');
+      // print('Error al actualizar polyline en SignalR: $e');
     }
   }
 
@@ -139,8 +136,7 @@ class FleteHubService {
 
   Future<List<LatLng>?> obtenerPolyline(int emplId, int flenId) async {
     try {
-      print(
-          'Solicitando polyline desde el servidor para emplId: $emplId y flenId: $flenId');
+      // print('Solicitando polyline desde el servidor para emplId: $emplId y flenId: $flenId');
       final result =
           await connection.invoke('ObtenerPolyline', args: [emplId, flenId]);
 
@@ -154,7 +150,7 @@ class FleteHubService {
         return polylineCoordinates;
       }
     } catch (e) {
-      print('Error al obtener Polyline desde SignalR: $e');
+      // print('Error al obtener Polyline desde SignalR: $e');
     }
     return null;
   }

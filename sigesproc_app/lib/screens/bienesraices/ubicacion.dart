@@ -40,7 +40,7 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // Cargamos el userId desde las preferencias.
+    _loadUserId(); 
     _loadUserProfileData();
     _destinoFuture = _fetchDestino(widget.btrpId);
   }
@@ -67,9 +67,8 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
-      print('No se encontró token en las preferencias.');
+      // print('No se encontró token en las preferencias.');
     }
   }
 
@@ -81,7 +80,7 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
+      // print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -91,9 +90,8 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
 
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
+      // print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -111,7 +109,7 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
         }
       }
     } catch (e) {
-      print('Error fetching destino: $e');
+      // print('Error fetching destino: $e');
     }
     return null;
   }
@@ -125,9 +123,9 @@ class _UbicacionBienRaizState extends State<UbicacionBienRaiz> {
           children: [
             Image.asset(
               'lib/assets/logo-sigesproc.png',
-              height: 50, // Ajusta la altura si es necesario
+              height: 50, 
             ),
-            SizedBox(width: 2), // Reduce el espacio entre el logo y el texto
+            SizedBox(width: 2), 
             Expanded(
               child: Text(
                 'SIGESPROC',

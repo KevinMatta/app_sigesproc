@@ -66,9 +66,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
 
     if (token != null && token.isNotEmpty) {
       await NotificationServices.insertarToken(userId!, token);
-      print('Token insertado después del inicio de sesión: $token');
     } else {
-      print('No se encontró token en las preferencias.');
     }
   }
 
@@ -80,7 +78,6 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
         _unreadCount = notifications.where((n) => n.leida == "No Leida").length;
       });
     } catch (e) {
-      print('Error al cargar notificaciones: $e');
     }
   }
 
@@ -92,9 +89,7 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
     try {
       UsuarioViewModel usuario = await UsuarioService.Buscar(usua_Id);
 
-      print('Datos del usuario cargados: ${usuario.usuaUsuario}');
     } catch (e) {
-      print("Error al cargar los datos del usuario: $e");
     }
   }
 
@@ -113,10 +108,8 @@ class _InicioState extends State<Inicio> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     var prefs = PreferenciasUsuario();
-    print('Token:' + prefs.token);
 
     context.read<NotificationsBloc>().requestPermision();
-    print('Token después de solicitar permisos: ' + prefs.token);
 
     return Scaffold(
       appBar: AppBar(
