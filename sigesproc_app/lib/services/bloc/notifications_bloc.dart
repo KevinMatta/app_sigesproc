@@ -72,7 +72,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   void handleRemoteMessage(RemoteMessage message) {
-  // Asegúrate de que el mensaje contiene los datos correctos
   var title = message.data['title'];
   var body = message.data['body'];
 
@@ -92,3 +91,5 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 }
 
 }
+
+

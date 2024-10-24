@@ -23,11 +23,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _passwordSubmitted = false;
   bool _emailSubmitted = false;
   bool _isEmailValid = true; // Nueva variable para la validación del email
+  bool _showPasswordRequirements = false; // Controla cuándo mostrar los requisitos
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _currentPasswordController = TextEditingController();
   TextEditingController _newPasswordController = TextEditingController();
   TextEditingController _confirmPasswordController = TextEditingController();
+
+  // Expresión regular para validar que la contraseña contenga al menos una mayúscula, un número y un carácter especial
+  RegExp passwordRegExp = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
+  bool hasUpperCase = false;
+  bool hasNumber = false;
+  bool hasSpecialCharacter = false;
+  bool hasMinLength = false;
 
   @override
   void initState() {
@@ -72,6 +80,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _validatePassword(String value) {
+    setState(() {
+      hasUpperCase = value.contains(RegExp(r'[A-Z]'));
+      hasNumber = value.contains(RegExp(r'\d'));
+      hasSpecialCharacter = value.contains(RegExp(r'[!@#\$&*~]'));
+      hasMinLength = value.length >= 8;
+    });
+  }
+
+  void _resetPasswordValidation() {
+    setState(() {
+      _showPasswordRequirements = false;
+      hasUpperCase = false;
+      hasNumber = false;
+      hasSpecialCharacter = false;
+      hasMinLength = false;
+    });
+  }
+
   void _showChangePasswordModal() {
     showDialog(
       context: context,
@@ -109,17 +136,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       labelText: 'Nueva contraseña',
                       labelStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       errorText: _passwordSubmitted &&
-                              _newPasswordController.text.isEmpty
-                          ? 'El campo es requerido.'
+                              (_newPasswordController.text.isEmpty ||
+                               !passwordRegExp.hasMatch(_newPasswordController.text))
+                          ? 'Debe incluir al menos 8 caracteres, una letra mayúscula, un número y un carácter especial.'
                           : null,
                     ),
+                    onTap: () {
+                      setState(() {
+                        _showPasswordRequirements = true; // Mostrar requerimientos cuando el usuario toca el campo
+                      });
+                    },
                     onChanged: (value) {
+                      _validatePassword(value);
                       setState(() {
                         _machclave = _newPasswordController.text !=
                             _confirmPasswordController.text;
                       });
                     },
                   ),
+                  // Mostrar los requerimientos solo si el usuario ha empezado a escribir
+                  if (_showPasswordRequirements)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPasswordRequirement('Una letra mayúscula', hasUpperCase),
+                        _buildPasswordRequirement('Un número', hasNumber),
+                        _buildPasswordRequirement('Un carácter especial', hasSpecialCharacter),
+                        _buildPasswordRequirement('Mínimo 8 caracteres', hasMinLength),
+                      ],
+                    ),
                   TextField(
                     controller: _confirmPasswordController,
                     obscureText: true,
@@ -159,7 +204,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (_currentPasswordController.text.isEmpty ||
                               _newPasswordController.text.isEmpty ||
                               _confirmPasswordController.text.isEmpty ||
-                              _machclave) {
+                              _machclave ||
+                              !passwordRegExp.hasMatch(_newPasswordController.text)) {
                             return;
                           }
 
@@ -178,10 +224,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     content:
                                         Text('Actualizado con Éxito.')),
                               );
-                              // Limpiar los campos de contraseñas
+                              // Limpiar los campos de contraseñas y restablecer la validación
                               _currentPasswordController.clear();
                               _newPasswordController.clear();
                               _confirmPasswordController.clear();
+                              _resetPasswordValidation();
                               setState(() {
                                 _passwordSubmitted = false;
                               });
@@ -230,6 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _newPasswordController.clear();
                             _confirmPasswordController.clear();
                             _passwordSubmitted = false;
+                            _resetPasswordValidation(); // Limpiar la validación al cancelar
                           });
                           Navigator.of(context).pop();
                         },
@@ -261,6 +309,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildPasswordRequirement(String text, bool isValid) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        children: [
+          Icon(
+            isValid ? Icons.check_circle : Icons.cancel,
+            color: isValid ? Colors.green : Colors.red,
+            size: 18,
+          ),
+          SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              color: isValid ? Colors.green : Colors.red,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
