@@ -127,7 +127,7 @@ class FleteEncabezadoService {
       body: body,
     );
 
-    // print('Response body editar: ${response.body}');
+    print('Response body editar flete: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
