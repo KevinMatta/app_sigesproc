@@ -30,7 +30,7 @@ class _CambiarClaveState extends State<CambiarClave> {
     // Método para validar la contraseña
   bool validarClave(String clave) {
     // Expresión regular para validar la contraseña
-    String pattern = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$&*~]).{8,}$';
+    String pattern = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$&*~"\(\)\+\-,\.\/:;<=>\?@\[\]\^_`\{\|\}]).{8,}$';
     RegExp regExp = RegExp(pattern);
     return regExp.hasMatch(clave);
   }
