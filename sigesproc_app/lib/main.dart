@@ -81,15 +81,12 @@ class MyApp extends StatelessWidget {
 // Configuración de Firebase Messaging para manejar notificaciones
 void setupFirebaseMessaging() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Mensaje recibido en primer plano: ${message.messageId}');
 
     // Manejamos todas las notificaciones manualmente en primer plano
     if (message.notification != null) {
       var title = message.notification?.title ?? 'Título predeterminado';
       var body = message.notification?.body ?? 'Mensaje predeterminado';
 
-      print('Título recibido: $title');
-      print('Cuerpo recibido: $body');
 
       // Mostrar notificación localmente con flutter_local_notifications
       Random random = Random();
@@ -104,8 +101,6 @@ void setupFirebaseMessaging() {
       var title = message.data['title'] ?? 'Título predeterminado';
       var body = message.data['body'] ?? 'Mensaje predeterminado';
 
-      print('Título de data recibido: $title');
-      print('Cuerpo de data recibido: $body');
 
       // Mostrar notificación localmente con flutter_local_notifications
       Random random = Random();
@@ -119,25 +114,20 @@ void setupFirebaseMessaging() {
   });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print('App abierta desde la notificación: ${message.messageId}');
     // Maneja la lógica cuando la app se abre desde una notificación
   });
 }
 
 // Función para manejar mensajes en segundo plano
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('Mensaje recibido en segundo plano: ${message.messageId}');
 
   if (message.notification != null) {
     // Firebase ya maneja la notificación automáticamente en segundo plano
-    print('Notificación manejada automáticamente por Firebase.');
   } else if (message.data.isNotEmpty) {
     // Si solo se envía data sin notification, manejamos manualmente la notificación
     var title = message.data['title'] ?? 'Título predeterminado';
     var body = message.data['body'] ?? 'Mensaje predeterminado';
 
-    print('Título de data recibido (background): $title');
-    print('Cuerpo de data recibido (background): $body');
 
     Random random = Random();
     var id = random.nextInt(100000);
