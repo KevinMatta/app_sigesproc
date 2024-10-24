@@ -1655,8 +1655,8 @@ class _VerificarFleteState extends State<VerificarFlete>
         await FleteDetalleService.editarFleteDetalle(item);
       }
 
-      // print('fleetevenviando $flete');
       bool hayNoVerificados = await _verificarInsumosYEquiposNoRecibidos();
+      // print('fleetevenviando $flete');
       await FleteEncabezadoService.editarFlete(flete);
 
       if (!hayNoVerificados) {
@@ -1732,9 +1732,9 @@ class _VerificarFleteState extends State<VerificarFlete>
       await FleteControlCalidadService.insertarIncidencia(incidencia);
       if (guardarya) {
         await _enviarNotificacionFleteIncidencias();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Insertado con Éxito.')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Insertado con Éxito.')),
+        // );
       }
     } catch (e) {
       // print('Error al guardar la incidencia: $e');
